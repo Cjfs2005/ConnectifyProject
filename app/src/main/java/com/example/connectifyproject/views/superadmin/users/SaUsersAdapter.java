@@ -1,5 +1,6 @@
 package com.example.connectifyproject.views.superadmin.users;
 
+import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -7,6 +8,7 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.connectifyproject.R;
@@ -27,7 +29,8 @@ public class SaUsersAdapter extends RecyclerView.Adapter<SaUsersAdapter.VH> {
 
     private final List<User> full = new ArrayList<>();
     private final List<User> shown = new ArrayList<>();
-    private final OnUserClick listener;
+    @SuppressWarnings("unused")
+    private final OnUserClick listener; // mantenido por compatibilidad
 
     private EnumSet<Role> roleFilter = EnumSet.of(Role.GUIDE, Role.ADMIN, Role.CLIENT);
     private String query = "";
@@ -63,7 +66,6 @@ public class SaUsersAdapter extends RecyclerView.Adapter<SaUsersAdapter.VH> {
 
         for (User u : full) {
             boolean roleOk = roleFilter.contains(u.getRole());
-
             boolean textOk = q.isEmpty()
                     || contains(u.getName(), q)
                     || contains(u.getDni(), q)
@@ -72,13 +74,21 @@ public class SaUsersAdapter extends RecyclerView.Adapter<SaUsersAdapter.VH> {
             if (roleOk && textOk) shown.add(u);
         }
 
-        // Orden alfabético por nombre (por defecto y después de filtrar)
         Collections.sort(shown, byNameComparator);
         notifyDataSetChanged();
     }
 
     private boolean contains(String value, String q) {
         return value != null && value.toLowerCase(Locale.ROOT).contains(q);
+    }
+
+    // <-- NUEVO: calcula la inicial del nombre
+    private String initialOf(String name) {
+        if (name == null) return "?";
+        String t = name.trim();
+        if (t.isEmpty()) return "?";
+        int cp = t.codePointAt(0);
+        return new String(Character.toChars(Character.toUpperCase(cp)));
     }
 
     @NonNull @Override
@@ -92,10 +102,11 @@ public class SaUsersAdapter extends RecyclerView.Adapter<SaUsersAdapter.VH> {
     public void onBindViewHolder(@NonNull VH h, int position) {
         User u = shown.get(position);
 
-        h.tvAvatar.setText(u.getInitial());
+        // Antes: h.tvAvatar.setText(u.getInitial());
+        h.tvAvatar.setText(initialOf(u.getName()));
         h.tvName.setText(u.getName());
 
-        // Construye "DNI • Empresa" (si falta uno, no muestra el separador)
+        // Subtítulo "DNI • Empresa"
         StringBuilder sub = new StringBuilder();
         if (u.getDni() != null && !u.getDni().isEmpty()) sub.append(u.getDni());
         if (u.getCompany() != null && !u.getCompany().isEmpty()) {
@@ -105,7 +116,17 @@ public class SaUsersAdapter extends RecyclerView.Adapter<SaUsersAdapter.VH> {
         h.tvSub.setText(sub.toString());
 
         h.btnProfile.setOnClickListener(v -> {
-            if (listener != null) listener.onProfile(u);
+            Bundle args = new Bundle();
+            args.putString("name",    u.getName());
+            args.putString("dni",     u.getDni());
+            args.putString("company", u.getCompany());
+            args.putString("role",    u.getRole() != null ? u.getRole().name() : "");
+            if (u.getBirth()    != null) args.putString("birth",    u.getBirth());
+            if (u.getEmail()    != null) args.putString("email",    u.getEmail());
+            if (u.getPhone()    != null) args.putString("phone",    u.getPhone());
+            if (u.getAddress()  != null) args.putString("address",  u.getAddress());
+            if (u.getPhotoUri() != null) args.putString("photoUri", u.getPhotoUri());
+            Navigation.findNavController(v).navigate(R.id.saUserDetailFragment, args);
         });
     }
 
@@ -117,9 +138,9 @@ public class SaUsersAdapter extends RecyclerView.Adapter<SaUsersAdapter.VH> {
         ImageButton btnProfile;
         VH(@NonNull View itemView) {
             super(itemView);
-            tvAvatar = itemView.findViewById(R.id.tvAvatar);
-            tvName   = itemView.findViewById(R.id.tvName);
-            tvSub    = itemView.findViewById(R.id.tvSub);
+            tvAvatar   = itemView.findViewById(R.id.tvAvatar);
+            tvName     = itemView.findViewById(R.id.tvName);
+            tvSub      = itemView.findViewById(R.id.tvSub);
             btnProfile = itemView.findViewById(R.id.btnProfile);
         }
     }
