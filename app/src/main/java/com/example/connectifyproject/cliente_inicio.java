@@ -20,7 +20,7 @@ public class cliente_inicio extends AppCompatActivity implements cliente_fragmen
     private static final String TOUR_TITLE = "Tour histórico por Lima";
     private static final String TOUR_COMPANY = "Lima Tours";
     private static final String TOUR_DURATION = "Duración: 5 hrs 30 min. Fecha: 23/09/2025.";
-    private static final int TOUR_PROGRESS = 30; // 30% completado
+    private static final int TOUR_PROGRESS = 10; // 10% completado - Estado inicial
     
     // Views
     private TextView tvTourTitle;
@@ -80,13 +80,13 @@ public class cliente_inicio extends AppCompatActivity implements cliente_fragmen
     }
     
     private void setupProgressState() {
-        // Estado actual: En curso (por eso "Inicio" y "En curso" están activos, "Fin" inactivo)
+        // Estado actual: Inicio (solo "Inicio" está activo, "En curso" y "Fin" inactivos)
         tvInicio.setTextColor(getResources().getColor(R.color.cliente_progress_active, null));
-        tvEnCurso.setTextColor(getResources().getColor(R.color.cliente_progress_active, null));
+        tvEnCurso.setTextColor(getResources().getColor(R.color.cliente_progress_inactive, null));
         tvFin.setTextColor(getResources().getColor(R.color.cliente_progress_inactive, null));
         
-        // Los círculos ya están configurados en el XML
-        // La línea de progreso muestra hasta "En curso" (50% aproximadamente)
+        // Los círculos ya están configurados en el XML para mostrar solo "Inicio" activo
+        // La línea de progreso muestra solo hasta el primer círculo (estado inicial)
     }
     
     private void setupMenuFragment() {

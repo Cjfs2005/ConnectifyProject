@@ -16,7 +16,7 @@
     
     <!-- Cliente colors -->
     <color name="cliente_progress_active">#7C4DFF</color>
-    <color name="cliente_progress_inactive">#E0E0E0</color>
+    <color name="cliente_progress_inactive">#BDBDBD</color>
     <color name="cliente_qr_bg">#E8F5E8</color>
     <color name="cliente_qr_border">#4CAF50</color>
 </resources>
