@@ -44,6 +44,7 @@
         <activity android:name=".guia_check_out" android:exported="false" />
         <activity android:name=".guia_tour_map" android:exported="false" />
         <service android:name=".service.GuiaLocationService" android:enabled="true" android:exported="true" android:foregroundServiceType="location" />
+        <activity android:name=".guia_perfil" android:exported="false" />
 
         <!-- Pantallas por rol -->
         <activity android:name=".sa_users_view" android:exported="false" />

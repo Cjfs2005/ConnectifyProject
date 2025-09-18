@@ -84,7 +84,7 @@ public class guia_assigned_tours extends AppCompatActivity implements GuiaDateFi
             } else if (id == R.id.nav_tours) {
                 return true;
             } else if (id == R.id.nav_perfil) {
-                Toast.makeText(this, "Perfil seleccionado", Toast.LENGTH_SHORT).show();
+                startActivity(new Intent(this, guia_perfil.class)); // Placeholder, renombrado
                 return true;
             }
             return false;
