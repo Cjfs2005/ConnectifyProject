@@ -109,8 +109,9 @@ public class cliente_inicio extends AppCompatActivity implements cliente_fragmen
         });
         
         btnNotifications.setOnClickListener(v -> {
-            // TODO: Mostrar notificaciones
-            Toast.makeText(this, "Próximamente: Notificaciones", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(this, cliente_notificaciones.class);
+            intent.putExtra("origin_activity", "cliente_inicio");
+            startActivity(intent);
         });
     }
     
@@ -120,12 +121,12 @@ public class cliente_inicio extends AppCompatActivity implements cliente_fragmen
             // Ya estamos en inicio
             return true;
         } else if (itemId == R.id.nav_reservas) {
-            // TODO: Navegar a reservas
-            Toast.makeText(this, "Próximamente: Reservas", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(this, cliente_reservas.class);
+            startActivity(intent);
             return true;
         } else if (itemId == R.id.nav_tours) {
-            // TODO: Navegar a tours disponibles
-            Toast.makeText(this, "Próximamente: Tours disponibles", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(this, cliente_tours.class);
+            startActivity(intent);
             return true;
         } else if (itemId == R.id.nav_chat) {
             // Navegar a chat
@@ -133,8 +134,8 @@ public class cliente_inicio extends AppCompatActivity implements cliente_fragmen
             startActivity(intent);
             return true;
         } else if (itemId == R.id.nav_perfil) {
-            // TODO: Navegar a perfil
-            Toast.makeText(this, "Próximamente: Perfil", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(this, cliente_perfil.class);
+            startActivity(intent);
             return true;
         }
         return false;

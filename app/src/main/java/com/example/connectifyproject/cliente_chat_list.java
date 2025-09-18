@@ -1,9 +1,11 @@
 package com.example.connectifyproject;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.widget.EditText;
+import android.widget.ImageButton;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -16,6 +18,7 @@ public class cliente_chat_list extends AppCompatActivity implements cliente_frag
     private RecyclerView recyclerView;
     private ChatCompanyAdapter adapter;
     private EditText searchEditText;
+    private ImageButton btnNotifications;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,11 +29,13 @@ public class cliente_chat_list extends AppCompatActivity implements cliente_frag
         setupRecyclerView();
         setupSearch();
         setupMenuFragment();
+        setupClickListeners();
     }
 
     private void initViews() {
         recyclerView = findViewById(R.id.recyclerView_chats);
         searchEditText = findViewById(R.id.editText_search);
+        btnNotifications = findViewById(R.id.btn_notifications);
     }
 
     private void setupRecyclerView() {
@@ -54,6 +59,14 @@ public class cliente_chat_list extends AppCompatActivity implements cliente_frag
         });
     }
 
+    private void setupClickListeners() {
+        btnNotifications.setOnClickListener(v -> {
+            Intent intent = new Intent(this, cliente_notificaciones.class);
+            intent.putExtra("origin_activity", "cliente_chat_list");
+            startActivity(intent);
+        });
+    }
+
     private void setupMenuFragment() {
         cliente_fragment_menu menuFragment = new cliente_fragment_menu();
         menuFragment.setOnMenuItemSelectedListener(this);
@@ -69,21 +82,24 @@ public class cliente_chat_list extends AppCompatActivity implements cliente_frag
 
     @Override
     public boolean onMenuItemSelected(int itemId) {
-        // Navegación será implementada según sea necesario
         if (itemId == R.id.nav_inicio) {
-            // Navegar a inicio
+            Intent intent = new Intent(this, cliente_inicio.class);
+            startActivity(intent);
             return true;
         } else if (itemId == R.id.nav_reservas) {
-            // Navegar a reservas
+            Intent intent = new Intent(this, cliente_reservas.class);
+            startActivity(intent);
             return true;
         } else if (itemId == R.id.nav_tours) {
-            // Navegar a tours
+            Intent intent = new Intent(this, cliente_tours.class);
+            startActivity(intent);
             return true;
         } else if (itemId == R.id.nav_chat) {
             // Ya estamos en chat
             return true;
         } else if (itemId == R.id.nav_perfil) {
-            // Navegar a perfil
+            Intent intent = new Intent(this, cliente_perfil.class);
+            startActivity(intent);
             return true;
         }
         return false;

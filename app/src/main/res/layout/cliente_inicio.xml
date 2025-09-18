@@ -11,13 +11,14 @@
         android:id="@+id/toolbar"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:background="?attr/colorSurface"
-        android:elevation="0dp"
+        android:background="?attr/colorPrimary"
+        android:theme="@style/ThemeOverlay.Material3.Dark.ActionBar"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:title="@string/cliente_inicio_title"
         app:titleTextAppearance="@style/TextAppearance.Material3.TitleLarge"
+        app:titleTextColor="?attr/colorOnPrimary"
         app:titleCentered="false">
 
         <ImageButton
@@ -28,7 +29,8 @@
             android:layout_marginEnd="8dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Notificaciones"
-            android:src="@drawable/ic_notifications_24"
+            android:src="@drawable/ic_bell"
+            app:tint="?attr/colorOnPrimary"
             style="@style/Widget.Material3.Button.IconButton" />
 
     </com.google.android.material.appbar.MaterialToolbar>

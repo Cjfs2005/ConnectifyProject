@@ -16,7 +16,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:title="Chat"
+        app:title="Tours"
         app:titleTextColor="?attr/colorOnPrimary">
 
         <!-- Notifications Button -->
@@ -33,45 +33,18 @@
 
     </com.google.android.material.appbar.MaterialToolbar>
 
-    <!-- Search Bar -->
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/til_search"
-        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-        android:layout_width="match_parent"
+    <!-- Content Area -->
+    <TextView
+        android:id="@+id/tv_content"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="16dp"
-        android:hint="Buscar empresas..."
-        app:boxCornerRadiusBottomEnd="8dp"
-        app:boxCornerRadiusBottomStart="8dp"
-        app:boxCornerRadiusTopEnd="8dp"
-        app:boxCornerRadiusTopStart="8dp"
-        app:endIconMode="clear_text"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/toolbar"
-        app:startIconDrawable="@drawable/ic_search">
-
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/editText_search"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="text" />
-
-    </com.google.android.material.textfield.TextInputLayout>
-
-    <!-- Chats RecyclerView -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerView_chats"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:clipToPadding="false"
-        android:paddingTop="8dp"
-        android:paddingBottom="8dp"
+        android:text="Próximamente: Tours disponibles"
+        android:textAppearance="@style/TextAppearance.Material3.HeadlineSmall"
+        android:textColor="?attr/colorOnSurface"
         app:layout_constraintBottom_toTopOf="@id/menu_fragment_container"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/til_search"
-        tools:listitem="@layout/item_chat_company" />
+        app:layout_constraintTop_toBottomOf="@id/toolbar" />
 
     <!-- Menu Fragment Container -->
     <FrameLayout

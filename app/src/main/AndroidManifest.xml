@@ -40,5 +40,11 @@
         <!-- Chat Activities -->
         <activity android:name=".cliente_chat_list" android:exported="false" />
         <activity android:name=".cliente_chat_conversation" android:exported="false" />
+        
+        <!-- Cliente Navbar Activities -->
+        <activity android:name=".cliente_perfil" android:exported="false" />
+        <activity android:name=".cliente_tours" android:exported="false" />
+        <activity android:name=".cliente_reservas" android:exported="false" />
+        <activity android:name=".cliente_notificaciones" android:exported="false" />
     </application>
 </manifest>
