@@ -34,6 +34,19 @@
     <string name="placeholder_title">Pantalla en construcción</string>
     <string name="placeholder_message">Pronto verás aquí la funcionalidad de %1$s.</string>
 
+    <!-- Profile -->
+    <string name="profile_edit_title">Editar perfil de la empresa</string>
+    <string name="profile_company_logo">Logo de la empresa</string>
+    <string name="profile_change_logo">Cambiar logo</string>
+    <string name="profile_email_hint">Correo electrónico</string>
+    <string name="profile_phone_hint">Teléfono</string>
+    <string name="profile_location_hint">Ubicación de su oficina</string>
+    <string name="profile_search_placeholder">Buscar por nombres o direcciones</string>
+    <string name="profile_photos_section">Añadir fotos promocionales</string>
+    <string name="profile_save">Guardar</string>
+    <string name="profile_add_photos">Añadir fotos promocionales</string>
+    <string name="profile_search_hint">Buscar por nombres o direcciones</string>
+
     <!-- Popup menu -->
     <string name="menu_mark_all_read">Marcar todo como leído</string>
     <string name="menu_preferences">Preferencias</string>
