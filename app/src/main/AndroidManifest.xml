@@ -34,10 +34,17 @@
         <activity android:name=".admin_chat" android:exported="false" />
         <activity android:name=".admin_pagos" android:exported="false" />
         <activity android:name=".admin_perfil" android:exported="false" />
-
+}
+        <!-- De rol Guia -->
         <activity android:name=".guia_tour_detail" android:exported="false" />
         <activity android:name=".guia_historial" android:exported="false" />
-        
+        <activity android:name=".guia_assigned_tours" android:exported="false" />
+        <activity android:name=".guia_assigned_tour_detail" android:exported="false" />
+        <activity android:name=".guia_check_in" android:exported="false" />
+        <activity android:name=".guia_check_out" android:exported="false" />
+        <activity android:name=".guia_tour_map" android:exported="false" />
+        <service android:name=".service.GuiaLocationService" android:enabled="true" android:exported="true" android:foregroundServiceType="location" />
+
         <!-- Pantallas por rol -->
         <activity android:name=".sa_users_view" android:exported="false" />
         <activity android:name=".cliente_inicio" android:exported="false" />

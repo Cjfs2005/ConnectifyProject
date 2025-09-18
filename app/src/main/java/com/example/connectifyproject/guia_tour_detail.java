@@ -101,7 +101,7 @@ public class guia_tour_detail extends AppCompatActivity implements OnMapReadyCal
             } else if (id == R.id.nav_ofertas) {
                 return true;
             } else if (id == R.id.nav_tours) {
-                Toast.makeText(this, "Tours asignados seleccionado", Toast.LENGTH_SHORT).show();
+                startActivity(new Intent(this, guia_assigned_tours.class)); // Renombrado
                 return true;
             } else if (id == R.id.nav_perfil) {
                 Toast.makeText(this, "Perfil seleccionado", Toast.LENGTH_SHORT).show();

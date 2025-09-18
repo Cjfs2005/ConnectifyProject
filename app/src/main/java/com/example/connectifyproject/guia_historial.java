@@ -60,7 +60,7 @@ public class guia_historial extends AppCompatActivity {
                 startActivity(new Intent(this, guia_tours_ofertas.class));
                 return true;
             } else if (id == R.id.nav_tours) {
-                Toast.makeText(this, "Tours asignados seleccionado", Toast.LENGTH_SHORT).show();
+                startActivity(new Intent(this, guia_assigned_tours.class)); // Renombrado
                 return true;
             } else if (id == R.id.nav_perfil) {
                 Toast.makeText(this, "Perfil seleccionado", Toast.LENGTH_SHORT).show();
