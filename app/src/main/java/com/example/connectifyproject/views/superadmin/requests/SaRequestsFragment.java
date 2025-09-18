@@ -1,4 +1,4 @@
-package com.example.connectifyproject.ui.superadmin.logs;
+package com.example.connectifyproject.views.superadmin.requests;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -9,25 +9,26 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
-import com.example.connectifyproject.databinding.FragmentSaLogsBinding;
+import com.example.connectifyproject.databinding.FragmentSaRequestsBinding;
 
-public class SaLogsFragment extends Fragment {
+public class SaRequestsFragment extends Fragment {
 
-    private FragmentSaLogsBinding binding;
+    private FragmentSaRequestsBinding binding;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        binding = FragmentSaLogsBinding.inflate(inflater, container, false);
+        binding = FragmentSaRequestsBinding.inflate(inflater, container, false);
         return binding.getRoot();
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        // TODO: UI de "Logs"
+        // TODO: aquí va la UI real de "Solicitudes"
+        // Por ahora el layout puede tener un TextView simple.
     }
 
     @Override

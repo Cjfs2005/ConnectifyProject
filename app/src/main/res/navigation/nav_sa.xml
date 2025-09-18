@@ -6,31 +6,31 @@
 
     <fragment
         android:id="@+id/saUsersFragment"
-        android:name="com.example.connectifyproject.ui.superadmin.users.SaUsersFragment"
+        android:name="com.example.connectifyproject.views.superadmin.users.SaUsersFragment"
         android:label="Gestión" />
 
     <fragment
         android:id="@+id/saRequestsFragment"
-        android:name="com.example.connectifyproject.ui.superadmin.requests.SaRequestsFragment"
+        android:name="com.example.connectifyproject.views.superadmin.requests.SaRequestsFragment"
         android:label="Solicitudes" />
 
     <fragment
         android:id="@+id/saReportsFragment"
-        android:name="com.example.connectifyproject.ui.superadmin.reports.SaReportsFragment"
+        android:name="com.example.connectifyproject.views.superadmin.reports.SaReportsFragment"
         android:label="Reportes" />
 
     <fragment
         android:id="@+id/saLogsFragment"
-        android:name="com.example.connectifyproject.ui.superadmin.logs.SaLogsFragment"
+        android:name="com.example.connectifyproject.views.superadmin.logs.SaLogsFragment"
         android:label="Logs" />
 
     <fragment
         android:id="@+id/saUserDetailFragment"
-        android:name="com.example.connectifyproject.ui.superadmin.profile.SaUserDetailFragment"
-        android:label="Perfil" />
+        android:name="com.example.connectifyproject.views.superadmin.profile.SaUserDetailFragment"
+        android:label="Perfil de usuario" />
+
     <fragment
         android:id="@+id/saCreateAdminFragment"
-        android:name="com.example.connectifyproject.ui.superadmin.users.SaCreateAdminFragment"
-        android:label="Nuevo administrador"/>
-
+        android:name="com.example.connectifyproject.views.superadmin.users.SaCreateAdminFragment"
+        android:label="Nuevo administrador" />
 </navigation>

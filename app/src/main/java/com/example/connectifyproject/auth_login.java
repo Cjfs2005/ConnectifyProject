@@ -10,6 +10,8 @@ import androidx.lifecycle.ViewModelProvider;
 import com.example.connectifyproject.databinding.MainLoginViewBinding;
 import com.example.connectifyproject.model.LoginResult;
 import com.example.connectifyproject.viewmodel.AuthLoginViewModel;
+// >>> IMPORTA la Activity de superadmin:
+import com.example.connectifyproject.views.superadmin.SaUsersView;
 
 public class auth_login extends AppCompatActivity {
 
@@ -64,9 +66,14 @@ public class auth_login extends AppCompatActivity {
     }
 
     private Intent getIntentForUserType(LoginResult.UserType userType) {
+        if (userType == null) {
+            // Fallback por si viniera nulo
+            return new Intent(this, admin_dashboard.class);
+        }
         switch (userType) {
             case SUPERADMIN:
-                return new Intent(this, sa_users_view.class);
+                // usa la Activity que hicimos para el flujo de superadmin
+                return new Intent(this, SaUsersView.class);
             case ADMIN:
                 return new Intent(this, admin_dashboard.class);
             case CLIENTE:

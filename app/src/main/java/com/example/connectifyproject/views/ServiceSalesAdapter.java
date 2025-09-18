@@ -1,4 +1,4 @@
-package com.example.connectifyproject.ui;
+package com.example.connectifyproject.views;
 
 import android.view.LayoutInflater;
 import android.view.ViewGroup;

@@ -1,4 +1,4 @@
-package com.example.connectifyproject.ui.superadmin.profile;
+package com.example.connectifyproject.views.superadmin.profile;
 
 import android.net.Uri;
 import android.os.Bundle;

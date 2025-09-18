@@ -1,4 +1,4 @@
-package com.example.connectifyproject.ui.superadmin.reports;
+package com.example.connectifyproject.views.superadmin.logs;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -9,25 +9,25 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
-import com.example.connectifyproject.databinding.FragmentSaReportsBinding;
+import com.example.connectifyproject.databinding.FragmentSaLogsBinding;
 
-public class SaReportsFragment extends Fragment {
+public class SaLogsFragment extends Fragment {
 
-    private FragmentSaReportsBinding binding;
+    private FragmentSaLogsBinding binding;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        binding = FragmentSaReportsBinding.inflate(inflater, container, false);
+        binding = FragmentSaLogsBinding.inflate(inflater, container, false);
         return binding.getRoot();
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        // TODO: UI de "Reportes"
+        // TODO: UI de "Logs"
     }
 
     @Override

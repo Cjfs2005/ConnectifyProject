@@ -1,4 +1,4 @@
-package com.example.connectifyproject.ui.superadmin.users;
+package com.example.connectifyproject.views.superadmin.users;
 
 import android.view.LayoutInflater;
 import android.view.View;
