@@ -1,5 +1,6 @@
 package com.example.connectifyproject;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.ImageButton;
 import android.widget.TextView;
@@ -127,8 +128,9 @@ public class cliente_inicio extends AppCompatActivity implements cliente_fragmen
             Toast.makeText(this, "Próximamente: Tours disponibles", Toast.LENGTH_SHORT).show();
             return true;
         } else if (itemId == R.id.nav_chat) {
-            // TODO: Navegar a chat
-            Toast.makeText(this, "Próximamente: Chat", Toast.LENGTH_SHORT).show();
+            // Navegar a chat
+            Intent intent = new Intent(this, cliente_chat_list.class);
+            startActivity(intent);
             return true;
         } else if (itemId == R.id.nav_perfil) {
             // TODO: Navegar a perfil
