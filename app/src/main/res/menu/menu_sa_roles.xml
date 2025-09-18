@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/role_guide"  android:title="Guía de turismo" android:checkable="true" />
+    <item android:id="@+id/role_admin"  android:title="Administrador"   android:checkable="true" />
+    <item android:id="@+id/role_client" android:title="Cliente"         android:checkable="true" />
+</menu>

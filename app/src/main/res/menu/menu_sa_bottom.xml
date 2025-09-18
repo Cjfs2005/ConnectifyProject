@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/saUsersFragment"      android:icon="@drawable/ic_groups_24"          android:title="Gestión"/>
+    <item android:id="@+id/saRequestsFragment"   android:icon="@drawable/ic_mail_24"            android:title="Solicitudes"/>
+    <item android:id="@+id/saReportsFragment"    android:icon="@drawable/ic_file_download_24"   android:title="Reportes"/>
+    <item android:id="@+id/saLogsFragment"       android:icon="@drawable/ic_list_alt_24"        android:title="Logs"/>
+    <item android:id="@+id/saUserDetailFragment" android:icon="@drawable/ic_account_circle_24"  android:title="Mi perfil"/>
+</menu>
