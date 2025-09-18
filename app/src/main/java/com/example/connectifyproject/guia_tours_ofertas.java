@@ -1,9 +1,9 @@
 package com.example.connectifyproject;
 
 import android.os.Bundle;
-import android.view.View;
 import androidx.appcompat.app.AppCompatActivity;
-import com.example.connectifyproject.databinding.AdminPlaceholderViewBinding;
+import androidx.appcompat.widget.Toolbar;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
 
 /**
@@ -12,21 +12,17 @@ import com.google.android.material.navigation.NavigationBarView;
  */
 public class guia_tours_ofertas extends AppCompatActivity {
     
-    private AdminPlaceholderViewBinding binding;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        binding = AdminPlaceholderViewBinding.inflate(getLayoutInflater());
-        setContentView(binding.getRoot());
-        setSupportActionBar(binding.topAppBar);
+        setContentView(R.layout.guia_tours_ofertas);
+        
+        Toolbar toolbar = findViewById(R.id.topAppBar);
+        setSupportActionBar(toolbar);
 
-        binding.topAppBar.setTitle("Connectify - Guía");
-        binding.tvPlaceholder.setText("Gestiona tus tours y ofertas");
-
-        // Configurar navegación inferior específica para guía
-        binding.bottomNav.setOnItemSelectedListener(navListener);
-        binding.bottomNav.setSelectedItemId(R.id.nav_dashboard);
+        BottomNavigationView bottomNav = findViewById(R.id.bottomNav);
+        bottomNav.setOnItemSelectedListener(navListener);
+        bottomNav.setSelectedItemId(R.id.nav_dashboard);
     }
 
     private final NavigationBarView.OnItemSelectedListener navListener = item -> {
