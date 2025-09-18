@@ -2,15 +2,45 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
-    <!-- Paleta base (puedes ajustar) -->
-    <color name="brand_purple">#7C4DFF</color>
+    
+    <!-- Paleta principal Tourly basada en el diseño Figma -->
+    <color name="brand_purple">#7B5CF0</color>
     <color name="brand_purple_dark">#5E35B1</color>
+    <color name="brand_purple_light">#9C7DFF</color>
     <color name="brand_pink">#ED3A9A</color>
     <color name="brand_lilac">#EDE7F6</color>
+    <color name="brand_lilac_dark">#E1D5F7</color>
+    
+    <!-- Colores de fondo y superficie -->
     <color name="surface_soft">#FFF7FF</color>
+    <color name="background_main">#FFFFFF</color>
+    
+    <!-- Colores para KPIs y iconos -->
     <color name="kpi_icon_bg">#F2ECFF</color>
     <color name="kpi_text">#1C1B1F</color>
     <color name="kpi_subtext">#6D6D6D</color>
+    <color name="kpi_value_text">#2D2D2D</color>
+    
+    <!-- Colores para badges y notificaciones -->
     <color name="badge_bg">#FF3D00</color>
     <color name="badge_text">#FFFFFF</color>
+    
+    <!-- Colores para servicios (barras de progreso) -->
+    <color name="service_paquetes">#ED3A9A</color>
+    <color name="service_traslado">#7B5CF0</color>
+    <color name="service_fotografia">#8E5CF0</color>
+    <color name="service_souvenir">#6B47DC</color>
+    <color name="service_transporte">#5A4ACF</color>
+    <color name="service_guia">#4B3DC2</color>
+    <color name="service_entradas">#3C30B5</color>
+    <color name="service_propinas">#2D23A8</color>
+    
+    <!-- Estados de texto -->
+    <color name="text_primary">#1C1B1F</color>
+    <color name="text_secondary">#6D6D6D</color>
+    <color name="text_disabled">#A0A0A0</color>
+    
+    <!-- Colores de borde -->
+    <color name="border_light">#E6E0F8</color>
+    <color name="border_medium">#D0C4F0</color>
 </resources>

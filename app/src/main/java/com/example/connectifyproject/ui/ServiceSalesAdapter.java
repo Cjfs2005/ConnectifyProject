@@ -1,14 +1,19 @@
 package com.example.connectifyproject.ui;
 
+import android.content.Context;
+import android.graphics.drawable.GradientDrawable;
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.connectifyproject.R;
 import com.example.connectifyproject.databinding.ItemServiceSaleBinding;
 import com.example.connectifyproject.models.ServiceSale;
-import com.google.android.material.progressindicator.LinearProgressIndicator;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,6 +22,18 @@ public class ServiceSalesAdapter extends RecyclerView.Adapter<ServiceSalesAdapte
 
     private final List<ServiceSale> items = new ArrayList<>();
     private int maxAmount = 1;
+
+    // Colores específicos para cada servicio basados en el diseño de Figma
+    private static final int[] SERVICE_COLORS = new int[]{
+            R.color.service_paquetes,    // Rosa para paquetes de comida
+            R.color.service_traslado,    // Morado para traslado al hotel
+            R.color.service_fotografia,  // Morado oscuro para servicio de fotografía
+            R.color.service_souvenir,    // Morado más oscuro para souvenir exclusivo
+            R.color.service_transporte,  // Azul morado para transporte ecológico
+            R.color.service_guia,        // Azul morado oscuro para guía bilingüe
+            R.color.service_entradas,    // Azul oscuro para entradas museos
+            R.color.service_propinas     // Azul muy oscuro para propinas
+    };
 
     public void submitList(List<ServiceSale> data) {
         items.clear();
@@ -41,12 +58,35 @@ public class ServiceSalesAdapter extends RecyclerView.Adapter<ServiceSalesAdapte
     @Override
     public void onBindViewHolder(@NonNull VH holder, int position) {
         ServiceSale item = items.get(position);
+        Context context = holder.binding.getRoot().getContext();
+        
         holder.binding.tvServiceName.setText(item.getServiceName());
         holder.binding.tvServiceAmount.setText("$" + item.getAmount());
 
-        LinearProgressIndicator pi = holder.binding.piBar;
-        int percent = Math.round((item.getAmount() * 100f) / maxAmount);
-        pi.setProgressCompat(percent, true);
+        // Porcentaje 0..100
+        int percent = Math.max(0, Math.min(100, Math.round((item.getAmount() * 100f) / maxAmount)));
+
+        // Ajuste de pesos para la barra
+        LinearLayout.LayoutParams lpFill = (LinearLayout.LayoutParams) holder.binding.barFill.getLayoutParams();
+        LinearLayout.LayoutParams lpSpacer = (LinearLayout.LayoutParams) holder.binding.barSpacer.getLayoutParams();
+        lpFill.weight = percent;
+        lpSpacer.weight = 100 - percent;
+        holder.binding.barFill.setLayoutParams(lpFill);
+        holder.binding.barSpacer.setLayoutParams(lpSpacer);
+
+        // Color específico basado en la posición del servicio
+        int colorResId = SERVICE_COLORS[position % SERVICE_COLORS.length];
+        int color = ContextCompat.getColor(context, colorResId);
+        
+        // Crear drawable con esquinas redondeadas
+        GradientDrawable gd = new GradientDrawable();
+        gd.setColor(color);
+        gd.setCornerRadius(dp(12, holder.binding.getRoot()));
+        holder.binding.barFill.setBackground(gd);
+    }
+
+    private float dp(int v, View view) {
+        return v * view.getResources().getDisplayMetrics().density;
     }
 
     @Override
