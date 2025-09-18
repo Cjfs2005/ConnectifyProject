@@ -1,33 +1,261 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:background="?attr/colorSurface">
 
+    <!-- Header -->
     <com.google.android.material.appbar.MaterialToolbar
-        android:id="@+id/topAppBar"
-        style="@style/Widget.Material3.Toolbar"
-        android:layout_width="match_parent"
+        android:id="@+id/toolbar"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:background="?attr/colorPrimary"
-        android:theme="@style/ThemeOverlay.Material3.Dark.ActionBar"
-        app:title="Connectify - Cliente"
-        app:titleCentered="true" />
+        android:background="?attr/colorSurface"
+        android:elevation="0dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:title="@string/cliente_inicio_title"
+        app:titleTextAppearance="@style/TextAppearance.Material3.TitleLarge"
+        app:titleCentered="false">
 
-    <TextView
-        android:id="@+id/tvPlaceholder"
-        android:layout_width="match_parent"
+        <ImageButton
+            android:id="@+id/btn_notifications"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_gravity="end"
+            android:layout_marginEnd="8dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Notificaciones"
+            android:src="@drawable/ic_notifications_24"
+            style="@style/Widget.Material3.Button.IconButton" />
+
+    </com.google.android.material.appbar.MaterialToolbar>
+
+    <!-- Main Content ScrollView -->
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/scroll_view"
+        android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_weight="1"
-        android:gravity="center"
-        android:padding="24dp"
-        android:text="¡Bienvenido! Explora tours increíbles en Perú"
-        android:textAppearance="@style/TextAppearance.Material3.TitleLarge" />
+        android:fillViewport="true"
+        app:layout_constraintBottom_toTopOf="@id/fragment_menu_container"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/toolbar">
 
-    <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/bottomNav"
-        android:layout_width="match_parent"
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="16dp">
+
+            <!-- Tour Activo Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_tour_activo"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="24dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="2dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                style="@style/Widget.Material3.CardView.Filled">
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="16dp">
+
+                    <!-- Tour Activo Title -->
+                    <TextView
+                        android:id="@+id/tv_tour_activo_title"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:text="@string/cliente_tour_activo"
+                        android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
+                        android:textColor="?attr/colorOnSurface"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+
+                    <!-- Tour Image -->
+                    <com.google.android.material.imageview.ShapeableImageView
+                        android:id="@+id/iv_tour_image"
+                        android:layout_width="80dp"
+                        android:layout_height="80dp"
+                        android:layout_marginTop="12dp"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/cliente_tour_lima"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/tv_tour_activo_title"
+                        app:shapeAppearanceOverlay="@style/RoundedImageView" />
+
+                    <!-- Tour Details Container -->
+                    <LinearLayout
+                        android:id="@+id/layout_tour_details"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="12dp"
+                        android:orientation="vertical"
+                        app:layout_constraintBottom_toBottomOf="@id/iv_tour_image"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toEndOf="@id/iv_tour_image"
+                        app:layout_constraintTop_toTopOf="@id/iv_tour_image">
+
+                        <TextView
+                            android:id="@+id/tv_tour_title"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Tour histórico por Lima"
+                            android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+                            android:textColor="?attr/colorOnSurface"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tv_tour_company"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:text="Lima Tours"
+                            android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
+                            android:textColor="?attr/colorOnSurfaceVariant" />
+
+                        <TextView
+                            android:id="@+id/tv_tour_duration"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:text="Duración: 5 hrs 30 min. Fecha: 23/09/2025."
+                            android:textAppearance="@style/TextAppearance.Material3.BodySmall"
+                            android:textColor="?attr/colorOnSurfaceVariant" />
+
+                    </LinearLayout>
+
+                    <!-- Progress Indicator -->
+                    <LinearLayout
+                        android:id="@+id/layout_progress"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:orientation="horizontal"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/iv_tour_image">
+
+                        <TextView
+                            android:id="@+id/tv_inicio"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:text="Inicio"
+                            android:textAppearance="@style/TextAppearance.Material3.LabelSmall"
+                            android:textColor="@color/cliente_progress_active" />
+
+                        <TextView
+                            android:id="@+id/tv_en_curso"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:text="En curso"
+                            android:textAppearance="@style/TextAppearance.Material3.LabelSmall"
+                            android:textColor="@color/cliente_progress_active" />
+
+                    </LinearLayout>
+
+                    <!-- Progress Bar -->
+                    <com.google.android.material.progressindicator.LinearProgressIndicator
+                        android:id="@+id/progress_tour"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:progress="30"
+                        app:indicatorColor="@color/cliente_progress_active"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/layout_progress"
+                        app:trackColor="@color/cliente_progress_inactive"
+                        style="@style/Widget.Material3.LinearProgressIndicator" />
+
+                    <!-- Ver más button -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_ver_mas"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:text="@string/cliente_ver_mas"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/progress_tour"
+                        style="@style/Widget.Material3.Button.TextButton" />
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- QR Code Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_qr"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="2dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/card_tour_activo"
+                style="@style/Widget.Material3.CardView.Filled">
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="24dp">
+
+                    <!-- QR Code Image -->
+                    <com.google.android.material.imageview.ShapeableImageView
+                        android:id="@+id/iv_qr_code"
+                        android:layout_width="200dp"
+                        android:layout_height="200dp"
+                        android:background="@color/cliente_qr_bg"
+                        android:padding="8dp"
+                        android:scaleType="centerInside"
+                        android:src="@drawable/cliente_qr_code"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:shapeAppearanceOverlay="@style/RoundedImageView"
+                        app:strokeColor="@color/cliente_qr_border"
+                        app:strokeWidth="2dp" />
+
+                    <!-- QR Instruction Text -->
+                    <TextView
+                        android:id="@+id/tv_qr_instruction"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:gravity="center"
+                        android:text="@string/cliente_qr_instruction"
+                        android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
+                        android:textColor="?attr/colorOnSurface"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/iv_qr_code" />
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </androidx.core.widget.NestedScrollView>
+
+    <!-- Fragment Menu Container -->
+    <FrameLayout
+        android:id="@+id/fragment_menu_container"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        app:menu="@menu/menu_admin_bottom_nav" />
-</LinearLayout>
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

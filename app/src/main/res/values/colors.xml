@@ -13,4 +13,10 @@
     <color name="kpi_subtext">#6D6D6D</color>
     <color name="badge_bg">#FF3D00</color>
     <color name="badge_text">#FFFFFF</color>
+    
+    <!-- Cliente colors -->
+    <color name="cliente_progress_active">#7C4DFF</color>
+    <color name="cliente_progress_inactive">#E0E0E0</color>
+    <color name="cliente_qr_bg">#E8F5E8</color>
+    <color name="cliente_qr_border">#4CAF50</color>
 </resources>

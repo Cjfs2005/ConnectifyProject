@@ -30,6 +30,17 @@
     <string name="nav_pagos">Pagos</string>
     <string name="nav_perfil">Perfil</string>
 
+    <!-- Cliente strings -->
+    <string name="cliente_nav_inicio">Inicio</string>
+    <string name="cliente_nav_reservas">Reservas</string>
+    <string name="cliente_nav_tours">Tours</string>
+    <string name="cliente_nav_chat">Chat</string>
+    <string name="cliente_nav_perfil">Perfil</string>
+    <string name="cliente_inicio_title">Inicio</string>
+    <string name="cliente_tour_activo">Tour activo</string>
+    <string name="cliente_ver_mas">Ver más</string>
+    <string name="cliente_qr_instruction">Muestra el código QR al guía turístico para iniciar el tour</string>
+
     <!-- Placeholder -->
     <string name="placeholder_title">Pantalla en construcción</string>
     <string name="placeholder_message">Pronto verás aquí la funcionalidad de %1$s.</string>
