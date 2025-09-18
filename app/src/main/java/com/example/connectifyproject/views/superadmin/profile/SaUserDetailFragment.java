@@ -1,157 +1,137 @@
 package com.example.connectifyproject.views.superadmin.profile;
 
-import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
+import android.widget.ImageButton;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.navigation.Navigation;
+import androidx.navigation.fragment.NavHostFragment;
 
 import com.example.connectifyproject.R;
+import com.example.connectifyproject.model.User;
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputEditText;
-import com.google.android.material.textfield.TextInputLayout;
 
-/**
- * Lee argumentos: name, dni, company, role, birth, email, phone, address, photoUri
- * y los coloca en el layout aun si los ids varian.
- */
 public class SaUserDetailFragment extends Fragment {
 
-    public SaUserDetailFragment() {}
+    private TextInputEditText etFirstName, etLastName, etDocType, etDocNumber,
+            etBirth, etEmail, etPhone, etAddress;
 
-    @Nullable @Override
+    private MaterialButton btnActivate, btnDeactivate;
+    private ImageButton btnBack;
+
+    private boolean isActive = true;   // estado simple
+    private User user;
+
+    @Nullable
+    @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_sa_user_detail, container, false);
     }
 
-    @Override public void onViewCreated(@NonNull View v, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(v, savedInstanceState);
+    @Override
+    public void onViewCreated(@NonNull View root, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(root, savedInstanceState);
 
-        Bundle args = getArguments() != null ? getArguments() : new Bundle();
+        // 1) Bind de vistas
+        btnBack       = root.findViewById(R.id.btnBack);
+        btnActivate   = root.findViewById(R.id.btnActivate);
+        btnDeactivate = root.findViewById(R.id.btnDeactivate);
 
-        // ---- Foto de perfil (busca por varios ids posibles) ----
-        ImageView iv = findImageView(v,
-                "ivAvatar","iv_avatar","ivUser","iv_user","image_profile","imageUser","imgUser");
-        String photoUri = args.getString("photoUri", null);
-        if (iv != null && photoUri != null && !photoUri.isEmpty()) {
-            try { iv.setImageURI(Uri.parse(photoUri)); } catch (Throwable ignore) {}
-        }
+        etFirstName = root.findViewById(R.id.etFirstName);
+        etLastName  = root.findViewById(R.id.etLastName);
+        etDocType   = root.findViewById(R.id.etDocType);
+        etDocNumber = root.findViewById(R.id.etDocNumber);
+        etBirth     = root.findViewById(R.id.etBirth);
+        etEmail     = root.findViewById(R.id.etEmail);
+        etPhone     = root.findViewById(R.id.etPhone);
+        etAddress   = root.findViewById(R.id.etAddress);
 
-        // ---- Setear textos en campos (TextInputEditText o EditText dentro de TextInputLayout) ----
-        setText(v, args.getString("name", ""),
-                new String[]{"etName","et_name","tietName","tiet_name"},
-                new String[]{"tilName","til_name"});
-
-        // Apellido si lo manejas aparte (si no, ignora)
-        setText(v, extractLastName(args.getString("name", "")),
-                new String[]{"etLastName","et_last_name","tietLastName","tiet_last_name"},
-                new String[]{"tilLastName","til_last_name"});
-
-        // Tipo de documento (si usas este campo de texto; si es Spinner, omite)
-        setText(v, args.getString("role", ""),
-                new String[]{"etDocType","et_doc_type","tietDocType","tiet_doc_type"},
-                new String[]{"tilDocType","til_doc_type"});
-
-        // DNI / número doc
-        setText(v, args.getString("dni", ""),
-                new String[]{"etDni","et_dni","etDocument","et_document","tietDni","tiet_document"},
-                new String[]{"tilDni","til_dni","tilDocument","til_document"});
-
-        // Fecha de nacimiento
-        setText(v, args.getString("birth", ""),
-                new String[]{"etBirth","et_birth","etFecha","et_fecha","tietBirth","tietFecha"},
-                new String[]{"tilBirth","til_birth","tilFecha","til_fecha"});
-
-        // Correo
-        setText(v, args.getString("email", ""),
-                new String[]{"etEmail","et_email","tietEmail","tiet_email"},
-                new String[]{"tilEmail","til_email"});
-
-        // Teléfono
-        setText(v, args.getString("phone", ""),
-                new String[]{"etPhone","et_phone","tietPhone","tiet_phone"},
-                new String[]{"tilPhone","til_phone"});
-
-        // Domicilio
-        setText(v, args.getString("address", ""),
-                new String[]{"etAddress","et_address","tietAddress","tiet_address"},
-                new String[]{"tilAddress","til_address"});
-
-        // ---- Botón back (si existe con cualquiera de estos ids) ----
-        View btnBack = findView(v, "btnBack","ibBack","btn_back","toolbar_back","action_back");
-        if (btnBack != null) {
-            btnBack.setOnClickListener(view -> Navigation.findNavController(view).popBackStack());
-        }
-    }
-
-    // Helpers -----------------------------------------------------------------
-
-    /** Busca un view por una lista de ids posibles. Devuelve el primero que exista. */
-    @Nullable
-    private View findView(@NonNull View root, String... candidates) {
-        for (String name : candidates) {
-            int id = getId(root, name);
-            if (id != 0) {
-                View found = root.findViewById(id);
-                if (found != null) return found;
+        // 2) Traer el usuario enviado por la lista (Parcelable o Serializable)
+        Bundle args = getArguments();
+        if (args != null) {
+            // Preferir Parcelable si tu User lo implementa
+            user = args.getParcelable("user");
+            if (user == null) {
+                Object obj = args.getSerializable("user");
+                if (obj instanceof User) user = (User) obj;
+            }
+            if (args.containsKey("active")) {
+                isActive = args.getBoolean("active", true);
             }
         }
-        return null;
+
+        // 3) Pintar datos
+        renderUser();
+
+        // 4) Botón atrás
+        btnBack.setOnClickListener(v ->
+                NavHostFragment.findNavController(this).navigateUp()
+        );
+
+        // 5) Activar / Desactivar (con feedback)
+        btnDeactivate.setOnClickListener(v -> {
+            isActive = false;
+            updateButtons();
+            Snackbar.make(root, "🛑 Usuario desactivado", Snackbar.LENGTH_LONG).show();
+        });
+
+        btnActivate.setOnClickListener(v -> {
+            isActive = true;
+            updateButtons();
+            Snackbar.make(root, "✅ Usuario activado", Snackbar.LENGTH_LONG).show();
+        });
+
+        if (savedInstanceState != null) {
+            isActive = savedInstanceState.getBoolean("active_state", isActive);
+        }
+        updateButtons();
     }
 
-    @Nullable
-    private ImageView findImageView(@NonNull View root, String... candidates) {
-        View v = findView(root, candidates);
-        return (v instanceof ImageView) ? (ImageView) v : null;
-    }
+    private void renderUser() {
+        if (user == null) return;
 
-    /** Coloca texto en un TextInputEditText o en el EditText interno de un TextInputLayout. */
-    private void setText(@NonNull View root, @Nullable String value,
-                         String[] editIds, String[] tilIds) {
-        // 1) intenta con TextInputEditText / EditText directos
-        for (String name : editIds) {
-            int id = getId(root, name);
-            if (id != 0) {
-                View v = root.findViewById(id);
-                if (v instanceof TextInputEditText) {
-                    ((TextInputEditText) v).setText(value == null ? "" : value);
-                    return;
-                } else if (v instanceof android.widget.EditText) {
-                    ((android.widget.EditText) v).setText(value == null ? "" : value);
-                    return;
-                }
+        // Usa name + lastName del modelo; si lastName viene null, intenta separar el name
+        String first = nvl(user.getName());
+        String last  = nvl(user.getLastName());
+        if (last.isEmpty()) {
+            int sp = first.indexOf(' ');
+            if (sp > 0) {
+                last = first.substring(sp + 1).trim();
+                first = first.substring(0, sp).trim();
             }
         }
-        // 2) intenta con TextInputLayout (y su EditText interno)
-        for (String name : tilIds) {
-            int id = getId(root, name);
-            if (id != 0) {
-                View v = root.findViewById(id);
-                if (v instanceof TextInputLayout && ((TextInputLayout) v).getEditText() != null) {
-                    ((TextInputLayout) v).getEditText().setText(value == null ? "" : value);
-                    return;
-                }
-            }
-        }
+
+        etFirstName.setText(first);
+        etLastName.setText(last);
+
+        String docType = user.getDocType() != null ? user.getDocType() : "DNI";
+        etDocType.setText(docType);
+
+        etDocNumber.setText(nvl(user.getDni()));
+        etBirth.setText(nvl(user.getBirth()));    // ✅ antes usabas getBirthDate()
+        etEmail.setText(nvl(user.getEmail()));
+        etPhone.setText(nvl(user.getPhone()));
+        etAddress.setText(nvl(user.getAddress()));
     }
 
-    private int getId(@NonNull View root, @NonNull String name) {
-        try {
-            return root.getResources().getIdentifier(
-                    name, "id", root.getContext().getPackageName());
-        } catch (Throwable ignore) { return 0; }
+    private void updateButtons() {
+        btnActivate.setEnabled(!isActive);
+        btnDeactivate.setEnabled(isActive);
     }
 
-    private String extractLastName(@Nullable String full) {
-        if (full == null) return "";
-        String[] p = full.trim().split("\\s+");
-        return p.length == 0 ? "" : p[p.length - 1];
+    private static String nvl(String s) { return s == null ? "" : s; }
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle out) {
+        super.onSaveInstanceState(out);
+        out.putBoolean("active_state", isActive);
     }
 }
