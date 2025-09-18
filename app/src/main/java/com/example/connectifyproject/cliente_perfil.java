@@ -50,18 +50,22 @@ public class cliente_perfil extends AppCompatActivity implements cliente_fragmen
         if (itemId == R.id.nav_inicio) {
             Intent intent = new Intent(this, cliente_inicio.class);
             startActivity(intent);
+            finish();
             return true;
         } else if (itemId == R.id.nav_reservas) {
             Intent intent = new Intent(this, cliente_reservas.class);
             startActivity(intent);
+            finish();
             return true;
         } else if (itemId == R.id.nav_tours) {
             Intent intent = new Intent(this, cliente_tours.class);
             startActivity(intent);
+            finish();
             return true;
         } else if (itemId == R.id.nav_chat) {
             Intent intent = new Intent(this, cliente_chat_list.class);
             startActivity(intent);
+            finish();
             return true;
         } else if (itemId == R.id.nav_perfil) {
             // Ya estamos en perfil

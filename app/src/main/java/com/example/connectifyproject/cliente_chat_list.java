@@ -85,14 +85,17 @@ public class cliente_chat_list extends AppCompatActivity implements cliente_frag
         if (itemId == R.id.nav_inicio) {
             Intent intent = new Intent(this, cliente_inicio.class);
             startActivity(intent);
+            finish();
             return true;
         } else if (itemId == R.id.nav_reservas) {
             Intent intent = new Intent(this, cliente_reservas.class);
             startActivity(intent);
+            finish();
             return true;
         } else if (itemId == R.id.nav_tours) {
             Intent intent = new Intent(this, cliente_tours.class);
             startActivity(intent);
+            finish();
             return true;
         } else if (itemId == R.id.nav_chat) {
             // Ya estamos en chat
@@ -100,6 +103,7 @@ public class cliente_chat_list extends AppCompatActivity implements cliente_frag
         } else if (itemId == R.id.nav_perfil) {
             Intent intent = new Intent(this, cliente_perfil.class);
             startActivity(intent);
+            finish();
             return true;
         }
         return false;

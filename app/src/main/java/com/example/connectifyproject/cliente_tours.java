@@ -50,10 +50,12 @@ public class cliente_tours extends AppCompatActivity implements cliente_fragment
         if (itemId == R.id.nav_inicio) {
             Intent intent = new Intent(this, cliente_inicio.class);
             startActivity(intent);
+            finish();
             return true;
         } else if (itemId == R.id.nav_reservas) {
             Intent intent = new Intent(this, cliente_reservas.class);
             startActivity(intent);
+            finish();
             return true;
         } else if (itemId == R.id.nav_tours) {
             // Ya estamos en tours
@@ -61,10 +63,12 @@ public class cliente_tours extends AppCompatActivity implements cliente_fragment
         } else if (itemId == R.id.nav_chat) {
             Intent intent = new Intent(this, cliente_chat_list.class);
             startActivity(intent);
+            finish();
             return true;
         } else if (itemId == R.id.nav_perfil) {
             Intent intent = new Intent(this, cliente_perfil.class);
             startActivity(intent);
+            finish();
             return true;
         }
         return false;

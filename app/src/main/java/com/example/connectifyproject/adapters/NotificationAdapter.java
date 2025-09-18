@@ -3,7 +3,6 @@ package com.example.connectifyproject.adapters;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -21,14 +20,12 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
         public String message;
         public String time;
         public String date;
-        public int iconResource;
 
-        public NotificationData(String title, String message, String time, String date, int iconResource) {
+        public NotificationData(String title, String message, String time, String date) {
             this.title = title;
             this.message = message;
             this.time = time;
             this.date = date;
-            this.iconResource = iconResource;
         }
     }
 
@@ -54,7 +51,6 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
         holder.tvMessage.setText(notification.message);
         holder.tvTime.setText(notification.time);
         holder.tvDate.setText(notification.date);
-        holder.ivIcon.setImageResource(notification.iconResource);
     }
 
     @Override
@@ -64,7 +60,6 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
 
     public static class NotificationViewHolder extends RecyclerView.ViewHolder {
         TextView tvTitle, tvMessage, tvTime, tvDate;
-        ImageView ivIcon;
 
         public NotificationViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -72,7 +67,6 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
             tvMessage = itemView.findViewById(R.id.tv_notification_message);
             tvTime = itemView.findViewById(R.id.tv_time);
             tvDate = itemView.findViewById(R.id.tv_date);
-            ivIcon = itemView.findViewById(R.id.iv_notification_icon);
         }
     }
 }

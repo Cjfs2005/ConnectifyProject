@@ -69,56 +69,49 @@ public class cliente_notificaciones extends AppCompatActivity {
             "Recuerda dejar tu reseña",
             "Tu tour ha finalizado. Ayúdanos a mejorar compartiendo tu valoración y comentarios.",
             "15:40",
-            "02/09",
-            R.drawable.ic_bell
+            "02/09"
         ));
         
         notifications.add(new NotificationAdapter.NotificationData(
             "Alerta de chat",
             "Tienes un nuevo mensaje de la empresa 'Tours Perú' en el chat de atención al cliente.",
             "15:30",
-            "02/09",
-            R.drawable.ic_nav_chat
+            "02/09"
         ));
         
         notifications.add(new NotificationAdapter.NotificationData(
             "Cobro procesado",
             "Se ha realizado el cargo a tu tarjeta por el monto de S/ 150.00 correspondiente al tour 'Descubre Lima Por favor'.",
             "15:20",
-            "02/09",
-            R.drawable.ic_money
+            "02/09"
         ));
         
         notifications.add(new NotificationAdapter.NotificationData(
             "Has realizado el Check-out exitosamente",
             "Por favor, califica tu experiencia y deja observaciones sobre el tour.",
             "15:15",
-            "02/09",
-            R.drawable.ic_calendar
+            "02/09"
         ));
         
         notifications.add(new NotificationAdapter.NotificationData(
             "Has alcanzado un nuevo punto en el itinerario",
             "Estás ahora en Museo Larco. La siguiente parada es Plaza de Armas.",
             "14:00",
-            "02/09",
-            R.drawable.ic_bus
+            "02/09"
         ));
         
         notifications.add(new NotificationAdapter.NotificationData(
             "Has alcanzado un nuevo punto en el itinerario",
             "Estás ahora en Centro de Lima. La siguiente parada es Museo Larco.",
             "13:10",
-            "02/09",
-            R.drawable.ic_bus
+            "02/09"
         ));
         
         notifications.add(new NotificationAdapter.NotificationData(
             "¡Tu tour está por comenzar!",
             "El guía ha llegado al punto de inicio. Por favor, preséntate al QR físico para realizar el Check-in.",
             "12:50",
-            "02/09",
-            R.drawable.ic_calendar
+            "02/09"
         ));
         
         return notifications;

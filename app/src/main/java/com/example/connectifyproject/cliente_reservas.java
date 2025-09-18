@@ -50,6 +50,7 @@ public class cliente_reservas extends AppCompatActivity implements cliente_fragm
         if (itemId == R.id.nav_inicio) {
             Intent intent = new Intent(this, cliente_inicio.class);
             startActivity(intent);
+            finish();
             return true;
         } else if (itemId == R.id.nav_reservas) {
             // Ya estamos en reservas
@@ -57,14 +58,17 @@ public class cliente_reservas extends AppCompatActivity implements cliente_fragm
         } else if (itemId == R.id.nav_tours) {
             Intent intent = new Intent(this, cliente_tours.class);
             startActivity(intent);
+            finish();
             return true;
         } else if (itemId == R.id.nav_chat) {
             Intent intent = new Intent(this, cliente_chat_list.class);
             startActivity(intent);
+            finish();
             return true;
         } else if (itemId == R.id.nav_perfil) {
             Intent intent = new Intent(this, cliente_perfil.class);
             startActivity(intent);
+            finish();
             return true;
         }
         return false;

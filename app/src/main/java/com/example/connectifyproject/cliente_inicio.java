@@ -123,19 +123,23 @@ public class cliente_inicio extends AppCompatActivity implements cliente_fragmen
         } else if (itemId == R.id.nav_reservas) {
             Intent intent = new Intent(this, cliente_reservas.class);
             startActivity(intent);
+            finish();
             return true;
         } else if (itemId == R.id.nav_tours) {
             Intent intent = new Intent(this, cliente_tours.class);
             startActivity(intent);
+            finish();
             return true;
         } else if (itemId == R.id.nav_chat) {
             // Navegar a chat
             Intent intent = new Intent(this, cliente_chat_list.class);
             startActivity(intent);
+            finish();
             return true;
         } else if (itemId == R.id.nav_perfil) {
             Intent intent = new Intent(this, cliente_perfil.class);
             startActivity(intent);
+            finish();
             return true;
         }
         return false;
