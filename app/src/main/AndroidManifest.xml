@@ -31,5 +31,10 @@
         <activity android:name=".admin_chat" android:exported="false" />
         <activity android:name=".admin_pagos" android:exported="false" />
         <activity android:name=".admin_perfil" android:exported="false" />
+        
+        <!-- Pantallas por rol -->
+        <activity android:name=".sa_users_view" android:exported="false" />
+        <activity android:name=".cliente_inicio" android:exported="false" />
+        <activity android:name=".guia_tours_ofertas" android:exported="false" />
     </application>
 </manifest>

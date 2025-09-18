@@ -8,6 +8,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.connectifyproject.databinding.MainLoginViewBinding;
+import com.example.connectifyproject.model.LoginResult;
 import com.example.connectifyproject.viewmodel.AuthLoginViewModel;
 
 public class auth_login extends AppCompatActivity {
@@ -44,11 +45,13 @@ public class auth_login extends AppCompatActivity {
             }
         });
 
-        viewModel.getSuccess().observe(this, ok -> {
-            if (ok != null && ok) {
-                Intent i = new Intent(this, admin_dashboard.class);
-                i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                startActivity(i);
+        viewModel.getLoginResult().observe(this, result -> {
+            if (result != null && result.isSuccess()) {
+                Intent intent = getIntentForUserType(result.getUserType());
+                if (intent != null) {
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    startActivity(intent);
+                }
             }
         });
 
@@ -58,5 +61,21 @@ public class auth_login extends AppCompatActivity {
                         String.valueOf(binding.etPassword.getText())
                 )
         );
+    }
+
+    private Intent getIntentForUserType(LoginResult.UserType userType) {
+        switch (userType) {
+            case SUPERADMIN:
+                return new Intent(this, sa_users_view.class);
+            case ADMIN:
+                return new Intent(this, admin_dashboard.class);
+            case CLIENTE:
+                return new Intent(this, cliente_inicio.class);
+            case GUIA:
+                return new Intent(this, guia_tours_ofertas.class);
+            default:
+                // Fallback al dashboard de admin si hay algún problema
+                return new Intent(this, admin_dashboard.class);
+        }
     }
 }
