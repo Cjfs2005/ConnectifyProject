@@ -36,6 +36,7 @@
         <activity android:name=".admin_perfil" android:exported="false" />
 
         <activity android:name=".guia_tour_detail" android:exported="false" />
+        <activity android:name=".guia_historial" android:exported="false" />
         
         <!-- Pantallas por rol -->
         <activity android:name=".sa_users_view" android:exported="false" />
@@ -45,6 +46,6 @@
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="poner_el_key_aqui" />
+            android:value="colocar-api-key" />
     </application>
 </manifest>

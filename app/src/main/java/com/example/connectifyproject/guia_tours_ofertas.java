@@ -91,7 +91,7 @@ public class guia_tours_ofertas extends AppCompatActivity implements GuiaFilterD
         newBottomNav.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
             if (id == R.id.nav_historial) {
-                Toast.makeText(this, "Historial seleccionado", Toast.LENGTH_SHORT).show();
+                startActivity(new Intent(this, guia_historial.class)); // Placeholder, renombrado
                 return true;
             } else if (id == R.id.nav_ofertas) {
                 return true;
