@@ -3,6 +3,9 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
 
     <application
         android:allowBackup="true"
@@ -31,10 +34,17 @@
         <activity android:name=".admin_chat" android:exported="false" />
         <activity android:name=".admin_pagos" android:exported="false" />
         <activity android:name=".admin_perfil" android:exported="false" />
+
+        <activity android:name=".guia_tour_detail" android:exported="false" />
         
         <!-- Pantallas por rol -->
         <activity android:name=".sa_users_view" android:exported="false" />
         <activity android:name=".cliente_inicio" android:exported="false" />
         <activity android:name=".guia_tours_ofertas" android:exported="false" />
+
+
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="poner_el_key_aqui" />
     </application>
 </manifest>
