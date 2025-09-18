@@ -1,3 +1,41 @@
 <resources>
     <string name="app_name">ConnectifyProject</string>
+    <!-- Login -->
+    <string name="login_title">Iniciar sesión</string>
+    <string name="login_welcome">Bienvenido</string>
+    <string name="login_email_hint">Correo</string>
+    <string name="login_password_hint">Contraseña</string>
+    <string name="login_button">Iniciar sesión</string>
+    <string name="login_register">Registrarme</string>
+    <string name="login_keep_session">Mantener sesión iniciada</string>
+    <string name="login_forgot">¿Olvidaste tu contraseña?</string>
+    <string name="login_error_empty">Ingresa correo y contraseña.</string>
+    <string name="login_error_invalid">Credenciales inválidas.</string>
+
+    <!-- Dashboard -->
+    <string name="admin_dashboard_title">Administrador - Dashboard</string>
+    <string name="welcome_name">Bienvenido, %1$s</string>
+    <string name="welcome_company">Mundo Tours SAC</string>
+    <string name="kpi_tours_en_curso">Tours en curso</string>
+    <string name="kpi_proximos_tours">Próximos tours</string>
+    <string name="kpi_ventas_totales">Ventas totales</string>
+    <string name="kpi_ventas_tours">Ventas de tours</string>
+    <string name="sales_by_service">Ventas por servicios</string>
+    <string name="notifications">Notificaciones</string>
+
+    <!-- Bottom nav -->
+    <string name="nav_dashboard">Dashboard</string>
+    <string name="nav_tours">Tours</string>
+    <string name="nav_chat">Chat</string>
+    <string name="nav_pagos">Pagos</string>
+    <string name="nav_perfil">Perfil</string>
+
+    <!-- Placeholder -->
+    <string name="placeholder_title">Pantalla en construcción</string>
+    <string name="placeholder_message">Pronto verás aquí la funcionalidad de %1$s.</string>
+
+    <!-- Popup menu -->
+    <string name="menu_mark_all_read">Marcar todo como leído</string>
+    <string name="menu_preferences">Preferencias</string>
+    <string name="menu_view_all">Ver todo</string>
 </resources>

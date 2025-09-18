@@ -1,0 +1,345 @@
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- AppBar minimal -->
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/topAppBar"
+        style="@style/Widget.Material3.Toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@android:color/transparent"
+        app:title=""
+        app:titleCentered="false" />
+
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/scroll"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- Header con fondo lila, esquinas redondeadas y badge -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardHeader"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="24dp"
+                app:cardBackgroundColor="@color/brand_lilac"
+                app:strokeColor="@android:color/transparent">
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="16dp">
+
+                    <ImageView
+                        android:id="@+id/ivHeaderLogo"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:src="@mipmap/tourly_logo_img"
+                        android:contentDescription="@string/app_name" />
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_toRightOf="@id/ivHeaderLogo"
+                        android:layout_toEndOf="@id/ivHeaderLogo"
+                        android:layout_marginStart="12dp"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/tvWelcomeName"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textStyle="bold"
+                            android:textColor="@android:color/black"
+                            android:textSize="20sp"
+                            android:text="Bienvenido, Tony" />
+
+                        <TextView
+                            android:id="@+id/tvWelcomeCompany"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textColor="#6D6D6D"
+                            android:text="Mundo Tours SAC" />
+                    </LinearLayout>
+
+                    <FrameLayout
+                        android:id="@+id/notifications_container"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:layout_alignParentRight="true"
+                        android:layout_marginEnd="4dp">
+
+                        <ImageView
+                            android:id="@+id/ivNotifications"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:contentDescription="@string/notifications"
+                            android:src="@drawable/ic_bell" />
+
+                        <TextView
+                            android:id="@+id/tvBadge"
+                            android:layout_width="18dp"
+                            android:layout_height="18dp"
+                            android:layout_gravity="top|end"
+                            android:background="@drawable/bg_badge"
+                            android:gravity="center"
+                            android:text="3"
+                            android:textColor="@color/badge_text"
+                            android:textSize="10sp" />
+                    </FrameLayout>
+                </RelativeLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- KPIs: grilla 2x2 con tarjetas -->
+            <GridLayout
+                android:id="@+id/kpiGrid"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:columnCount="2"
+                android:rowCount="2"
+                android:useDefaultMargins="true">
+
+                <!-- Tours en curso -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/kpiToursEnCurso"
+                    android:layout_width="0dp"
+                    android:layout_height="120dp"
+                    android:layout_columnWeight="1"
+                    android:layout_rowWeight="1"
+                    app:cardCornerRadius="16dp"
+                    app:strokeColor="#E6E0F8"
+                    app:strokeWidth="1dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <LinearLayout
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:gravity="center"
+                            android:background="@drawable/bg_circle"
+                            android:backgroundTint="#EFE8FF">
+
+                            <ImageView
+                                android:id="@+id/ivKpiIcon1"
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:src="@drawable/ic_bus" />
+                        </LinearLayout>
+
+                        <TextView
+                            android:id="@+id/tvKpiValue1"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:text="0"
+                            android:textAppearance="@style/TextAppearance.Material3.TitleLarge" />
+
+                        <TextView
+                            android:id="@+id/tvKpiLabel1"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/kpi_tours_en_curso"
+                            android:textColor="#6D6D6D" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Próximos tours -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/kpiProximosTours"
+                    android:layout_width="0dp"
+                    android:layout_height="120dp"
+                    android:layout_columnWeight="1"
+                    android:layout_rowWeight="1"
+                    app:cardCornerRadius="16dp"
+                    app:strokeColor="#E6E0F8"
+                    app:strokeWidth="1dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <LinearLayout
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:gravity="center"
+                            android:background="@drawable/bg_circle"
+                            android:backgroundTint="#EFE8FF">
+
+                            <ImageView
+                                android:id="@+id/ivKpiIcon2"
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:src="@drawable/ic_calendar" />
+                        </LinearLayout>
+
+                        <TextView
+                            android:id="@+id/tvKpiValue2"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:text="0"
+                            android:textAppearance="@style/TextAppearance.Material3.TitleLarge" />
+
+                        <TextView
+                            android:id="@+id/tvKpiLabel2"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/kpi_proximos_tours"
+                            android:textColor="#6D6D6D" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Ventas totales -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/kpiVentasTotales"
+                    android:layout_width="0dp"
+                    android:layout_height="120dp"
+                    android:layout_columnWeight="1"
+                    android:layout_rowWeight="1"
+                    app:cardCornerRadius="16dp"
+                    app:strokeColor="#E6E0F8"
+                    app:strokeWidth="1dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <LinearLayout
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:gravity="center"
+                            android:background="@drawable/bg_circle"
+                            android:backgroundTint="#EFE8FF">
+
+                            <ImageView
+                                android:id="@+id/ivKpiIcon3"
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:src="@drawable/ic_money" />
+                        </LinearLayout>
+
+                        <TextView
+                            android:id="@+id/tvKpiValue3"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:text="$0"
+                            android:textAppearance="@style/TextAppearance.Material3.TitleLarge" />
+
+                        <TextView
+                            android:id="@+id/tvKpiLabel3"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/kpi_ventas_totales"
+                            android:textColor="#6D6D6D" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Ventas de tours -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/kpiVentasTours"
+                    android:layout_width="0dp"
+                    android:layout_height="120dp"
+                    android:layout_columnWeight="1"
+                    android:layout_rowWeight="1"
+                    app:cardCornerRadius="16dp"
+                    app:strokeColor="#E6E0F8"
+                    app:strokeWidth="1dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <LinearLayout
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:gravity="center"
+                            android:background="@drawable/bg_circle"
+                            android:backgroundTint="#EFE8FF">
+
+                            <ImageView
+                                android:id="@+id/ivKpiIcon4"
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:src="@drawable/ic_money" />
+                        </LinearLayout>
+
+                        <TextView
+                            android:id="@+id/tvKpiValue4"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:text="$0"
+                            android:textAppearance="@style/TextAppearance.Material3.TitleLarge" />
+
+                        <TextView
+                            android:id="@+id/tvKpiLabel4"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/kpi_ventas_tours"
+                            android:textColor="#6D6D6D" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+            </GridLayout>
+
+            <!-- Título lista -->
+            <TextView
+                android:id="@+id/tvSalesTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:text="@string/sales_by_service"
+                android:textAppearance="@style/TextAppearance.Material3.TitleLarge" />
+
+            <!-- Contenedor de la "gráfica" tipo barras -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardSales"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                app:cardBackgroundColor="@color/brand_lilac"
+                app:cardCornerRadius="16dp">
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvServiceSales"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="12dp"
+                    android:nestedScrollingEnabled="false" />
+            </com.google.android.material.card.MaterialCardView>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="84dp" />
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottomNav"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        app:menu="@menu/menu_admin_bottom_nav" />
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -12,8 +12,8 @@ android {
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
-
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        vectorDrawables { useSupportLibrary = true }
     }
 
     buildTypes {
@@ -26,25 +26,34 @@ android {
         }
     }
 
+    // Habilitamos lo que aparecía en ambas ramas (una sola vez)
+    buildFeatures {
+        viewBinding = true
+        buildConfig = true
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
-
-    // ✅ ACTIVAR VIEW BINDING
-    buildFeatures {
-        viewBinding = true
-    }
 }
 
 dependencies {
+    // De master
+    implementation(libs.core)
+    implementation(libs.lifecycle.livedata)
+    implementation(libs.lifecycle.viewmodel)
+    implementation(libs.lifecycle.runtime)
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
+    implementation(libs.gson)
+
+    // De tu feature + base UI
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.activity)
+    implementation(libs.recyclerview)        // ← quitamos la versión hardcode 1.3.2 para evitar duplicado
     implementation(libs.constraintlayout)
-
-    // ✅ RECYCLER VIEW PARA LA LISTA DE USUARIOS
-    implementation("androidx.recyclerview:recyclerview:1.3.2")
     implementation(libs.navigation.fragment)
     implementation(libs.navigation.ui)
 

@@ -1,15 +1,44 @@
+# Android / Gradle
 *.iml
-.gradle
-/local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
-.DS_Store
-/build
-/captures
-.externalNativeBuild
-.cxx
+.gradle/
 local.properties
+**/build/
+**/out/
+.cxx/
+.externalNativeBuild/
+captures/
+*.log
+
+# Android Studio / IntelliJ
+.idea/*
+!.idea/.gitignore
+!.idea/codeStyles/
+!.idea/codeStyles/*
+!.idea/runConfigurations/
+!.idea/runConfigurations/*
+!.idea/inspectionProfiles/
+!.idea/inspectionProfiles/*
+
+# Opcionalmente ignora explícitos (redundante por .idea/*):
+.idea/caches
+.idea/libraries
+.idea/modules.xml
+.idea/workspace.xml
+.idea/navEditor.xml
+.idea/assetWizardSettings.xml
+.idea/AndroidProjectSystem.xml
+.idea/compiler.xml
+.idea/deploymentTargetSelector.xml
+.idea/deviceManager.xml
+.idea/gradle.xml
+.idea/migrations.xml
+.idea/misc.xml
+.idea/vcs.xml
+
+# SO
+.DS_Store
+Thumbs.db
+
+# Keystores (no publiques tus llaves)
+*.jks
+*.keystore
