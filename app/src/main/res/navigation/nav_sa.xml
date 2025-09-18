@@ -41,5 +41,10 @@
         android:id="@+id/nav_profile_self"
         android:name="com.example.connectifyproject.views.superadmin.profile.SaProfileFragment"
         android:label="Mi perfil" />
+    <fragment
+        android:id="@+id/saLogDetailFragment"
+        android:name="com.example.connectifyproject.views.superadmin.logs.SaLogDetailFragment"
+        android:label="Detalle del log" />
+
 
 </navigation>
