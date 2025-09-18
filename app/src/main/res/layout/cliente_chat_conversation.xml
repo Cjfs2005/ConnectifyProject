@@ -132,6 +132,8 @@
             android:layout_height="wrap_content"
             android:layout_gravity="bottom"
             android:contentDescription="Enviar mensaje"
+            android:backgroundTint="?attr/colorPrimary"
+            app:elevation="0dp"
             app:fabSize="mini"
             app:srcCompat="@drawable/ic_send"
             app:tint="?attr/colorOnPrimary" />
