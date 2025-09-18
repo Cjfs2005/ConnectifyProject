@@ -2,13 +2,21 @@ package com.example.connectifyproject;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 public class cliente_perfil extends AppCompatActivity implements cliente_fragment_menu.OnMenuItemSelectedListener {
 
     private ImageButton btnNotifications;
+    private TextView tvEditProfile;
+    private LinearLayout layoutPaymentMethods;
+    private LinearLayout layoutChangePassword;
+    private LinearLayout layoutPermissions;
+    private LinearLayout layoutLogout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,6 +41,11 @@ public class cliente_perfil extends AppCompatActivity implements cliente_fragmen
 
     private void initViews() {
         btnNotifications = findViewById(R.id.btn_notifications);
+        tvEditProfile = findViewById(R.id.tv_edit_profile);
+        layoutPaymentMethods = findViewById(R.id.layout_payment_methods);
+        layoutChangePassword = findViewById(R.id.layout_change_password);
+        layoutPermissions = findViewById(R.id.layout_permissions);
+        layoutLogout = findViewById(R.id.layout_logout);
     }
 
     private void setupMenuFragment() {
@@ -53,6 +66,33 @@ public class cliente_perfil extends AppCompatActivity implements cliente_fragmen
             Intent intent = new Intent(this, cliente_notificaciones.class);
             intent.putExtra("origin_activity", "cliente_perfil");
             startActivity(intent);
+        });
+
+        tvEditProfile.setOnClickListener(v -> {
+            Intent intent = new Intent(this, cliente_editar_perfil.class);
+            startActivity(intent);
+        });
+
+        layoutPaymentMethods.setOnClickListener(v -> {
+            Intent intent = new Intent(this, cliente_metodos_pago.class);
+            startActivity(intent);
+        });
+
+        layoutChangePassword.setOnClickListener(v -> {
+            Intent intent = new Intent(this, cliente_cambiar_contrasenia.class);
+            startActivity(intent);
+        });
+
+        layoutPermissions.setOnClickListener(v -> {
+            Intent intent = new Intent(this, cliente_permisos.class);
+            startActivity(intent);
+        });
+
+        layoutLogout.setOnClickListener(v -> {
+            Intent intent = new Intent(this, auth_login.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(intent);
+            finish();
         });
     }
 

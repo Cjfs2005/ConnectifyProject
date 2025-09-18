@@ -46,5 +46,11 @@
         <activity android:name=".cliente_tours" android:exported="false" />
         <activity android:name=".cliente_reservas" android:exported="false" />
         <activity android:name=".cliente_notificaciones" android:exported="false" />
+        
+        <!-- Cliente Profile Child Activities -->
+        <activity android:name=".cliente_metodos_pago" android:exported="false" />
+        <activity android:name=".cliente_editar_perfil" android:exported="false" />
+        <activity android:name=".cliente_cambiar_contrasenia" android:exported="false" />
+        <activity android:name=".cliente_permisos" android:exported="false" />
     </application>
 </manifest>
