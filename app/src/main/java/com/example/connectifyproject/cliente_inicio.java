@@ -80,13 +80,13 @@ public class cliente_inicio extends AppCompatActivity implements cliente_fragmen
     }
     
     private void setupProgressState() {
-        // Estado actual: Inicio (solo "Inicio" está activo, "En curso" y "Fin" inactivos)
+        // Estado actual: Inicio (solo el círculo "Inicio" está activo, sin línea de progreso)
         tvInicio.setTextColor(getResources().getColor(R.color.cliente_progress_active, null));
         tvEnCurso.setTextColor(getResources().getColor(R.color.cliente_progress_inactive, null));
         tvFin.setTextColor(getResources().getColor(R.color.cliente_progress_inactive, null));
         
-        // Los círculos ya están configurados en el XML para mostrar solo "Inicio" activo
-        // La línea de progreso muestra solo hasta el primer círculo (estado inicial)
+        // En estado inicial: solo círculo activo, sin línea de progreso
+        // La línea activa está oculta (android:visibility="gone" en XML)
     }
     
     private void setupMenuFragment() {

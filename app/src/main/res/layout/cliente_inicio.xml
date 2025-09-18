@@ -214,11 +214,12 @@
                             <!-- Progress Line Active -->
                             <View
                                 android:id="@+id/progress_line_active"
-                                android:layout_width="50dp"
+                                android:layout_width="0dp"
                                 android:layout_height="4dp"
                                 android:layout_centerVertical="true"
                                 android:layout_marginStart="8dp"
-                                android:background="@drawable/cliente_progress_line_active" />
+                                android:background="@drawable/cliente_progress_line_active"
+                                android:visibility="gone" />
 
                             <!-- Circle 1 - Inicio (Completed) -->
                             <View
