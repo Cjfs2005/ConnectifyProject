@@ -49,6 +49,17 @@ public class cliente_inicio extends AppCompatActivity implements cliente_fragmen
         setupMenuFragment();
         setupClickListeners();
     }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Asegurar que "Inicio" esté seleccionado cuando regresamos a esta actividad
+        cliente_fragment_menu menuFragment = (cliente_fragment_menu) getSupportFragmentManager()
+                .findFragmentById(R.id.fragment_menu_container);
+        if (menuFragment != null) {
+            menuFragment.setSelectedItem(R.id.nav_inicio);
+        }
+    }
     
     private void initViews() {
         tvTourTitle = findViewById(R.id.tv_tour_title);
@@ -96,9 +107,9 @@ public class cliente_inicio extends AppCompatActivity implements cliente_fragmen
         
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
         transaction.replace(R.id.fragment_menu_container, menuFragment);
-        transaction.commit();
+        transaction.commitNow();
         
-        // Seleccionar "Inicio" por defecto
+        // Seleccionar "Inicio" por defecto - ahora el fragment está listo
         menuFragment.setSelectedItem(R.id.nav_inicio);
     }
     
@@ -122,24 +133,24 @@ public class cliente_inicio extends AppCompatActivity implements cliente_fragmen
             return true;
         } else if (itemId == R.id.nav_reservas) {
             Intent intent = new Intent(this, cliente_reservas.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
             startActivity(intent);
-            finish();
             return true;
         } else if (itemId == R.id.nav_tours) {
             Intent intent = new Intent(this, cliente_tours.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
             startActivity(intent);
-            finish();
             return true;
         } else if (itemId == R.id.nav_chat) {
             // Navegar a chat
             Intent intent = new Intent(this, cliente_chat_list.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
             startActivity(intent);
-            finish();
             return true;
         } else if (itemId == R.id.nav_perfil) {
             Intent intent = new Intent(this, cliente_perfil.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
             startActivity(intent);
-            finish();
             return true;
         }
         return false;

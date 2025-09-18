@@ -17,6 +17,7 @@ public class cliente_fragment_menu extends Fragment {
     
     private BottomNavigationView bottomNavigation;
     private OnMenuItemSelectedListener listener;
+    private int pendingSelectedItemId = -1; // Para guardar selección pendiente
     
     public interface OnMenuItemSelectedListener {
         boolean onMenuItemSelected(int itemId);
@@ -38,11 +39,21 @@ public class cliente_fragment_menu extends Fragment {
         
         bottomNavigation = view.findViewById(R.id.cliente_bottom_navigation);
         bottomNavigation.setOnItemSelectedListener(navListener);
+        
+        // Si tenemos una selección pendiente, aplicarla ahora
+        if (pendingSelectedItemId != -1) {
+            bottomNavigation.setSelectedItemId(pendingSelectedItemId);
+            pendingSelectedItemId = -1;
+        }
     }
     
     public void setSelectedItem(int itemId) {
         if (bottomNavigation != null) {
+            // La vista está lista, seleccionar inmediatamente
             bottomNavigation.setSelectedItemId(itemId);
+        } else {
+            // La vista no está lista, guardar para más tarde
+            pendingSelectedItemId = itemId;
         }
     }
     
