@@ -25,6 +25,7 @@ public class SaGuideRequestsAdapter extends RecyclerView.Adapter<SaGuideRequests
 
     public interface Listener {
         void onSelectionChanged(int count);
+        void onOpen(GuideRequest req);
     }
 
     public static class GuideRequest {
@@ -43,13 +44,11 @@ public class SaGuideRequestsAdapter extends RecyclerView.Adapter<SaGuideRequests
     private SortOrder sort = SortOrder.RECENT;
     private String q = "";
     private Listener listener;
-    private boolean ready = false; // ← evita callbacks durante el constructor
+    private boolean ready = false; // evita callbacks durante el constructor
 
     public SaGuideRequestsAdapter(List<GuideRequest> initial, Listener listener) {
-        // Primero carga data SIN callbacks
         this.listener = null;
-        replaceAll(initial); // apply() no llamará listener
-        // Ahora activa listener y marca ready
+        replaceAll(initial); // no notifica aún
         this.listener = listener;
         this.ready = true;
     }
@@ -109,7 +108,6 @@ public class SaGuideRequestsAdapter extends RecyclerView.Adapter<SaGuideRequests
 
         notifyDataSetChanged();
 
-        // ✅ solo notificar cuando el adapter ya está "listo"
         if (ready && listener != null) listener.onSelectionChanged(getSelectedCount());
     }
 
@@ -160,14 +158,18 @@ public class SaGuideRequestsAdapter extends RecyclerView.Adapter<SaGuideRequests
             }
             tvSub.setText(sub);
 
+            // checkbox selecciona
             cb.setOnCheckedChangeListener(null);
             cb.setChecked(r.selected);
             cb.setOnCheckedChangeListener((CompoundButton buttonView, boolean isChecked) -> {
                 r.selected = isChecked;
-                if (listener != null) listener.onSelectionChanged(-1); // fragment recalcula
+                if (listener != null) listener.onSelectionChanged(-1);
             });
 
-            itemView.setOnClickListener(v -> cb.setChecked(!cb.isChecked()));
+            // tocar la tarjeta abre el detalle
+            itemView.setOnClickListener(v -> {
+                if (listener != null) listener.onOpen(r);
+            });
         }
     }
 }

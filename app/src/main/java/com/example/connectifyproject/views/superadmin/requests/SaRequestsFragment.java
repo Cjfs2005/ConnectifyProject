@@ -12,6 +12,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.PopupMenu;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -34,8 +35,6 @@ public class SaRequestsFragment extends Fragment {
     private ExtendedFloatingActionButton fabEnable;
     private TextInputEditText etSearch;
 
-    public SaRequestsFragment() {}
-
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -48,24 +47,30 @@ public class SaRequestsFragment extends Fragment {
     public void onViewCreated(@NonNull View v, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(v, savedInstanceState);
 
-        // Bind
         RecyclerView rv = v.findViewById(R.id.rvRequests);
         View btnSelectAll = v.findViewById(R.id.btnSelectAll);
         View btnSort      = v.findViewById(R.id.btnSort);
         etSearch          = v.findViewById(R.id.etSearch);
         fabEnable         = v.findViewById(R.id.fabEnable);
 
-        // Recycler
         rv.setLayoutManager(new LinearLayoutManager(requireContext()));
-        adapter = new SaGuideRequestsAdapter(buildMock(), count -> refreshFab());
+
+        adapter = new SaGuideRequestsAdapter(buildMock(), new SaGuideRequestsAdapter.Listener() {
+            @Override public void onSelectionChanged(int count) { refreshFab(); }
+            @Override public void onOpen(SaGuideRequestsAdapter.GuideRequest req) {
+                Bundle b = new Bundle();
+                b.putParcelable("user", req.user);
+                b.putLong("requestedAt", req.requestedAt);
+                NavHostFragment.findNavController(SaRequestsFragment.this)
+                        .navigate(R.id.saGuideRequestDetailFragment, b);
+            }
+        });
         rv.setAdapter(adapter);
 
-        // Por si no cae el callback en alguna acción
         adapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
             @Override public void onChanged() { refreshFab(); }
         });
 
-        // Restaurar estado
         if (savedInstanceState != null) {
             sort = savedInstanceState.getBoolean("sortOld", false)
                     ? SaGuideRequestsAdapter.SortOrder.OLD
@@ -77,7 +82,6 @@ public class SaRequestsFragment extends Fragment {
             adapter.setQuery(q);
         }
 
-        // Buscar
         etSearch.addTextChangedListener(new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
             @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
@@ -87,17 +91,15 @@ public class SaRequestsFragment extends Fragment {
             }
         });
 
-        // Todos: seleccionar todo / limpiar
         btnSelectAll.setOnClickListener(view -> {
             boolean selectAll = adapter.getSelectedCount() < adapter.getItemCount();
             adapter.selectAll(selectAll);
             refreshFab();
         });
 
-        // Orden (AppCompat PopupMenu)
         btnSort.setOnClickListener(this::showSortMenu);
 
-        // Habilitar seleccionados -> confirmación + feedback
+        // ✅ Confirmación al habilitar selección múltiple
         fabEnable.setOnClickListener(view -> {
             int n = adapter.getSelectedCount();
             if (n == 0) return;
@@ -106,28 +108,22 @@ public class SaRequestsFragment extends Fragment {
                     .setTitle("Habilitar guías")
                     .setMessage("¿Habilitar " + n + " guía(s)?")
                     .setNegativeButton("Cancelar", null)
-                    .setPositiveButton("Sí, habilitar", (d, w) -> {
-                        // Lógica real al backend iría aquí. Por ahora, limpiar selección y feedback.
-                        adapter.selectAll(false);
+                    .setPositiveButton("Habilitar", (d, w) -> {
+                        // TODO: llamada real al backend
+                        adapter.selectAll(false);     // limpia selección
                         refreshFab();
                         Snackbar.make(view, "Guías habilitados", Snackbar.LENGTH_SHORT).show();
                     })
                     .show();
         });
 
-        // Estado inicial
         refreshFab();
     }
 
-    /** Muestra/oculta el FAB de "Habilitar" según la selección actual */
     private void refreshFab() {
         int n = (adapter == null) ? 0 : adapter.getSelectedCount();
         if (fabEnable == null) return;
-        if (n > 0) {
-            fabEnable.show();
-        } else {
-            fabEnable.hide();
-        }
+        if (n > 0) fabEnable.show(); else fabEnable.hide();
     }
 
     private void showSortMenu(View anchor) {
@@ -143,13 +139,9 @@ public class SaRequestsFragment extends Fragment {
 
     private boolean onSortItem(MenuItem item) {
         int id = item.getItemId();
-        if (id == R.id.sort_recent) {
-            sort = SaGuideRequestsAdapter.SortOrder.RECENT;
-        } else if (id == R.id.sort_old) {
-            sort = SaGuideRequestsAdapter.SortOrder.OLD;
-        } else {
-            return false;
-        }
+        if (id == R.id.sort_recent)      sort = SaGuideRequestsAdapter.SortOrder.RECENT;
+        else if (id == R.id.sort_old)    sort = SaGuideRequestsAdapter.SortOrder.OLD;
+        else return false;
         adapter.setSort(sort);
         refreshFab();
         return true;
