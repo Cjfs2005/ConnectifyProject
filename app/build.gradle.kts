@@ -52,7 +52,7 @@ dependencies {
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.activity)
-    implementation(libs.recyclerview)        // ← quitamos la versión hardcode 1.3.2 para evitar duplicado
+    implementation(libs.recyclerview)
     implementation(libs.constraintlayout)
     implementation(libs.navigation.fragment)
     implementation(libs.navigation.ui)
