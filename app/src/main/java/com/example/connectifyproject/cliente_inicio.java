@@ -4,11 +4,11 @@ import android.os.Bundle;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.view.View;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.FragmentTransaction;
 import com.google.android.material.button.MaterialButton;
-import com.google.android.material.progressindicator.LinearProgressIndicator;
 
 /**
  * Actividad principal para Cliente
@@ -26,7 +26,13 @@ public class cliente_inicio extends AppCompatActivity implements cliente_fragmen
     private TextView tvTourTitle;
     private TextView tvTourCompany;
     private TextView tvTourDuration;
-    private LinearProgressIndicator progressTour;
+    private TextView tvInicio;
+    private TextView tvEnCurso;
+    private TextView tvFin;
+    private View circleInicio;
+    private View circleEnCurso;
+    private View circleFin;
+    private View progressLineActive;
     private MaterialButton btnVerMas;
     private ImageButton btnNotifications;
     private cliente_fragment_menu menuFragment;
@@ -47,7 +53,13 @@ public class cliente_inicio extends AppCompatActivity implements cliente_fragmen
         tvTourTitle = findViewById(R.id.tv_tour_title);
         tvTourCompany = findViewById(R.id.tv_tour_company);
         tvTourDuration = findViewById(R.id.tv_tour_duration);
-        progressTour = findViewById(R.id.progress_tour);
+        tvInicio = findViewById(R.id.tv_inicio);
+        tvEnCurso = findViewById(R.id.tv_en_curso);
+        tvFin = findViewById(R.id.tv_fin);
+        circleInicio = findViewById(R.id.circle_inicio);
+        circleEnCurso = findViewById(R.id.circle_en_curso);
+        circleFin = findViewById(R.id.circle_fin);
+        progressLineActive = findViewById(R.id.progress_line_active);
         btnVerMas = findViewById(R.id.btn_ver_mas);
         btnNotifications = findViewById(R.id.btn_notifications);
     }
@@ -62,7 +74,19 @@ public class cliente_inicio extends AppCompatActivity implements cliente_fragmen
         tvTourTitle.setText(TOUR_TITLE);
         tvTourCompany.setText(TOUR_COMPANY);
         tvTourDuration.setText(TOUR_DURATION);
-        progressTour.setProgress(TOUR_PROGRESS);
+        
+        // Configurar el estado del progreso (simulando que está "En curso")
+        setupProgressState();
+    }
+    
+    private void setupProgressState() {
+        // Estado actual: En curso (por eso "Inicio" y "En curso" están activos, "Fin" inactivo)
+        tvInicio.setTextColor(getResources().getColor(R.color.cliente_progress_active, null));
+        tvEnCurso.setTextColor(getResources().getColor(R.color.cliente_progress_active, null));
+        tvFin.setTextColor(getResources().getColor(R.color.cliente_progress_inactive, null));
+        
+        // Los círculos ya están configurados en el XML
+        // La línea de progreso muestra hasta "En curso" (50% aproximadamente)
     }
     
     private void setupMenuFragment() {
