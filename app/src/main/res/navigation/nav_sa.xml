@@ -33,4 +33,10 @@
         android:id="@+id/saCreateAdminFragment"
         android:name="com.example.connectifyproject.views.superadmin.users.SaCreateAdminFragment"
         android:label="Nuevo administrador" />
+
+    <fragment
+        android:id="@+id/nav_profile_self"
+        android:name="com.example.connectifyproject.views.superadmin.profile.SaProfileFragment"
+        android:label="Mi perfil" />
+
 </navigation>

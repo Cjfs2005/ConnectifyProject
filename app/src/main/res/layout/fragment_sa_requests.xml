@@ -1,8 +1,97 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent" android:layout_height="match_parent"
-    android:padding="24dp">
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="12dp">
+
+    <!-- Título -->
     <TextView
-        android:layout_width="wrap_content" android:layout_height="wrap_content"
-        android:text="(mock)" android:textSize="18sp"/>
-</FrameLayout>
+        android:id="@+id/tvTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="SOLICITUDES DE GUÍA"
+        android:textStyle="bold"
+        android:textAllCaps="true"
+        android:textSize="18sp"
+        android:paddingBottom="8dp" />
+
+    <!-- Barra de controles: Seleccionar todo, Orden, Búsqueda -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingBottom="8dp">
+
+        <!-- Seleccionar todo / limpiar -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSelectAll"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:text="★"
+            android:contentDescription="@string/app_name" />
+
+        <!-- Orden -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSort"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_marginStart="8dp"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:text="▾"
+            android:contentDescription="Ordenar" />
+
+        <!-- Búsqueda -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_weight="1"
+            app:startIconDrawable="@drawable/ic_search_24">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etSearch"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Nombre / DNI / Empresa"
+                android:inputType="text" />
+        </com.google.android.material.textfield.TextInputLayout>
+    </LinearLayout>
+
+    <!-- Lista -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvRequests"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:paddingBottom="8dp" />
+
+    <!-- Barra inferior: contador + Habilitar -->
+    <LinearLayout
+        android:id="@+id/bottomBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="end|center_vertical"
+        android:paddingTop="4dp">
+
+        <TextView
+            android:id="@+id/tvSelected"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="0 seleccionados"
+            android:textSize="14sp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnEnable"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:text="Habilitar"
+            app:cornerRadius="24dp"
+            app:iconPadding="8dp"
+            android:enabled="false" />
+    </LinearLayout>
+</LinearLayout>

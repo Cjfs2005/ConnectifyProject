@@ -55,9 +55,9 @@ public class SaUsersFragment extends Fragment {
         RecyclerView rv = v.findViewById(R.id.rvUsers);
         rv.setLayoutManager(new LinearLayoutManager(requireContext()));
         adapter = new SaUsersAdapter(buildMockUsers(), u -> {
-            // Abrir perfil; enviamos el User como Serializable
+            // Abrir perfil; enviamos el User como PARCELABLE ✅
             Bundle b = new Bundle();
-            b.putSerializable("user", u);
+            b.putParcelable("user", u);
             NavHostFragment.findNavController(this)
                     .navigate(R.id.saUserDetailFragment, b);
         });
