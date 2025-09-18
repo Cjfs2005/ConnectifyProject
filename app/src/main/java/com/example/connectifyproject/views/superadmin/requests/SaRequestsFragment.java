@@ -7,13 +7,10 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-// QUITA: import android.widget.PopupMenu;
-import androidx.appcompat.widget.PopupMenu;
-import android.widget.TextView;
-
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.widget.PopupMenu;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -21,7 +18,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.connectifyproject.R;
 import com.example.connectifyproject.model.Role;
 import com.example.connectifyproject.model.User;
-import com.google.android.material.button.MaterialButton;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputEditText;
 
@@ -33,9 +31,8 @@ public class SaRequestsFragment extends Fragment {
     private SaGuideRequestsAdapter adapter;
     private SaGuideRequestsAdapter.SortOrder sort = SaGuideRequestsAdapter.SortOrder.RECENT;
 
-    private MaterialButton btnSelectAll, btnSort, btnEnable;
+    private ExtendedFloatingActionButton fabEnable;
     private TextInputEditText etSearch;
-    private TextView tvSelected;
 
     public SaRequestsFragment() {}
 
@@ -53,19 +50,22 @@ public class SaRequestsFragment extends Fragment {
 
         // Bind
         RecyclerView rv = v.findViewById(R.id.rvRequests);
+        View btnSelectAll = v.findViewById(R.id.btnSelectAll);
+        View btnSort      = v.findViewById(R.id.btnSort);
+        etSearch          = v.findViewById(R.id.etSearch);
+        fabEnable         = v.findViewById(R.id.fabEnable);
+
+        // Recycler
         rv.setLayoutManager(new LinearLayoutManager(requireContext()));
-
-        btnSelectAll = v.findViewById(R.id.btnSelectAll);
-        btnSort      = v.findViewById(R.id.btnSort);
-        btnEnable    = v.findViewById(R.id.btnEnable);
-        etSearch     = v.findViewById(R.id.etSearch);
-        tvSelected   = v.findViewById(R.id.tvSelected);
-
-        // Adapter
-        adapter = new SaGuideRequestsAdapter(buildMock(), count -> refreshSelectedUi());
+        adapter = new SaGuideRequestsAdapter(buildMock(), count -> refreshFab());
         rv.setAdapter(adapter);
 
-        // Restore
+        // Por si no cae el callback en alguna acción
+        adapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
+            @Override public void onChanged() { refreshFab(); }
+        });
+
+        // Restaurar estado
         if (savedInstanceState != null) {
             sort = savedInstanceState.getBoolean("sortOld", false)
                     ? SaGuideRequestsAdapter.SortOrder.OLD
@@ -73,7 +73,7 @@ public class SaRequestsFragment extends Fragment {
             adapter.setSort(sort);
 
             String q = savedInstanceState.getString("q", "");
-            etSearch.setText(q);
+            if (etSearch != null) etSearch.setText(q);
             adapter.setQuery(q);
         }
 
@@ -83,35 +83,51 @@ public class SaRequestsFragment extends Fragment {
             @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
             @Override public void afterTextChanged(Editable s) {
                 adapter.setQuery(s == null ? "" : s.toString());
+                refreshFab();
             }
         });
 
-        // Seleccionar todo / limpiar
+        // Todos: seleccionar todo / limpiar
         btnSelectAll.setOnClickListener(view -> {
             boolean selectAll = adapter.getSelectedCount() < adapter.getItemCount();
             adapter.selectAll(selectAll);
-            refreshSelectedUi();
+            refreshFab();
         });
 
-        // Orden
+        // Orden (AppCompat PopupMenu)
         btnSort.setOnClickListener(this::showSortMenu);
 
-        // Habilitar seleccionados (solo UI)
-        btnEnable.setOnClickListener(view -> {
+        // Habilitar seleccionados -> confirmación + feedback
+        fabEnable.setOnClickListener(view -> {
             int n = adapter.getSelectedCount();
             if (n == 0) return;
-            Snackbar.make(view, "✅ Habilitados " + n + " guías", Snackbar.LENGTH_LONG).show();
-            adapter.selectAll(false);
-            refreshSelectedUi();
+
+            new MaterialAlertDialogBuilder(requireContext())
+                    .setTitle("Habilitar guías")
+                    .setMessage("¿Habilitar " + n + " guía(s)?")
+                    .setNegativeButton("Cancelar", null)
+                    .setPositiveButton("Sí, habilitar", (d, w) -> {
+                        // Lógica real al backend iría aquí. Por ahora, limpiar selección y feedback.
+                        adapter.selectAll(false);
+                        refreshFab();
+                        Snackbar.make(view, "Guías habilitados", Snackbar.LENGTH_SHORT).show();
+                    })
+                    .show();
         });
 
-        refreshSelectedUi();
+        // Estado inicial
+        refreshFab();
     }
 
-    private void refreshSelectedUi() {
-        int n = adapter.getSelectedCount();
-        tvSelected.setText(n + " seleccionados");
-        btnEnable.setEnabled(n > 0);
+    /** Muestra/oculta el FAB de "Habilitar" según la selección actual */
+    private void refreshFab() {
+        int n = (adapter == null) ? 0 : adapter.getSelectedCount();
+        if (fabEnable == null) return;
+        if (n > 0) {
+            fabEnable.show();
+        } else {
+            fabEnable.hide();
+        }
     }
 
     private void showSortMenu(View anchor) {
@@ -131,8 +147,11 @@ public class SaRequestsFragment extends Fragment {
             sort = SaGuideRequestsAdapter.SortOrder.RECENT;
         } else if (id == R.id.sort_old) {
             sort = SaGuideRequestsAdapter.SortOrder.OLD;
+        } else {
+            return false;
         }
         adapter.setSort(sort);
+        refreshFab();
         return true;
     }
 
@@ -143,16 +162,15 @@ public class SaRequestsFragment extends Fragment {
         out.putString("q", etSearch.getText() == null ? "" : etSearch.getText().toString());
     }
 
-    // ------- MOCK -------
+    // ------- MOCK DATA -------
     private List<SaGuideRequestsAdapter.GuideRequest> buildMock() {
         List<SaGuideRequestsAdapter.GuideRequest> list = new ArrayList<>();
-        // name, lastName, dni, company, role GUIDE, docType, birth, email, phone, address, photo
-        list.add(req(new User("Rosa","Paye D.", "74561230","Cusco Guide", Role.GUIDE, "DNI","10/01/1995","rosa@cg.pe","999111222","Cusco",null), daysAgo(1)));
-        list.add(req(new User("Nicolás","Zapata L.", "71230987","Inca Tours", Role.GUIDE, "DNI","03/11/1992","nico@incatours.com","988776655","Cusco",null), daysAgo(2)));
-        list.add(req(new User("Sebastián","Flores F.", "70123456","Perú Travel", Role.GUIDE, "DNI","07/05/1990","seb@perutravel.com","977665544","Lima",null), daysAgo(0)));
-        list.add(req(new User("Ricardo","Montero M.","75678901","Andes Corp", Role.GUIDE, "DNI","09/21/1994","rick@andescorp.pe","955667788","Arequipa",null), daysAgo(5)));
-        list.add(req(new User("Laslo","Fernandez S.","70011223","Wayna Picchu", Role.GUIDE, "DNI","12/12/1993","laslo@wp.pe","933221100","Cusco",null), daysAgo(3)));
-        list.add(req(new User("Samira","Ezaguirre L.","73456789","Cusco Guide", Role.GUIDE, "DNI","04/30/1997","samira@cg.pe","944556677","Cusco",null), daysAgo(8)));
+        list.add(req(new User("Rosa","Paye D.", "74561230","Cusco Guide", Role.GUIDE,"DNI","10/01/1995","rosa@cg.pe","999111222","Cusco",null), daysAgo(1)));
+        list.add(req(new User("Nicolás","Zapata L.", "71230987","Inca Tours", Role.GUIDE,"DNI","03/11/1992","nico@incatours.com","988776655","Cusco",null), daysAgo(2)));
+        list.add(req(new User("Sebastián","Flores F.", "70123456","Perú Travel", Role.GUIDE,"DNI","07/05/1990","seb@perutravel.com","977665544","Lima",null), daysAgo(0)));
+        list.add(req(new User("Ricardo","Montero M.","75678901","Andes Corp", Role.GUIDE,"DNI","09/21/1994","rick@andescorp.pe","955667788","Arequipa",null), daysAgo(5)));
+        list.add(req(new User("Laslo","Fernandez S.","70011223","Wayna Picchu", Role.GUIDE,"DNI","12/12/1993","laslo@wp.pe","933221100","Cusco",null), daysAgo(3)));
+        list.add(req(new User("Samira","Ezaguirre L.","73456789","Cusco Guide", Role.GUIDE,"DNI","04/30/1997","samira@cg.pe","944556677","Cusco",null), daysAgo(8)));
         return list;
     }
 
@@ -161,6 +179,6 @@ public class SaRequestsFragment extends Fragment {
     }
 
     private long daysAgo(int d) {
-        return System.currentTimeMillis() - d * 24L * 60 * 60 * 1000;
+        return System.currentTimeMillis() - d * 24L * 60 * 60 * 1000L;
     }
 }

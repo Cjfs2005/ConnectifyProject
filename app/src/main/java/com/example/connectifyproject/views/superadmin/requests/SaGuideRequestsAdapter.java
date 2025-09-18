@@ -11,14 +11,11 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.connectifyproject.R;
 import com.example.connectifyproject.model.User;
-
 import com.google.android.material.checkbox.MaterialCheckBox;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.EnumSet;
 import java.util.List;
 import java.util.Locale;
 
@@ -45,11 +42,16 @@ public class SaGuideRequestsAdapter extends RecyclerView.Adapter<SaGuideRequests
     private final List<GuideRequest> items = new ArrayList<>();
     private SortOrder sort = SortOrder.RECENT;
     private String q = "";
-    private final Listener listener;
+    private Listener listener;
+    private boolean ready = false; // ← evita callbacks durante el constructor
 
     public SaGuideRequestsAdapter(List<GuideRequest> initial, Listener listener) {
+        // Primero carga data SIN callbacks
+        this.listener = null;
+        replaceAll(initial); // apply() no llamará listener
+        // Ahora activa listener y marca ready
         this.listener = listener;
-        replaceAll(initial);
+        this.ready = true;
     }
 
     public void replaceAll(List<GuideRequest> data) {
@@ -71,7 +73,7 @@ public class SaGuideRequestsAdapter extends RecyclerView.Adapter<SaGuideRequests
     public void selectAll(boolean select) {
         for (GuideRequest r : items) r.selected = select;
         notifyDataSetChanged();
-        if (listener != null) listener.onSelectionChanged(getSelectedCount());
+        if (ready && listener != null) listener.onSelectionChanged(getSelectedCount());
     }
 
     public int getSelectedCount() {
@@ -106,7 +108,9 @@ public class SaGuideRequestsAdapter extends RecyclerView.Adapter<SaGuideRequests
         Collections.sort(items, cmp);
 
         notifyDataSetChanged();
-        if (listener != null) listener.onSelectionChanged(getSelectedCount());
+
+        // ✅ solo notificar cuando el adapter ya está "listo"
+        if (ready && listener != null) listener.onSelectionChanged(getSelectedCount());
     }
 
     private static String s(String x) { return x == null ? "" : x; }
@@ -163,10 +167,7 @@ public class SaGuideRequestsAdapter extends RecyclerView.Adapter<SaGuideRequests
                 if (listener != null) listener.onSelectionChanged(-1); // fragment recalcula
             });
 
-            itemView.setOnClickListener(v -> {
-                boolean newVal = !cb.isChecked();
-                cb.setChecked(newVal);
-            });
+            itemView.setOnClickListener(v -> cb.setChecked(!cb.isChecked()));
         }
     }
 }
