@@ -35,6 +35,7 @@ public class MainActivity extends AppCompatActivity {
     public boolean onSupportNavigateUp() {
         NavHostFragment host = (NavHostFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.nav_host_sa);
-        return host != null && host.getNavController().navigateUp() || super.onSupportNavigateUp();
+        return (host != null && host.getNavController().navigateUp())
+                || super.onSupportNavigateUp();
     }
 }

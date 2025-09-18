@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.KeyEvent;
 import android.view.inputmethod.EditorInfo;
-import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -19,14 +18,14 @@ public class auth_login extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // ViewBinding de tu layout main_login_view.xml
+        // ViewBinding del layout main_login_view.xml
         binding = MainLoginViewBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        // Botón “Iniciar sesión”
+        // Click en “Iniciar sesión”
         binding.btnLogin.setOnClickListener(v -> tryLogin());
 
-        // Presionar “Done/Enter” en el campo password también intenta login
+        // Enter/Done en el password también intenta login
         binding.etPassword.setOnEditorActionListener((tv, actionId, event) -> {
             boolean pressedEnter =
                     actionId == EditorInfo.IME_ACTION_DONE ||
@@ -42,7 +41,7 @@ public class auth_login extends AppCompatActivity {
 
     /** Valida inputs y, si todo ok, navega a MainActivity */
     private void tryLogin() {
-        // Limpia errores previos
+        // limpia errores
         binding.tilEmail.setError(null);
         binding.tilPassword.setError(null);
 
@@ -53,7 +52,7 @@ public class auth_login extends AppCompatActivity {
         if (email.isEmpty()) {
             binding.tilEmail.setError("Ingresa tu correo");
             ok = false;
-        } else if (!isValidEmail(email)) {
+        } else if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
             binding.tilEmail.setError("Correo inválido");
             ok = false;
         }
@@ -65,21 +64,14 @@ public class auth_login extends AppCompatActivity {
 
         if (!ok) return;
 
-        // (Simulación) Aquí iría tu llamada a API/Firebase
-        // Si es exitoso:
+        // TODO: aquí iría tu llamada real a API/Firebase
         goToHome();
-        // Si no, muestra error:
-        // Toast.makeText(this, "Credenciales inválidas", Toast.LENGTH_SHORT).show();
     }
 
-    private boolean isValidEmail(String s) {
-        return android.util.Patterns.EMAIL_ADDRESS.matcher(s).matches();
-    }
-
-    /** Navega al host del flujo Superadmin */
+    /** Navega al host del flujo (NavHost + BottomNav) */
     private void goToHome() {
         Intent i = new Intent(auth_login.this, MainActivity.class);
         startActivity(i);
-        finish(); // evita volver al login con “back”
+        finish(); // evita volver al login con back
     }
 }

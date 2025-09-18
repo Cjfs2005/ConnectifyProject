@@ -16,7 +16,7 @@
         android:theme="@style/Theme.ConnectifyProject"
         tools:targetApi="31">
 
-        <!-- 🔐 Login = Entry point -->
+        <!-- Login: entry point -->
         <activity
             android:name=".auth_login"
             android:exported="true">
@@ -26,25 +26,22 @@
             </intent-filter>
         </activity>
 
-        <!-- 🧭 Host del flujo Superadmin (NavHost + BottomNav) -->
+        <!-- Host del flujo (NavHost + BottomNav) -->
         <activity
             android:name=".MainActivity"
-            android:exported="true"
-            android:theme="@style/Theme.Material3.DayNight.NoActionBar" />
+            android:exported="false"
+            android:theme="@style/Theme.Material3.DayNight.NoActionBar"
+            android:windowSoftInputMode="adjustResize" />
 
-        <!-- Pantallas internas existentes (se mantienen) -->
+        <!-- Pantallas que ya tenías -->
         <activity android:name=".admin_dashboard" android:exported="false" />
         <activity android:name=".admin_tours" android:exported="false" />
         <activity android:name=".admin_chat" android:exported="false" />
         <activity android:name=".admin_pagos" android:exported="false" />
         <activity android:name=".admin_perfil" android:exported="false" />
-
-        <!-- Pantallas por rol existentes (se mantienen) -->
         <activity android:name=".cliente_inicio" android:exported="false" />
         <activity android:name=".guia_tours_ofertas" android:exported="false" />
 
-        <!-- ❌ Eliminado:
-        <activity android:name=".views.superadmin.SaUsersView" ... />
-        -->
+        <!-- Importante: NO declarar .views.superadmin.SaUsersView -->
     </application>
 </manifest>
