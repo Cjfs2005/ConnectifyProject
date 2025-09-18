@@ -1,6 +1,7 @@
 [versions]
 # Android Gradle Plugin
-agp = "8.13.0"
+agp = "8.12.3"
+#agp = "8.13.0"
 
 # AndroidX base
 androidxCore = "1.13.1"
