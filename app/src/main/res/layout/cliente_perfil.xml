@@ -58,17 +58,24 @@
                 android:paddingBottom="24dp">
 
                 <!-- Profile Picture -->
-                <TextView
-                    android:id="@+id/tv_profile_initials"
+                <androidx.cardview.widget.CardView
                     android:layout_width="80dp"
                     android:layout_height="80dp"
                     android:layout_marginBottom="12dp"
-                    android:background="@drawable/circle_initials_background"
-                    android:gravity="center"
-                    android:text="JR"
-                    android:textColor="@color/white"
-                    android:textSize="32sp"
-                    android:textStyle="bold" />
+                    app:cardCornerRadius="40dp"
+                    app:cardElevation="4dp">
+
+                    <ImageView
+                        android:id="@+id/iv_profile_photo"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="?attr/colorPrimary"
+                        android:padding="16dp"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/ic_person_24"
+                        android:tint="@color/white" />
+
+                </androidx.cardview.widget.CardView>
 
                 <!-- User Name -->
                 <TextView
