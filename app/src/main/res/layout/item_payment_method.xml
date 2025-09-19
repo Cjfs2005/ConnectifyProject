@@ -17,7 +17,7 @@
         android:layout_height="30dp"
         android:layout_marginEnd="16dp"
         android:scaleType="fitCenter"
-        android:src="@drawable/visa_logo" />
+        android:src="@drawable/cliente_visa" />
 
     <!-- Card Info -->
     <LinearLayout

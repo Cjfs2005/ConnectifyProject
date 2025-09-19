@@ -10,8 +10,8 @@
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="@color/brand_purple"
-        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+        android:background="?attr/colorPrimary"
+        android:theme="@style/ThemeOverlay.Material3.Dark.ActionBar"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
@@ -42,7 +42,7 @@
                 android:layout_height="190dp"
                 android:layout_gravity="center_horizontal"
                 android:layout_marginBottom="32dp"
-                android:src="@drawable/credit_card_mockup"
+                android:src="@drawable/cliente_tarjeta"
                 android:scaleType="fitCenter" />
 
             <!-- Card Number -->
@@ -52,8 +52,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
                 android:hint="Número de la tarjeta"
-                app:boxStrokeColor="@color/brand_purple"
-                app:hintTextColor="@color/brand_purple">
+                app:boxStrokeColor="?attr/colorPrimary"
+                app:hintTextColor="?attr/colorPrimary">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/et_card_number"
@@ -80,8 +80,8 @@
                     android:layout_marginEnd="8dp"
                     android:layout_weight="1"
                     android:hint="Fecha de vencimiento"
-                    app:boxStrokeColor="@color/brand_purple"
-                    app:hintTextColor="@color/brand_purple">
+                    app:boxStrokeColor="?attr/colorPrimary"
+                    app:hintTextColor="?attr/colorPrimary">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/et_expiry_date"
@@ -101,8 +101,8 @@
                     android:layout_marginStart="8dp"
                     android:layout_weight="1"
                     android:hint="Código de seguridad"
-                    app:boxStrokeColor="@color/brand_purple"
-                    app:hintTextColor="@color/brand_purple">
+                    app:boxStrokeColor="?attr/colorPrimary"
+                    app:hintTextColor="?attr/colorPrimary">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/et_cvv"
@@ -123,8 +123,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="32dp"
                 android:hint="Titular"
-                app:boxStrokeColor="@color/brand_purple"
-                app:hintTextColor="@color/brand_purple">
+                app:boxStrokeColor="?attr/colorPrimary"
+                app:hintTextColor="?attr/colorPrimary">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/et_card_holder"
@@ -144,7 +144,7 @@
                 android:text="Guardar"
                 android:textColor="@color/white"
                 android:textSize="16sp"
-                app:backgroundTint="@color/brand_purple"
+                app:backgroundTint="?attr/colorPrimary"
                 app:cornerRadius="8dp" />
 
         </LinearLayout>
