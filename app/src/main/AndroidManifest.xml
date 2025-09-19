@@ -57,5 +57,8 @@
         <!-- Cliente Tours Activities -->
         <activity android:name=".cliente_tour_detalle" android:exported="false" />
         <activity android:name=".cliente_tour_filtros" android:exported="false" />
+        <activity android:name=".cliente_tour_mapa" android:exported="false" />
+        <activity android:name=".cliente_empresa_info" android:exported="false" />
+        <activity android:name=".cliente_servicio_detalle" android:exported="false" />
     </application>
 </manifest>

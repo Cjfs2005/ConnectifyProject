@@ -26,4 +26,6 @@
     <color name="text_color_secondary">#6D6D6D</color>
     <color name="light_gray">#F5F5F5</color>
     <color name="border_color">#E0E0E0</color>
+    <color name="gray_text">#6D6D6D</color>
+    <color name="star_color">#FFC107</color>
 </resources>

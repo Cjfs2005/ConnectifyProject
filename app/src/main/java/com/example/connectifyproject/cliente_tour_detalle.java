@@ -131,15 +131,10 @@ public class cliente_tour_detalle extends AppCompatActivity implements Cliente_S
         });
 
         layoutItinerario.setOnClickListener(v -> {
-            // TODO: Implementar navegación a mapa de ruta
-            Toast.makeText(this, "Mapa de ruta", Toast.LENGTH_SHORT).show();
-            
-            /*
             Intent intent = new Intent(this, cliente_tour_mapa.class);
             intent.putExtra("tour_id", tourId);
             intent.putExtra("tour_title", tourTitle);
             startActivity(intent);
-            */
         });
     }
 
