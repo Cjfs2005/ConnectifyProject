@@ -23,6 +23,19 @@ public class Cliente_ItinerarioItem {
         this.isLastItem = false;
     }
 
+    // Constructor alternativo para compatibilidad
+    public Cliente_ItinerarioItem(String visitTime, String placeName, String description, 
+                                 double latitude, double longitude) {
+        this.id = "";
+        this.placeName = placeName;
+        this.duration = "";
+        this.visitTime = visitTime;
+        this.description = description;
+        this.latitude = latitude;
+        this.longitude = longitude;
+        this.isLastItem = false;
+    }
+
     // Getters
     public String getId() { return id; }
     public String getPlaceName() { return placeName; }
@@ -32,6 +45,10 @@ public class Cliente_ItinerarioItem {
     public double getLatitude() { return latitude; }
     public double getLongitude() { return longitude; }
     public boolean isLastItem() { return isLastItem; }
+    
+    // Métodos de compatibilidad
+    public String getTime() { return visitTime; }
+    public String getTitle() { return placeName; }
 
     // Setters
     public void setId(String id) { this.id = id; }

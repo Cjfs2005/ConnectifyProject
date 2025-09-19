@@ -31,14 +31,49 @@
             android:layout_height="0dp"
             android:layout_weight="1">
 
-            <!-- Placeholder for Google Maps -->
-            <ImageView
-                android:id="@+id/iv_map_placeholder"
+            <!-- Google Maps Fragment -->
+            <fragment
+                android:id="@+id/map_fragment"
+                android:name="com.google.android.gms.maps.SupportMapFragment"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="#E8F5E8"
-                android:scaleType="center"
-                android:src="@drawable/ic_map_24" />
+                android:layout_height="match_parent" />
+
+            <!-- Route info overlay -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|center_horizontal"
+                android:layout_margin="16dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="6dp"
+                app:cardBackgroundColor="@color/white">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="12dp"
+                    android:gravity="center_vertical">
+
+                    <ImageView
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
+                        android:src="@drawable/ic_directions_24"
+                        android:layout_marginEnd="8dp"
+                        app:tint="@color/primary_color" />
+
+                    <TextView
+                        android:id="@+id/tv_route_info"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Duración: 8 horas | Distancia: 45 km"
+                        android:textSize="12sp"
+                        android:textColor="@color/black"
+                        android:textStyle="bold" />
+
+                </LinearLayout>
+
+            </androidx.cardview.widget.CardView>
 
         </FrameLayout>
 

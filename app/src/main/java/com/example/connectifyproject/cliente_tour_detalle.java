@@ -120,14 +120,9 @@ public class cliente_tour_detalle extends AppCompatActivity implements Cliente_S
         });
 
         cardEmpresa.setOnClickListener(v -> {
-            // TODO: Implementar navegación a información de empresa
-            Toast.makeText(this, "Información de " + tourCompany, Toast.LENGTH_SHORT).show();
-            
-            /*
             Intent intent = new Intent(this, cliente_empresa_info.class);
             intent.putExtra("company_name", tourCompany);
             startActivity(intent);
-            */
         });
 
         layoutItinerario.setOnClickListener(v -> {
