@@ -20,7 +20,7 @@
     <!-- Main Content -->
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
-        android:layout_height="584dp"
+        android:layout_height="621dp"
         android:layout_marginTop="?attr/actionBarSize"
         android:padding="16dp">
 
