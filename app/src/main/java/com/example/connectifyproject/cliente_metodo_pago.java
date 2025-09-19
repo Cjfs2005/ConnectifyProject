@@ -67,14 +67,14 @@ public class cliente_metodo_pago extends AppCompatActivity {
             "•••• •••• •••• 2934",
             "Fecha de vencimiento 12/28",
             "VISA",
-            R.drawable.ic_visa
+            R.drawable.cliente_visa
         ));
         
         tarjetas.add(new TarjetaAdapter.Tarjeta(
             "•••• •••• •••• 1340",
             "Fecha de vencimiento 11/27",
             "VISA",
-            R.drawable.ic_visa
+            R.drawable.cliente_visa
         ));
 
         tarjetaAdapter = new TarjetaAdapter(tarjetas, this::onTarjetaSelected);
