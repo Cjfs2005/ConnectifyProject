@@ -12,6 +12,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.connectifyproject.R;
+import com.example.connectifyproject.cliente_servicio_detalle;
 import com.example.connectifyproject.models.Cliente_ServicioAdicional;
 import com.google.android.material.checkbox.MaterialCheckBox;
 
@@ -61,17 +62,11 @@ public class Cliente_ServiciosAdapter extends RecyclerView.Adapter<Cliente_Servi
         
         // Ver más click listener
         holder.tvVerMas.setOnClickListener(v -> {
-            // TODO: Implementar navegación a detalle del servicio
-            Toast.makeText(context, "Detalle del servicio: " + servicio.getName(), Toast.LENGTH_SHORT).show();
-            
-            /*
             Intent intent = new Intent(context, cliente_servicio_detalle.class);
-            intent.putExtra("service_id", servicio.getId());
-            intent.putExtra("service_name", servicio.getName());
-            intent.putExtra("service_description", servicio.getDescription());
-            intent.putExtra("service_price", servicio.getPrice());
+            intent.putExtra("servicio_nombre", servicio.getName());
+            intent.putExtra("servicio_precio", servicio.getPrice());
+            intent.putExtra("servicio_descripcion", servicio.getDescription());
             context.startActivity(intent);
-            */
         });
     }
 

@@ -21,6 +21,7 @@ public class cliente_empresa_info extends AppCompatActivity {
     private List<Cliente_Review> reviewsList;
     private List<Cliente_Tour> toursGalleryList;
     private TextView tvVerMasReviews;
+    private TextView tvCompanyName, tvCompanyAddress, tvCompanyDescription, tvCompanyEmail, tvCompanyPhone;
     private Button btnChatEmpresa;
 
     @Override
@@ -30,6 +31,7 @@ public class cliente_empresa_info extends AppCompatActivity {
 
         initViews();
         setupToolbar();
+        loadCompanyInfo();
         setupReviews();
         setupToursGallery();
         setupClickListeners();
@@ -39,7 +41,11 @@ public class cliente_empresa_info extends AppCompatActivity {
         rvReviews = findViewById(R.id.rv_reviews);
         rvToursGallery = findViewById(R.id.rv_tours_disponibles);
         tvVerMasReviews = findViewById(R.id.tv_ver_mas_reviews);
-        // btnChatEmpresa = findViewById(R.id.btn_chat_empresa); // Layout doesn't have this button
+        tvCompanyName = findViewById(R.id.tv_company_name);
+        tvCompanyAddress = findViewById(R.id.tv_company_address);
+        tvCompanyDescription = findViewById(R.id.tv_company_description);
+        tvCompanyEmail = findViewById(R.id.tv_company_email);
+        tvCompanyPhone = findViewById(R.id.tv_company_phone);
     }
 
     private void setupToolbar() {
@@ -51,6 +57,23 @@ public class cliente_empresa_info extends AppCompatActivity {
         }
         
         toolbar.setNavigationOnClickListener(v -> onBackPressed());
+    }
+
+    private void loadCompanyInfo() {
+        // Obtener datos del intent o usar valores por defecto
+        String companyName = getIntent().getStringExtra("company_name");
+        
+        // Si no hay datos del intent, usar datos hardcodeados
+        if (companyName == null) {
+            companyName = "Lima Tours & Adventures";
+        }
+        
+        // Establecer información de la empresa
+        tvCompanyName.setText(companyName);
+        tvCompanyAddress.setText("Av. José Larco 1232, Miraflores, Lima");
+        tvCompanyDescription.setText("Somos una empresa especializada en tours culturales y gastronómicos por Lima. Con más de 10 años de experiencia, ofrecemos experiencias únicas que combinan historia, cultura y gastronomía peruana. Nuestros guías certificados te llevarán a descubrir los secretos mejor guardados de la capital del Perú.");
+        tvCompanyEmail.setText("contacto@limatours.com");
+        tvCompanyPhone.setText("+51 1 234-5678");
     }
 
     private void setupReviews() {
