@@ -256,7 +256,7 @@
                 android:id="@+id/rv_tours_disponibles"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="80dp"
+                android:layout_marginBottom="32dp"
                 android:nestedScrollingEnabled="false"
                 tools:listitem="@layout/cliente_item_tour_gallery" />
 
