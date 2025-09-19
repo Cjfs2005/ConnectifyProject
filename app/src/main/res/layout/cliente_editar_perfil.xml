@@ -6,18 +6,17 @@
     android:background="@color/white">
 
     <!-- Toolbar -->
-    <com.google.android.material.appbar.MaterialToolbar
+    <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="@color/primary_color"
-        android:theme="@style/Theme.Material3.DayNight"
+        android:background="?attr/colorPrimary"
+        android:theme="@style/ThemeOverlay.Material3.Dark.ActionBar"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:navigationIcon="@drawable/ic_arrow_back"
-        app:title="Editar Perfil"
-        app:titleCentered="true"
+        app:title="Editar perfil"
         app:titleTextColor="@color/white" />
 
     <!-- Content -->
@@ -34,7 +33,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:padding="24dp">
 
             <!-- Profile Photo Section -->
             <LinearLayout
@@ -44,137 +43,190 @@
                 android:orientation="vertical"
                 android:layout_marginBottom="32dp">
 
-                <TextView
-                    android:id="@+id/profileInitials"
+                <!-- Profile Image with Orange Background -->
+                <androidx.cardview.widget.CardView
                     android:layout_width="120dp"
                     android:layout_height="120dp"
                     android:layout_marginBottom="16dp"
-                    android:background="@drawable/circle_initials_background"
-                    android:gravity="center"
-                    android:text="JR"
-                    android:textColor="@color/white"
-                    android:textSize="48sp"
-                    android:textStyle="bold" />
+                    app:cardCornerRadius="60dp"
+                    app:cardElevation="4dp">
 
+                    <ImageView
+                        android:id="@+id/iv_profile_photo"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="#FF6B35"
+                        android:padding="16dp"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/ic_person_24" />
+
+                </androidx.cardview.widget.CardView>
+
+                <!-- Upload Button -->
                 <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btn_change_photo"
-                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:id="@+id/btn_subir_imagen"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Cambiar Foto"
-                    app:strokeColor="@color/primary_color" />
+                    android:text="Subir imagen"
+                    android:textColor="@color/text_color"
+                    android:textSize="14sp"
+                    app:backgroundTint="@color/light_gray"
+                    app:cornerRadius="20dp"
+                    app:strokeColor="@color/border_color"
+                    app:strokeWidth="1dp" />
 
             </LinearLayout>
 
             <!-- Form Fields -->
+            <!-- Nombre -->
             <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/til_nombre"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                app:boxStrokeColor="@color/primary_color"
-                app:hintTextColor="@color/primary_color">
+                android:hint="Nombre"
+                app:boxStrokeColor="?attr/colorPrimary"
+                app:hintTextColor="?attr/colorPrimary">
 
                 <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/editTextName"
+                    android:id="@+id/et_nombre"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Nombre Completo"
-                    android:inputType="textPersonName" />
+                    android:inputType="textPersonName"
+                    android:text="Jorge" />
 
             </com.google.android.material.textfield.TextInputLayout>
 
+            <!-- Apellido -->
             <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/til_apellido"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                app:boxStrokeColor="@color/primary_color"
-                app:hintTextColor="@color/primary_color">
+                android:hint="Apellido"
+                app:boxStrokeColor="?attr/colorPrimary"
+                app:hintTextColor="?attr/colorPrimary">
 
                 <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/editTextDNI"
+                    android:id="@+id/et_apellido"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="DNI"
-                    android:inputType="number" />
+                    android:inputType="textPersonName"
+                    android:text="Romero Paredes" />
 
             </com.google.android.material.textfield.TextInputLayout>
 
+            <!-- Tipo de documento -->
             <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/til_tipo_documento"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                app:boxStrokeColor="@color/primary_color"
-                app:hintTextColor="@color/primary_color">
+                android:hint="Tipo de documento de identidad"
+                app:boxStrokeColor="?attr/colorPrimary"
+                app:hintTextColor="?attr/colorPrimary"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
 
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/editTextEmail"
+                <AutoCompleteTextView
+                    android:id="@+id/spinner_tipo_documento"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Correo Electrónico"
-                    android:inputType="textEmailAddress" />
+                    android:inputType="none"
+                    android:text="DNI" />
 
             </com.google.android.material.textfield.TextInputLayout>
 
+            <!-- Número de documento -->
             <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/til_numero_documento"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                app:boxStrokeColor="@color/primary_color"
-                app:hintTextColor="@color/primary_color">
+                android:hint="Número de documento de identidad"
+                app:boxStrokeColor="?attr/colorPrimary"
+                app:hintTextColor="?attr/colorPrimary">
 
                 <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/editTextPhone"
+                    android:id="@+id/et_numero_documento"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Teléfono"
-                    android:inputType="phone" />
+                    android:inputType="number"
+                    android:text="70910370" />
 
             </com.google.android.material.textfield.TextInputLayout>
 
+            <!-- Teléfono -->
             <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/til_telefono"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                app:boxStrokeColor="@color/primary_color"
-                app:hintTextColor="@color/primary_color">
+                android:hint="Teléfono"
+                app:boxStrokeColor="?attr/colorPrimary"
+                app:hintTextColor="?attr/colorPrimary">
 
                 <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/editTextBirthDate"
+                    android:id="@+id/et_telefono"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Fecha de Nacimiento"
-                    android:inputType="date"
+                    android:inputType="phone"
+                    android:text="934125834" />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Fecha de nacimiento -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/til_fecha_nacimiento"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:hint="Fecha de nacimiento"
+                app:boxStrokeColor="?attr/colorPrimary"
+                app:hintTextColor="?attr/colorPrimary"
+                app:endIconMode="custom"
+                app:endIconDrawable="@drawable/ic_calendar">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/et_fecha_nacimiento"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:clickable="true"
                     android:focusable="false"
-                    android:clickable="true" />
+                    android:inputType="none"
+                    android:text="16/04/2001" />
 
             </com.google.android.material.textfield.TextInputLayout>
 
+            <!-- Domicilio -->
             <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/til_domicilio"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="32dp"
-                app:boxStrokeColor="@color/primary_color"
-                app:hintTextColor="@color/primary_color">
+                android:hint="Domicilio"
+                app:boxStrokeColor="?attr/colorPrimary"
+                app:hintTextColor="?attr/colorPrimary">
 
                 <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/editTextAddress"
+                    android:id="@+id/et_domicilio"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Dirección"
                     android:inputType="textPostalAddress"
-                    android:minLines="2" />
+                    android:text="Calle Arequipa 253, Lima, Perú" />
 
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Save Button -->
+            <!-- Botón Guardar -->
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_save_changes"
+                android:id="@+id/btn_guardar"
                 android:layout_width="match_parent"
                 android:layout_height="56dp"
-                android:text="Guardar Cambios"
+                android:layout_marginTop="16dp"
+                android:text="Guardar"
                 android:textColor="@color/white"
-                app:backgroundTint="@color/primary_color"
-                app:cornerRadius="8dp" />
+                android:textSize="16sp"
+                app:backgroundTint="?attr/colorPrimary"
+                app:cornerRadius="12dp" />
 
         </LinearLayout>
 
