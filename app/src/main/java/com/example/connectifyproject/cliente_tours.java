@@ -3,12 +3,27 @@ package com.example.connectifyproject;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.ImageButton;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.connectifyproject.adapters.Cliente_ToursAdapter;
+import com.example.connectifyproject.models.Cliente_Tour;
+import com.google.android.material.button.MaterialButton;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class cliente_tours extends AppCompatActivity implements cliente_fragment_menu.OnMenuItemSelectedListener {
 
     private ImageButton btnNotifications;
+    private MaterialButton btnFiltros;
+    private RecyclerView rvTours;
+    private Cliente_ToursAdapter toursAdapter;
+    private List<Cliente_Tour> allTours;
+    private List<Cliente_Tour> filteredTours;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -18,6 +33,8 @@ public class cliente_tours extends AppCompatActivity implements cliente_fragment
         initViews();
         setupMenuFragment();
         setupClickListeners();
+        setupRecyclerView();
+        loadToursData();
     }
 
     @Override
@@ -33,6 +50,8 @@ public class cliente_tours extends AppCompatActivity implements cliente_fragment
 
     private void initViews() {
         btnNotifications = findViewById(R.id.btn_notifications);
+        btnFiltros = findViewById(R.id.btn_filtros);
+        rvTours = findViewById(R.id.rv_tours);
     }
 
     private void setupMenuFragment() {
@@ -54,6 +73,52 @@ public class cliente_tours extends AppCompatActivity implements cliente_fragment
             intent.putExtra("origin_activity", "cliente_tours");
             startActivity(intent);
         });
+        
+        btnFiltros.setOnClickListener(v -> {
+            Intent intent = new Intent(this, cliente_tour_filtros.class);
+            startActivityForResult(intent, 1001);
+        });
+    }
+
+    private void setupRecyclerView() {
+        allTours = new ArrayList<>();
+        filteredTours = new ArrayList<>();
+        toursAdapter = new Cliente_ToursAdapter(this, filteredTours);
+        
+        rvTours.setLayoutManager(new LinearLayoutManager(this));
+        rvTours.setAdapter(toursAdapter);
+    }
+
+    private void loadToursData() {
+        // Datos hardcodeados basados en el mockup
+        allTours.add(new Cliente_Tour("1", "Tour histórico por Lima", "Lima Tours", 
+                "5 hrs 30 min", "23/09/2025", 160.00, "Lima, Perú", 
+                "Explora el centro histórico de Lima y sus principales atractivos"));
+        
+        allTours.add(new Cliente_Tour("2", "Tour histórico por Arequipa", "Arequipa Tours", 
+                "5 hrs 30 min", "23/09/2025", 160.00, "Arequipa, Perú", 
+                "Descubre la ciudad blanca y su arquitectura colonial"));
+        
+        allTours.add(new Cliente_Tour("3", "Tour histórico por Lima", "Lima Tours", 
+                "5 hrs 30 min", "23/09/2025", 160.00, "Lima, Perú", 
+                "Recorre los principales monumentos históricos de Lima"));
+        
+        allTours.add(new Cliente_Tour("4", "Tour histórico por Arequipa", "Arequipa Tours", 
+                "5 hrs 30 min", "23/09/2025", 160.00, "Arequipa, Perú", 
+                "Conoce la historia y cultura de Arequipa"));
+        
+        allTours.add(new Cliente_Tour("5", "Tour histórico por Lima", "Lima Tours", 
+                "5 hrs 30 min", "23/09/2025", 160.00, "Lima, Perú", 
+                "Visita los lugares más emblemáticos de Lima"));
+        
+        allTours.add(new Cliente_Tour("6", "Tour histórico por Arequipa", "Arequipa Tours", 
+                "5 hrs 30 min", "23/09/2025", 160.00, "Arequipa, Perú", 
+                "Explora la rica historia de Arequipa"));
+
+        // Inicialmente mostrar todos los tours
+        filteredTours.clear();
+        filteredTours.addAll(allTours);
+        toursAdapter.notifyDataSetChanged();
     }
 
     @Override
@@ -83,5 +148,37 @@ public class cliente_tours extends AppCompatActivity implements cliente_fragment
             return true;
         }
         return false;
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        
+        if (requestCode == 1001 && resultCode == RESULT_OK && data != null) {
+            // Aplicar filtros recibidos desde cliente_tour_filtros
+            String startDate = data.getStringExtra("start_date");
+            String endDate = data.getStringExtra("end_date");
+            double minPrice = data.getDoubleExtra("min_price", 0);
+            double maxPrice = data.getDoubleExtra("max_price", Double.MAX_VALUE);
+            String language = data.getStringExtra("language");
+            
+            applyFilters(startDate, endDate, minPrice, maxPrice, language);
+        }
+    }
+
+    private void applyFilters(String startDate, String endDate, double minPrice, double maxPrice, String language) {
+        filteredTours.clear();
+        
+        for (Cliente_Tour tour : allTours) {
+            boolean matchesPrice = tour.getPrice() >= minPrice && tour.getPrice() <= maxPrice;
+            // Por simplicidad, solo filtramos por precio por ahora
+            // Se pueden agregar más filtros según necesidad
+            
+            if (matchesPrice) {
+                filteredTours.add(tour);
+            }
+        }
+        
+        toursAdapter.notifyDataSetChanged();
     }
 }

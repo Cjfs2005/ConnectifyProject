@@ -53,5 +53,9 @@
         <activity android:name=".cliente_editar_perfil" android:exported="false" />
         <activity android:name=".cliente_cambiar_contrasenia" android:exported="false" />
         <activity android:name=".cliente_permisos" android:exported="false" />
+        
+        <!-- Cliente Tours Activities -->
+        <activity android:name=".cliente_tour_detalle" android:exported="false" />
+        <activity android:name=".cliente_tour_filtros" android:exported="false" />
     </application>
 </manifest>
