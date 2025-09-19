@@ -20,6 +20,9 @@ lifecycle = "2.8.6"
 retrofit = "2.11.0"
 gson = "2.11.0"
 
+# Image loading
+glide = "4.16.0"
+
 # Tests
 junit = "4.13.2"
 junitVersion = "1.3.0"
@@ -45,6 +48,9 @@ lifecycle-runtime = { group = "androidx.lifecycle", name = "lifecycle-runtime", 
 retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
 converter-gson = { group = "com.squareup.retrofit2", name = "converter-gson", version.ref = "retrofit" }
 gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
+
+# Image loading
+glide = { group = "com.github.bumptech.glide", name = "glide", version.ref = "glide" }
 
 # Tests
 junit = { group = "junit", name = "junit", version.ref = "junit" }

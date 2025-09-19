@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="200dp"
+    android:height="120dp"
+    android:viewportWidth="200"
+    android:viewportHeight="120">
+    
+    <!-- Fondo de cielo -->
+    <path
+        android:fillColor="#87CEEB"
+        android:pathData="M0,0L200,0L200,80L0,80Z"/>
+    
+    <!-- Montañas de fondo -->
+    <path
+        android:fillColor="#696969"
+        android:pathData="M0,60L50,30L100,45L150,25L200,40L200,80L0,80Z"/>
+    
+    <!-- Edificios -->
+    <path
+        android:fillColor="#8B4513"
+        android:pathData="M20,50L40,50L40,80L20,80Z"/>
+    <path
+        android:fillColor="#A0522D"
+        android:pathData="M50,40L80,40L80,80L50,80Z"/>
+    <path
+        android:fillColor="#8B4513"
+        android:pathData="M90,45L120,45L120,80L90,80Z"/>
+    <path
+        android:fillColor="#A0522D"
+        android:pathData="M130,35L160,35L160,80L130,80Z"/>
+    
+    <!-- Detalles de ventanas -->
+    <path
+        android:fillColor="#4B0082"
+        android:pathData="M25,55L35,55L35,65L25,65Z"/>
+    <path
+        android:fillColor="#4B0082"
+        android:pathData="M55,45L65,45L65,55L55,55Z"/>
+    <path
+        android:fillColor="#4B0082"
+        android:pathData="M95,50L105,50L105,60L95,60Z"/>
+    
+</vector>

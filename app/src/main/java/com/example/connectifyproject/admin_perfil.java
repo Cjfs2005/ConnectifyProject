@@ -13,14 +13,22 @@ import androidx.fragment.app.FragmentTransaction;
 
 import com.example.connectifyproject.databinding.AdminPerfilViewBinding;
 import com.example.connectifyproject.ui.admin.AdminBottomNavFragment;
-import com.example.connectifyproject.utils.LocationSearchHelper;
+import com.example.connectifyproject.utils.GoogleMapsHelper;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 
-public class admin_perfil extends AppCompatActivity {
+public class admin_perfil extends AppCompatActivity implements OnMapReadyCallback {
     private AdminPerfilViewBinding binding;
-    private LocationSearchHelper locationHelper;
+    private GoogleMapsHelper mapsHelper;
+    private GoogleMap mGoogleMap;
     private boolean isUpdatingLocation = false; // Flag para evitar loop infinito
     private Handler searchHandler = new Handler(); // Para el debounce de búsqueda
     private Runnable searchRunnable; // Runnable para la búsqueda
+    private LatLng currentLocation = new LatLng(-12.046374, -77.042754); // Lima, Perú por defecto
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,7 +40,10 @@ public class admin_perfil extends AppCompatActivity {
         binding.topAppBar.setNavigationOnClickListener(v -> finish());
 
         // Inicializar helper de ubicación
-        locationHelper = new LocationSearchHelper(this);
+        mapsHelper = new GoogleMapsHelper(this);
+
+        // Inicializar mapa
+        initializeMap();
 
         // Configurar componentes
         setupLocationSearch();
@@ -108,49 +119,115 @@ public class admin_perfil extends AppCompatActivity {
         });
     }
 
+    private void initializeMap() {
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.mapFragment);
+        if (mapFragment != null) {
+            mapFragment.getMapAsync(this);
+        }
+    }
+
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+        mGoogleMap = googleMap;
+        
+        try {
+            // Configurar mapa
+            mGoogleMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+            mGoogleMap.getUiSettings().setZoomControlsEnabled(true);
+            mGoogleMap.getUiSettings().setMapToolbarEnabled(false);
+            mGoogleMap.getUiSettings().setMyLocationButtonEnabled(false);
+            
+            // Ocultar el progress bar ya que el mapa está listo
+            binding.progressBarMap.setVisibility(View.GONE);
+            
+            // Mover cámara a Lima por defecto
+            mGoogleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, 15));
+            
+            // Agregar marcador
+            mGoogleMap.addMarker(new MarkerOptions()
+                    .position(currentLocation)
+                    .title("Ubicación de la empresa"));
+            
+            Toast.makeText(this, "Mapa cargado correctamente", Toast.LENGTH_SHORT).show();
+            
+            // Configurar click en el mapa
+            mGoogleMap.setOnMapClickListener(latLng -> {
+                currentLocation = latLng;
+                mGoogleMap.clear();
+            mGoogleMap.addMarker(new MarkerOptions()
+                    .position(latLng)
+                    .title("Nueva ubicación"));
+            
+            // Obtener dirección de las coordenadas
+            mapsHelper.getAddressFromCoordinates(latLng.latitude, latLng.longitude, 
+                new GoogleMapsHelper.LocationSearchCallback() {
+                    @Override
+                    public void onLocationFound(String address, double latitude, double longitude) {
+                        isUpdatingLocation = true;
+                        binding.etLocation.setText(address);
+                        searchHandler.postDelayed(() -> isUpdatingLocation = false, 200);
+                    }
+
+                    @Override
+                    public void onLocationNotFound() {
+                        Toast.makeText(admin_perfil.this, "No se pudo obtener la dirección", Toast.LENGTH_SHORT).show();
+                    }
+
+                    @Override
+                    public void onError(String error) {
+                        Toast.makeText(admin_perfil.this, "Error: " + error, Toast.LENGTH_SHORT).show();
+                    }
+                });
+        });
+        } catch (Exception e) {
+            Toast.makeText(this, "Error al cargar el mapa: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            binding.progressBarMap.setVisibility(View.GONE);
+        }
+    }
+
     private void searchLocation(String query) {
-        locationHelper.searchLocation(query, new LocationSearchHelper.LocationSearchCallback() {
+        mapsHelper.searchLocation(query, new GoogleMapsHelper.LocationSearchCallback() {
             @Override
             public void onLocationFound(String address, double latitude, double longitude) {
-                runOnUiThread(() -> {
-                    // Marcar que estamos actualizando para evitar el loop
-                    isUpdatingLocation = true;
+                // Marcar que estamos actualizando para evitar el loop
+                isUpdatingLocation = true;
+                
+                // Actualizar el campo de ubicación con la dirección encontrada
+                binding.etLocation.setText(address);
+                
+                // Restaurar el flag después de un pequeño delay
+                searchHandler.postDelayed(() -> {
+                    isUpdatingLocation = false;
+                }, 200);
+                
+                // Actualizar mapa con las coordenadas
+                updateMapLocation(latitude, longitude);
                     
-                    // Actualizar el campo de ubicación con la dirección encontrada
-                    binding.etLocation.setText(address);
-                    
-                    // Restaurar el flag después de un pequeño delay
-                    searchHandler.postDelayed(() -> {
-                        isUpdatingLocation = false;
-                    }, 200);
-                    
-                    // Aquí podrías actualizar el mapa con las coordenadas
-                    updateMapLocation(latitude, longitude);
-                    
-                    Toast.makeText(admin_perfil.this, "Ubicación encontrada", Toast.LENGTH_SHORT).show();
-                });
+                Toast.makeText(admin_perfil.this, "Ubicación encontrada", Toast.LENGTH_SHORT).show();
             }
 
             @Override
             public void onLocationNotFound() {
-                runOnUiThread(() -> {
-                    Toast.makeText(admin_perfil.this, "No se encontró la ubicación", Toast.LENGTH_SHORT).show();
-                });
+                Toast.makeText(admin_perfil.this, "No se encontró la ubicación", Toast.LENGTH_SHORT).show();
             }
 
             @Override
             public void onError(String error) {
-                runOnUiThread(() -> {
-                    Toast.makeText(admin_perfil.this, "Error al buscar: " + error, Toast.LENGTH_SHORT).show();
-                });
+                Toast.makeText(admin_perfil.this, "Error al buscar: " + error, Toast.LENGTH_SHORT).show();
             }
         });
     }
 
     private void updateMapLocation(double latitude, double longitude) {
-        // Aquí se puede implementar la actualización del mapa
-        // Por ahora solo mostramos las coordenadas en el log
-        System.out.println("Ubicación actualizada: " + latitude + ", " + longitude);
+        if (mGoogleMap != null) {
+            currentLocation = new LatLng(latitude, longitude);
+            mGoogleMap.clear();
+            mGoogleMap.addMarker(new MarkerOptions()
+                    .position(currentLocation)
+                    .title("Ubicación encontrada"));
+            mGoogleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, 15));
+        }
     }
 
     private void saveProfileData() {
@@ -179,6 +256,10 @@ public class admin_perfil extends AppCompatActivity {
         // Limpiar callbacks pendientes
         if (searchRunnable != null) {
             searchHandler.removeCallbacks(searchRunnable);
+        }
+        // Liberar recursos del helper de mapas
+        if (mapsHelper != null) {
+            mapsHelper.shutdown();
         }
     }
 }

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="200dp"
+    android:height="120dp"
+    android:viewportWidth="200"
+    android:viewportHeight="120">
+    
+    <!-- Fondo de cielo -->
+    <path
+        android:fillColor="#87CEEB"
+        android:pathData="M0,0L200,0L200,50L0,50Z"/>
+    
+    <!-- Montaña principal (Huascarán) -->
+    <path
+        android:fillColor="#F5F5F5"
+        android:pathData="M50,50L100,10L150,50L100,20L50,50Z"/>
+    
+    <!-- Montañas laterales -->
+    <path
+        android:fillColor="#DCDCDC"
+        android:pathData="M0,70L50,50L80,65L0,80Z"/>
+    <path
+        android:fillColor="#DCDCDC"
+        android:pathData="M120,65L150,50L200,70L200,80L120,80Z"/>
+    
+    <!-- Nieve en la cima -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M80,25L100,10L120,25L100,15L80,25Z"/>
+    
+    <!-- Bosque en la base -->
+    <path
+        android:fillColor="#228B22"
+        android:pathData="M0,80L200,80L200,120L0,120Z"/>
+    
+    <!-- Árboles -->
+    <path
+        android:fillColor="#006400"
+        android:pathData="M30,85L35,80L40,85L40,95L30,95Z"/>
+    <path
+        android:fillColor="#006400"
+        android:pathData="M60,85L65,80L70,85L70,95L60,95Z"/>
+    <path
+        android:fillColor="#006400"
+        android:pathData="M130,85L135,80L140,85L140,95L130,95Z"/>
+    <path
+        android:fillColor="#006400"
+        android:pathData="M160,85L165,80L170,85L170,95L160,95Z"/>
+    
+</vector>

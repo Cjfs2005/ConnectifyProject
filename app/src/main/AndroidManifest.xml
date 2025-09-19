@@ -3,6 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
     <application
         android:allowBackup="true"
@@ -15,6 +17,16 @@
         android:theme="@style/Theme.ConnectifyProject"
         android:usesCleartextTraffic="true"
         tools:targetApi="31">
+
+        <!-- Google Maps API Key -->
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyAksjO0Y4TBMeaohvfxJN74VoZ2pJLvTPA" />
+            
+        <!-- Google Play Services Version -->
+        <meta-data
+            android:name="com.google.android.gms.version"
+            android:value="@integer/google_play_services_version" />
 
         <!-- Login = entry point -->
         <activity
@@ -29,9 +41,16 @@
         <!-- Pantallas internas -->
         <activity android:name=".admin_dashboard" android:exported="false" />
         <activity android:name=".admin_tours" android:exported="false" />
+        <activity android:name=".admin_tour_details" android:exported="false" />
         <activity android:name=".admin_chat" android:exported="false" />
         <activity android:name=".admin_pagos" android:exported="false" />
+        <activity android:name=".admin_historial_pagos" android:exported="false" />
         <activity android:name=".admin_perfil" android:exported="false" />
+        
+        <!-- Nuevas actividades para gestión de guías y pagos -->
+        <activity android:name=".admin_select_guide" android:exported="false" />
+        <activity android:name=".admin_payment_proposal" android:exported="false" />
+        <activity android:name=".admin_create_tour" android:exported="false" />
         
         <!-- Pantallas por rol -->
         <activity android:name=".sa_users_view" android:exported="false" />

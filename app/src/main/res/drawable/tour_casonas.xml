@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="200dp"
+    android:height="120dp"
+    android:viewportWidth="200"
+    android:viewportHeight="120">
+    
+    <!-- Fondo de cielo -->
+    <path
+        android:fillColor="#F4A460"
+        android:pathData="M0,0L200,0L200,40L0,40Z"/>
+    
+    <!-- Edificio colonial -->
+    <path
+        android:fillColor="#D2691E"
+        android:pathData="M20,30L180,30L180,100L20,100Z"/>
+    
+    <!-- Techo -->
+    <path
+        android:fillColor="#8B4513"
+        android:pathData="M15,30L100,10L185,30L180,30L100,15L20,30Z"/>
+    
+    <!-- Ventanas coloniales -->
+    <path
+        android:fillColor="#4B0082"
+        android:pathData="M40,45L60,45L60,70L40,70Z"/>
+    <path
+        android:fillColor="#4B0082"
+        android:pathData="M80,45L100,45L100,70L80,70Z"/>
+    <path
+        android:fillColor="#4B0082"
+        android:pathData="M120,45L140,45L140,70L120,70Z"/>
+    <path
+        android:fillColor="#4B0082"
+        android:pathData="M160,45L180,45L180,70L160,70Z"/>
+    
+    <!-- Puerta principal -->
+    <path
+        android:fillColor="#654321"
+        android:pathData="M90,75L110,75L110,100L90,100Z"/>
+    
+    <!-- Suelo -->
+    <path
+        android:fillColor="#CD853F"
+        android:pathData="M0,100L200,100L200,120L0,120Z"/>
+    
+</vector>

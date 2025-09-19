@@ -126,9 +126,10 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent">
 
-                    <!-- WebView para mapa real -->
-                    <WebView
-                        android:id="@+id/webViewMap"
+                    <!-- Google Maps Fragment -->
+                    <fragment
+                        android:id="@+id/mapFragment"
+                        android:name="com.google.android.gms.maps.SupportMapFragment"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent" />
 
@@ -138,7 +139,7 @@
                         android:layout_width="32dp"
                         android:layout_height="32dp"
                         android:layout_gravity="center"
-                        android:visibility="visible" />
+                        android:visibility="gone" />
 
                     <!-- Barra de búsqueda sobre el mapa -->
                     <com.google.android.material.card.MaterialCardView
@@ -167,7 +168,7 @@
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
-                    android:text="@string/profile_search_placeholder" />
+                                android:text="@string/profile_search_placeholder"
                                 android:textColor="@color/text_secondary"
                                 android:textSize="14sp" />
                         </LinearLayout>
