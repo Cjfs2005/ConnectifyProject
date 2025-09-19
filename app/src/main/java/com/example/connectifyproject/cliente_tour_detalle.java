@@ -115,8 +115,12 @@ public class cliente_tour_detalle extends AppCompatActivity implements Cliente_S
         });
 
         btnContinuar.setOnClickListener(v -> {
-            Toast.makeText(this, "Continuar con la reserva", Toast.LENGTH_SHORT).show();
-            // TODO: Implementar navegación a siguiente pantalla
+            // Navegar a método de pago con el precio total calculado
+            Intent intent = new Intent(this, cliente_metodo_pago.class);
+            intent.putExtra("total_price", tvTotalPrice.getText().toString());
+            intent.putExtra("tour_title", tourTitle);
+            intent.putExtra("people_count", peopleCount);
+            startActivity(intent);
         });
 
         cardEmpresa.setOnClickListener(v -> {

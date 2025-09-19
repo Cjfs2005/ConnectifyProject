@@ -1,0 +1,26 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="32dp"
+    android:viewportWidth="48"
+    android:viewportHeight="32">
+    
+    <!-- Background -->
+    <path
+        android:fillColor="#1A1F71"
+        android:pathData="M4,0L44,0A4,4 0,0 1,48 4L48,28A4,4 0,0 1,44 32L4,32A4,4 0,0 1,0 28L0,4A4,4 0,0 1,4 0z" />
+    
+    <!-- VISA Text -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M8,12L12,12L14,20L10,20L8,12Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M16,12L18,12L20,20L18,20L16,12Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M22,12L26,12L28,16L26,20L22,20L24,16L22,12Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M30,12L34,12L36,20L32,20L30,12Z" />
+        
+</vector>

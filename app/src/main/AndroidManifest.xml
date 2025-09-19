@@ -67,5 +67,7 @@
         <activity android:name=".cliente_tour_mapa" android:exported="false" />
         <activity android:name=".cliente_empresa_info" android:exported="false" />
         <activity android:name=".cliente_servicio_detalle" android:exported="false" />
+        <activity android:name=".cliente_metodo_pago" android:exported="false" />
+        <activity android:name=".cliente_reserva_realizada" android:exported="false" />
     </application>
 </manifest>
