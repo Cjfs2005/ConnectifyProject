@@ -13,6 +13,8 @@ public class cliente_perfil extends AppCompatActivity implements cliente_fragmen
 
     private ImageButton btnNotifications;
     private TextView tvEditProfile;
+    private TextView tvProfileInitials;
+    private TextView tvUserName;
     private LinearLayout layoutPaymentMethods;
     private LinearLayout layoutChangePassword;
     private LinearLayout layoutPermissions;
@@ -42,10 +44,15 @@ public class cliente_perfil extends AppCompatActivity implements cliente_fragmen
     private void initViews() {
         btnNotifications = findViewById(R.id.btn_notifications);
         tvEditProfile = findViewById(R.id.tv_edit_profile);
+        tvProfileInitials = findViewById(R.id.tv_profile_initials);
+        tvUserName = findViewById(R.id.tv_user_name);
         layoutPaymentMethods = findViewById(R.id.layout_payment_methods);
         layoutChangePassword = findViewById(R.id.layout_change_password);
         layoutPermissions = findViewById(R.id.layout_permissions);
         layoutLogout = findViewById(R.id.layout_logout);
+        
+        // Configurar las iniciales del usuario
+        setupUserInitials();
     }
 
     private void setupMenuFragment() {
@@ -123,5 +130,31 @@ public class cliente_perfil extends AppCompatActivity implements cliente_fragmen
             return true;
         }
         return false;
+    }
+    
+    private void setupUserInitials() {
+        // Obtener el nombre del usuario desde el TextView
+        String userName = tvUserName.getText().toString();
+        String initials = getInitials(userName);
+        tvProfileInitials.setText(initials);
+    }
+    
+    private String getInitials(String fullName) {
+        if (fullName == null || fullName.trim().isEmpty()) {
+            return "??";
+        }
+        
+        String[] nameParts = fullName.trim().split("\\s+");
+        StringBuilder initials = new StringBuilder();
+        
+        // Tomar máximo 2 iniciales
+        int count = Math.min(nameParts.length, 2);
+        for (int i = 0; i < count; i++) {
+            if (nameParts[i].length() > 0) {
+                initials.append(nameParts[i].charAt(0));
+            }
+        }
+        
+        return initials.toString().toUpperCase();
     }
 }
