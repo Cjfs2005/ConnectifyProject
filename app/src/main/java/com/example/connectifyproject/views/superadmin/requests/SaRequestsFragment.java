@@ -35,8 +35,7 @@ public class SaRequestsFragment extends Fragment {
     private ExtendedFloatingActionButton fabEnable;
     private TextInputEditText etSearch;
 
-    @Nullable
-    @Override
+    @Nullable @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
@@ -54,7 +53,6 @@ public class SaRequestsFragment extends Fragment {
         fabEnable         = v.findViewById(R.id.fabEnable);
 
         rv.setLayoutManager(new LinearLayoutManager(requireContext()));
-
         adapter = new SaGuideRequestsAdapter(buildMock(), new SaGuideRequestsAdapter.Listener() {
             @Override public void onSelectionChanged(int count) { refreshFab(); }
             @Override public void onOpen(SaGuideRequestsAdapter.GuideRequest req) {
@@ -99,7 +97,6 @@ public class SaRequestsFragment extends Fragment {
 
         btnSort.setOnClickListener(this::showSortMenu);
 
-        // ✅ Confirmación al habilitar selección múltiple
         fabEnable.setOnClickListener(view -> {
             int n = adapter.getSelectedCount();
             if (n == 0) return;
@@ -109,8 +106,7 @@ public class SaRequestsFragment extends Fragment {
                     .setMessage("¿Habilitar " + n + " guía(s)?")
                     .setNegativeButton("Cancelar", null)
                     .setPositiveButton("Habilitar", (d, w) -> {
-                        // TODO: llamada real al backend
-                        adapter.selectAll(false);     // limpia selección
+                        adapter.selectAll(false);
                         refreshFab();
                         Snackbar.make(view, "Guías habilitados", Snackbar.LENGTH_SHORT).show();
                     })
@@ -120,31 +116,38 @@ public class SaRequestsFragment extends Fragment {
         refreshFab();
     }
 
-    private void refreshFab() {
-        int n = (adapter == null) ? 0 : adapter.getSelectedCount();
-        if (fabEnable == null) return;
-        if (n > 0) fabEnable.show(); else fabEnable.hide();
-    }
-
     private void showSortMenu(View anchor) {
         PopupMenu pm = new PopupMenu(requireContext(), anchor);
         pm.getMenuInflater().inflate(R.menu.menu_sa_requests_sort, pm.getMenu());
-        pm.getMenu().findItem(R.id.sort_recent)
-                .setChecked(sort == SaGuideRequestsAdapter.SortOrder.RECENT);
-        pm.getMenu().findItem(R.id.sort_old)
-                .setChecked(sort == SaGuideRequestsAdapter.SortOrder.OLD);
+
+        // Estado actual -> marca el radio correcto
+        pm.getMenu().findItem(R.id.sort_recent).setChecked(sort == SaGuideRequestsAdapter.SortOrder.RECENT);
+        pm.getMenu().findItem(R.id.sort_old).setChecked(sort == SaGuideRequestsAdapter.SortOrder.OLD);
+
         pm.setOnMenuItemClickListener(this::onSortItem);
         pm.show();
     }
 
     private boolean onSortItem(MenuItem item) {
         int id = item.getItemId();
-        if (id == R.id.sort_recent)      sort = SaGuideRequestsAdapter.SortOrder.RECENT;
-        else if (id == R.id.sort_old)    sort = SaGuideRequestsAdapter.SortOrder.OLD;
-        else return false;
+        if (id == R.id.sort_recent) {
+            sort = SaGuideRequestsAdapter.SortOrder.RECENT;
+            item.setChecked(true); // radio
+        } else if (id == R.id.sort_old) {
+            sort = SaGuideRequestsAdapter.SortOrder.OLD;
+            item.setChecked(true); // radio
+        } else {
+            return false;
+        }
         adapter.setSort(sort);
         refreshFab();
         return true;
+    }
+
+    private void refreshFab() {
+        int n = (adapter == null) ? 0 : adapter.getSelectedCount();
+        if (fabEnable == null) return;
+        if (n > 0) fabEnable.show(); else fabEnable.hide();
     }
 
     @Override
@@ -165,12 +168,6 @@ public class SaRequestsFragment extends Fragment {
         list.add(req(new User("Samira","Ezaguirre L.","73456789","Cusco Guide", Role.GUIDE,"DNI","04/30/1997","samira@cg.pe","944556677","Cusco",null), daysAgo(8)));
         return list;
     }
-
-    private SaGuideRequestsAdapter.GuideRequest req(User u, long when) {
-        return new SaGuideRequestsAdapter.GuideRequest(u, when);
-    }
-
-    private long daysAgo(int d) {
-        return System.currentTimeMillis() - d * 24L * 60 * 60 * 1000L;
-    }
+    private SaGuideRequestsAdapter.GuideRequest req(User u, long when) { return new SaGuideRequestsAdapter.GuideRequest(u, when); }
+    private long daysAgo(int d) { return System.currentTimeMillis() - d * 24L * 60 * 60 * 1000L; }
 }

@@ -30,8 +30,7 @@ public class SaLogsFragment extends Fragment {
     private SaLogsAdapter.SortOrder sort = SaLogsAdapter.SortOrder.RECENT;
     private EnumSet<Role> selectedRoles = EnumSet.of(Role.GUIDE, Role.ADMIN, Role.CLIENT);
 
-    @Nullable
-    @Override
+    @Nullable @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
@@ -39,8 +38,7 @@ public class SaLogsFragment extends Fragment {
         return binding.getRoot();
     }
 
-    @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+    @Override public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
         binding.rvLogs.setLayoutManager(new LinearLayoutManager(requireContext()));
@@ -50,12 +48,10 @@ public class SaLogsFragment extends Fragment {
             b.putLong("at", item.atMillis);
             b.putString("action", item.action);
             b.putString("role", item.role.name());
-            NavHostFragment.findNavController(this)
-                    .navigate(R.id.saLogDetailFragment, b);
+            NavHostFragment.findNavController(this).navigate(R.id.saLogDetailFragment, b);
         });
         binding.rvLogs.setAdapter(adapter);
 
-        // Restaurar estado
         if (savedInstanceState != null) {
             sort = savedInstanceState.getBoolean("sortOld", false)
                     ? SaLogsAdapter.SortOrder.OLD
@@ -67,10 +63,7 @@ public class SaLogsFragment extends Fragment {
             updateRoleButton();
         }
 
-        // Orden
         binding.btnSort.setOnClickListener(this::showSortPopup);
-
-        // Rol
         binding.btnRole.setOnClickListener(this::showRolePopup);
         updateRoleButton();
     }
@@ -78,16 +71,26 @@ public class SaLogsFragment extends Fragment {
     private void showSortPopup(View anchor) {
         PopupMenu pm = new PopupMenu(requireContext(), anchor);
         pm.getMenuInflater().inflate(R.menu.menu_logs_sort, pm.getMenu());
+
+        // Marca correctamente el estado actual (radio)
         pm.getMenu().findItem(R.id.sort_recent).setChecked(sort == SaLogsAdapter.SortOrder.RECENT);
         pm.getMenu().findItem(R.id.sort_old).setChecked(sort == SaLogsAdapter.SortOrder.OLD);
+
         pm.setOnMenuItemClickListener(this::onSortItem);
         pm.show();
     }
 
     private boolean onSortItem(MenuItem item) {
         int id = item.getItemId();
-        if (id == R.id.sort_recent) sort = SaLogsAdapter.SortOrder.RECENT;
-        else if (id == R.id.sort_old) sort = SaLogsAdapter.SortOrder.OLD;
+        if (id == R.id.sort_recent) {
+            sort = SaLogsAdapter.SortOrder.RECENT;
+            item.setChecked(true);
+        } else if (id == R.id.sort_old) {
+            sort = SaLogsAdapter.SortOrder.OLD;
+            item.setChecked(true);
+        } else {
+            return false;
+        }
         adapter.setSort(sort);
         return true;
     }
@@ -111,17 +114,13 @@ public class SaLogsFragment extends Fragment {
         else if (id == R.id.role_admin)  toggle(Role.ADMIN, item.isChecked());
         else if (id == R.id.role_client) toggle(Role.CLIENT, item.isChecked());
 
-        if (selectedRoles.isEmpty()) {
-            selectedRoles = EnumSet.of(Role.GUIDE, Role.ADMIN, Role.CLIENT);
-        }
+        if (selectedRoles.isEmpty()) selectedRoles = EnumSet.of(Role.GUIDE, Role.ADMIN, Role.CLIENT);
         adapter.setRoleFilter(selectedRoles);
         updateRoleButton();
         return true;
     }
 
-    private void toggle(Role r, boolean add) {
-        if (add) selectedRoles.add(r); else selectedRoles.remove(r);
-    }
+    private void toggle(Role r, boolean add) { if (add) selectedRoles.add(r); else selectedRoles.remove(r); }
 
     private void updateRoleButton() {
         if (selectedRoles.size() == 3) {
@@ -146,8 +145,7 @@ public class SaLogsFragment extends Fragment {
         return set;
     }
 
-    @Override
-    public void onSaveInstanceState(@NonNull Bundle out) {
+    @Override public void onSaveInstanceState(@NonNull Bundle out) {
         super.onSaveInstanceState(out);
         out.putBoolean("sortOld", sort == SaLogsAdapter.SortOrder.OLD);
         int mask = 0;
@@ -157,56 +155,20 @@ public class SaLogsFragment extends Fragment {
         out.putInt("roles", mask);
     }
 
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        binding = null;
-    }
+    @Override public void onDestroyView() { super.onDestroyView(); binding = null; }
 
     // ---------------- Mock data ----------------
     private List<SaLogsAdapter.LogItem> mockLogs() {
         List<SaLogsAdapter.LogItem> list = new ArrayList<>();
         long now = System.currentTimeMillis();
-
-        // Admin - Creó un tour
-        list.add(new SaLogsAdapter.LogItem(
-                "Creó un tour",
-                Role.ADMIN,
-                new User("Alejandro","Mora A.","70456789","Perú Travel",Role.ADMIN,"DNI","08/17/1996","alejandro@perutravel.com","999888777","Av. Perú 123",null),
-                now - hours(3)));
-        list.add(new SaLogsAdapter.LogItem(
-                "Creó un tour",
-                Role.ADMIN,
-                new User("Carlos","Antama C.","70124567","Inca Tours",Role.ADMIN,"DNI","09/21/1990","carlos@incatours.com","988776655","Av. Inca 101",null),
-                now - days(1) - hours(5)));
-
-        // Guía - Finalizó el tour
-        list.add(new SaLogsAdapter.LogItem(
-                "Finalizó el tour",
-                Role.GUIDE,
-                new User("Alessandro","Mazz I.","74444444","Cusco Guide",Role.GUIDE,"DNI","06/19/1991","alessandro@cuscoguide.pe","999111222","Av. Cultura 555",null),
-                now - days(26)));
-        list.add(new SaLogsAdapter.LogItem(
-                "Finalizó el tour",
-                Role.GUIDE,
-                new User("María","Chávez P.","71230011","Cusco Guide",Role.GUIDE,"DNI","05/02/1993","maria.chavez@cuscoguide.pe","987654321","Jr. Mapi 456",null),
-                now - days(26) - hours(2)));
-
-        // Cliente - Reservó un tour
-        list.add(new SaLogsAdapter.LogItem(
-                "Reservó un tour",
-                Role.CLIENT,
-                new User("Mateo","Rentería S.","70456799","Perú Travel",Role.CLIENT,"DNI","07/10/1997","mateo@correo.com","955667788","Psj. Lima 22",null),
-                now - days(26) - hours(3)));
-        list.add(new SaLogsAdapter.LogItem(
-                "Reservó un tour",
-                Role.CLIENT,
-                new User("Sandra","Vera F.","70991122","Inca Tours",Role.CLIENT,"DNI","11/08/1999","sandra@correo.com","912345678","Jr. Tres Cruces 77",null),
-                now - days(26) - hours(7)));
-
+        list.add(new SaLogsAdapter.LogItem("Creó un tour", Role.ADMIN, new User("Alejandro","Mora A.","70456789","Perú Travel",Role.ADMIN,"DNI","08/17/1996","alejandro@perutravel.com","999888777","Av. Perú 123",null), now - hours(3)));
+        list.add(new SaLogsAdapter.LogItem("Creó un tour", Role.ADMIN, new User("Carlos","Antama C.","70124567","Inca Tours",Role.ADMIN,"DNI","09/21/1990","carlos@incatours.com","988776655","Av. Inca 101",null), now - days(1) - hours(5)));
+        list.add(new SaLogsAdapter.LogItem("Finalizó el tour", Role.GUIDE, new User("Alessandro","Mazz I.","74444444","Cusco Guide",Role.GUIDE,"DNI","06/19/1991","alessandro@cuscoguide.pe","999111222","Av. Cultura 555",null), now - days(26)));
+        list.add(new SaLogsAdapter.LogItem("Finalizó el tour", Role.GUIDE, new User("María","Chávez P.","71230011","Cusco Guide",Role.GUIDE,"DNI","05/02/1993","maria.chavez@cuscoguide.pe","987654321","Jr. Mapi 456",null), now - days(26) - hours(2)));
+        list.add(new SaLogsAdapter.LogItem("Reservó un tour", Role.CLIENT, new User("Mateo","Rentería S.","70456799","Perú Travel",Role.CLIENT,"DNI","07/10/1997","mateo@correo.com","955667788","Psj. Lima 22",null), now - days(26) - hours(3)));
+        list.add(new SaLogsAdapter.LogItem("Reservó un tour", Role.CLIENT, new User("Sandra","Vera F.","70991122","Inca Tours",Role.CLIENT,"DNI","11/08/1999","sandra@correo.com","912345678","Jr. Tres Cruces 77",null), now - days(26) - hours(7)));
         return list;
     }
-
     private long days(int d) { return d * 24L * 60 * 60 * 1000; }
     private long hours(int h) { return h * 60L * 60 * 1000; }
 }

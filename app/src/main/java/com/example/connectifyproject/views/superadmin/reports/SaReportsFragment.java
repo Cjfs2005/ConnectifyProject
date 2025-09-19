@@ -28,8 +28,7 @@ public class SaReportsFragment extends Fragment {
     private SaReportsAdapter adapter;
     private boolean sortAsc = true;
 
-    @Nullable
-    @Override
+    @Nullable @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
@@ -37,11 +36,9 @@ public class SaReportsFragment extends Fragment {
         return binding.getRoot();
     }
 
-    @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+    @Override public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // Recycler
         binding.rvCompanies.setLayoutManager(new LinearLayoutManager(requireContext()));
         adapter = new SaReportsAdapter(mockCompanies(), item -> {
             new MaterialAlertDialogBuilder(requireContext())
@@ -49,14 +46,11 @@ public class SaReportsFragment extends Fragment {
                     .setMessage("¿Descargar reporte de reservas de \"" + item.name + "\"?")
                     .setNegativeButton("Cancelar", null)
                     .setPositiveButton("Descargar", (d, w) ->
-                            Snackbar.make(binding.getRoot(),
-                                    "Descarga iniciada: " + item.name,
-                                    Snackbar.LENGTH_LONG).show())
+                            Snackbar.make(binding.getRoot(), "Descarga iniciada: " + item.name, Snackbar.LENGTH_LONG).show())
                     .show();
         });
         binding.rvCompanies.setAdapter(adapter);
 
-        // Restaurar
         if (savedInstanceState != null) {
             sortAsc = savedInstanceState.getBoolean("sortAsc", true);
             adapter.setAsc(sortAsc);
@@ -65,7 +59,6 @@ public class SaReportsFragment extends Fragment {
             adapter.setQuery(q);
         }
 
-        // Buscar
         binding.etSearch.addTextChangedListener(new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int st, int c, int a) {}
             @Override public void onTextChanged(CharSequence s, int st, int b, int c) {}
@@ -74,16 +67,17 @@ public class SaReportsFragment extends Fragment {
             }
         });
 
-        // Orden
         binding.btnSort.setOnClickListener(this::showSortPopup);
     }
 
     private void showSortPopup(View anchor) {
         PopupMenu pm = new PopupMenu(requireContext(), anchor);
         pm.getMenuInflater().inflate(R.menu.menu_reports_sort, pm.getMenu());
-        // Estado actual
+
+        // Marcar correctamente el estado actual
         pm.getMenu().findItem(R.id.sort_asc).setChecked(sortAsc);
         pm.getMenu().findItem(R.id.sort_desc).setChecked(!sortAsc);
+
         pm.setOnMenuItemClickListener(this::onSortItem);
         pm.show();
     }
@@ -92,8 +86,10 @@ public class SaReportsFragment extends Fragment {
         int id = item.getItemId();
         if (id == R.id.sort_asc) {
             sortAsc = true;
+            item.setChecked(true);     // radio
         } else if (id == R.id.sort_desc) {
             sortAsc = false;
+            item.setChecked(true);     // radio
         } else {
             return false;
         }
@@ -101,15 +97,13 @@ public class SaReportsFragment extends Fragment {
         return true;
     }
 
-    @Override
-    public void onSaveInstanceState(@NonNull Bundle out) {
+    @Override public void onSaveInstanceState(@NonNull Bundle out) {
         super.onSaveInstanceState(out);
         out.putBoolean("sortAsc", sortAsc);
         out.putString("q", binding.etSearch.getText() == null ? "" : binding.etSearch.getText().toString());
     }
 
-    @Override
-    public void onDestroyView() {
+    @Override public void onDestroyView() {
         super.onDestroyView();
         binding = null;
     }
