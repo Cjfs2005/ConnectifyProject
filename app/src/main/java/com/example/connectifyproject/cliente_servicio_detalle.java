@@ -9,9 +9,7 @@ import com.google.android.material.floatingactionbutton.ExtendedFloatingActionBu
 
 public class cliente_servicio_detalle extends AppCompatActivity {
 
-    private TextView tvServiceTitle, tvServicePrice, tvServiceDescription, tvRating;
-    private RatingBar ratingBar;
-    private ExtendedFloatingActionButton fabAddService;
+    private TextView tvServiceTitle, tvServicePrice, tvServiceDescription;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -21,16 +19,12 @@ public class cliente_servicio_detalle extends AppCompatActivity {
         initViews();
         setupToolbar();
         loadServiceData();
-        setupClickListeners();
     }
 
     private void initViews() {
         tvServiceTitle = findViewById(R.id.tv_service_title);
         tvServicePrice = findViewById(R.id.tv_service_price);
         tvServiceDescription = findViewById(R.id.tv_service_description);
-        tvRating = findViewById(R.id.tv_rating);
-        ratingBar = findViewById(R.id.rating_bar);
-        fabAddService = findViewById(R.id.fab_add_service);
     }
 
     private void setupToolbar() {
@@ -65,15 +59,5 @@ public class cliente_servicio_detalle extends AppCompatActivity {
         tvServiceTitle.setText(serviceName);
         tvServicePrice.setText(servicePrice);
         tvServiceDescription.setText(serviceDescription);
-        tvRating.setText("4.8");
-        ratingBar.setRating(4.8f);
-    }
-
-    private void setupClickListeners() {
-        fabAddService.setOnClickListener(v -> {
-            // Simular agregar servicio al tour
-            // En una implementación real, esto se guardaría en el tour
-            finish(); // Volver a la pantalla anterior
-        });
     }
 }

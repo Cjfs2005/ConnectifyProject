@@ -14,7 +14,7 @@
             android:id="@+id/collapsing_toolbar"
             android:layout_width="match_parent"
             android:layout_height="280dp"
-            app:contentScrim="@color/primary_color"
+            app:contentScrim="?attr/colorPrimary"
             app:expandedTitleGravity="bottom|start"
             app:expandedTitleMarginBottom="16dp"
             app:expandedTitleMarginStart="16dp"
@@ -43,7 +43,7 @@
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:paddingBottom="140dp"
+        android:paddingBottom="20dp"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <LinearLayout
@@ -61,44 +61,7 @@
                 android:textSize="24sp"
                 android:textStyle="bold"
                 android:textColor="@color/black"
-                android:layout_marginBottom="8dp" />
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_marginBottom="16dp">
-
-                <RatingBar
-                    android:id="@+id/rating_bar"
-                    style="?android:attr/ratingBarStyleSmall"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:numStars="5"
-                    android:rating="4.8"
-                    android:stepSize="0.5"
-                    android:isIndicator="true"
-                    android:progressTint="@color/star_color" />
-
-                <TextView
-                    android:id="@+id/tv_rating"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="4.8"
-                    android:textSize="14sp"
-                    android:textColor="@color/gray_text"
-                    android:layout_marginStart="8dp" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="(156 reseñas)"
-                    android:textSize="14sp"
-                    android:textColor="@color/gray_text"
-                    android:layout_marginStart="4dp" />
-
-            </LinearLayout>
+                android:layout_marginBottom="16dp" />
 
             <!-- Precio -->
             <androidx.cardview.widget.CardView
@@ -121,12 +84,12 @@
                         android:layout_weight="1"
                         android:orientation="vertical">
 
-                        <TextView
+                        <!--<TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Precio por día"
                             android:textSize="12sp"
-                            android:textColor="@color/gray_text" />
+                            android:textColor="@color/gray_text" />-->
 
                         <TextView
                             android:id="@+id/tv_service_price"
@@ -135,7 +98,7 @@
                             android:text="S/. 50"
                             android:textSize="20sp"
                             android:textStyle="bold"
-                            android:textColor="@color/primary_color" />
+                            android:textColor="?attr/colorPrimary" />
 
                     </LinearLayout>
 
@@ -144,7 +107,7 @@
                         android:layout_height="wrap_content"
                         android:text="por persona"
                         android:textSize="12sp"
-                        android:textColor="@color/gray_text" />
+                        android:textColor="?attr/colorOnSurfaceVariant" />
 
                 </LinearLayout>
 
@@ -157,7 +120,7 @@
                 android:text="Descripción"
                 android:textSize="18sp"
                 android:textStyle="bold"
-                android:textColor="@color/black"
+                android:textColor="?attr/colorOnSurface"
                 android:layout_marginBottom="8dp" />
 
             <TextView
@@ -166,209 +129,12 @@
                 android:layout_height="wrap_content"
                 android:text="Nuestro servicio de transporte premium ofrece vehículos de lujo con aire acondicionado, conductores profesionales y servicios adicionales para garantizar tu comodidad durante todo el recorrido. Incluye agua embotellada, wifi gratuito y asientos de cuero premium."
                 android:textSize="14sp"
-                android:textColor="@color/black"
+                android:textColor="?attr/colorOnSurface"
                 android:lineSpacingExtra="4dp"
-                android:layout_marginBottom="24dp" />
-
-            <!-- Características incluidas -->
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Incluye"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:textColor="@color/black"
-                android:layout_marginBottom="8dp" />
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_marginBottom="24dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:layout_marginBottom="8dp">
-
-                    <ImageView
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:src="@drawable/ic_check_circle"
-                        android:layout_marginEnd="12dp"
-                        app:tint="@color/primary_color" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Vehículo con aire acondicionado"
-                        android:textSize="14sp"
-                        android:textColor="@color/black" />
-
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:layout_marginBottom="8dp">
-
-                    <ImageView
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:src="@drawable/ic_check_circle"
-                        android:layout_marginEnd="12dp"
-                        app:tint="@color/primary_color" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Conductor profesional certificado"
-                        android:textSize="14sp"
-                        android:textColor="@color/black" />
-
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:layout_marginBottom="8dp">
-
-                    <ImageView
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:src="@drawable/ic_check_circle"
-                        android:layout_marginEnd="12dp"
-                        app:tint="@color/primary_color" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Agua embotellada gratuita"
-                        android:textSize="14sp"
-                        android:textColor="@color/black" />
-
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:layout_marginBottom="8dp">
-
-                    <ImageView
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:src="@drawable/ic_check_circle"
-                        android:layout_marginEnd="12dp"
-                        app:tint="@color/primary_color" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="WiFi gratuito durante el recorrido"
-                        android:textSize="14sp"
-                        android:textColor="@color/black" />
-
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical">
-
-                    <ImageView
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:src="@drawable/ic_check_circle"
-                        android:layout_marginEnd="12dp"
-                        app:tint="@color/primary_color" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Seguro de viaje incluido"
-                        android:textSize="14sp"
-                        android:textColor="@color/black" />
-
-                </LinearLayout>
-
-            </LinearLayout>
-
-            <!-- Disponibilidad -->
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Disponibilidad"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:textColor="@color/black"
-                android:layout_marginBottom="8dp" />
-
-            <androidx.cardview.widget.CardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="24dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Horarios de servicio:"
-                        android:textSize="14sp"
-                        android:textStyle="bold"
-                        android:textColor="@color/black"
-                        android:layout_marginBottom="4dp" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="• Lunes a Domingo: 6:00 AM - 10:00 PM"
-                        android:textSize="14sp"
-                        android:textColor="@color/gray_text"
-                        android:layout_marginBottom="8dp" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Reserva con 24 horas de anticipación"
-                        android:textSize="12sp"
-                        android:textColor="@color/primary_color"
-                        android:textStyle="italic" />
-
-                </LinearLayout>
-
-            </androidx.cardview.widget.CardView>
+                android:layout_marginBottom="40dp" />
 
         </LinearLayout>
 
     </androidx.core.widget.NestedScrollView>
-
-    <!-- Botón flotante para agregar al tour -->
-    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
-        android:id="@+id/fab_add_service"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|center_horizontal"
-        android:layout_margin="16dp"
-        android:text="Agregar al tour"
-        android:textColor="@color/white"
-        app:backgroundTint="@color/primary_color"
-        app:icon="@drawable/ic_add"
-        app:iconTint="@color/white" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
