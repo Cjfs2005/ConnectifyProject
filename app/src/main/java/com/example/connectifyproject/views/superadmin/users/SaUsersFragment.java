@@ -7,6 +7,7 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.PopupMenu;
 
 import androidx.annotation.NonNull;
@@ -21,6 +22,7 @@ import com.example.connectifyproject.model.Role;
 import com.example.connectifyproject.model.User;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputEditText;
 
 import java.util.ArrayList;
@@ -36,6 +38,7 @@ public class SaUsersFragment extends Fragment {
     private TextInputEditText etSearch;
     private MaterialButton btnAll, btnRoles;
     private FloatingActionButton fabAdd;  // botón + para crear ADMIN
+    private ImageButton btnNotifications; // campanita
 
     public SaUsersFragment() {}
 
@@ -68,12 +71,20 @@ public class SaUsersFragment extends Fragment {
         btnAll   = v.findViewById(R.id.btnAll);
         btnRoles = v.findViewById(R.id.btnRoles);
         fabAdd   = v.findViewById(R.id.fabAddAdmin);
+        btnNotifications = v.findViewById(R.id.btnNotifications);
 
         // FAB navega al formulario de nuevo ADMIN
         if (fabAdd != null) {
             fabAdd.setOnClickListener(view ->
                     NavHostFragment.findNavController(this)
                             .navigate(R.id.saCreateAdminFragment)
+            );
+        }
+
+        // Campanita de notificaciones
+        if (btnNotifications != null) {
+            btnNotifications.setOnClickListener(view ->
+                    Snackbar.make(view, "🔔 No hay notificaciones nuevas", Snackbar.LENGTH_SHORT).show()
             );
         }
 
@@ -182,7 +193,6 @@ public class SaUsersFragment extends Fragment {
     // --- Datos de prueba; reemplaza con tu repositorio/API ---
     private List<User> buildMockUsers() {
         List<User> list = new ArrayList<>();
-        // new User(firstName, lastName, dni, company, role, docType, birthDate, email, phone, address, avatarUrl)
         list.add(new User("Alejandro","Mora A.","70456789","Perú Travel",Role.ADMIN,"DNI","08/17/1996","alejandro@perutravel.com","999888777","Av. Perú 123",null));
         list.add(new User("Alessandro","Mazz I.","74444444","Cusco Guide",Role.GUIDE,"DNI","06/19/1991","alessandro@cuscoguide.pe","999111222","Av. Cultura 555",null));
         list.add(new User("Carlos","Antama C.","70124567","Inca Tours",Role.ADMIN,"DNI","09/21/1990","carlos@incatours.com","988776655","Av. Inca 101",null));
