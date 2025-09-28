@@ -10,8 +10,9 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:padding="16dp"
-        android:paddingBottom="96dp">
+        android:paddingBottom="24dp">
 
+        <!-- Header -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -32,167 +33,191 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
-                android:text="PERFIL DE USUARIO"
+                android:text="DETALLE DEL LOG"
                 android:textStyle="bold"
                 android:textSize="18sp" />
         </LinearLayout>
 
-        <ImageView
-            android:id="@+id/imgProfile"
-            android:layout_width="96dp"
-            android:layout_height="96dp"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginBottom="12dp"
-            android:scaleType="centerCrop"
-            android:src="@drawable/ic_account_circle_24"
-            android:background="@drawable/bg_avatar_round" />
+        <!-- Acción realizada -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilAction"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Acción realizada">
 
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etAction"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Fecha -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilDate"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:hint="Fecha de la acción"
+            app:helperText="MM/DD/YYYY">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etDate"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Hora -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilTime"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:hint="Hora de la acción">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etTime"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Nombre -->
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/tilFirstName"
             style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Nombre">
+            android:layout_marginTop="8dp"
+            android:hint="Nombres">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etFirstName"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:enabled="false"/>
+                android:layout_height="wrap_content" />
         </com.google.android.material.textfield.TextInputLayout>
 
+        <!-- Apellido -->
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/tilLastName"
             style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Apellido"
-            android:layout_marginTop="8dp">
+            android:layout_marginTop="8dp"
+            android:hint="Apellidos">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etLastName"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:enabled="false"/>
+                android:layout_height="wrap_content" />
         </com.google.android.material.textfield.TextInputLayout>
 
+        <!-- Tipo de usuario (rol) -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilUserRole"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:hint="Tipo de usuario">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etUserRole"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Tipo de documento -->
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/tilDocType"
             style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Tipo de documento"
-            android:layout_marginTop="8dp">
+            android:layout_marginTop="8dp"
+            android:hint="Tipo de documento">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etDocType"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:enabled="false"/>
+                android:layout_height="wrap_content" />
         </com.google.android.material.textfield.TextInputLayout>
 
+        <!-- Número de documento -->
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/tilDocNumber"
             style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Número de documento"
-            android:layout_marginTop="8dp">
+            android:layout_marginTop="8dp"
+            android:hint="Número de documento">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etDocNumber"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:enabled="false"/>
+                android:layout_height="wrap_content" />
         </com.google.android.material.textfield.TextInputLayout>
 
+        <!-- Fecha de nacimiento -->
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/tilBirth"
             style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Fecha de nacimiento"
             android:layout_marginTop="8dp"
+            android:hint="Fecha de nacimiento"
             app:helperText="MM/DD/YYYY">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etBirth"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:enabled="false"/>
+                android:layout_height="wrap_content" />
         </com.google.android.material.textfield.TextInputLayout>
 
+        <!-- Correo -->
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/tilEmail"
             style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Correo electrónico"
-            android:layout_marginTop="8dp">
+            android:layout_marginTop="8dp"
+            android:hint="Correo electrónico">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etEmail"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:enabled="false"/>
+                android:layout_height="wrap_content" />
         </com.google.android.material.textfield.TextInputLayout>
 
+        <!-- Teléfono -->
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/tilPhone"
             style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Número de teléfono"
-            android:layout_marginTop="8dp">
+            android:layout_marginTop="8dp"
+            android:hint="Número de teléfono">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etPhone"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:enabled="false"/>
+                android:layout_height="wrap_content" />
         </com.google.android.material.textfield.TextInputLayout>
 
+        <!-- Domicilio -->
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/tilAddress"
             style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Domicilio"
             android:layout_marginTop="8dp"
-            android:layout_marginBottom="12dp">
+            android:hint="Domicilio">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etAddress"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:enabled="false"/>
+                android:layout_height="wrap_content" />
         </com.google.android.material.textfield.TextInputLayout>
-
-        <LinearLayout
-            android:id="@+id/actionsRow"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:orientation="horizontal"
-            android:gravity="center">
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnDeactivate"
-                style="@style/Widget.Material3.Button.TonalButton"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Desactivar" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnActivate"
-                style="@style/Widget.Material3.Button"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginStart="12dp"
-                android:text="Activar" />
-        </LinearLayout>
 
     </LinearLayout>
 </ScrollView>

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.example.connectifyproject">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
@@ -17,13 +18,12 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.ConnectifyProject"
         tools:targetApi="31">
-
+      
+        <!-- Login: entry point -->
         <!-- Google Maps API Key -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyAKJtg2Z14pcYE9UrOGXtN7mTA5HjNsP-o" />
-
-        <!-- Login = entry point -->
         <activity
             android:name=".auth_login"
             android:exported="true">
@@ -33,13 +33,20 @@
             </intent-filter>
         </activity>
 
-        <!-- Pantallas internas -->
+        <!-- Host del flujo (NavHost + BottomNav) -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Material3.DayNight.NoActionBar"
+            android:windowSoftInputMode="adjustResize" />
+
+        <!-- Pantallas que ya tenías -->
         <activity android:name=".admin_dashboard" android:exported="false" />
         <activity android:name=".admin_tours" android:exported="false" />
         <activity android:name=".admin_chat" android:exported="false" />
         <activity android:name=".admin_pagos" android:exported="false" />
         <activity android:name=".admin_perfil" android:exported="false" />
-}
+        <!-- Importante: NO declarar .views.superadmin.SaUsersView -->
         <!-- De rol Guia -->
         <activity android:name=".guia_tour_detail" android:exported="false" />
         <activity android:name=".guia_historial" android:exported="false" />

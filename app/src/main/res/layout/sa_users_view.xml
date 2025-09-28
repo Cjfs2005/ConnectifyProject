@@ -5,29 +5,22 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <com.google.android.material.appbar.MaterialToolbar
-        android:id="@+id/topAppBar"
-        style="@style/Widget.Material3.Toolbar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="?attr/colorPrimary"
-        android:theme="@style/ThemeOverlay.Material3.Dark.ActionBar"
-        app:title="Connectify - SuperAdmin"
-        app:titleCentered="true" />
-
-    <TextView
-        android:id="@+id/tvPlaceholder"
+    <!-- El NavHost ocupa todo el alto disponible -->
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/nav_host_sa"
+        android:name="androidx.navigation.fragment.NavHostFragment"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:gravity="center"
-        android:padding="24dp"
-        android:text="Gestión de usuarios y administración del sistema"
-        android:textAppearance="@style/TextAppearance.Material3.TitleLarge" />
+        app:defaultNavHost="true"
+        app:navGraph="@navigation/nav_sa" />
 
+    <!-- La BottomNavigation queda DEBAJO, sin superponer -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/bottomNav"
+        android:id="@+id/bottom_nav_sa"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:menu="@menu/menu_admin_bottom_nav" />
+        app:menu="@menu/menu_sa_bottom"
+        app:labelVisibilityMode="labeled" />
+
 </LinearLayout>

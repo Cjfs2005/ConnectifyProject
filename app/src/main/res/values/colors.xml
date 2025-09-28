@@ -2,15 +2,22 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
-    <!-- Paleta base (puedes ajustar) -->
-    <color name="brand_purple">#7C4DFF</color>
+
+    <!-- Paleta base -->
+    <color name="brand_purple">#6A5BA8</color> <!-- morado corregido -->
     <color name="brand_purple_dark">#5E35B1</color>
     <color name="brand_pink">#ED3A9A</color>
     <color name="brand_lilac">#EDE7F6</color>
+
+    <!-- Superficies -->
     <color name="surface_soft">#FFF7FF</color>
+
+    <!-- KPI -->
     <color name="kpi_icon_bg">#F2ECFF</color>
     <color name="kpi_text">#1C1B1F</color>
     <color name="kpi_subtext">#6D6D6D</color>
+
+    <!-- Badges -->
     <color name="badge_bg">#FF3D00</color>
     <color name="badge_text">#FFFFFF</color>
     

@@ -12,7 +12,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.connectifyproject.databinding.AdminDashboardViewBinding;
 import com.example.connectifyproject.models.DashboardSummary;
-import com.example.connectifyproject.ui.ServiceSalesAdapter;
+import com.example.connectifyproject.views.ServiceSalesAdapter;
 import com.example.connectifyproject.viewmodel.AdminDashboardViewModel;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.navigation.NavigationBarView;
