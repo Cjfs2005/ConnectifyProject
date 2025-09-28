@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.bottomnavigation.BottomNavigationView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/cliente_bottom_navigation"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?attr/colorSurface"
+    app:menu="@menu/cliente_bottom_nav_menu"
+    app:labelVisibilityMode="labeled"
+    app:itemIconTint="@color/cliente_bottom_nav_tint"
+    app:itemTextColor="@color/cliente_bottom_nav_tint"
+    style="@style/Widget.Material3.BottomNavigationView" />

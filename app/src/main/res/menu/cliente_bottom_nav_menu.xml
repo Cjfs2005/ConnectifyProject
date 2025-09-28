@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/nav_inicio"
+        android:icon="@drawable/ic_home_24"
+        android:title="@string/cliente_nav_inicio" />
+        
+    <item
+        android:id="@+id/nav_reservas"
+        android:icon="@drawable/ic_calendar_24"
+        android:title="@string/cliente_nav_reservas" />
+        
+    <item
+        android:id="@+id/nav_tours"
+        android:icon="@drawable/ic_explore_24"
+        android:title="@string/cliente_nav_tours" />
+        
+    <item
+        android:id="@+id/nav_chat"
+        android:icon="@drawable/ic_chat_24"
+        android:title="@string/cliente_nav_chat" />
+        
+    <item
+        android:id="@+id/nav_perfil"
+        android:icon="@drawable/ic_person_24"
+        android:title="@string/cliente_nav_perfil" />
+</menu>
