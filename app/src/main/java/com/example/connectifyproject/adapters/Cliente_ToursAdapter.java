@@ -1,0 +1,90 @@
+package com.example.connectifyproject.adapters;
+
+import android.content.Context;
+import android.content.Intent;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.connectifyproject.R;
+import com.example.connectifyproject.cliente_tour_detalle;
+import com.example.connectifyproject.models.Cliente_Tour;
+
+import java.util.List;
+
+public class Cliente_ToursAdapter extends RecyclerView.Adapter<Cliente_ToursAdapter.TourViewHolder> {
+
+    private Context context;
+    private List<Cliente_Tour> tours;
+
+    public Cliente_ToursAdapter(Context context, List<Cliente_Tour> tours) {
+        this.context = context;
+        this.tours = tours;
+    }
+
+    @NonNull
+    @Override
+    public TourViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(context).inflate(R.layout.cliente_item_tour, parent, false);
+        return new TourViewHolder(view);
+    }
+
+    @Override
+    public void onBindViewHolder(@NonNull TourViewHolder holder, int position) {
+        Cliente_Tour tour = tours.get(position);
+        
+        holder.tvTourTitle.setText(tour.getTitle());
+        holder.tvTourCompany.setText(tour.getCompany());
+        holder.tvTourDuration.setText("Duración: " + tour.getDuration());
+        holder.tvTourDate.setText("Fecha: " + tour.getDate());
+        holder.tvTourPrice.setText(String.format("S/%.2f", tour.getPrice()));
+        
+        // Usar la imagen por defecto para todos los tours
+        holder.ivTourImage.setImageResource(R.drawable.cliente_tour_lima);
+        
+        // Click listener para abrir detalles del tour
+        holder.itemView.setOnClickListener(v -> {
+            Intent intent = new Intent(context, cliente_tour_detalle.class);
+            intent.putExtra("tour_id", tour.getId());
+            intent.putExtra("tour_title", tour.getTitle());
+            intent.putExtra("tour_company", tour.getCompany());
+            intent.putExtra("tour_duration", tour.getDuration());
+            intent.putExtra("tour_date", tour.getDate());
+            intent.putExtra("tour_price", tour.getPrice());
+            intent.putExtra("tour_location", tour.getLocation());
+            intent.putExtra("tour_description", tour.getDescription());
+            context.startActivity(intent);
+        });
+    }
+
+    @Override
+    public int getItemCount() {
+        return tours.size();
+    }
+
+    public void updateTours(List<Cliente_Tour> newTours) {
+        this.tours = newTours;
+        notifyDataSetChanged();
+    }
+
+    static class TourViewHolder extends RecyclerView.ViewHolder {
+        ImageView ivTourImage;
+        TextView tvTourTitle, tvTourCompany, tvTourDuration, tvTourDate, tvTourPrice;
+
+        public TourViewHolder(@NonNull View itemView) {
+            super(itemView);
+            ivTourImage = itemView.findViewById(R.id.iv_tour_image);
+            tvTourTitle = itemView.findViewById(R.id.tv_tour_title);
+            tvTourCompany = itemView.findViewById(R.id.tv_tour_company);
+            tvTourDuration = itemView.findViewById(R.id.tv_tour_duration);
+            tvTourDate = itemView.findViewById(R.id.tv_tour_date);
+            tvTourPrice = itemView.findViewById(R.id.tv_tour_price);
+        }
+    }
+}

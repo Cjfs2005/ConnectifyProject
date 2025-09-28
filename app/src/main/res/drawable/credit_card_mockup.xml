@@ -1,0 +1,38 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="300dp"
+    android:height="190dp"
+    android:viewportWidth="300"
+    android:viewportHeight="190">
+
+    <!-- Card Background -->
+    <path
+        android:fillColor="#4A4A4A"
+        android:pathData="M20,0 L280,0 A20,20 0 0,1 300,20 L300,170 A20,20 0 0,1 280,190 L20,190 A20,20 0 0,1 0,170 L0,20 A20,20 0 0,1 20,0 Z" />
+
+    <!-- Chip -->
+    <path
+        android:fillColor="#D4AF37"
+        android:pathData="M30,40 L70,40 A5,5 0 0,1 75,45 L75,75 A5,5 0 0,1 70,80 L30,80 A5,5 0 0,1 25,75 L25,45 A5,5 0 0,1 30,40 Z" />
+    
+    <!-- Chip lines -->
+    <path
+        android:fillColor="#B8860B"
+        android:strokeWidth="1"
+        android:pathData="M35,50 L65,50 M35,55 L65,55 M35,60 L65,60 M35,65 L65,65 M35,70 L65,70"/>
+
+    <!-- Card Number placeholder rectangles -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M30,120 L80,120 L80,135 L30,135 Z M90,120 L140,120 L140,135 L90,135 Z M150,120 L200,120 L200,135 L150,135 Z M210,120 L260,120 L260,135 L210,135 Z" />
+
+    <!-- Name placeholder -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M30,150 L150,150 L150,165 L30,165 Z" />
+
+    <!-- Date placeholder -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M220,150 L270,150 L270,165 L220,165 Z" />
+
+</vector>

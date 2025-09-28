@@ -18,6 +18,11 @@
         android:theme="@style/Theme.ConnectifyProject"
         tools:targetApi="31">
 
+        <!-- Google Maps API Key -->
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyAKJtg2Z14pcYE9UrOGXtN7mTA5HjNsP-o" />
+
         <!-- Login = entry point -->
         <activity
             android:name=".auth_login"
@@ -50,10 +55,32 @@
         <activity android:name=".sa_users_view" android:exported="false" />
         <activity android:name=".cliente_inicio" android:exported="false" />
         <activity android:name=".guia_tours_ofertas" android:exported="false" />
+        
+        <!-- Chat Activities -->
+        <activity android:name=".cliente_chat_list" android:exported="false" />
+        <activity android:name=".cliente_chat_conversation" android:exported="false" />
+        
+        <!-- Cliente Navbar Activities -->
+        <activity android:name=".cliente_perfil" android:exported="false" />
+        <activity android:name=".cliente_tours" android:exported="false" />
+        <activity android:name=".cliente_reservas" android:exported="false" />
+        <activity android:name=".cliente_notificaciones" android:exported="false" />
+        
+        <!-- Cliente Profile Child Activities -->
+        <activity android:name=".cliente_metodos_pago" android:exported="false" />
+        <activity android:name=".cliente_nuevo_metodo_pago" android:exported="false" />
+        <activity android:name=".cliente_editar_perfil" android:exported="false" />
+        <activity android:name=".cliente_cambiar_contrasenia" android:exported="false" />
+        <activity android:name=".cliente_permisos" android:exported="false" />
+        
+        <!-- Cliente Tours Activities -->
+        <activity android:name=".cliente_tour_detalle" android:exported="false" />
+        <activity android:name=".cliente_tour_filtros" android:exported="false" />
+        <activity android:name=".cliente_tour_mapa" android:exported="false" />
+        <activity android:name=".cliente_empresa_info" android:exported="false" />
+        <activity android:name=".cliente_servicio_detalle" android:exported="false" />
+        <activity android:name=".cliente_metodo_pago" android:exported="false" />
+        <activity android:name=".cliente_reserva_realizada" android:exported="false" />
 
-
-        <meta-data
-            android:name="com.google.android.geo.API_KEY"
-            android:value="colocar-api-key" />
     </application>
 </manifest>
