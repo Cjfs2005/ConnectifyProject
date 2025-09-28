@@ -8,12 +8,13 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
+
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:background="?attr/colorPrimary"
-            app:title="Ofertas de Tours"
+            app:title="Tours Asignados"
             app:titleTextColor="@android:color/white">
 
             <com.google.android.material.button.MaterialButton
@@ -21,8 +22,8 @@
                 style="@style/Widget.MaterialComponents.Button.TextButton.Icon"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="right"
-                android:text="Filtro"
+                android:layout_gravity="end"
+                android:text="Seleccionar Fechas"
                 android:textColor="@android:color/white"
                 app:icon="@drawable/ic_filter"
                 app:iconTint="@android:color/white" />
@@ -32,7 +33,7 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="656dp"
+        android:layout_height="match_parent"
         android:orientation="vertical"
         android:paddingTop="60dp">
 
@@ -60,12 +61,12 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="No hay oferta que se ajuste a los filtros" />
+                android:text="No hay tours asignados en las fechas seleccionadas" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Ajusta tu búsqueda para encontrar los resultados que buscas" />
+                android:text="Ajusta las fechas para encontrar los tours" />
         </LinearLayout>
     </LinearLayout>
 
@@ -75,4 +76,5 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
         app:menu="@menu/guia_bottom_nav_menu" />
+
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

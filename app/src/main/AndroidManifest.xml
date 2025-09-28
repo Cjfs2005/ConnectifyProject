@@ -3,6 +3,9 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
 
     <application
         android:allowBackup="true"
@@ -31,10 +34,26 @@
         <activity android:name=".admin_chat" android:exported="false" />
         <activity android:name=".admin_pagos" android:exported="false" />
         <activity android:name=".admin_perfil" android:exported="false" />
-        
+}
+        <!-- De rol Guia -->
+        <activity android:name=".guia_tour_detail" android:exported="false" />
+        <activity android:name=".guia_historial" android:exported="false" />
+        <activity android:name=".guia_assigned_tours" android:exported="false" />
+        <activity android:name=".guia_assigned_tour_detail" android:exported="false" />
+        <activity android:name=".guia_check_in" android:exported="false" />
+        <activity android:name=".guia_check_out" android:exported="false" />
+        <activity android:name=".guia_tour_map" android:exported="false" />
+        <service android:name=".service.GuiaLocationService" android:enabled="true" android:exported="true" android:foregroundServiceType="location" />
+        <activity android:name=".guia_perfil" android:exported="false" />
+
         <!-- Pantallas por rol -->
         <activity android:name=".sa_users_view" android:exported="false" />
         <activity android:name=".cliente_inicio" android:exported="false" />
         <activity android:name=".guia_tours_ofertas" android:exported="false" />
+
+
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="colocar-api-key" />
     </application>
 </manifest>
