@@ -2,76 +2,81 @@ package com.example.connectifyproject;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.KeyEvent;
-import android.view.inputmethod.EditorInfo;
+import android.view.View;
 
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.example.connectifyproject.databinding.MainLoginViewBinding;
+import com.example.connectifyproject.model.LoginResult;
+import com.example.connectifyproject.viewmodel.AuthLoginViewModel;
+import com.example.connectifyproject.views.superadmin.users.SaUsersFragment;
 
 public class auth_login extends AppCompatActivity {
 
     private MainLoginViewBinding binding;
+    private AuthLoginViewModel viewModel;
 
     @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        // ViewBinding del layout main_login_view.xml
         binding = MainLoginViewBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        // Click en “Iniciar sesión”
-        binding.btnLogin.setOnClickListener(v -> tryLogin());
+        viewModel = new ViewModelProvider(this).get(AuthLoginViewModel.class);
 
-        // Enter/Done en el password también intenta login
-        binding.etPassword.setOnEditorActionListener((tv, actionId, event) -> {
-            boolean pressedEnter =
-                    actionId == EditorInfo.IME_ACTION_DONE ||
-                            (event != null && event.getKeyCode() == KeyEvent.KEYCODE_ENTER
-                                    && event.getAction() == KeyEvent.ACTION_DOWN);
-            if (pressedEnter) {
-                tryLogin();
-                return true;
-            }
-            return false;
+        viewModel.getLoading().observe(this, isLoading -> {
+            boolean show = isLoading != null && isLoading;
+            binding.progress.setVisibility(show ? View.VISIBLE : View.GONE);
+            binding.btnLogin.setEnabled(!show);
         });
+
+        viewModel.getError().observe(this, err -> {
+            if (err == null) {
+                binding.tvError.setVisibility(View.GONE);
+            } else {
+                binding.tvError.setVisibility(View.VISIBLE);
+                if ("EMPTY".equals(err)) {
+                    binding.tvError.setText(getString(R.string.login_error_empty));
+                } else if ("INVALID".equals(err)) {
+                    binding.tvError.setText(getString(R.string.login_error_invalid));
+                } else {
+                    binding.tvError.setText(err);
+                }
+            }
+        });
+
+        viewModel.getLoginResult().observe(this, result -> {
+            if (result != null && result.isSuccess()) {
+                Intent intent = getIntentForUserType(result.getUserType());
+                if (intent != null) {
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    startActivity(intent);
+                }
+            }
+        });
+
+        binding.btnLogin.setOnClickListener(v ->
+                viewModel.login(
+                        String.valueOf(binding.etEmail.getText()),
+                        String.valueOf(binding.etPassword.getText())
+                )
+        );
     }
 
-    /** Valida inputs y, si todo ok, navega a MainActivity */
-    private void tryLogin() {
-        // limpia errores
-        binding.tilEmail.setError(null);
-        binding.tilPassword.setError(null);
-
-        String email = binding.etEmail.getText() == null ? "" : binding.etEmail.getText().toString().trim();
-        String pass  = binding.etPassword.getText() == null ? "" : binding.etPassword.getText().toString();
-
-        boolean ok = true;
-        if (email.isEmpty()) {
-            binding.tilEmail.setError("Ingresa tu correo");
-            ok = false;
-        } else if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            binding.tilEmail.setError("Correo inválido");
-            ok = false;
+    private Intent getIntentForUserType(LoginResult.UserType userType) {
+        switch (userType) {
+            case SUPERADMIN:
+                return new Intent(this, MainActivity.class);
+            case ADMIN:
+                return new Intent(this, admin_dashboard.class);
+            case CLIENTE:
+                return new Intent(this, cliente_inicio.class);
+            case GUIA:
+                return new Intent(this, guia_tours_ofertas.class);
+            default:
+                // Fallback al dashboard de admin si hay algún problema
+                return new Intent(this, admin_dashboard.class);
         }
-
-        if (pass.isEmpty()) {
-            binding.tilPassword.setError("Ingresa tu contraseña");
-            ok = false;
-        }
-
-        if (!ok) return;
-
-        // TODO: aquí iría tu llamada real a API/Firebase
-        goToHome();
-    }
-
-    /** Navega al host del flujo (NavHost + BottomNav) */
-    private void goToHome() {
-        Intent i = new Intent(auth_login.this, MainActivity.class);
-        startActivity(i);
-        finish(); // evita volver al login con back
     }
 }
