@@ -1,8 +1,9 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
 <style name="Base.Theme.ConnectifyProject" parent="Theme.Material3.DayNight.NoActionBar">
-    <item name="colorPrimary">@color/brand_purple</item>
+    <item name="colorPrimary">@color/brand_purple_dark</item>
     <item name="colorPrimaryContainer">@color/brand_lilac</item>
     <item name="colorOnPrimary">#FFFFFF</item>
+
     <item name="colorSurface">@color/surface_soft</item>
     <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimary</item>
 </style>

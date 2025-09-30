@@ -1,5 +1,7 @@
 package com.example.connectifyproject.views.superadmin.users;
 
+import android.content.res.ColorStateList;
+import android.graphics.drawable.Drawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -7,6 +9,8 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
+import androidx.core.graphics.drawable.DrawableCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.connectifyproject.R;
@@ -68,7 +72,7 @@ public class SaUsersAdapter extends RecyclerView.Adapter<SaUsersAdapter.VH> {
         notifyDataSetChanged();
     }
 
-    private static String s(String v) { return v == null ? "" : v; }
+    static String s(String v) { return v == null ? "" : v; }
 
     @NonNull @Override
     public VH onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -101,6 +105,17 @@ public class SaUsersAdapter extends RecyclerView.Adapter<SaUsersAdapter.VH> {
             // Avatar: inicial
             tvAvatar.setText(u.getInitial());
 
+            // -> Color del avatar desde paleta fija
+            int color = pickAvatarColor(itemView.getContext(), u);
+            Drawable bg = tvAvatar.getBackground();
+            if (bg != null) {
+                bg = bg.mutate();
+                DrawableCompat.setTint(bg, color);
+                tvAvatar.setBackground(bg);
+            } else {
+                tvAvatar.setBackgroundTintList(ColorStateList.valueOf(color));
+            }
+
             // Nombre
             String fullName = (u.getName() == null ? "" : u.getName());
             if (u.getLastName() != null && !u.getLastName().isEmpty()) {
@@ -119,6 +134,19 @@ public class SaUsersAdapter extends RecyclerView.Adapter<SaUsersAdapter.VH> {
             View.OnClickListener open = v -> { if (listener != null) listener.onView(u); };
             itemView.setOnClickListener(open);   // click en toda la tarjeta
             btnProfile.setOnClickListener(open); // click en la lupa
+        }
+
+        /** Paleta: #08807B, #F1A20B, #8D9C09, #D20D20 elegida por hash */
+        private static int pickAvatarColor(android.content.Context ctx, User u) {
+            int[] palette = new int[] {
+                    ContextCompat.getColor(ctx, R.color.avatar_teal),   // #08807B
+                    ContextCompat.getColor(ctx, R.color.avatar_amber),  // #F1A20B
+                    ContextCompat.getColor(ctx, R.color.avatar_olive),  // #8D9C09
+                    ContextCompat.getColor(ctx, R.color.avatar_red)     // #D20D20
+            };
+            String key = (s(u.getName()) + s(u.getLastName()) + s(u.getDni()));
+            int idx = Math.abs(key.hashCode()) % palette.length;
+            return palette[idx];
         }
     }
 }

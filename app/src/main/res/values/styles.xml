@@ -12,5 +12,11 @@
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">50%</item>
     </style>
-    
+
+    <style name="SuperAdminBottomNav" parent="Widget.Material3.BottomNavigationView">
+        <item name="itemIconTint">@color/sa_bottom_nav_tint</item>
+        <item name="itemTextColor">@color/sa_bottom_nav_tint</item>
+        <item name="labelVisibilityMode">labeled</item>
+    </style>
+
 </resources>

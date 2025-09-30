@@ -5,9 +5,13 @@
 
     <!-- Paleta base -->
     <color name="brand_purple">#6A5BA8</color> <!-- morado corregido -->
-    <color name="brand_purple_dark">#5E35B1</color>
+    <color name="brand_purple_dark">#420B58</color>
     <color name="brand_pink">#ED3A9A</color>
     <color name="brand_lilac">#EDE7F6</color>
+    <color name="avatar_teal">#08807B</color>
+    <color name="avatar_amber">#F1A20B</color>
+    <color name="avatar_olive">#8D9C09</color>
+    <color name="avatar_red">#D20D20</color>
 
     <!-- Superficies -->
     <color name="surface_soft">#FFF7FF</color>
