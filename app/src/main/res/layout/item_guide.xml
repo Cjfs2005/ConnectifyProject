@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="12dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="2dp"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="?attr/selectableItemBackground">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:gravity="center_vertical">
+
+        <!-- Imagen del guía -->
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/img_guide_profile"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:layout_marginEnd="16dp"
+            android:scaleType="centerCrop"
+            app:shapeAppearanceOverlay="@style/CircularImageView" />
+
+        <!-- Información del guía -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <!-- Rating y tours -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="4dp">
+
+                <TextView
+                    android:id="@+id/tv_guide_rating"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="4.8"
+                    android:textColor="@color/on_surface"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tv_guide_tours"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="4dp"
+                    android:text=" • 120 tours"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="14sp" />
+
+            </LinearLayout>
+
+            <!-- Nombre del guía -->
+            <TextView
+                android:id="@+id/tv_guide_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Elena Rodriguez"
+                android:textColor="@color/on_surface"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="4dp" />
+
+            <!-- Idiomas -->
+            <TextView
+                android:id="@+id/tv_guide_languages"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Habla: Inglés, Español"
+                android:textColor="@color/text_secondary"
+                android:textSize="14sp" />
+
+            <!-- Ubicación (nueva línea) -->
+            <TextView
+                android:id="@+id/tv_guide_location"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Lima, Perú"
+                android:textColor="@color/text_secondary"
+                android:textSize="12sp"
+                android:layout_marginTop="2dp" />
+
+        </LinearLayout>
+
+        <!-- Botón Elegir -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_select_guide"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:text="Elegir"
+            android:textColor="@color/surface"
+            style="@style/Widget.Material3.Button"
+            app:backgroundTint="@color/primary" />
+
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>

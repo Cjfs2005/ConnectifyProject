@@ -10,4 +10,12 @@
     </style>
 
     <style name="Theme.ConnectifyProject" parent="Base.Theme.ConnectifyProject" />
+
+    <!-- Estilo para imágenes circulares -->
+    <style name="CircularImageView">
+        <item name="android:scaleType">centerCrop</item>
+        <item name="android:layout_width">60dp</item>
+        <item name="android:layout_height">60dp</item>
+    </style>
 </resources>
+

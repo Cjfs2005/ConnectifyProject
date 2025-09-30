@@ -31,20 +31,21 @@
                 android:id="@+id/cardHeader"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
+                android:layout_marginBottom="24dp"
                 app:cardCornerRadius="24dp"
+                app:cardElevation="0dp"
                 app:cardBackgroundColor="@color/brand_lilac"
                 app:strokeColor="@android:color/transparent">
 
                 <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:padding="16dp">
+                    android:padding="20dp">
 
                     <ImageView
                         android:id="@+id/ivHeaderLogo"
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
                         android:src="@mipmap/tourly_logo_img"
                         android:contentDescription="@string/app_name" />
 
@@ -53,7 +54,8 @@
                         android:layout_height="wrap_content"
                         android:layout_toRightOf="@id/ivHeaderLogo"
                         android:layout_toEndOf="@id/ivHeaderLogo"
-                        android:layout_marginStart="12dp"
+                        android:layout_marginStart="16dp"
+                        android:layout_centerVertical="true"
                         android:orientation="vertical">
 
                         <TextView
@@ -61,16 +63,19 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:textStyle="bold"
-                            android:textColor="@android:color/black"
-                            android:textSize="20sp"
+                            android:textColor="@color/text_primary"
+                            android:textSize="22sp"
+                            android:letterSpacing="0.01"
                             android:text="Bienvenido, Tony" />
 
                         <TextView
                             android:id="@+id/tvWelcomeCompany"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:textColor="#6D6D6D"
-                            android:text="Mundo Tours SAC" />
+                            android:layout_marginTop="2dp"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="14sp"
+                            android:text="@string/welcome_company" />
                     </LinearLayout>
 
                     <FrameLayout
@@ -79,83 +84,97 @@
                         android:layout_height="wrap_content"
                         android:layout_alignParentEnd="true"
                         android:layout_alignParentRight="true"
+                        android:layout_centerVertical="true"
                         android:layout_marginEnd="4dp">
 
                         <ImageView
                             android:id="@+id/ivNotifications"
-                            android:layout_width="24dp"
-                            android:layout_height="24dp"
+                            android:layout_width="28dp"
+                            android:layout_height="28dp"
                             android:contentDescription="@string/notifications"
                             android:src="@drawable/ic_bell" />
 
                         <TextView
                             android:id="@+id/tvBadge"
-                            android:layout_width="18dp"
-                            android:layout_height="18dp"
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
                             android:layout_gravity="top|end"
+                            android:layout_marginTop="2dp"
+                            android:layout_marginEnd="2dp"
                             android:background="@drawable/bg_badge"
                             android:gravity="center"
-                            android:text="3"
+                            android:text="1"
                             android:textColor="@color/badge_text"
-                            android:textSize="10sp" />
+                            android:textSize="11sp"
+                            android:textStyle="bold" />
                     </FrameLayout>
                 </RelativeLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- KPIs: grilla 2x2 con tarjetas -->
+            <!-- KPIs: grilla 2x2 con tarjetas (centrado de contenido) -->
             <GridLayout
                 android:id="@+id/kpiGrid"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:columnCount="2"
                 android:rowCount="2"
+                android:layout_marginBottom="24dp"
                 android:useDefaultMargins="true">
 
                 <!-- Tours en curso -->
                 <com.google.android.material.card.MaterialCardView
                     android:id="@+id/kpiToursEnCurso"
                     android:layout_width="0dp"
-                    android:layout_height="120dp"
+                    android:layout_height="130dp"
                     android:layout_columnWeight="1"
                     android:layout_rowWeight="1"
-                    app:cardCornerRadius="16dp"
-                    app:strokeColor="#E6E0F8"
+                    android:layout_margin="8dp"
+                    app:cardCornerRadius="20dp"
+                    app:cardElevation="0dp"
+                    app:cardBackgroundColor="@color/white"
+                    app:strokeColor="@color/border_light"
                     app:strokeWidth="1dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:orientation="vertical"
-                        android:padding="16dp">
+                        android:padding="20dp"
+                        android:gravity="center">
 
                         <LinearLayout
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
                             android:gravity="center"
                             android:background="@drawable/bg_circle"
-                            android:backgroundTint="#EFE8FF">
+                            android:backgroundTint="@color/kpi_icon_bg">
 
                             <ImageView
                                 android:id="@+id/ivKpiIcon1"
-                                android:layout_width="20dp"
-                                android:layout_height="20dp"
-                                android:src="@drawable/ic_bus" />
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
+                                                                android:src="@drawable/ic_tour_morado" />
                         </LinearLayout>
 
                         <TextView
                             android:id="@+id/tvKpiValue1"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            android:text="0"
-                            android:textAppearance="@style/TextAppearance.Material3.TitleLarge" />
+                            android:layout_marginTop="12dp"
+                            android:text="3"
+                            android:textColor="@color/kpi_value_text"
+                            android:textSize="28sp"
+                            android:textStyle="bold" />
 
                         <TextView
                             android:id="@+id/tvKpiLabel1"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/kpi_tours_en_curso"
-                            android:textColor="#6D6D6D" />
+                            android:layout_marginTop="4dp"
+                            android:text="Tours en curso"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="12sp"
+                            android:gravity="center" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
@@ -163,47 +182,56 @@
                 <com.google.android.material.card.MaterialCardView
                     android:id="@+id/kpiProximosTours"
                     android:layout_width="0dp"
-                    android:layout_height="120dp"
+                    android:layout_height="130dp"
                     android:layout_columnWeight="1"
                     android:layout_rowWeight="1"
-                    app:cardCornerRadius="16dp"
-                    app:strokeColor="#E6E0F8"
+                    android:layout_margin="8dp"
+                    app:cardCornerRadius="20dp"
+                    app:cardElevation="0dp"
+                    app:cardBackgroundColor="@color/white"
+                    app:strokeColor="@color/border_light"
                     app:strokeWidth="1dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:orientation="vertical"
-                        android:padding="16dp">
+                        android:padding="20dp"
+                        android:gravity="center">
 
                         <LinearLayout
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
                             android:gravity="center"
                             android:background="@drawable/bg_circle"
-                            android:backgroundTint="#EFE8FF">
+                            android:backgroundTint="@color/kpi_icon_bg">
 
                             <ImageView
                                 android:id="@+id/ivKpiIcon2"
-                                android:layout_width="20dp"
-                                android:layout_height="20dp"
-                                android:src="@drawable/ic_calendar" />
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
+                                android:src="@drawable/ic_calendario_morado" />
                         </LinearLayout>
 
                         <TextView
                             android:id="@+id/tvKpiValue2"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            android:text="0"
-                            android:textAppearance="@style/TextAppearance.Material3.TitleLarge" />
+                            android:layout_marginTop="12dp"
+                            android:text="5"
+                            android:textColor="@color/kpi_value_text"
+                            android:textSize="28sp"
+                            android:textStyle="bold" />
 
                         <TextView
                             android:id="@+id/tvKpiLabel2"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/kpi_proximos_tours"
-                            android:textColor="#6D6D6D" />
+                            android:layout_marginTop="4dp"
+                            android:text="Próximos tours"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="12sp"
+                            android:gravity="center" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
@@ -211,47 +239,56 @@
                 <com.google.android.material.card.MaterialCardView
                     android:id="@+id/kpiVentasTotales"
                     android:layout_width="0dp"
-                    android:layout_height="120dp"
+                    android:layout_height="130dp"
                     android:layout_columnWeight="1"
                     android:layout_rowWeight="1"
-                    app:cardCornerRadius="16dp"
-                    app:strokeColor="#E6E0F8"
+                    android:layout_margin="8dp"
+                    app:cardCornerRadius="20dp"
+                    app:cardElevation="0dp"
+                    app:cardBackgroundColor="@color/white"
+                    app:strokeColor="@color/border_light"
                     app:strokeWidth="1dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:orientation="vertical"
-                        android:padding="16dp">
+                        android:padding="20dp"
+                        android:gravity="center">
 
                         <LinearLayout
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
                             android:gravity="center"
                             android:background="@drawable/bg_circle"
-                            android:backgroundTint="#EFE8FF">
+                            android:backgroundTint="@color/kpi_icon_bg">
 
                             <ImageView
                                 android:id="@+id/ivKpiIcon3"
-                                android:layout_width="20dp"
-                                android:layout_height="20dp"
-                                android:src="@drawable/ic_money" />
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
+                                android:src="@drawable/ic_dinero_morado" />
                         </LinearLayout>
 
                         <TextView
                             android:id="@+id/tvKpiValue3"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            android:text="$0"
-                            android:textAppearance="@style/TextAppearance.Material3.TitleLarge" />
+                            android:layout_marginTop="12dp"
+                            android:text="$4500"
+                            android:textColor="@color/kpi_value_text"
+                            android:textSize="28sp"
+                            android:textStyle="bold" />
 
                         <TextView
                             android:id="@+id/tvKpiLabel3"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/kpi_ventas_totales"
-                            android:textColor="#6D6D6D" />
+                            android:layout_marginTop="4dp"
+                            android:text="Ventas totales"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="12sp"
+                            android:gravity="center" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
@@ -259,47 +296,56 @@
                 <com.google.android.material.card.MaterialCardView
                     android:id="@+id/kpiVentasTours"
                     android:layout_width="0dp"
-                    android:layout_height="120dp"
+                    android:layout_height="130dp"
                     android:layout_columnWeight="1"
                     android:layout_rowWeight="1"
-                    app:cardCornerRadius="16dp"
-                    app:strokeColor="#E6E0F8"
+                    android:layout_margin="8dp"
+                    app:cardCornerRadius="20dp"
+                    app:cardElevation="0dp"
+                    app:cardBackgroundColor="@color/white"
+                    app:strokeColor="@color/border_light"
                     app:strokeWidth="1dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:orientation="vertical"
-                        android:padding="16dp">
+                        android:padding="20dp"
+                        android:gravity="center">
 
                         <LinearLayout
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
                             android:gravity="center"
                             android:background="@drawable/bg_circle"
-                            android:backgroundTint="#EFE8FF">
+                            android:backgroundTint="@color/kpi_icon_bg">
 
                             <ImageView
                                 android:id="@+id/ivKpiIcon4"
-                                android:layout_width="20dp"
-                                android:layout_height="20dp"
-                                android:src="@drawable/ic_money" />
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
+                                android:src="@drawable/ic_dinero_morado" />
                         </LinearLayout>
 
                         <TextView
                             android:id="@+id/tvKpiValue4"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            android:text="$0"
-                            android:textAppearance="@style/TextAppearance.Material3.TitleLarge" />
+                            android:layout_marginTop="12dp"
+                            android:text="$2500"
+                            android:textColor="@color/kpi_value_text"
+                            android:textSize="28sp"
+                            android:textStyle="bold" />
 
                         <TextView
                             android:id="@+id/tvKpiLabel4"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/kpi_ventas_tours"
-                            android:textColor="#6D6D6D" />
+                            android:layout_marginTop="4dp"
+                            android:text="Ventas de tours"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="12sp"
+                            android:gravity="center" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
             </GridLayout>
@@ -309,24 +355,28 @@
                 android:id="@+id/tvSalesTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:text="@string/sales_by_service"
-                android:textAppearance="@style/TextAppearance.Material3.TitleLarge" />
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="16dp"
+                android:text="Ventas por servicios"
+                android:textColor="@color/text_primary"
+                android:textSize="20sp"
+                android:textStyle="bold" />
 
             <!-- Contenedor de la "gráfica" tipo barras -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardSales"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="0dp"
                 app:cardBackgroundColor="@color/brand_lilac"
-                app:cardCornerRadius="16dp">
+                app:cardCornerRadius="20dp"
+                app:cardElevation="0dp">
 
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/rvServiceSales"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:padding="12dp"
+                    android:padding="20dp"
                     android:nestedScrollingEnabled="false" />
             </com.google.android.material.card.MaterialCardView>
 
@@ -336,10 +386,10 @@
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
-    <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/bottomNav"
+    <!-- Fragment del Bottom Navigation -->
+    <FrameLayout
+        android:id="@+id/bottomNavContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom"
-        app:menu="@menu/menu_admin_bottom_nav" />
+        android:layout_gravity="bottom" />
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

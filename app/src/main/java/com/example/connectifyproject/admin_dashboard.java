@@ -7,15 +7,16 @@ import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.connectifyproject.databinding.AdminDashboardViewBinding;
 import com.example.connectifyproject.models.DashboardSummary;
+import com.example.connectifyproject.ui.admin.AdminBottomNavFragment;
 import com.example.connectifyproject.views.ServiceSalesAdapter;
 import com.example.connectifyproject.viewmodel.AdminDashboardViewModel;
 import com.google.android.material.card.MaterialCardView;
-import com.google.android.material.navigation.NavigationBarView;
 
 public class admin_dashboard extends AppCompatActivity {
 
@@ -43,8 +44,11 @@ public class admin_dashboard extends AppCompatActivity {
         binding.rvServiceSales.setLayoutManager(new LinearLayoutManager(this));
         binding.rvServiceSales.setAdapter(adapter);
 
-        binding.bottomNav.setOnItemSelectedListener(navListener);
-        binding.bottomNav.setSelectedItemId(R.id.nav_dashboard);
+        // Agregar el Fragment de navegación inferior
+        AdminBottomNavFragment bottomNavFragment = AdminBottomNavFragment.newInstance("dashboard");
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        transaction.replace(R.id.bottomNavContainer, bottomNavFragment);
+        transaction.commit();
 
         viewModel = new ViewModelProvider(this).get(AdminDashboardViewModel.class);
         viewModel.getSummary().observe(this, this::bindSummary);
@@ -66,28 +70,6 @@ public class admin_dashboard extends AppCompatActivity {
         return false;
     }
 
-    private final NavigationBarView.OnItemSelectedListener navListener = item -> {
-        int id = item.getItemId();
-        if (id == R.id.nav_dashboard) return true;
-        if (id == R.id.nav_tours) {
-            startActivity(new android.content.Intent(this, admin_tours.class));
-            return true;
-        }
-        if (id == R.id.nav_chat) {
-            startActivity(new android.content.Intent(this, admin_chat.class));
-            return true;
-        }
-        if (id == R.id.nav_pagos) {
-            startActivity(new android.content.Intent(this, admin_pagos.class));
-            return true;
-        }
-        if (id == R.id.nav_perfil) {
-            startActivity(new android.content.Intent(this, admin_perfil.class));
-            return true;
-        }
-        return false;
-    };
-
     private void bindSummary(DashboardSummary s) {
         if (s == null) return;
 
@@ -97,16 +79,16 @@ public class admin_dashboard extends AppCompatActivity {
         binding.tvBadge.setVisibility(s.getNotificaciones() > 0 ? View.VISIBLE : View.GONE);
 
         setKpi(binding.kpiToursEnCurso, R.id.ivKpiIcon1, R.id.tvKpiValue1, R.id.tvKpiLabel1,
-                R.drawable.ic_bus, String.valueOf(s.getToursEnCurso()), getString(R.string.kpi_tours_en_curso));
+                R.drawable.ic_tour_morado, String.valueOf(s.getToursEnCurso()), getString(R.string.kpi_tours_en_curso));
 
         setKpi(binding.kpiProximosTours, R.id.ivKpiIcon2, R.id.tvKpiValue2, R.id.tvKpiLabel2,
-                R.drawable.ic_calendar, String.valueOf(s.getProximosTours()), getString(R.string.kpi_proximos_tours));
+                R.drawable.ic_calendario_morado, String.valueOf(s.getProximosTours()), getString(R.string.kpi_proximos_tours));
 
         setKpi(binding.kpiVentasTotales, R.id.ivKpiIcon3, R.id.tvKpiValue3, R.id.tvKpiLabel3,
-                R.drawable.ic_money, "$" + s.getVentasTotales(), getString(R.string.kpi_ventas_totales));
+                R.drawable.ic_dinero_morado, "$" + s.getVentasTotales(), getString(R.string.kpi_ventas_totales));
 
         setKpi(binding.kpiVentasTours, R.id.ivKpiIcon4, R.id.tvKpiValue4, R.id.tvKpiLabel4,
-                R.drawable.ic_money, "$" + s.getVentasTours(), getString(R.string.kpi_ventas_tours));
+                R.drawable.ic_dinero_morado, "$" + s.getVentasTours(), getString(R.string.kpi_ventas_tours));
     }
 
     private void setKpi(MaterialCardView card, int iconId, int valueId, int labelId,

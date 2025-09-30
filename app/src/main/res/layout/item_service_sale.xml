@@ -1,38 +1,50 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:padding="8dp">
+    android:layout_height="52dp"
+    android:layout_marginBottom="12dp">
 
+    <!-- Track + barra con pesos -->
     <LinearLayout
+        android:id="@+id/llWeights"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center_vertical"
-        android:orientation="horizontal">
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        android:weightSum="100"
+        android:background="@drawable/bg_track">
 
-        <TextView
-            android:id="@+id/tvServiceName"
+        <View
+            android:id="@+id/barFill"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Servicio"
-            android:textAppearance="@style/TextAppearance.Material3.BodyLarge" />
+            android:layout_height="match_parent"
+            android:layout_weight="50" />
 
-        <TextView
-            android:id="@+id/tvServiceAmount"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="$0"
-            android:textAppearance="@style/TextAppearance.Material3.BodyLarge" />
+        <View
+            android:id="@+id/barSpacer"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="50" />
     </LinearLayout>
 
-    <com.google.android.material.progressindicator.LinearProgressIndicator
-        android:id="@+id/piBar"
-        style="@style/Widget.Material3.LinearProgressIndicator"
-        android:layout_width="match_parent"
-        android:layout_height="10dp"
-        android:layout_marginTop="6dp"
-        app:trackColor="#EDE7F6"
-        app:indicatorColor="@color/brand_purple" />
-</LinearLayout>
+    <!-- Etiquetas superpuestas -->
+    <TextView
+        android:id="@+id/tvServiceName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical|start"
+        android:layout_marginStart="16dp"
+        android:text="Paquetes de comida"
+        android:textColor="@android:color/white"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/tvServiceAmount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical|end"
+        android:layout_marginEnd="16dp"
+        android:text="$400"
+        android:textColor="@android:color/black"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+</FrameLayout>

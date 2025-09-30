@@ -34,9 +34,9 @@ public class DashboardRepository {
             list.add(new ServiceSale("Servicio de fotografía", 380));
             list.add(new ServiceSale("Souvenir exclusivo", 350));
             list.add(new ServiceSale("Transporte ecológico", 260));
-            list.add(new ServiceSale("X", 200));
-            list.add(new ServiceSale("Y", 100));
-            list.add(new ServiceSale("Z", 90));
+            list.add(new ServiceSale("Guía bilingüe", 200));
+            list.add(new ServiceSale("Entradas a atracciones", 100));
+            list.add(new ServiceSale("Seguro de viaje", 90));
             return list;
         }, Executors.newCachedThreadPool());
     }

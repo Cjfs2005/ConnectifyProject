@@ -17,6 +17,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.ConnectifyProject"
+        android:usesCleartextTraffic="true"
         tools:targetApi="31">
       
         <!-- Login: entry point -->
@@ -43,9 +44,17 @@
         <!-- Pantallas que ya tenías -->
         <activity android:name=".admin_dashboard" android:exported="false" />
         <activity android:name=".admin_tours" android:exported="false" />
+        <activity android:name=".admin_tour_details" android:exported="false" />
         <activity android:name=".admin_chat" android:exported="false" />
         <activity android:name=".admin_pagos" android:exported="false" />
+        <activity android:name=".admin_historial_pagos" android:exported="false" />
         <activity android:name=".admin_perfil" android:exported="false" />
+        
+        <!-- Nuevas actividades para gestión de guías y pagos -->
+        <activity android:name=".admin_select_guide" android:exported="false" />
+        <activity android:name=".admin_payment_proposal" android:exported="false" />
+        <activity android:name=".admin_create_tour" android:exported="false" />
+        
         <!-- Importante: NO declarar .views.superadmin.SaUsersView -->
         <!-- De rol Guia -->
         <activity android:name=".guia_tour_detail" android:exported="false" />
