@@ -1,0 +1,25 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="80dp"
+    android:height="50dp"
+    android:viewportWidth="80"
+    android:viewportHeight="50">
+    
+    <!-- Background rectangle with blue -->
+    <path
+        android:fillColor="#1A1F71"
+        android:pathData="M5,5 L75,5 A5,5 0 0,1 80,10 L80,40 A5,5 0 0,1 75,45 L5,45 A5,5 0 0,1 0,40 L0,10 A5,5 0 0,1 5,5 Z" />
+    
+    <!-- VISA text -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M15,30 L20,15 L25,15 L20,30 Z
+                   M27,15 L32,15 L35,30 L30,30 Z
+                   M37,15 L42,15 L42,20 L37,20 Z
+                   M37,22 L42,22 L42,30 L37,30 Z
+                   M44,15 L54,15 L54,30 L49,30 L49,20 L44,30 Z" />
+    
+    <!-- Orange stripe -->
+    <path
+        android:fillColor="#FF5F00"
+        android:pathData="M0,40 L80,40 L80,45 A5,5 0 0,1 75,45 L5,45 A5,5 0 0,1 0,40 Z" />
+</vector>

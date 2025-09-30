@@ -10,6 +10,7 @@ import androidx.lifecycle.ViewModelProvider;
 import com.example.connectifyproject.databinding.MainLoginViewBinding;
 import com.example.connectifyproject.model.LoginResult;
 import com.example.connectifyproject.viewmodel.AuthLoginViewModel;
+import com.example.connectifyproject.views.superadmin.users.SaUsersFragment;
 
 public class auth_login extends AppCompatActivity {
 
@@ -66,7 +67,7 @@ public class auth_login extends AppCompatActivity {
     private Intent getIntentForUserType(LoginResult.UserType userType) {
         switch (userType) {
             case SUPERADMIN:
-                return new Intent(this, sa_users_view.class);
+                return new Intent(this, MainActivity.class);
             case ADMIN:
                 return new Intent(this, admin_dashboard.class);
             case CLIENTE:

@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <RadioGroup
+        android:id="@+id/paymentTypeRadioGroup"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <RadioButton
+            android:id="@+id/creditCardRadio"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Tarjeta Crédito" />
+
+        <RadioButton
+            android:id="@+id/debitCardRadio"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Tarjeta Débito" />
+
+        <RadioButton
+            android:id="@+id/bankAccountRadio"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Cuenta Bancaria" />
+
+        <RadioButton
+            android:id="@+id/yapeRadio"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Yape" />
+    </RadioGroup>
+
+    <EditText
+        android:id="@+id/numberEdit"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Número (Últimos 4 dígitos, Cuenta o Yape)" />
+
+    <EditText
+        android:id="@+id/holderEdit"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Titular" />
+
+    <EditText
+        android:id="@+id/expiryEdit"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Vencimiento (MM/AA)"
+        android:visibility="gone" />
+
+    <EditText
+        android:id="@+id/bankCodeEdit"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Código Bancario"
+        android:visibility="gone" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/saveBtn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Guardar" />
+</LinearLayout>

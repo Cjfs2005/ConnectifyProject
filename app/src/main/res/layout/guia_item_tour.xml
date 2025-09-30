@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_margin="8dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="16dp">
+
+        <ImageView
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:src="@drawable/ic_tour_image"
+            android:scaleType="centerCrop"
+            android:layout_marginEnd="16dp" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tour_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Tour por Centro Histórico de Lima" />
+
+            <TextView
+                android:id="@+id/tour_price"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Pago: S/ 250" />
+
+            <TextView
+                android:id="@+id/tour_duration"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Duración: 9 horas" />
+
+            <TextView
+                android:id="@+id/tour_languages"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Idiomas: Español,Inglés" />
+
+            <TextView
+                android:id="@+id/tour_start_time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Inicio: 12:00 23/10/2025" />
+        </LinearLayout>
+
+        <ImageView
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:src="@drawable/ic_eye"
+            android:layout_gravity="center_vertical"
+            android:padding="4dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Ver detalles" />
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>
