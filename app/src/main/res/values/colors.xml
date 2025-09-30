@@ -43,4 +43,49 @@
     <color name="border_color">#E0E0E0</color>
     <color name="gray_text">#6D6D6D</color>
     <color name="star_color">#FFC107</color>
+
+    <!-- Colores adicionales para pagos -->
+    <color name="background_light">#F8F9FA</color>
+    <color name="divider_light">#E5E7EB</color>
+    <color name="primary">#7B5CF0</color>
+    <color name="primary_50">#F5F3FF</color>
+    <color name="primary_200">#C4B5FD</color>
+    <color name="primary_container">#EDE7F6</color>
+    <color name="neutral_500">#6B7280</color>
+    <color name="success_500">#10B981</color>
+    <color name="error_500">#EF4444</color>
+
+    <!-- Colores Material Design 3 -->
+    <color name="surface">#FFFFFF</color>
+    <color name="on_surface">#1C1B1F</color>
+
+    <!-- Colores adicionales para las nuevas vistas -->
+    <color name="background_color">#FFFFFF</color>
+    <color name="rating_color">#FF9800</color>
+    <color name="divider_color">#E0E0E0</color>
+
+    <!-- Colores para servicios (barras de progreso) -->
+    <color name="service_paquetes">#ED3A9A</color>
+    <color name="service_traslado">#7B5CF0</color>
+    <color name="service_fotografia">#8E5CF0</color>
+    <color name="service_souvenir">#6B47DC</color>
+    <color name="service_transporte">#5A4ACF</color>
+    <color name="service_guia">#4B3DC2</color>
+    <color name="service_entradas">#3C30B5</color>
+    <color name="service_propinas">#2D23A8</color>
+
+    <!-- Estados de texto -->
+    <color name="text_primary">#1C1B1F</color>
+    <color name="text_secondary">#6D6D6D</color>
+    <color name="text_disabled">#A0A0A0</color>
+
+    <!-- Colores de borde -->
+    <color name="border_light">#E6E0F8</color>
+    <color name="border_medium">#D0C4F0</color>
+
+    <!-- Paleta principal Tourly basada en el diseño Figma -->
+    <color name="brand_purple_light">#9C7DFF</color>
+
+    <color name="kpi_value_text">#2D2D2D</color>
+
 </resources>
