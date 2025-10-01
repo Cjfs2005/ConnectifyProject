@@ -1,67 +1,94 @@
 <?xml version="1.0" encoding="utf-8"?>
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_margin="8dp">
+    android:layout_margin="12dp"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="6dp"
+    android:backgroundTint="@android:color/white">
 
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
         android:padding="16dp">
 
         <ImageView
-            android:layout_width="64dp"
-            android:layout_height="64dp"
+            android:id="@+id/tour_image"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
             android:src="@drawable/ic_tour_image"
-            android:scaleType="centerCrop"
-            android:layout_marginEnd="16dp" />
+            android:scaleType="centerInside"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintVertical_bias="0" />
 
         <LinearLayout
+            android:id="@+id/tour_info_layout"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            app:layout_constraintStart_toEndOf="@id/tour_image"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/details_icon"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="8dp">
 
             <TextView
                 android:id="@+id/tour_name"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Tour por Centro Histórico de Lima" />
+                android:textStyle="bold"
+                android:textSize="17sp"
+                android:textColor="@android:color/black" />
 
             <TextView
                 android:id="@+id/tour_price"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Pago: S/ 250" />
+                android:textSize="15sp"
+                android:textColor="@android:color/darker_gray"
+                android:layout_marginTop="2dp" />
 
             <TextView
                 android:id="@+id/tour_duration"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Duración: 9 horas" />
+                android:textSize="15sp"
+                android:textColor="@android:color/darker_gray"
+                android:layout_marginTop="2dp" />
 
             <TextView
                 android:id="@+id/tour_languages"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Idiomas: Español,Inglés" />
+                android:text="Idiomas: Español,Inglés"
+                android:textSize="15sp"
+                android:textColor="@android:color/darker_gray"
+                android:layout_marginTop="2dp" />
 
             <TextView
                 android:id="@+id/tour_start_time"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Inicio: 12:00 23/10/2025" />
+                android:textSize="15sp"
+                android:textColor="@android:color/darker_gray"
+                android:layout_marginTop="2dp" />
         </LinearLayout>
 
         <ImageView
+            android:id="@+id/details_icon"
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:src="@drawable/ic_eye"
-            android:layout_gravity="center_vertical"
-            android:padding="4dp"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Ver detalles" />
-    </LinearLayout>
+            android:contentDescription="Ver detalles"
+            app:tint="@android:color/darker_gray"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:layout_marginEnd="4dp" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
 </com.google.android.material.card.MaterialCardView>
