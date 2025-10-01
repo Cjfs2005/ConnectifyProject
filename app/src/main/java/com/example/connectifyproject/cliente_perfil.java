@@ -9,8 +9,9 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 
-public class cliente_perfil extends AppCompatActivity implements cliente_fragment_menu.OnMenuItemSelectedListener {
+public class cliente_perfil extends AppCompatActivity {
 
     private ImageButton btnNotifications;
     private TextView tvEditProfile;
@@ -20,6 +21,7 @@ public class cliente_perfil extends AppCompatActivity implements cliente_fragmen
     private LinearLayout layoutChangePassword;
     private LinearLayout layoutPermissions;
     private LinearLayout layoutLogout;
+    private BottomNavigationView bottomNavigation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,7 +29,7 @@ public class cliente_perfil extends AppCompatActivity implements cliente_fragmen
         setContentView(R.layout.cliente_perfil);
 
         initViews();
-        setupMenuFragment();
+        setupBottomNavigation();
         setupClickListeners();
     }
 
@@ -35,10 +37,8 @@ public class cliente_perfil extends AppCompatActivity implements cliente_fragmen
     protected void onResume() {
         super.onResume();
         // Asegurar que "Perfil" esté seleccionado cuando regresamos a esta actividad
-        cliente_fragment_menu menuFragment = (cliente_fragment_menu) getSupportFragmentManager()
-                .findFragmentById(R.id.menu_fragment_container);
-        if (menuFragment != null) {
-            menuFragment.setSelectedItem(R.id.nav_perfil);
+        if (bottomNavigation != null) {
+            bottomNavigation.setSelectedItemId(R.id.nav_perfil);
         }
     }
 
@@ -51,19 +51,42 @@ public class cliente_perfil extends AppCompatActivity implements cliente_fragmen
         layoutChangePassword = findViewById(R.id.layout_change_password);
         layoutPermissions = findViewById(R.id.layout_permissions);
         layoutLogout = findViewById(R.id.layout_logout);
+        bottomNavigation = findViewById(R.id.bottom_navigation);
     }
 
-    private void setupMenuFragment() {
-        cliente_fragment_menu menuFragment = new cliente_fragment_menu();
-        menuFragment.setOnMenuItemSelectedListener(this);
-
-        getSupportFragmentManager()
-                .beginTransaction()
-                .replace(R.id.menu_fragment_container, menuFragment)
-                .commitNow();
-                
-        // Seleccionar "Perfil" por defecto - ahora el fragment está listo
-        menuFragment.setSelectedItem(R.id.nav_perfil);
+    private void setupBottomNavigation() {
+        bottomNavigation.setOnItemSelectedListener(item -> {
+            int itemId = item.getItemId();
+            
+            if (itemId == R.id.nav_inicio) {
+                Intent intent = new Intent(this, cliente_inicio.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                startActivity(intent);
+                return true;
+            } else if (itemId == R.id.nav_reservas) {
+                Intent intent = new Intent(this, cliente_reservas.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                startActivity(intent);
+                return true;
+            } else if (itemId == R.id.nav_tours) {
+                Intent intent = new Intent(this, cliente_tours.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                startActivity(intent);
+                return true;
+            } else if (itemId == R.id.nav_chat) {
+                Intent intent = new Intent(this, cliente_chat_list.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                startActivity(intent);
+                return true;
+            } else if (itemId == R.id.nav_perfil) {
+                // Ya estamos en perfil
+                return true;
+            }
+            return false;
+        });
+        
+        // Seleccionar "Perfil" por defecto
+        bottomNavigation.setSelectedItemId(R.id.nav_perfil);
     }
 
     private void setupClickListeners() {
@@ -101,32 +124,5 @@ public class cliente_perfil extends AppCompatActivity implements cliente_fragmen
         });
     }
 
-    @Override
-    public boolean onMenuItemSelected(int itemId) {
-        if (itemId == R.id.nav_inicio) {
-            Intent intent = new Intent(this, cliente_inicio.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-            startActivity(intent);
-            return true;
-        } else if (itemId == R.id.nav_reservas) {
-            Intent intent = new Intent(this, cliente_reservas.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-            startActivity(intent);
-            return true;
-        } else if (itemId == R.id.nav_tours) {
-            Intent intent = new Intent(this, cliente_tours.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-            startActivity(intent);
-            return true;
-        } else if (itemId == R.id.nav_chat) {
-            Intent intent = new Intent(this, cliente_chat_list.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-            startActivity(intent);
-            return true;
-        } else if (itemId == R.id.nav_perfil) {
-            // Ya estamos en perfil
-            return true;
-        }
-        return false;
-    }
+
 }

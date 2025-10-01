@@ -8,14 +8,14 @@ import android.widget.Toast;
 import android.view.View;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
-import androidx.fragment.app.FragmentTransaction;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 /**
  * Actividad principal para Cliente
  * Pantalla de inicio donde el cliente puede ver tours disponibles y gestionar sus reservas
  */
-public class cliente_inicio extends AppCompatActivity implements cliente_fragment_menu.OnMenuItemSelectedListener {
+public class cliente_inicio extends AppCompatActivity {
     
     // Datos hardcodeados del tour activo
     private static final String TOUR_TITLE = "Tour histórico por Lima";
@@ -36,7 +36,7 @@ public class cliente_inicio extends AppCompatActivity implements cliente_fragmen
     private View progressLineActive;
     private MaterialButton btnVerMas;
     private ImageButton btnNotifications;
-    private cliente_fragment_menu menuFragment;
+    private BottomNavigationView bottomNavigation;
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,7 +46,7 @@ public class cliente_inicio extends AppCompatActivity implements cliente_fragmen
         initViews();
         setupToolbar();
         setupTourData();
-        setupMenuFragment();
+        setupBottomNavigation();
         setupClickListeners();
     }
 
@@ -54,10 +54,8 @@ public class cliente_inicio extends AppCompatActivity implements cliente_fragmen
     protected void onResume() {
         super.onResume();
         // Asegurar que "Inicio" esté seleccionado cuando regresamos a esta actividad
-        cliente_fragment_menu menuFragment = (cliente_fragment_menu) getSupportFragmentManager()
-                .findFragmentById(R.id.fragment_menu_container);
-        if (menuFragment != null) {
-            menuFragment.setSelectedItem(R.id.nav_inicio);
+        if (bottomNavigation != null) {
+            bottomNavigation.setSelectedItemId(R.id.nav_inicio);
         }
     }
     
@@ -74,6 +72,7 @@ public class cliente_inicio extends AppCompatActivity implements cliente_fragmen
         progressLineActive = findViewById(R.id.progress_line_active);
         btnVerMas = findViewById(R.id.btn_ver_mas);
         btnNotifications = findViewById(R.id.btn_notifications);
+        bottomNavigation = findViewById(R.id.bottom_navigation);
     }
     
     private void setupToolbar() {
@@ -101,16 +100,39 @@ public class cliente_inicio extends AppCompatActivity implements cliente_fragmen
         // La línea activa está oculta (android:visibility="gone" en XML)
     }
     
-    private void setupMenuFragment() {
-        menuFragment = new cliente_fragment_menu();
-        menuFragment.setOnMenuItemSelectedListener(this);
+    private void setupBottomNavigation() {
+        bottomNavigation.setOnItemSelectedListener(item -> {
+            int itemId = item.getItemId();
+            
+            if (itemId == R.id.nav_inicio) {
+                // Ya estamos en inicio
+                return true;
+            } else if (itemId == R.id.nav_reservas) {
+                Intent intent = new Intent(this, cliente_reservas.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                startActivity(intent);
+                return true;
+            } else if (itemId == R.id.nav_tours) {
+                Intent intent = new Intent(this, cliente_tours.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                startActivity(intent);
+                return true;
+            } else if (itemId == R.id.nav_chat) {
+                Intent intent = new Intent(this, cliente_chat_list.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                startActivity(intent);
+                return true;
+            } else if (itemId == R.id.nav_perfil) {
+                Intent intent = new Intent(this, cliente_perfil.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                startActivity(intent);
+                return true;
+            }
+            return false;
+        });
         
-        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        transaction.replace(R.id.fragment_menu_container, menuFragment);
-        transaction.commitNow();
-        
-        // Seleccionar "Inicio" por defecto - ahora el fragment está listo
-        menuFragment.setSelectedItem(R.id.nav_inicio);
+        // Seleccionar "Inicio" por defecto
+        bottomNavigation.setSelectedItemId(R.id.nav_inicio);
     }
     
     private void setupClickListeners() {
@@ -126,33 +148,5 @@ public class cliente_inicio extends AppCompatActivity implements cliente_fragmen
         });
     }
     
-    @Override
-    public boolean onMenuItemSelected(int itemId) {
-        if (itemId == R.id.nav_inicio) {
-            // Ya estamos en inicio
-            return true;
-        } else if (itemId == R.id.nav_reservas) {
-            Intent intent = new Intent(this, cliente_reservas.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-            startActivity(intent);
-            return true;
-        } else if (itemId == R.id.nav_tours) {
-            Intent intent = new Intent(this, cliente_tours.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-            startActivity(intent);
-            return true;
-        } else if (itemId == R.id.nav_chat) {
-            // Navegar a chat
-            Intent intent = new Intent(this, cliente_chat_list.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-            startActivity(intent);
-            return true;
-        } else if (itemId == R.id.nav_perfil) {
-            Intent intent = new Intent(this, cliente_perfil.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-            startActivity(intent);
-            return true;
-        }
-        return false;
-    }
+
 }

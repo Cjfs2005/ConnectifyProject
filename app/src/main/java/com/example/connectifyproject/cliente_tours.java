@@ -12,11 +12,12 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.connectifyproject.adapters.Cliente_ToursAdapter;
 import com.example.connectifyproject.models.Cliente_Tour;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class cliente_tours extends AppCompatActivity implements cliente_fragment_menu.OnMenuItemSelectedListener {
+public class cliente_tours extends AppCompatActivity {
 
     private ImageButton btnNotifications;
     private MaterialButton btnFiltros;
@@ -24,6 +25,7 @@ public class cliente_tours extends AppCompatActivity implements cliente_fragment
     private Cliente_ToursAdapter toursAdapter;
     private List<Cliente_Tour> allTours;
     private List<Cliente_Tour> filteredTours;
+    private BottomNavigationView bottomNavigation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,7 +33,7 @@ public class cliente_tours extends AppCompatActivity implements cliente_fragment
         setContentView(R.layout.cliente_tours);
 
         initViews();
-        setupMenuFragment();
+        setupBottomNavigation();
         setupClickListeners();
         setupRecyclerView();
         loadToursData();
@@ -41,10 +43,8 @@ public class cliente_tours extends AppCompatActivity implements cliente_fragment
     protected void onResume() {
         super.onResume();
         // Asegurar que "Tours" esté seleccionado cuando regresamos a esta actividad
-        cliente_fragment_menu menuFragment = (cliente_fragment_menu) getSupportFragmentManager()
-                .findFragmentById(R.id.menu_fragment_container);
-        if (menuFragment != null) {
-            menuFragment.setSelectedItem(R.id.nav_tours);
+        if (bottomNavigation != null) {
+            bottomNavigation.setSelectedItemId(R.id.nav_tours);
         }
     }
 
@@ -52,19 +52,42 @@ public class cliente_tours extends AppCompatActivity implements cliente_fragment
         btnNotifications = findViewById(R.id.btn_notifications);
         btnFiltros = findViewById(R.id.btn_filtros);
         rvTours = findViewById(R.id.rv_tours);
+        bottomNavigation = findViewById(R.id.bottom_navigation);
     }
 
-    private void setupMenuFragment() {
-        cliente_fragment_menu menuFragment = new cliente_fragment_menu();
-        menuFragment.setOnMenuItemSelectedListener(this);
-
-        getSupportFragmentManager()
-                .beginTransaction()
-                .replace(R.id.menu_fragment_container, menuFragment)
-                .commitNow();
-                
-        // Seleccionar "Tours" por defecto - ahora el fragment está listo
-        menuFragment.setSelectedItem(R.id.nav_tours);
+    private void setupBottomNavigation() {
+        bottomNavigation.setOnItemSelectedListener(item -> {
+            int itemId = item.getItemId();
+            
+            if (itemId == R.id.nav_inicio) {
+                Intent intent = new Intent(this, cliente_inicio.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                startActivity(intent);
+                return true;
+            } else if (itemId == R.id.nav_reservas) {
+                Intent intent = new Intent(this, cliente_reservas.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                startActivity(intent);
+                return true;
+            } else if (itemId == R.id.nav_tours) {
+                // Ya estamos en tours
+                return true;
+            } else if (itemId == R.id.nav_chat) {
+                Intent intent = new Intent(this, cliente_chat_list.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                startActivity(intent);
+                return true;
+            } else if (itemId == R.id.nav_perfil) {
+                Intent intent = new Intent(this, cliente_perfil.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                startActivity(intent);
+                return true;
+            }
+            return false;
+        });
+        
+        // Seleccionar "Tours" por defecto
+        bottomNavigation.setSelectedItemId(R.id.nav_tours);
     }
 
     private void setupClickListeners() {
@@ -121,34 +144,7 @@ public class cliente_tours extends AppCompatActivity implements cliente_fragment
         toursAdapter.notifyDataSetChanged();
     }
 
-    @Override
-    public boolean onMenuItemSelected(int itemId) {
-        if (itemId == R.id.nav_inicio) {
-            Intent intent = new Intent(this, cliente_inicio.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-            startActivity(intent);
-            return true;
-        } else if (itemId == R.id.nav_reservas) {
-            Intent intent = new Intent(this, cliente_reservas.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-            startActivity(intent);
-            return true;
-        } else if (itemId == R.id.nav_tours) {
-            // Ya estamos en tours
-            return true;
-        } else if (itemId == R.id.nav_chat) {
-            Intent intent = new Intent(this, cliente_chat_list.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-            startActivity(intent);
-            return true;
-        } else if (itemId == R.id.nav_perfil) {
-            Intent intent = new Intent(this, cliente_perfil.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-            startActivity(intent);
-            return true;
-        }
-        return false;
-    }
+
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {

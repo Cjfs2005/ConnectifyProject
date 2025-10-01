@@ -41,7 +41,7 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:fillViewport="true"
-        app:layout_constraintBottom_toTopOf="@id/fragment_menu_container"
+        app:layout_constraintBottom_toTopOf="@id/bottom_navigation"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/toolbar">
@@ -314,13 +314,19 @@
 
     </androidx.core.widget.NestedScrollView>
 
-    <!-- Fragment Menu Container -->
-    <FrameLayout
-        android:id="@+id/fragment_menu_container"
+    <!-- Bottom Navigation -->
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottom_navigation"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:background="?attr/colorSurface"
+        app:menu="@menu/cliente_bottom_nav_menu"
+        app:labelVisibilityMode="labeled"
+        app:itemIconTint="@color/cliente_bottom_nav_tint"
+        app:itemTextColor="@color/cliente_bottom_nav_tint"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        style="@style/Widget.Material3.BottomNavigationView" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
