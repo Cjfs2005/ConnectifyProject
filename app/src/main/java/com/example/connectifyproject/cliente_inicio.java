@@ -8,8 +8,14 @@ import android.widget.Toast;
 import android.view.View;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
-import com.google.android.material.button.MaterialButton;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.example.connectifyproject.models.cliente_test_tour;
+import com.example.connectifyproject.models.cliente_test_data_generator;
+import com.example.connectifyproject.adapters.cliente_test_tour_adapter;
+import java.util.List;
 
 /**
  * Actividad principal para Cliente
@@ -34,9 +40,15 @@ public class cliente_inicio extends AppCompatActivity {
     private View circleEnCurso;
     private View circleFin;
     private View progressLineActive;
-    private MaterialButton btnVerMas;
+    private MaterialCardView cardTourActivo;
     private ImageButton btnNotifications;
     private BottomNavigationView bottomNavigation;
+    private RecyclerView rvToursRecientes;
+    private RecyclerView rvToursCercanos;
+    
+    // Adapters para los RecyclerViews
+    private cliente_test_tour_adapter adapterToursRecientes;
+    private cliente_test_tour_adapter adapterToursCercanos;
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,6 +58,7 @@ public class cliente_inicio extends AppCompatActivity {
         initViews();
         setupToolbar();
         setupTourData();
+        setupRecyclerViews();
         setupBottomNavigation();
         setupClickListeners();
     }
@@ -70,9 +83,11 @@ public class cliente_inicio extends AppCompatActivity {
         circleEnCurso = findViewById(R.id.circle_en_curso);
         circleFin = findViewById(R.id.circle_fin);
         progressLineActive = findViewById(R.id.progress_line_active);
-        btnVerMas = findViewById(R.id.btn_ver_mas);
+        cardTourActivo = findViewById(R.id.card_tour_activo);
         btnNotifications = findViewById(R.id.btn_notifications);
         bottomNavigation = findViewById(R.id.bottom_navigation);
+        rvToursRecientes = findViewById(R.id.rv_tours_recientes);
+        rvToursCercanos = findViewById(R.id.rv_tours_cercanos);
     }
     
     private void setupToolbar() {
@@ -98,6 +113,34 @@ public class cliente_inicio extends AppCompatActivity {
         
         // En estado inicial: solo círculo activo, sin línea de progreso
         // La línea activa está oculta (android:visibility="gone" en XML)
+    }
+    
+    private void setupRecyclerViews() {
+        // Configurar RecyclerView para tours recientes
+        LinearLayoutManager layoutManagerRecientes = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
+        rvToursRecientes.setLayoutManager(layoutManagerRecientes);
+        
+        // Obtener datos de tours recientes y configurar adapter
+        List<cliente_test_tour> toursRecientes = cliente_test_data_generator.generarToursRecientes();
+        adapterToursRecientes = new cliente_test_tour_adapter(this, toursRecientes);
+        adapterToursRecientes.setOnTourClickListener(tour -> {
+            // TODO: Navegar a detalles del tour
+            Toast.makeText(this, "Tour: " + tour.getTitulo(), Toast.LENGTH_SHORT).show();
+        });
+        rvToursRecientes.setAdapter(adapterToursRecientes);
+        
+        // Configurar RecyclerView para tours cercanos
+        LinearLayoutManager layoutManagerCercanos = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
+        rvToursCercanos.setLayoutManager(layoutManagerCercanos);
+        
+        // Obtener datos de tours cercanos y configurar adapter
+        List<cliente_test_tour> toursCercanos = cliente_test_data_generator.generarToursCercanos();
+        adapterToursCercanos = new cliente_test_tour_adapter(this, toursCercanos);
+        adapterToursCercanos.setOnTourClickListener(tour -> {
+            // TODO: Navegar a detalles del tour
+            Toast.makeText(this, "Tour cercano: " + tour.getTitulo(), Toast.LENGTH_SHORT).show();
+        });
+        rvToursCercanos.setAdapter(adapterToursCercanos);
     }
     
     private void setupBottomNavigation() {
@@ -136,8 +179,9 @@ public class cliente_inicio extends AppCompatActivity {
     }
     
     private void setupClickListeners() {
-        btnVerMas.setOnClickListener(v -> {
-            // TODO: Redirigir a detalles del tour
+        // Hacer clickeable todo el card del tour activo
+        cardTourActivo.setOnClickListener(v -> {
+            // TODO: Redirigir a detalles del tour activo
             Toast.makeText(this, "Próximamente: Detalles del tour", Toast.LENGTH_SHORT).show();
         });
         
