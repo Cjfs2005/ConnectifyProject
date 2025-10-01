@@ -42,9 +42,6 @@ public class admin_pagos extends AppCompatActivity {
 
         // Configurar bottom navigation
         setupBottomNavigation();
-
-        // Configurar botón retroceder
-        binding.btnRetroceder.setOnClickListener(v -> finish());
     }
 
     private void setupRecyclerView() {
@@ -125,21 +122,21 @@ public class admin_pagos extends AppCompatActivity {
             private ImageView ivAvatar;
             private TextView tvNombre;
             private TextView tvHora;
-            private View indicadorConexion;
+            private TextView tvEstado;
 
             public PagoViewHolder(@NonNull View itemView) {
                 super(itemView);
-                ivAvatar = itemView.findViewById(R.id.iv_avatar);
-                tvNombre = itemView.findViewById(R.id.tv_nombre);
-                tvHora = itemView.findViewById(R.id.tv_hora);
-                indicadorConexion = itemView.findViewById(R.id.indicador_conexion);
+                ivAvatar = itemView.findViewById(R.id.ivAvatar);
+                tvNombre = itemView.findViewById(R.id.tvClientName);
+                tvHora = itemView.findViewById(R.id.tvPaymentTime);
+                tvEstado = itemView.findViewById(R.id.tvPaymentStatus);
             }
 
             public void bind(PagoItem pago) {
                 ivAvatar.setImageResource(pago.getAvatarResource());
                 tvNombre.setText("Cliente: " + pago.getNombre());
                 tvHora.setText(pago.getHora());
-                indicadorConexion.setVisibility(pago.isConectado() ? View.VISIBLE : View.GONE);
+                tvEstado.setText("Pago completado");
 
                 // Click listener para ir al historial de pagos
                 itemView.setOnClickListener(v -> {

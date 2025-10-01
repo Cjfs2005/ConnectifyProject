@@ -2,9 +2,6 @@ package com.example.connectifyproject;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.view.View;
 import android.widget.Toast;
 
@@ -26,8 +23,6 @@ public class admin_perfil extends AppCompatActivity implements OnMapReadyCallbac
     private GoogleMapsHelper mapsHelper;
     private GoogleMap mGoogleMap;
     private boolean isUpdatingLocation = false; // Flag para evitar loop infinito
-    private Handler searchHandler = new Handler(); // Para el debounce de búsqueda
-    private Runnable searchRunnable; // Runnable para la búsqueda
     private LatLng currentLocation = new LatLng(-12.046374, -77.042754); // Lima, Perú por defecto
 
     @Override
@@ -59,44 +54,13 @@ public class admin_perfil extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void setupLocationSearch() {
-        // TextWatcher para búsqueda automática con debounce
-        binding.etLocation.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {}
-
-            @Override
-            public void afterTextChanged(Editable s) {
-                // Solo buscar si no estamos actualizando programáticamente
-                if (!isUpdatingLocation && s.length() > 3) {
-                    // Cancelar búsqueda anterior si existe
-                    if (searchRunnable != null) {
-                        searchHandler.removeCallbacks(searchRunnable);
-                    }
-                    
-                    // Crear nueva búsqueda con delay para evitar demasiadas llamadas
-                    searchRunnable = () -> searchLocation(s.toString());
-                    searchHandler.postDelayed(searchRunnable, 500); // 500ms delay
-                }
-            }
-        });
-
-        // Click en el ícono de búsqueda
+        // Click en el ícono de búsqueda - búsqueda manual únicamente
         binding.tilLocation.setEndIconOnClickListener(v -> {
             String query = binding.etLocation.getText().toString().trim();
             if (!query.isEmpty()) {
                 searchLocation(query);
-            }
-        });
-
-        // Click en la barra de búsqueda del mapa
-        binding.tvSearchHint.setOnClickListener(v -> {
-            String query = binding.etLocation.getText().toString().trim();
-            if (!query.isEmpty()) {
-                searchLocation(query);
             } else {
+                Toast.makeText(this, "Ingrese una ubicación para buscar", Toast.LENGTH_SHORT).show();
                 binding.etLocation.requestFocus();
             }
         });
@@ -166,7 +130,8 @@ public class admin_perfil extends AppCompatActivity implements OnMapReadyCallbac
                     public void onLocationFound(String address, double latitude, double longitude) {
                         isUpdatingLocation = true;
                         binding.etLocation.setText(address);
-                        searchHandler.postDelayed(() -> isUpdatingLocation = false, 200);
+                        // Restaurar el flag después de actualizar
+                        isUpdatingLocation = false;
                     }
 
                     @Override
@@ -196,10 +161,8 @@ public class admin_perfil extends AppCompatActivity implements OnMapReadyCallbac
                 // Actualizar el campo de ubicación con la dirección encontrada
                 binding.etLocation.setText(address);
                 
-                // Restaurar el flag después de un pequeño delay
-                searchHandler.postDelayed(() -> {
-                    isUpdatingLocation = false;
-                }, 200);
+                // Restaurar el flag
+                isUpdatingLocation = false;
                 
                 // Actualizar mapa con las coordenadas
                 updateMapLocation(latitude, longitude);
@@ -253,10 +216,6 @@ public class admin_perfil extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        // Limpiar callbacks pendientes
-        if (searchRunnable != null) {
-            searchHandler.removeCallbacks(searchRunnable);
-        }
         // Liberar recursos del helper de mapas
         if (mapsHelper != null) {
             mapsHelper.shutdown();

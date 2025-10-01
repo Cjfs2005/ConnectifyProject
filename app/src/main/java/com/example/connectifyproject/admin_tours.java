@@ -49,7 +49,7 @@ public class admin_tours extends AppCompatActivity {
         setupBottomNavigation();
 
         // Configurar botón crear tour
-        binding.fabCrearTour.setOnClickListener(v -> {
+        binding.fabCreateTour.setOnClickListener(v -> {
             Intent intent = new Intent(this, admin_create_tour.class);
             startActivity(intent);
         });

@@ -1,11 +1,8 @@
 package com.example.connectifyproject.views;
 
 import android.content.Context;
-import android.graphics.drawable.GradientDrawable;
 import android.view.LayoutInflater;
-import android.view.View;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
 
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
@@ -63,30 +60,18 @@ public class ServiceSalesAdapter extends RecyclerView.Adapter<ServiceSalesAdapte
         holder.binding.tvServiceName.setText(item.getServiceName());
         holder.binding.tvServiceAmount.setText("$" + item.getAmount());
 
-        // Porcentaje 0..100
+        // Porcentaje 0..100 para la barra de progreso
         int percent = Math.max(0, Math.min(100, Math.round((item.getAmount() * 100f) / maxAmount)));
-
-        // Ajuste de pesos para la barra
-        LinearLayout.LayoutParams lpFill = (LinearLayout.LayoutParams) holder.binding.barFill.getLayoutParams();
-        LinearLayout.LayoutParams lpSpacer = (LinearLayout.LayoutParams) holder.binding.barSpacer.getLayoutParams();
-        lpFill.weight = percent;
-        lpSpacer.weight = 100 - percent;
-        holder.binding.barFill.setLayoutParams(lpFill);
-        holder.binding.barSpacer.setLayoutParams(lpSpacer);
+        
+        // Configurar la barra de progreso
+        holder.binding.progressBar.setProgress(percent);
 
         // Color específico basado en la posición del servicio
         int colorResId = SERVICE_COLORS[position % SERVICE_COLORS.length];
         int color = ContextCompat.getColor(context, colorResId);
         
-        // Crear drawable con esquinas redondeadas
-        GradientDrawable gd = new GradientDrawable();
-        gd.setColor(color);
-        gd.setCornerRadius(dp(12, holder.binding.getRoot()));
-        holder.binding.barFill.setBackground(gd);
-    }
-
-    private float dp(int v, View view) {
-        return v * view.getResources().getDisplayMetrics().density;
+        // Aplicar color personalizado a la barra de progreso
+        holder.binding.progressBar.getProgressDrawable().setTint(color);
     }
 
     @Override

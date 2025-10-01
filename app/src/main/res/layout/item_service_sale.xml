@@ -1,50 +1,64 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="52dp"
-    android:layout_marginBottom="12dp">
+    android:layout_height="56dp"
+    android:layout_marginBottom="8dp">
 
-    <!-- Track + barra con pesos -->
-    <LinearLayout
-        android:id="@+id/llWeights"
+    <!-- Fondo con esquinas redondeadas -->
+    <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="horizontal"
-        android:weightSum="100"
-        android:background="@drawable/bg_track">
+        app:cardCornerRadius="12dp"
+        app:cardElevation="0dp"
+        app:cardBackgroundColor="@color/white"
+        app:strokeColor="@color/border_light"
+        app:strokeWidth="1dp">
 
-        <View
-            android:id="@+id/barFill"
-            android:layout_width="0dp"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_weight="50" />
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:padding="16dp">
 
-        <View
-            android:id="@+id/barSpacer"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="50" />
-    </LinearLayout>
+            <!-- Nombre del servicio con más espacio -->
+            <TextView
+                android:id="@+id/tvServiceName"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Paquetes de comida"
+                android:textColor="@color/text_primary"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:maxLines="1"
+                android:ellipsize="end" />
 
-    <!-- Etiquetas superpuestas -->
-    <TextView
-        android:id="@+id/tvServiceName"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_vertical|start"
-        android:layout_marginStart="16dp"
-        android:text="Paquetes de comida"
-        android:textColor="@android:color/white"
-        android:textSize="16sp"
-        android:textStyle="bold" />
+            <!-- Barra de progreso mejorada -->
+            <ProgressBar
+                android:id="@+id/progressBar"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="80dp"
+                android:layout_height="8dp"
+                android:layout_marginHorizontal="12dp"
+                android:max="100"
+                android:progress="50"
+                android:progressDrawable="@drawable/bg_progress_service" />
 
-    <TextView
-        android:id="@+id/tvServiceAmount"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_vertical|end"
-        android:layout_marginEnd="16dp"
-        android:text="$400"
-        android:textColor="@android:color/black"
-        android:textSize="16sp"
-        android:textStyle="bold" />
+            <!-- Monto con mejor contraste -->
+            <TextView
+                android:id="@+id/tvServiceAmount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="$400"
+                android:textColor="@color/brand_purple_dark"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:minWidth="48dp"
+                android:gravity="end" />
+
+        </LinearLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
 </FrameLayout>

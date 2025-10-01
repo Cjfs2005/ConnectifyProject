@@ -41,6 +41,19 @@ public class DashboardRepository {
         }, Executors.newCachedThreadPool());
     }
 
+    public List<ServiceSale> fetchServiceSalesSync() {
+        List<ServiceSale> list = new ArrayList<>();
+        list.add(new ServiceSale("Paquete premium", 1200));
+        list.add(new ServiceSale("Traslado aeropuerto", 800));
+        list.add(new ServiceSale("Fotografía profesional", 650));
+        list.add(new ServiceSale("Souvenir exclusivo", 350));
+        list.add(new ServiceSale("Transporte ecológico", 260));
+        list.add(new ServiceSale("Guía bilingüe", 200));
+        list.add(new ServiceSale("Entradas a atracciones", 100));
+        list.add(new ServiceSale("Seguro de viaje", 90));
+        return list;
+    }
+
     private void simulateDelay(long ms) {
         try { TimeUnit.MILLISECONDS.sleep(ms); } catch (InterruptedException ignored) {}
     }
