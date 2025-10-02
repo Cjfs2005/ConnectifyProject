@@ -11,65 +11,65 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
+        android:orientation="horizontal"
         android:padding="16dp">
 
-        <!-- Header with image and title side by side -->
+        <!-- Details column -->
         <LinearLayout
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical">
-
-            <ImageView
-                android:id="@+id/tour_image"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:src="@drawable/ic_tour_image"
-                android:scaleType="centerInside"
-                android:layout_marginEnd="16dp" />
+            android:layout_weight="1"
+            android:orientation="vertical">
 
             <TextView
                 android:id="@+id/tour_name"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:textStyle="bold"
-                android:textSize="18sp"
+                android:textSize="14sp"
                 android:textColor="@android:color/black" />
+
+            <!-- Details stacked below with improved spacing and colors -->
+            <TextView
+                android:id="@+id/tour_price"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:textColor="#757575"
+                android:layout_marginTop="4dp" />
+
+            <TextView
+                android:id="@+id/tour_duration"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:textColor="#757575"
+                android:layout_marginTop="4dp" />
+
+            <TextView
+                android:id="@+id/tour_languages"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:textColor="#757575"
+                android:layout_marginTop="4dp" />
+
+            <TextView
+                android:id="@+id/tour_start_time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:textColor="#757575"
+                android:layout_marginTop="4dp" />
         </LinearLayout>
 
-        <!-- Details stacked below with improved spacing and colors -->
-        <TextView
-            android:id="@+id/tour_price"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="15sp"
-            android:textColor="#757575"
-        android:layout_marginTop="8dp" />
+        <!-- Icon column -->
+        <ImageView
+            android:id="@+id/tour_image"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@drawable/ic_tour_image"
+            android:scaleType="centerInside" />
 
-        <TextView
-            android:id="@+id/tour_duration"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="15sp"
-            android:textColor="#757575"
-            android:layout_marginTop="4dp" />
-
-        <TextView
-            android:id="@+id/tour_languages"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="15sp"
-            android:textColor="#757575"
-            android:layout_marginTop="4dp" />
-
-        <TextView
-            android:id="@+id/tour_start_time"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="15sp"
-            android:textColor="#757575"
-            android:layout_marginTop="4dp" />
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>
