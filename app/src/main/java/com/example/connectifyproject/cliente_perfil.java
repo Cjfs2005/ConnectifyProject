@@ -9,13 +9,14 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
+import com.google.android.material.button.MaterialButton;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.example.connectifyproject.models.Cliente_User;
 
 public class cliente_perfil extends AppCompatActivity {
 
     private ImageButton btnNotifications;
-    private TextView tvEditProfile;
+    private TextView btnEditarPerfil;
     private ImageView ivProfilePhoto;
     private TextView tvUserName;
     private LinearLayout layoutPaymentMethods;
@@ -49,7 +50,7 @@ public class cliente_perfil extends AppCompatActivity {
 
     private void initViews() {
         btnNotifications = findViewById(R.id.btn_notifications);
-        tvEditProfile = findViewById(R.id.tv_edit_profile);
+        btnEditarPerfil = findViewById(R.id.tv_edit_profile);
         ivProfilePhoto = findViewById(R.id.iv_profile_photo);
         tvUserName = findViewById(R.id.tv_user_name);
         layoutPaymentMethods = findViewById(R.id.layout_payment_methods);
@@ -101,7 +102,7 @@ public class cliente_perfil extends AppCompatActivity {
             startActivity(intent);
         });
 
-        tvEditProfile.setOnClickListener(v -> {
+        btnEditarPerfil.setOnClickListener(v -> {
             Intent intent = new Intent(this, cliente_editar_perfil.class);
             startActivity(intent);
         });
