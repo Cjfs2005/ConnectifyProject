@@ -1,16 +1,19 @@
 package com.example.connectifyproject.adapters;
 
 import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.connectifyproject.R;
+import com.example.connectifyproject.cliente_tour_detalle;
 import com.example.connectifyproject.models.Cliente_Tour;
 
 import java.util.List;
@@ -28,7 +31,7 @@ public class Cliente_ReservasAdapter extends RecyclerView.Adapter<Cliente_Reserv
     @NonNull
     @Override
     public ReservaViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(context).inflate(R.layout.cliente_item_tour, parent, false);
+        View view = LayoutInflater.from(context).inflate(R.layout.cliente_item_reserva, parent, false);
         return new ReservaViewHolder(view);
     }
 
@@ -36,16 +39,17 @@ public class Cliente_ReservasAdapter extends RecyclerView.Adapter<Cliente_Reserv
     public void onBindViewHolder(@NonNull ReservaViewHolder holder, int position) {
         Cliente_Tour reserva = reservas.get(position);
         
-        holder.tvTourTitle.setText(reserva.getTitle());
-        holder.tvTourCompany.setText(reserva.getCompany());
-        holder.tvTourDuration.setText("Duración: " + reserva.getDuration());
+        holder.tvTourTitle.setText(reserva.getTitulo());
+        holder.tvTourCompany.setText(reserva.getCompanyName());
+        holder.tvTourDuration.setText("Duración: " + reserva.getDuracion());
         holder.tvTourDate.setText("Fecha: " + reserva.getDate());
-        holder.tvTourPrice.setText(String.format("S/%.2f", reserva.getPrice()));
         
-        // Usar siempre la imagen de cliente_tour_lima como solicitado
+        // Determinar el estado de la reserva
+        String status = getReservationStatus(reserva.getDate());
+        holder.tvReservationStatus.setText(status);
+        
+        // Usar la imagen por defecto para todas las reservas
         holder.ivTourImage.setImageResource(R.drawable.cliente_tour_lima);
-        
-        // NO agregar click listener - las reservas no deben navegar a ningún lado
     }
 
     @Override
@@ -57,10 +61,26 @@ public class Cliente_ReservasAdapter extends RecyclerView.Adapter<Cliente_Reserv
         this.reservas = newReservas;
         notifyDataSetChanged();
     }
+    
+    private String getReservationStatus(String date) {
+        try {
+            java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault());
+            java.util.Date reservationDate = sdf.parse(date);
+            java.util.Date currentDate = new java.util.Date();
+            
+            if (reservationDate.after(currentDate)) {
+                return "Próxima";
+            } else {
+                return "Pasada";
+            }
+        } catch (Exception e) {
+            return "Próxima"; // Valor por defecto
+        }
+    }
 
     static class ReservaViewHolder extends RecyclerView.ViewHolder {
         ImageView ivTourImage;
-        TextView tvTourTitle, tvTourCompany, tvTourDuration, tvTourDate, tvTourPrice;
+        TextView tvTourTitle, tvTourCompany, tvTourDuration, tvTourDate, tvReservationStatus;
 
         public ReservaViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -69,7 +89,7 @@ public class Cliente_ReservasAdapter extends RecyclerView.Adapter<Cliente_Reserv
             tvTourCompany = itemView.findViewById(R.id.tv_tour_company);
             tvTourDuration = itemView.findViewById(R.id.tv_tour_duration);
             tvTourDate = itemView.findViewById(R.id.tv_tour_date);
-            tvTourPrice = itemView.findViewById(R.id.tv_tour_price);
+            tvReservationStatus = itemView.findViewById(R.id.tv_reservation_status);
         }
     }
 }

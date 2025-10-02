@@ -117,21 +117,27 @@ public class cliente_reservas extends AppCompatActivity {
 
     private void updateFilterButtons() {
         if (showingProximas) {
-            // Próximas activo - usar el color primario del tema
-            btnProximas.setBackgroundTintList(getColorStateList(R.color.primary_color));
+            // Próximas activo - filled style (como está definido en XML por defecto)
+            btnProximas.setBackgroundTintList(null); // Usar el color por defecto del tema
             btnProximas.setTextColor(getColor(android.R.color.white));
+            btnProximas.setStrokeWidth(0);
             
-            // Pasadas inactivo
-            btnPasadas.setBackgroundTintList(null);
-            btnPasadas.setTextColor(getColor(R.color.primary_color));
+            // Pasadas inactivo - outlined style
+            btnPasadas.setBackgroundTintList(getColorStateList(android.R.color.transparent));
+            btnPasadas.setTextColor(getResources().getColorStateList(R.color.cliente_bottom_nav_tint, getTheme()));
+            btnPasadas.setStrokeColor(getResources().getColorStateList(R.color.cliente_bottom_nav_tint, getTheme()));
+            btnPasadas.setStrokeWidth(2);
         } else {
-            // Pasadas activo
-            btnPasadas.setBackgroundTintList(getColorStateList(R.color.primary_color));
+            // Pasadas activo - filled style
+            btnPasadas.setBackgroundTintList(null); // Usar el color por defecto del tema
             btnPasadas.setTextColor(getColor(android.R.color.white));
+            btnPasadas.setStrokeWidth(0);
             
-            // Próximas inactivo
-            btnProximas.setBackgroundTintList(null);
-            btnProximas.setTextColor(getColor(R.color.primary_color));
+            // Próximas inactivo - outlined style
+            btnProximas.setBackgroundTintList(getColorStateList(android.R.color.transparent));
+            btnProximas.setTextColor(getResources().getColorStateList(R.color.cliente_bottom_nav_tint, getTheme()));
+            btnProximas.setStrokeColor(getResources().getColorStateList(R.color.cliente_bottom_nav_tint, getTheme()));
+            btnProximas.setStrokeWidth(2);
         }
     }
 
@@ -145,29 +151,32 @@ public class cliente_reservas extends AppCompatActivity {
     }
 
     private void loadReservasData() {
-        // Datos hardcodeados basados en el mockup - todas usan cliente_tour_lima
+        // Datos hardcodeados - separados en próximas y pasadas
+        
+        // Reservas próximas (futuras - 2025 en adelante)
         allReservas.add(new Cliente_Tour("1", "Tour histórico por Lima", "Lima Tours", 
-                "5 hrs 30 min", "23/09/2025", 160.00, "Lima, Perú", 
+                "5 hrs 30 min", "23/12/2025", 160.00, "Lima, Perú", 
                 "Explora el centro histórico de Lima y sus principales atractivos"));
         
         allReservas.add(new Cliente_Tour("2", "Tour histórico por Arequipa", "Arequipa Tours", 
-                "5 hrs 30 min", "23/03/2026", 160.00, "Arequipa, Perú", 
+                "5 hrs 30 min", "15/01/2026", 160.00, "Arequipa, Perú", 
                 "Descubre la ciudad blanca y su arquitectura colonial"));
         
-        allReservas.add(new Cliente_Tour("3", "Tour histórico por Lima", "Lima Tours", 
-                "5 hrs 30 min", "23/04/2026", 160.00, "Lima, Perú", 
+        allReservas.add(new Cliente_Tour("3", "Tour por Cusco", "Cusco Adventures", 
+                "6 hrs", "20/02/2026", 180.00, "Cusco, Perú", 
+                "Explora la capital del imperio Inca"));
+
+        // Reservas pasadas (anteriores - 2024 y anteriores)
+        allReservas.add(new Cliente_Tour("4", "Tour histórico por Lima", "Lima Tours", 
+                "5 hrs 30 min", "15/08/2024", 160.00, "Lima, Perú", 
                 "Explora el centro histórico de Lima"));
         
-        allReservas.add(new Cliente_Tour("4", "Tour histórico por Arequipa", "Arequipa Tours", 
-                "5 hrs 30 min", "23/05/2026", 160.00, "Arequipa, Perú", 
-                "Descubre la ciudad blanca"));
-        
-        allReservas.add(new Cliente_Tour("5", "Tour histórico por Lima", "Lima Tours", 
-                "5 hrs 30 min", "23/06/2026", 160.00, "Lima, Perú", 
-                "Explora el centro histórico de Lima"));
+        allReservas.add(new Cliente_Tour("5", "Tour por Trujillo", "Norte Tours", 
+                "4 hrs", "10/07/2024", 140.00, "Trujillo, Perú", 
+                "Descubre la ciudad de la eterna primavera"));
         
         allReservas.add(new Cliente_Tour("6", "Tour histórico por Arequipa", "Arequipa Tours", 
-                "5 hrs 30 min", "23/07/2026", 160.00, "Arequipa, Perú", 
+                "5 hrs 30 min", "25/06/2024", 160.00, "Arequipa, Perú", 
                 "Descubre la ciudad blanca"));
 
         // Mostrar próximas por defecto
@@ -176,8 +185,26 @@ public class cliente_reservas extends AppCompatActivity {
 
     private void filterReservas() {
         filteredReservas.clear();
-        filteredReservas.addAll(allReservas);
+        
+        for (Cliente_Tour reserva : allReservas) {
+            String fecha = reserva.getDate();
+            boolean esFutura = isFutureDate(fecha);
+            
+            if (showingProximas && esFutura) {
+                filteredReservas.add(reserva);
+            } else if (!showingProximas && !esFutura) {
+                filteredReservas.add(reserva);
+            }
+        }
+        
         reservasAdapter.notifyDataSetChanged();
+    }
+    
+    private boolean isFutureDate(String dateString) {
+        // Lógica simple: fechas 2025 en adelante son futuras, 2024 y anteriores son pasadas
+        // En una app real, aquí se compararía con la fecha actual
+        return dateString.contains("2025") || dateString.contains("2026") || 
+               dateString.contains("2027") || dateString.contains("2028");
     }
 
 
