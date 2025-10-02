@@ -8,6 +8,7 @@
     android:layout_marginVertical="4dp"
     app:cardCornerRadius="8dp"
     app:cardElevation="1dp"
+    app:cardBackgroundColor="@android:color/white"
     style="@style/Widget.Material3.CardView.Filled">
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -35,7 +36,7 @@
             android:id="@+id/tv_notification_message"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
+            android:layout_marginTop="8dp"
             android:layout_marginEnd="8dp"
             android:text="Tu tour ha finalizado. Ayúdanos a mejorar compartiendo tu valoración y comentarios."
             android:textAppearance="@style/TextAppearance.Material3.BodyMedium"

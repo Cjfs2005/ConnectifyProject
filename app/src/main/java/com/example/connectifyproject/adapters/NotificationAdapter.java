@@ -9,29 +9,15 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.connectifyproject.R;
+import com.example.connectifyproject.models.Cliente_Notification;
 
 import java.util.List;
 
 public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapter.NotificationViewHolder> {
 
-    // Clase interna para datos de notificación
-    public static class NotificationData {
-        public String title;
-        public String message;
-        public String time;
-        public String date;
+    private List<Cliente_Notification> notifications;
 
-        public NotificationData(String title, String message, String time, String date) {
-            this.title = title;
-            this.message = message;
-            this.time = time;
-            this.date = date;
-        }
-    }
-
-    private List<NotificationData> notifications;
-
-    public NotificationAdapter(List<NotificationData> notifications) {
+    public NotificationAdapter(List<Cliente_Notification> notifications) {
         this.notifications = notifications;
     }
 
@@ -39,18 +25,18 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
     @Override
     public NotificationViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.item_notification, parent, false);
+                .inflate(R.layout.cliente_item_notification, parent, false);
         return new NotificationViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull NotificationViewHolder holder, int position) {
-        NotificationData notification = notifications.get(position);
+        Cliente_Notification notification = notifications.get(position);
         
-        holder.tvTitle.setText(notification.title);
-        holder.tvMessage.setText(notification.message);
-        holder.tvTime.setText(notification.time);
-        holder.tvDate.setText(notification.date);
+        holder.tvTitle.setText(notification.getTitle());
+        holder.tvMessage.setText(notification.getMessage());
+        holder.tvTime.setText(notification.getTime());
+        holder.tvDate.setText(notification.getDate());
     }
 
     @Override
