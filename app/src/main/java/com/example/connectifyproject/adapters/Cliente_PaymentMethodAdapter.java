@@ -1,4 +1,4 @@
-package com.example.connectifyproject;
+package com.example.connectifyproject.adapters;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -7,6 +7,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+import com.example.connectifyproject.R;
 import com.example.connectifyproject.models.Cliente_PaymentMethod;
 import java.util.List;
 

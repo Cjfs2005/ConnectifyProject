@@ -10,6 +10,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.example.connectifyproject.models.Cliente_PaymentMethod;
+import com.example.connectifyproject.adapters.Cliente_PaymentMethodAdapter;
 import java.util.ArrayList;
 import java.util.List;
 

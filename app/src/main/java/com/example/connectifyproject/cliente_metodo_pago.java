@@ -10,6 +10,8 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
+import com.example.connectifyproject.adapters.Cliente_TarjetaAdapter;
+import com.example.connectifyproject.models.Cliente_PaymentMethod;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,7 +21,7 @@ public class cliente_metodo_pago extends AppCompatActivity {
     private RecyclerView rvPaymentMethods;
     private TextView tvTotalPrice;
     private MaterialButton btnReservar;
-    private TarjetaAdapter tarjetaAdapter;
+    private Cliente_TarjetaAdapter tarjetaAdapter;
     private String totalPrice;
 
     @Override
@@ -60,29 +62,33 @@ public class cliente_metodo_pago extends AppCompatActivity {
     }
 
     private void setupPaymentMethods() {
-        List<TarjetaAdapter.Tarjeta> tarjetas = new ArrayList<>();
+        List<Cliente_PaymentMethod> tarjetas = new ArrayList<>();
         
-        // Agregar tarjetas de ejemplo (como en el mockup)
-        tarjetas.add(new TarjetaAdapter.Tarjeta(
-            "•••• •••• •••• 2934",
-            "Fecha de vencimiento 12/28",
-            "VISA",
-            R.drawable.cliente_visa
+        // Agregar tarjetas de ejemplo usando el modelo Cliente_PaymentMethod
+        tarjetas.add(new Cliente_PaymentMethod(
+            "pm_001", 
+            "•••• •••• •••• 2934", 
+            "12/28", 
+            "Jorge Romero", 
+            "VISA", 
+            true
         ));
         
-        tarjetas.add(new TarjetaAdapter.Tarjeta(
-            "•••• •••• •••• 1340",
-            "Fecha de vencimiento 11/27",
-            "VISA",
-            R.drawable.cliente_visa
+        tarjetas.add(new Cliente_PaymentMethod(
+            "pm_002", 
+            "•••• •••• •••• 1340", 
+            "11/27", 
+            "Jorge Romero", 
+            "VISA", 
+            false
         ));
 
-        tarjetaAdapter = new TarjetaAdapter(tarjetas, this::onTarjetaSelected);
+        tarjetaAdapter = new Cliente_TarjetaAdapter(tarjetas, this::onTarjetaSelected);
         rvPaymentMethods.setLayoutManager(new LinearLayoutManager(this));
         rvPaymentMethods.setAdapter(tarjetaAdapter);
     }
 
-    private void onTarjetaSelected(TarjetaAdapter.Tarjeta tarjeta, int position) {
+    private void onTarjetaSelected(Cliente_PaymentMethod tarjeta, int position) {
         // La tarjeta seleccionada se maneja automáticamente en el adapter
     }
 

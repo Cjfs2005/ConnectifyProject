@@ -13,6 +13,8 @@ import com.example.connectifyproject.adapters.Cliente_GalleryTourAdapter;
 import com.google.android.material.appbar.MaterialToolbar;
 import java.util.ArrayList;
 import java.util.List;
+import com.example.connectifyproject.adapters.Cliente_ReviewsAdapter;
+import com.example.connectifyproject.models.Cliente_Review;
 
 public class cliente_empresa_info extends AppCompatActivity {
 
@@ -136,26 +138,3 @@ public class cliente_empresa_info extends AppCompatActivity {
     }
 }
 
-// Clase modelo para las reseñas
-class Cliente_Review {
-    private String userName;
-    private String ratingText;
-    private String ratingStars;
-    private String date;
-    private String reviewText;
-
-    public Cliente_Review(String userName, String ratingText, String ratingStars, String date, String reviewText) {
-        this.userName = userName;
-        this.ratingText = ratingText;
-        this.ratingStars = ratingStars;
-        this.date = date;
-        this.reviewText = reviewText;
-    }
-
-    // Getters
-    public String getUserName() { return userName; }
-    public String getRatingText() { return ratingText; }
-    public String getRatingStars() { return ratingStars; }
-    public String getDate() { return date; }
-    public String getReviewText() { return reviewText; }
-}
