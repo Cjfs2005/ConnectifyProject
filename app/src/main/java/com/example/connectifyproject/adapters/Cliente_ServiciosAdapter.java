@@ -48,7 +48,7 @@ public class Cliente_ServiciosAdapter extends RecyclerView.Adapter<Cliente_Servi
     public void onBindViewHolder(@NonNull ServicioViewHolder holder, int position) {
         Cliente_ServicioAdicional servicio = servicios.get(position);
         
-        holder.tvServiceName.setText(servicio.getName() + " (S/" + String.format("%.2f", servicio.getPrice()) + " por persona)");
+    holder.tvServiceName.setText(servicio.getName() + " (S/" + String.format("%.2f", servicio.getPrice()) + " por persona)");
         holder.tvServiceDescription.setText(servicio.getDescription());
         holder.cbServiceSelected.setChecked(servicio.isSelected());
         
@@ -63,9 +63,7 @@ public class Cliente_ServiciosAdapter extends RecyclerView.Adapter<Cliente_Servi
         // Ver más click listener
         holder.tvVerMas.setOnClickListener(v -> {
             Intent intent = new Intent(context, cliente_servicio_detalle.class);
-            intent.putExtra("servicio_nombre", servicio.getName());
-            intent.putExtra("servicio_precio", servicio.getPrice());
-            intent.putExtra("servicio_descripcion", servicio.getDescription());
+            intent.putExtra("servicio_object", servicio);
             context.startActivity(intent);
         });
     }
