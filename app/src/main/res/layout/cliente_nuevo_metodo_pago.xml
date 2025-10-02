@@ -54,16 +54,14 @@
                 android:hint="Número de la tarjeta"
                 app:boxStrokeColor="?attr/colorPrimary"
                 app:hintTextColor="?attr/colorPrimary"
-                app:hintAnimationEnabled="false"
-                app:hintEnabled="true">
+                app:placeholderText="XXXX XXXX XXXX XXXX">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/et_card_number"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="number"
-                    android:maxLength="19"
-                    android:hint="XXXX XXXX XXXX XXXX" />
+                    android:maxLength="19" />
 
             </com.google.android.material.textfield.TextInputLayout>
 
@@ -84,16 +82,14 @@
                     android:hint="Fecha de vencimiento"
                     app:boxStrokeColor="?attr/colorPrimary"
                     app:hintTextColor="?attr/colorPrimary"
-                    app:hintAnimationEnabled="false"
-                    app:hintEnabled="true">
+                    app:placeholderText="MM/AA">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/et_expiry_date"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:inputType="number"
-                        android:maxLength="5"
-                        android:hint="MM/AA" />
+                        android:maxLength="5" />
 
                 </com.google.android.material.textfield.TextInputLayout>
 
@@ -107,16 +103,14 @@
                     android:hint="Código de seguridad"
                     app:boxStrokeColor="?attr/colorPrimary"
                     app:hintTextColor="?attr/colorPrimary"
-                    app:hintAnimationEnabled="false"
-                    app:hintEnabled="true">
+                    app:placeholderText="XXX">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/et_cvv"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:inputType="numberPassword"
-                        android:maxLength="4"
-                        android:hint="XXX" />
+                        android:maxLength="4" />
 
                 </com.google.android.material.textfield.TextInputLayout>
 
@@ -127,19 +121,17 @@
                 android:id="@+id/til_card_holder"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="32dp"
+                android:layout_marginBottom="16dp"
                 android:hint="Titular"
                 app:boxStrokeColor="?attr/colorPrimary"
                 app:hintTextColor="?attr/colorPrimary"
-                app:hintAnimationEnabled="false"
-                app:hintEnabled="true">
+                app:placeholderText="Nombre y Apellido">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/et_card_holder"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="textPersonName"
-                    android:hint="Nombre y Apellido" />
+                    android:inputType="textPersonName" />
 
             </com.google.android.material.textfield.TextInputLayout>
 
