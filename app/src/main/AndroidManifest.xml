@@ -46,6 +46,7 @@
         <activity android:name=".admin_tours" android:exported="false" />
         <activity android:name=".admin_tour_details" android:exported="false" />
         <activity android:name=".admin_chat" android:exported="false" />
+        <activity android:name=".admin_chat_conversation" android:exported="false" />
         <activity android:name=".admin_pagos" android:exported="false" />
         <activity android:name=".admin_historial_pagos" android:exported="false" />
         <activity android:name=".admin_perfil" android:exported="false" />
