@@ -46,7 +46,7 @@ public class SaLogsFragment extends Fragment {
     public void onViewCreated(@NonNull View v, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(v, savedInstanceState);
 
-        // 🟣 Forzar morado oscuro en la barra superior (IDs opcionales)
+        // 🟣 Forzar morado oscuro en la barra superior
         int purple = ContextCompat.getColor(requireContext(), R.color.brand_purple_dark);
         MaterialToolbar tb = v.findViewById(R.id.toolbar);
         if (tb != null) {
@@ -54,7 +54,8 @@ public class SaLogsFragment extends Fragment {
             tb.setTitleTextColor(0xFFFFFFFF);
             tb.setNavigationIconTint(0xFFFFFFFF);
         }
-        AppBarLayout appBar = v.findViewById(R.id.appbar);
+        // <<<<<<<<<<<<<<<<<<<<< FIX AQUÍ: usar appBar (B mayúscula)
+        AppBarLayout appBar = v.findViewById(R.id.appBar);
         if (appBar != null) appBar.setBackgroundColor(purple);
 
         // Recycler + Adapter
