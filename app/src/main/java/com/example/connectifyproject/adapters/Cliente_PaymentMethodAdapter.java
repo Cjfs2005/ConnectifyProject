@@ -1,4 +1,4 @@
-package com.example.connectifyproject;
+package com.example.connectifyproject.adapters;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -7,18 +7,20 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+import com.example.connectifyproject.R;
+import com.example.connectifyproject.models.Cliente_PaymentMethod;
 import java.util.List;
 
-public class PaymentMethodAdapter extends RecyclerView.Adapter<PaymentMethodAdapter.ViewHolder> {
+public class Cliente_PaymentMethodAdapter extends RecyclerView.Adapter<Cliente_PaymentMethodAdapter.ViewHolder> {
 
-    private List<cliente_metodos_pago.PaymentMethod> paymentMethods;
+    private List<Cliente_PaymentMethod> paymentMethods;
     private OnDeleteClickListener deleteClickListener;
 
     public interface OnDeleteClickListener {
         void onDeleteClick(int position);
     }
 
-    public PaymentMethodAdapter(List<cliente_metodos_pago.PaymentMethod> paymentMethods, OnDeleteClickListener listener) {
+    public Cliente_PaymentMethodAdapter(List<Cliente_PaymentMethod> paymentMethods, OnDeleteClickListener listener) {
         this.paymentMethods = paymentMethods;
         this.deleteClickListener = listener;
     }
@@ -27,16 +29,16 @@ public class PaymentMethodAdapter extends RecyclerView.Adapter<PaymentMethodAdap
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.item_payment_method, parent, false);
+                .inflate(R.layout.cliente_item_payment_method, parent, false);
         return new ViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        cliente_metodos_pago.PaymentMethod paymentMethod = paymentMethods.get(position);
+        Cliente_PaymentMethod paymentMethod = paymentMethods.get(position);
         
-        holder.tvCardNumber.setText(paymentMethod.getCardNumber());
-        holder.tvExpiryDate.setText(paymentMethod.getExpiryDate());
+        holder.tvCardNumber.setText(paymentMethod.getMaskedCardNumber());
+        holder.tvExpiryDate.setText(paymentMethod.getFormattedExpiryText());
         
         holder.ivDelete.setOnClickListener(v -> {
             if (deleteClickListener != null) {

@@ -1,4 +1,4 @@
-package com.example.connectifyproject;
+package com.example.connectifyproject.adapters;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -9,41 +9,23 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.connectifyproject.R;
+import com.example.connectifyproject.models.Cliente_PaymentMethod;
 import com.google.android.material.radiobutton.MaterialRadioButton;
 
 import java.util.List;
 
-public class TarjetaAdapter extends RecyclerView.Adapter<TarjetaAdapter.TarjetaViewHolder> {
+public class Cliente_TarjetaAdapter extends RecyclerView.Adapter<Cliente_TarjetaAdapter.TarjetaViewHolder> {
 
-    public static class Tarjeta {
-        private String cardNumber;
-        private String expiryDate;
-        private String cardType;
-        private int iconResource;
-
-        public Tarjeta(String cardNumber, String expiryDate, String cardType, int iconResource) {
-            this.cardNumber = cardNumber;
-            this.expiryDate = expiryDate;
-            this.cardType = cardType;
-            this.iconResource = iconResource;
-        }
-
-        // Getters
-        public String getCardNumber() { return cardNumber; }
-        public String getExpiryDate() { return expiryDate; }
-        public String getCardType() { return cardType; }
-        public int getIconResource() { return iconResource; }
-    }
-
-    private List<Tarjeta> tarjetas;
+    private List<Cliente_PaymentMethod> tarjetas;
     private int selectedPosition = 0; // Primera tarjeta seleccionada por defecto
     private OnTarjetaSelectedListener listener;
 
     public interface OnTarjetaSelectedListener {
-        void onTarjetaSelected(Tarjeta tarjeta, int position);
+        void onTarjetaSelected(Cliente_PaymentMethod tarjeta, int position);
     }
 
-    public TarjetaAdapter(List<Tarjeta> tarjetas, OnTarjetaSelectedListener listener) {
+    public Cliente_TarjetaAdapter(List<Cliente_PaymentMethod> tarjetas, OnTarjetaSelectedListener listener) {
         this.tarjetas = tarjetas;
         this.listener = listener;
     }
@@ -58,11 +40,15 @@ public class TarjetaAdapter extends RecyclerView.Adapter<TarjetaAdapter.TarjetaV
 
     @Override
     public void onBindViewHolder(@NonNull TarjetaViewHolder holder, int position) {
-        Tarjeta tarjeta = tarjetas.get(position);
+        Cliente_PaymentMethod tarjeta = tarjetas.get(position);
         
-        holder.tvCardNumber.setText(tarjeta.getCardNumber());
+        holder.tvCardNumber.setText(tarjeta.getMaskedCardNumber());
         holder.tvExpiryDate.setText(tarjeta.getExpiryDate());
-        holder.ivCardType.setImageResource(tarjeta.getIconResource());
+        
+        // Configurar ícono según tipo de tarjeta
+        int iconResource = getCardTypeIcon(tarjeta.getCardType());
+        holder.ivCardType.setImageResource(iconResource);
+        
         holder.rbCardSelected.setChecked(position == selectedPosition);
 
         holder.itemView.setOnClickListener(v -> {
@@ -82,11 +68,27 @@ public class TarjetaAdapter extends RecyclerView.Adapter<TarjetaAdapter.TarjetaV
         return tarjetas.size();
     }
 
-    public Tarjeta getSelectedTarjeta() {
+    public Cliente_PaymentMethod getSelectedTarjeta() {
         if (selectedPosition >= 0 && selectedPosition < tarjetas.size()) {
             return tarjetas.get(selectedPosition);
         }
         return null;
+    }
+
+    private int getCardTypeIcon(String cardType) {
+        if (cardType == null) return R.drawable.cliente_visa;
+        
+        switch (cardType.toUpperCase()) {
+            case "VISA":
+                return R.drawable.cliente_visa;
+            case "MASTERCARD":
+                return R.drawable.cliente_visa; // Usar visa como fallback
+            case "AMERICAN_EXPRESS":
+            case "AMEX":
+                return R.drawable.cliente_visa; // Usar visa como fallback
+            default:
+                return R.drawable.cliente_visa;
+        }
     }
 
     static class TarjetaViewHolder extends RecyclerView.ViewHolder {

@@ -38,7 +38,7 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_marginBottom="0dp"
-        app:layout_constraintBottom_toTopOf="@+id/menu_fragment_container"
+        app:layout_constraintBottom_toTopOf="@+id/bottom_navigation"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/toolbar">
@@ -88,19 +88,19 @@
                     android:textColor="?attr/colorOnSurface"
                     android:textStyle="bold" />
 
-                <!-- Edit Profile Link -->
-                <TextView
+                <!-- Edit Profile Button -->
+                <com.google.android.material.button.MaterialButton
                     android:id="@+id/tv_edit_profile"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
-                    android:background="?attr/selectableItemBackground"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:padding="8dp"
-                    android:text="Editar perfil ›"
-                    android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
-                    android:textColor="?attr/colorPrimary" />
+                    android:layout_marginBottom="8dp"
+                    android:text="Editar perfil"
+                    android:textColor="?attr/colorPrimary"
+                    android:textSize="16sp"
+                    app:backgroundTint="@android:color/transparent"
+                    app:cornerRadius="20dp"
+                    app:strokeColor="?attr/colorPrimary"
+                    app:strokeWidth="2dp" />
 
             </LinearLayout>
 
@@ -127,7 +127,8 @@
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:layout_marginEnd="16dp"
-                    android:src="@drawable/identity_icon" />
+                    android:src="@drawable/ic_identity_document"
+                    app:tint="?attr/colorOnSurfaceVariant" />
 
                 <LinearLayout
                     android:layout_width="0dp"
@@ -330,7 +331,8 @@
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:layout_marginEnd="16dp"
-                    android:src="@drawable/card_icon" />
+                    android:src="@drawable/ic_credit_card"
+                    app:tint="?attr/colorOnSurfaceVariant" />
 
                 <LinearLayout
                     android:layout_width="0dp"
@@ -506,13 +508,19 @@
 
     </ScrollView>
 
-    <!-- Bottom Navigation Fragment Container -->
-    <FrameLayout
-        android:id="@+id/menu_fragment_container"
-        android:layout_width="match_parent"
+    <!-- Bottom Navigation -->
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottom_navigation"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:background="?attr/colorSurface"
+        app:menu="@menu/cliente_bottom_nav_menu"
+        app:labelVisibilityMode="labeled"
+        app:itemIconTint="@color/cliente_bottom_nav_tint"
+        app:itemTextColor="@color/cliente_bottom_nav_tint"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        style="@style/Widget.Material3.BottomNavigationView" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

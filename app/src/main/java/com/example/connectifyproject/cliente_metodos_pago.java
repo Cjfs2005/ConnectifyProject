@@ -9,14 +9,16 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.example.connectifyproject.models.Cliente_PaymentMethod;
+import com.example.connectifyproject.adapters.Cliente_PaymentMethodAdapter;
 import java.util.ArrayList;
 import java.util.List;
 
 public class cliente_metodos_pago extends AppCompatActivity {
 
     private RecyclerView recyclerView;
-    private PaymentMethodAdapter adapter;
-    private List<PaymentMethod> paymentMethods;
+    private Cliente_PaymentMethodAdapter adapter;
+    private List<Cliente_PaymentMethod> paymentMethods;
     private FloatingActionButton fabAddPayment;
 
     @Override
@@ -53,12 +55,12 @@ public class cliente_metodos_pago extends AppCompatActivity {
     }
 
     private void setupRecyclerView() {
-        // Datos hardcodeados
+        // Datos hardcodeados usando el nuevo modelo
         paymentMethods = new ArrayList<>();
-        paymentMethods.add(new PaymentMethod("**** **** **** 2934", "Fecha de vencimiento 12/28"));
-        paymentMethods.add(new PaymentMethod("**** **** **** 1340", "Fecha de vencimiento 11/27"));
+        paymentMethods.add(Cliente_PaymentMethod.crearEjemploVisa());
+        paymentMethods.add(Cliente_PaymentMethod.crearEjemploMastercard());
 
-        adapter = new PaymentMethodAdapter(paymentMethods, new PaymentMethodAdapter.OnDeleteClickListener() {
+        adapter = new Cliente_PaymentMethodAdapter(paymentMethods, new Cliente_PaymentMethodAdapter.OnDeleteClickListener() {
             @Override
             public void onDeleteClick(int position) {
                 showDeleteConfirmationDialog(position);
@@ -99,22 +101,4 @@ public class cliente_metodos_pago extends AppCompatActivity {
         finish();
     }
 
-    // Clase para representar un método de pago
-    public static class PaymentMethod {
-        private String cardNumber;
-        private String expiryDate;
-
-        public PaymentMethod(String cardNumber, String expiryDate) {
-            this.cardNumber = cardNumber;
-            this.expiryDate = expiryDate;
-        }
-
-        public String getCardNumber() {
-            return cardNumber;
-        }
-
-        public String getExpiryDate() {
-            return expiryDate;
-        }
-    }
 }

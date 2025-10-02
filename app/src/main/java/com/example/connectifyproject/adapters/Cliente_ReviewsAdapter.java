@@ -1,4 +1,4 @@
-package com.example.connectifyproject;
+package com.example.connectifyproject.adapters;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -8,6 +8,8 @@ import android.widget.RatingBar;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+import com.example.connectifyproject.R;
+import com.example.connectifyproject.models.Cliente_Review;
 import java.util.List;
 
 public class Cliente_ReviewsAdapter extends RecyclerView.Adapter<Cliente_ReviewsAdapter.ReviewViewHolder> {

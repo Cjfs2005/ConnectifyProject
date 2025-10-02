@@ -23,6 +23,7 @@ public class Cliente_ServiciosAdapter extends RecyclerView.Adapter<Cliente_Servi
     private Context context;
     private List<Cliente_ServicioAdicional> servicios;
     private OnServiceSelectedListener listener;
+    private boolean readOnly = false; // cuando es true, deshabilita los checkboxes
 
     public interface OnServiceSelectedListener {
         void onServiceSelected(Cliente_ServicioAdicional servicio, boolean isSelected);
@@ -37,6 +38,11 @@ public class Cliente_ServiciosAdapter extends RecyclerView.Adapter<Cliente_Servi
         this.listener = listener;
     }
 
+    public void setReadOnly(boolean readOnly) {
+        this.readOnly = readOnly;
+        notifyDataSetChanged();
+    }
+
     @NonNull
     @Override
     public ServicioViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -48,24 +54,28 @@ public class Cliente_ServiciosAdapter extends RecyclerView.Adapter<Cliente_Servi
     public void onBindViewHolder(@NonNull ServicioViewHolder holder, int position) {
         Cliente_ServicioAdicional servicio = servicios.get(position);
         
-        holder.tvServiceName.setText(servicio.getName() + " (S/" + String.format("%.2f", servicio.getPrice()) + " por persona)");
+    holder.tvServiceName.setText(servicio.getName() + " (S/" + String.format("%.2f", servicio.getPrice()) + " por persona)");
         holder.tvServiceDescription.setText(servicio.getDescription());
         holder.cbServiceSelected.setChecked(servicio.isSelected());
-        
-        // Checkbox listener
-        holder.cbServiceSelected.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            servicio.setSelected(isChecked);
-            if (listener != null) {
-                listener.onServiceSelected(servicio, isChecked);
-            }
-        });
+        if (readOnly) {
+            // Modo solo lectura: no permitir cambios
+            holder.cbServiceSelected.setEnabled(false);
+            holder.cbServiceSelected.setOnCheckedChangeListener(null);
+        } else {
+            holder.cbServiceSelected.setEnabled(true);
+            // Checkbox listener
+            holder.cbServiceSelected.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                servicio.setSelected(isChecked);
+                if (listener != null) {
+                    listener.onServiceSelected(servicio, isChecked);
+                }
+            });
+        }
         
         // Ver más click listener
         holder.tvVerMas.setOnClickListener(v -> {
             Intent intent = new Intent(context, cliente_servicio_detalle.class);
-            intent.putExtra("servicio_nombre", servicio.getName());
-            intent.putExtra("servicio_precio", servicio.getPrice());
-            intent.putExtra("servicio_descripcion", servicio.getDescription());
+            intent.putExtra("servicio_object", servicio);
             context.startActivity(intent);
         });
     }

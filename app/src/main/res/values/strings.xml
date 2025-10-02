@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">ConnectifyProject</string>
+    <string name="app_name">Tourly</string>
     <!-- Login -->
     <string name="login_title">Iniciar sesión</string>
     <string name="login_welcome">Bienvenido</string>

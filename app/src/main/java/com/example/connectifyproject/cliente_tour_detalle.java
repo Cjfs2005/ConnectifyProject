@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.connectifyproject.adapters.Cliente_ServiciosAdapter;
 import com.example.connectifyproject.models.Cliente_ServicioAdicional;
+import com.example.connectifyproject.models.Cliente_Tour;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
@@ -23,8 +24,8 @@ import java.util.List;
 public class cliente_tour_detalle extends AppCompatActivity implements Cliente_ServiciosAdapter.OnServiceSelectedListener {
 
     private MaterialToolbar toolbar;
-    private TextView tvTourLocation, tvTourDuration, tvStartTime, tvEndTime, tvTourCompany;
-    private TextView tvTourPriceBadge, tvPeopleCount, tvTotalPrice;
+    private TextView tvTourLocation, tvTourPriceMain, tvStartTime, tvEndTime, tvTourCompany;
+    private TextView tvPeopleCount, tvTotalPrice;
     private RecyclerView rvServiciosAdicionales;
     private ImageButton btnDecreasePeople, btnIncreasePeople;
     private MaterialButton btnContinuar;
@@ -34,8 +35,7 @@ public class cliente_tour_detalle extends AppCompatActivity implements Cliente_S
     private Cliente_ServiciosAdapter serviciosAdapter;
     private List<Cliente_ServicioAdicional> serviciosAdicionales;
     
-    private String tourId, tourTitle, tourCompany, tourDuration, tourDate, tourLocation, tourDescription;
-    private double tourPrice;
+    private Cliente_Tour tour;
     private int peopleCount = 1;
 
     @Override
@@ -54,24 +54,30 @@ public class cliente_tour_detalle extends AppCompatActivity implements Cliente_S
 
     private void getIntentData() {
         Intent intent = getIntent();
-        tourId = intent.getStringExtra("tour_id");
-        tourTitle = intent.getStringExtra("tour_title");
-        tourCompany = intent.getStringExtra("tour_company");
-        tourDuration = intent.getStringExtra("tour_duration");
-        tourDate = intent.getStringExtra("tour_date");
-        tourPrice = intent.getDoubleExtra("tour_price", 0.0);
-        tourLocation = intent.getStringExtra("tour_location");
-        tourDescription = intent.getStringExtra("tour_description");
+        tour = (Cliente_Tour) intent.getSerializableExtra("tour_object");
+        
+        if (tour == null) {
+            // Fallback para compatibilidad con método anterior
+            tour = new Cliente_Tour(
+                intent.getStringExtra("tour_id"),
+                intent.getStringExtra("tour_title"),
+                intent.getStringExtra("tour_description"),
+                intent.getStringExtra("tour_duration"),
+                intent.getDoubleExtra("tour_price", 0.0),
+                intent.getStringExtra("tour_location"),
+                4.5f,
+                intent.getStringExtra("tour_company")
+            );
+        }
     }
 
     private void initViews() {
         toolbar = findViewById(R.id.toolbar);
         tvTourLocation = findViewById(R.id.tv_tour_location);
-        tvTourDuration = findViewById(R.id.tv_tour_duration);
+        tvTourPriceMain = findViewById(R.id.tv_tour_price_main);
         tvStartTime = findViewById(R.id.tv_start_time);
         tvEndTime = findViewById(R.id.tv_end_time);
         tvTourCompany = findViewById(R.id.tv_tour_company);
-        tvTourPriceBadge = findViewById(R.id.tv_tour_price_badge);
         tvPeopleCount = findViewById(R.id.tv_people_count);
         tvTotalPrice = findViewById(R.id.tv_total_price);
         rvServiciosAdicionales = findViewById(R.id.rv_servicios_adicionales);
@@ -86,7 +92,7 @@ public class cliente_tour_detalle extends AppCompatActivity implements Cliente_S
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setTitle(tourTitle);
+            getSupportActionBar().setTitle(tour.getTitulo());
         }
         
         toolbar.setNavigationOnClickListener(v -> onBackPressed());
@@ -118,21 +124,21 @@ public class cliente_tour_detalle extends AppCompatActivity implements Cliente_S
             // Navegar a método de pago con el precio total calculado
             Intent intent = new Intent(this, cliente_metodo_pago.class);
             intent.putExtra("total_price", tvTotalPrice.getText().toString());
-            intent.putExtra("tour_title", tourTitle);
+            intent.putExtra("tour_title", tour.getTitulo());
             intent.putExtra("people_count", peopleCount);
             startActivity(intent);
         });
 
         cardEmpresa.setOnClickListener(v -> {
             Intent intent = new Intent(this, cliente_empresa_info.class);
-            intent.putExtra("company_name", tourCompany);
+            intent.putExtra("company_name", tour.getCompanyName());
             startActivity(intent);
         });
 
         layoutItinerario.setOnClickListener(v -> {
             Intent intent = new Intent(this, cliente_tour_mapa.class);
-            intent.putExtra("tour_id", tourId);
-            intent.putExtra("tour_title", tourTitle);
+            intent.putExtra("tour_id", tour.getId());
+            intent.putExtra("tour_title", tour.getTitulo());
             startActivity(intent);
         });
     }
@@ -152,14 +158,13 @@ public class cliente_tour_detalle extends AppCompatActivity implements Cliente_S
     }
 
     private void updateUI() {
-        tvTourLocation.setText(tourLocation);
-        tvTourDuration.setText(tourDuration);
-        tvTourCompany.setText(tourCompany);
-        tvTourPriceBadge.setText("S/" + String.format("%.2f", tourPrice));
+        tvTourLocation.setText(tour.getUbicacion());
+        tvTourPriceMain.setText("S/" + String.format("%.2f", tour.getPrecio()));
+        tvTourCompany.setText(tour.getCompanyName());
         
-        // Datos hardcodeados para las fechas
-        tvStartTime.setText(tourDate + " - 13:10");
-        tvEndTime.setText(tourDate + " - 18:40");
+        // Usar fechas y horas del objeto tour
+        tvStartTime.setText(tour.getDate() + " - " + tour.getStartTime());
+        tvEndTime.setText(tour.getDate() + " - " + tour.getEndTime());
         
         updatePeopleCount();
     }
@@ -177,7 +182,7 @@ public class cliente_tour_detalle extends AppCompatActivity implements Cliente_S
             }
         }
         
-        double totalPerPerson = tourPrice + serviciosPrice;
+        double totalPerPerson = tour.getPrecio() + serviciosPrice;
         double totalPrice = totalPerPerson * peopleCount;
         
         tvTotalPrice.setText("S/" + String.format("%.2f", totalPrice));

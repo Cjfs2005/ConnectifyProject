@@ -9,28 +9,16 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.connectifyproject.R;
+import com.example.connectifyproject.models.Cliente_ChatMessage;
 import com.google.android.material.card.MaterialCardView;
 
 import java.util.List;
 
-public class ChatMessageAdapter extends RecyclerView.Adapter<ChatMessageAdapter.MessageViewHolder> {
+public class Cliente_ChatMessageAdapter extends RecyclerView.Adapter<Cliente_ChatMessageAdapter.MessageViewHolder> {
 
-    // Clase interna para datos de mensaje
-    public static class MessageData {
-        public String message;
-        public String time;
-        public boolean isFromUser;
+    private List<Cliente_ChatMessage> messages;
 
-        public MessageData(String message, String time, boolean isFromUser) {
-            this.message = message;
-            this.time = time;
-            this.isFromUser = isFromUser;
-        }
-    }
-
-    private List<MessageData> messages;
-
-    public ChatMessageAdapter(List<MessageData> messages) {
+    public Cliente_ChatMessageAdapter(List<Cliente_ChatMessage> messages) {
         this.messages = messages;
     }
 
@@ -38,26 +26,26 @@ public class ChatMessageAdapter extends RecyclerView.Adapter<ChatMessageAdapter.
     @Override
     public MessageViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.item_message, parent, false);
+                .inflate(R.layout.cliente_item_message, parent, false);
         return new MessageViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull MessageViewHolder holder, int position) {
-        MessageData message = messages.get(position);
+        Cliente_ChatMessage message = messages.get(position);
         
-        if (message.isFromUser) {
+        if (message.isFromUser()) {
             // Mostrar mensaje del usuario (lado derecho)
             holder.cardMessageUser.setVisibility(View.VISIBLE);
             holder.cardMessageCompany.setVisibility(View.GONE);
-            holder.tvMessageUser.setText(message.message);
-            holder.tvTimeUser.setText(message.time);
+            holder.tvMessageUser.setText(message.getMessage());
+            holder.tvTimeUser.setText(message.getTime());
         } else {
             // Mostrar mensaje de la empresa (lado izquierdo)
             holder.cardMessageUser.setVisibility(View.GONE);
             holder.cardMessageCompany.setVisibility(View.VISIBLE);
-            holder.tvMessageCompany.setText(message.message);
-            holder.tvTimeCompany.setText(message.time);
+            holder.tvMessageCompany.setText(message.getMessage());
+            holder.tvTimeCompany.setText(message.getTime());
         }
     }
 
@@ -66,7 +54,7 @@ public class ChatMessageAdapter extends RecyclerView.Adapter<ChatMessageAdapter.
         return messages.size();
     }
 
-    public void addMessage(MessageData message) {
+    public void addMessage(Cliente_ChatMessage message) {
         messages.add(message);
         notifyItemInserted(messages.size() - 1);
     }

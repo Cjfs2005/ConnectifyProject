@@ -74,6 +74,16 @@
                 android:imeOptions="actionDone" />
         </com.google.android.material.textfield.TextInputLayout>
 
+        <TextView
+            android:id="@+id/tvError"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:textColor="@android:color/holo_red_dark"
+            android:textSize="14sp"
+            android:gravity="center"
+            android:visibility="gone" />
+
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnLogin"
             style="@style/Widget.Material3.Button.TonalButton"
@@ -81,16 +91,19 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
             android:text="@string/login_button"
-            app:backgroundTint="@color/brand_purple"
+            app:backgroundTint="@color/brand_purple_dark"
+            android:textColor="@android:color/white"
             android:textAllCaps="false" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnRegister"
-            style="@style/Widget.Material3.Button.TonalButton"
+            style="@style/Widget.Material3.Button.OutlinedButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
             android:text="@string/login_register"
+            app:strokeColor="@color/brand_purple_dark"
+            android:textColor="@color/brand_purple_dark"
             android:textAllCaps="false" />
 
         <LinearLayout
@@ -109,7 +122,8 @@
             <CheckBox
                 android:id="@+id/cbKeepSession"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:buttonTint="@color/brand_purple_dark" />
         </LinearLayout>
 
         <TextView
@@ -117,7 +131,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/login_forgot"
-            android:textColor="@color/brand_purple"
+            android:textColor="@color/brand_purple_dark"
             android:layout_marginTop="8dp" />
 
         <com.google.android.material.progressindicator.CircularProgressIndicator
@@ -125,14 +139,7 @@
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:layout_marginTop="16dp"
-            android:visibility="gone" />
-
-        <TextView
-            android:id="@+id/tvError"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:textColor="@android:color/holo_red_dark"
+            app:indicatorColor="@color/brand_purple_dark"
             android:visibility="gone" />
 
     </LinearLayout>
