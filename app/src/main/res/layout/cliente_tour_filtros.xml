@@ -53,19 +53,13 @@
                         android:textStyle="bold" />
 
                     <!-- Start Date -->
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="4dp"
-                        android:text="Desde"
-                        android:textAppearance="@style/TextAppearance.Material3.BodyMedium" />
-
                     <com.google.android.material.textfield.TextInputLayout
                         android:id="@+id/til_start_date"
                         style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="12dp"
+                        android:layout_marginBottom="16dp"
+                        android:hint="Desde"
                         app:endIconDrawable="@drawable/ic_calendar_today_24"
                         app:endIconMode="custom">
 
@@ -74,24 +68,18 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:focusable="false"
-                            android:hint="09-10-2025"
                             android:inputType="none" />
 
                     </com.google.android.material.textfield.TextInputLayout>
 
                     <!-- End Date -->
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="4dp"
-                        android:text="Hasta"
-                        android:textAppearance="@style/TextAppearance.Material3.BodyMedium" />
-
                     <com.google.android.material.textfield.TextInputLayout
                         android:id="@+id/til_end_date"
                         style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:layout_marginBottom="12dp"
+                        android:hint="Hasta"
                         app:endIconDrawable="@drawable/ic_calendar_today_24"
                         app:endIconMode="custom">
 
@@ -100,7 +88,6 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:focusable="false"
-                            android:hint="16-12-2025"
                             android:inputType="none" />
 
                     </com.google.android.material.textfield.TextInputLayout>
