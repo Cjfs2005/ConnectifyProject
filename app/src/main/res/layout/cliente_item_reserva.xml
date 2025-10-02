@@ -73,18 +73,7 @@
                 android:textColor="?attr/colorOnSurfaceVariant"
                 tools:text="Fecha: 23/09/2025" />
 
-            <!-- Status Badge (para reservas) -->
-            <TextView
-                android:id="@+id/tv_reservation_status"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
-                android:textAppearance="@style/TextAppearance.Material3.LabelSmall"
-                android:textColor="?attr/colorOnPrimaryContainer"
-                android:background="@drawable/reservation_status_background"
-                android:paddingHorizontal="8dp"
-                android:paddingVertical="3dp"
-                tools:text="Confirmada" />
+
 
         </LinearLayout>
 

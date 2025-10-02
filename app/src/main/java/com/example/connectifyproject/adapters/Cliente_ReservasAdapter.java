@@ -44,10 +44,6 @@ public class Cliente_ReservasAdapter extends RecyclerView.Adapter<Cliente_Reserv
         holder.tvTourDuration.setText("Duración: " + reserva.getDuracion());
         holder.tvTourDate.setText("Fecha: " + reserva.getDate());
         
-        // Determinar el estado de la reserva
-        String status = getReservationStatus(reserva.getDate());
-        holder.tvReservationStatus.setText(status);
-        
         // Usar la imagen por defecto para todas las reservas
         holder.ivTourImage.setImageResource(R.drawable.cliente_tour_lima);
     }
@@ -80,7 +76,7 @@ public class Cliente_ReservasAdapter extends RecyclerView.Adapter<Cliente_Reserv
 
     static class ReservaViewHolder extends RecyclerView.ViewHolder {
         ImageView ivTourImage;
-        TextView tvTourTitle, tvTourCompany, tvTourDuration, tvTourDate, tvReservationStatus;
+        TextView tvTourTitle, tvTourCompany, tvTourDuration, tvTourDate;
 
         public ReservaViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -89,7 +85,6 @@ public class Cliente_ReservasAdapter extends RecyclerView.Adapter<Cliente_Reserv
             tvTourCompany = itemView.findViewById(R.id.tv_tour_company);
             tvTourDuration = itemView.findViewById(R.id.tv_tour_duration);
             tvTourDate = itemView.findViewById(R.id.tv_tour_date);
-            tvReservationStatus = itemView.findViewById(R.id.tv_reservation_status);
         }
     }
 }

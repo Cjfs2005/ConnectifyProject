@@ -10,7 +10,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.connectifyproject.adapters.Cliente_ReservasAdapter;
 import com.example.connectifyproject.models.Cliente_Tour;
-import com.google.android.material.button.MaterialButton;
+import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import java.util.ArrayList;
@@ -19,7 +19,7 @@ import java.util.List;
 public class cliente_reservas extends AppCompatActivity {
 
     private ImageButton btnNotifications;
-    private MaterialButton btnProximas, btnPasadas;
+    private TabLayout tabLayoutReservas;
     private RecyclerView rvReservas;
     private Cliente_ReservasAdapter reservasAdapter;
     private List<Cliente_Tour> allReservas;
@@ -50,8 +50,7 @@ public class cliente_reservas extends AppCompatActivity {
 
     private void initViews() {
         btnNotifications = findViewById(R.id.btn_notifications);
-        btnProximas = findViewById(R.id.btn_proximas);
-        btnPasadas = findViewById(R.id.btn_pasadas);
+        tabLayoutReservas = findViewById(R.id.tab_layout_reservas);
         rvReservas = findViewById(R.id.rv_reservas);
         bottomNavigation = findViewById(R.id.bottom_navigation);
     }
@@ -98,48 +97,31 @@ public class cliente_reservas extends AppCompatActivity {
             startActivity(intent);
         });
         
-        btnProximas.setOnClickListener(v -> {
-            if (!showingProximas) {
-                showingProximas = true;
-                updateFilterButtons();
-                filterReservas();
-            }
-        });
+        setupTabs();
+    }
+    
+    private void setupTabs() {
+        // Agregar tabs
+        tabLayoutReservas.addTab(tabLayoutReservas.newTab().setText("Próximas"));
+        tabLayoutReservas.addTab(tabLayoutReservas.newTab().setText("Pasadas"));
         
-        btnPasadas.setOnClickListener(v -> {
-            if (showingProximas) {
-                showingProximas = false;
-                updateFilterButtons();
+        // Listener para cambios de tab
+        tabLayoutReservas.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+            @Override
+            public void onTabSelected(TabLayout.Tab tab) {
+                showingProximas = tab.getPosition() == 0;
                 filterReservas();
             }
+            
+            @Override
+            public void onTabUnselected(TabLayout.Tab tab) {}
+            
+            @Override
+            public void onTabReselected(TabLayout.Tab tab) {}
         });
     }
 
-    private void updateFilterButtons() {
-        if (showingProximas) {
-            // Próximas activo - filled style (como está definido en XML por defecto)
-            btnProximas.setBackgroundTintList(null); // Usar el color por defecto del tema
-            btnProximas.setTextColor(getColor(android.R.color.white));
-            btnProximas.setStrokeWidth(0);
-            
-            // Pasadas inactivo - outlined style
-            btnPasadas.setBackgroundTintList(getColorStateList(android.R.color.transparent));
-            btnPasadas.setTextColor(getResources().getColorStateList(R.color.cliente_bottom_nav_tint, getTheme()));
-            btnPasadas.setStrokeColor(getResources().getColorStateList(R.color.cliente_bottom_nav_tint, getTheme()));
-            btnPasadas.setStrokeWidth(2);
-        } else {
-            // Pasadas activo - filled style
-            btnPasadas.setBackgroundTintList(null); // Usar el color por defecto del tema
-            btnPasadas.setTextColor(getColor(android.R.color.white));
-            btnPasadas.setStrokeWidth(0);
-            
-            // Próximas inactivo - outlined style
-            btnProximas.setBackgroundTintList(getColorStateList(android.R.color.transparent));
-            btnProximas.setTextColor(getResources().getColorStateList(R.color.cliente_bottom_nav_tint, getTheme()));
-            btnProximas.setStrokeColor(getResources().getColorStateList(R.color.cliente_bottom_nav_tint, getTheme()));
-            btnProximas.setStrokeWidth(2);
-        }
-    }
+
 
     private void setupRecyclerView() {
         allReservas = new ArrayList<>();
@@ -151,7 +133,7 @@ public class cliente_reservas extends AppCompatActivity {
     }
 
     private void loadReservasData() {
-        // Datos hardcodeados - separados en próximas y pasadas
+        // Datos hardcodeados duplicados - separados en próximas y pasadas
         
         // Reservas próximas (futuras - 2025 en adelante)
         allReservas.add(new Cliente_Tour("1", "Tour histórico por Lima", "Lima Tours", 
@@ -165,19 +147,43 @@ public class cliente_reservas extends AppCompatActivity {
         allReservas.add(new Cliente_Tour("3", "Tour por Cusco", "Cusco Adventures", 
                 "6 hrs", "20/02/2026", 180.00, "Cusco, Perú", 
                 "Explora la capital del imperio Inca"));
+                
+        allReservas.add(new Cliente_Tour("4", "Tour gastronómico por Lima", "Lima Food Tours", 
+                "4 hrs", "10/11/2025", 120.00, "Lima, Perú", 
+                "Descubre los sabores de la gastronomía peruana"));
+                
+        allReservas.add(new Cliente_Tour("5", "Tour por Machu Picchu", "Inca Trails", 
+                "8 hrs", "05/03/2026", 350.00, "Cusco, Perú", 
+                "Visita la maravilla del mundo"));
+                
+        allReservas.add(new Cliente_Tour("6", "Tour por Huacachina", "Desert Tours", 
+                "6 hrs", "18/01/2026", 200.00, "Ica, Perú", 
+                "Aventura en el desierto y sandboarding"));
 
         // Reservas pasadas (anteriores - 2024 y anteriores)
-        allReservas.add(new Cliente_Tour("4", "Tour histórico por Lima", "Lima Tours", 
+        allReservas.add(new Cliente_Tour("7", "Tour histórico por Lima", "Lima Tours", 
                 "5 hrs 30 min", "15/08/2024", 160.00, "Lima, Perú", 
                 "Explora el centro histórico de Lima"));
         
-        allReservas.add(new Cliente_Tour("5", "Tour por Trujillo", "Norte Tours", 
+        allReservas.add(new Cliente_Tour("8", "Tour por Trujillo", "Norte Tours", 
                 "4 hrs", "10/07/2024", 140.00, "Trujillo, Perú", 
                 "Descubre la ciudad de la eterna primavera"));
         
-        allReservas.add(new Cliente_Tour("6", "Tour histórico por Arequipa", "Arequipa Tours", 
+        allReservas.add(new Cliente_Tour("9", "Tour histórico por Arequipa", "Arequipa Tours", 
                 "5 hrs 30 min", "25/06/2024", 160.00, "Arequipa, Perú", 
                 "Descubre la ciudad blanca"));
+                
+        allReservas.add(new Cliente_Tour("10", "Tour por las Líneas de Nazca", "Nazca Flights", 
+                "3 hrs", "12/05/2024", 280.00, "Nazca, Perú", 
+                "Sobrevuela las misteriosas líneas de Nazca"));
+                
+        allReservas.add(new Cliente_Tour("11", "Tour por Chachapoyas", "Amazonia Tours", 
+                "7 hrs", "20/04/2024", 220.00, "Chachapoyas, Perú", 
+                "Explora la fortaleza de Kuélap"));
+                
+        allReservas.add(new Cliente_Tour("12", "Tour por Paracas", "Costa Tours", 
+                "5 hrs", "08/03/2024", 170.00, "Paracas, Perú", 
+                "Observa la fauna marina en las Islas Ballestas"));
 
         // Mostrar próximas por defecto
         filterReservas();
