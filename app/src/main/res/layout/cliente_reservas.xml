@@ -33,41 +33,37 @@
 
     </com.google.android.material.appbar.MaterialToolbar>
 
-    <!-- Content Area -->
-    <LinearLayout
+    <!-- Filter Tabs - Pegado al toolbar -->
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/tab_layout_reservas"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:tabMode="fixed"
+        app:tabTextColor="?attr/colorOnSurfaceVariant"
+        app:tabSelectedTextColor="?attr/colorPrimary"
+        app:tabIndicatorColor="?attr/colorPrimary"
+        app:tabIndicatorHeight="3dp"
+        app:tabIndicatorFullWidth="true"
+        android:elevation="4dp"
+        android:background="?attr/colorSurface"
+        app:layout_constraintTop_toBottomOf="@id/toolbar"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Reservas RecyclerView - Alineado perfecto -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv_reservas"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:orientation="vertical"
+        android:clipToPadding="false"
         android:paddingHorizontal="16dp"
-        android:paddingTop="16dp"
-        android:paddingBottom="8dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp"
+        tools:listitem="@layout/cliente_item_reserva"
+        app:layout_constraintTop_toBottomOf="@id/tab_layout_reservas"
         app:layout_constraintBottom_toTopOf="@id/bottom_navigation"
-        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/toolbar">
-
-        <!-- Filter Tabs -->
-        <com.google.android.material.tabs.TabLayout
-            android:id="@+id/tab_layout_reservas"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="12dp"
-            app:tabMode="fixed"
-            app:tabTextColor="?attr/colorOnSurfaceVariant"
-            app:tabSelectedTextColor="?attr/colorPrimary"
-            app:tabIndicatorColor="?attr/colorPrimary"
-            app:tabIndicatorHeight="3dp" />
-
-        <!-- Reservas RecyclerView -->
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rv_reservas"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:clipToPadding="false"
-            android:paddingBottom="16dp"
-            tools:listitem="@layout/cliente_item_reserva" />
-
-    </LinearLayout>
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <!-- Bottom Navigation -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
