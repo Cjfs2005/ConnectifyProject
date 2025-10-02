@@ -88,19 +88,19 @@
                     android:textColor="?attr/colorOnSurface"
                     android:textStyle="bold" />
 
-                <!-- Edit Profile Link -->
-                <TextView
+                <!-- Edit Profile Button -->
+                <com.google.android.material.button.MaterialButton
                     android:id="@+id/tv_edit_profile"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
-                    android:background="?attr/selectableItemBackground"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:padding="8dp"
-                    android:text="Editar perfil ›"
-                    android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
-                    android:textColor="?attr/colorPrimary" />
+                    android:layout_marginBottom="8dp"
+                    android:text="Editar perfil"
+                    android:textColor="?attr/colorPrimary"
+                    android:textSize="16sp"
+                    app:backgroundTint="@android:color/transparent"
+                    app:cornerRadius="20dp"
+                    app:strokeColor="?attr/colorPrimary"
+                    app:strokeWidth="2dp" />
 
             </LinearLayout>
 

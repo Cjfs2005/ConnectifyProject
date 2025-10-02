@@ -16,7 +16,7 @@ import com.example.connectifyproject.models.Cliente_User;
 public class cliente_perfil extends AppCompatActivity {
 
     private ImageButton btnNotifications;
-    private TextView btnEditarPerfil;
+    private MaterialButton btnEditarPerfil;
     private ImageView ivProfilePhoto;
     private TextView tvUserName;
     private LinearLayout layoutPaymentMethods;
