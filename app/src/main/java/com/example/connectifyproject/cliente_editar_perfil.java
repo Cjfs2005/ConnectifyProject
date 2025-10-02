@@ -214,7 +214,37 @@ public class cliente_editar_perfil extends AppCompatActivity {
         if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && data != null) {
             Uri selectedImageUri = data.getData();
             if (selectedImageUri != null) {
-                ivProfilePhoto.setImageURI(selectedImageUri);
+                try {
+                    // Configurar la imagen para que cubra todo el círculo
+                    ivProfilePhoto.setImageURI(selectedImageUri);
+                    
+                    // Configuración para que la imagen cubra completamente el círculo
+                    ivProfilePhoto.setScaleType(ImageView.ScaleType.CENTER_CROP);
+                    
+                    // Remover cualquier tint o background que pueda interferir
+                    ivProfilePhoto.setBackgroundTintList(null);
+                    ivProfilePhoto.setImageTintList(null);
+                    
+                    // Remover padding para que la imagen cubra todo el espacio circular
+                    ivProfilePhoto.setPadding(0, 0, 0, 0);
+                    
+                    // Remover el background para mostrar solo la imagen
+                    ivProfilePhoto.setBackground(null);
+                    
+                    // Asegurar que mantenga la forma circular
+                    ivProfilePhoto.setClipToOutline(true);
+                    
+                    Toast.makeText(this, "Imagen actualizada", Toast.LENGTH_SHORT).show();
+                    
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    Toast.makeText(this, "Error al cargar la imagen", Toast.LENGTH_SHORT).show();
+                    
+                    // En caso de error, mantener la imagen por defecto
+                    ivProfilePhoto.setImageResource(R.drawable.ic_person);
+                    ivProfilePhoto.setScaleType(ImageView.ScaleType.CENTER);
+                }
+                
                 // TODO: Upload image to backend
             }
         }
