@@ -13,11 +13,11 @@ import com.example.connectifyproject.models.Cliente_Notification;
 
 import java.util.List;
 
-public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapter.NotificationViewHolder> {
+public class Cliente_NotificationAdapter extends RecyclerView.Adapter<Cliente_NotificationAdapter.NotificationViewHolder> {
 
     private List<Cliente_Notification> notifications;
 
-    public NotificationAdapter(List<Cliente_Notification> notifications) {
+    public Cliente_NotificationAdapter(List<Cliente_Notification> notifications) {
         this.notifications = notifications;
     }
 

@@ -6,7 +6,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.connectifyproject.adapters.NotificationAdapter;
+import com.example.connectifyproject.adapters.Cliente_NotificationAdapter;
 import com.example.connectifyproject.models.Cliente_Notification;
 import com.google.android.material.appbar.MaterialToolbar;
 
@@ -16,7 +16,7 @@ import java.util.List;
 public class cliente_notificaciones extends AppCompatActivity {
 
     private RecyclerView recyclerView;
-    private NotificationAdapter adapter;
+    private Cliente_NotificationAdapter adapter;
     private MaterialToolbar toolbar;
 
     @Override
@@ -48,7 +48,7 @@ public class cliente_notificaciones extends AppCompatActivity {
     private void setupRecyclerView() {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         List<Cliente_Notification> notifications = new ArrayList<>();
-        adapter = new NotificationAdapter(notifications);
+        adapter = new Cliente_NotificationAdapter(notifications);
         recyclerView.setAdapter(adapter);
     }
 
@@ -57,7 +57,7 @@ public class cliente_notificaciones extends AppCompatActivity {
         List<Cliente_Notification> backendNotifications = getBackendNotifications();
         
         // Limpiar y agregar nuevas notificaciones
-        adapter = new NotificationAdapter(backendNotifications);
+        adapter = new Cliente_NotificationAdapter(backendNotifications);
         recyclerView.setAdapter(adapter);
     }
 
