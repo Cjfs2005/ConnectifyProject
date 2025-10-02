@@ -10,6 +10,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.example.connectifyproject.adapters.Cliente_TarjetaAdapter;
 import com.example.connectifyproject.models.Cliente_PaymentMethod;
 
@@ -21,6 +22,7 @@ public class cliente_metodo_pago extends AppCompatActivity {
     private RecyclerView rvPaymentMethods;
     private TextView tvTotalPrice;
     private MaterialButton btnReservar;
+    private FloatingActionButton fabAddMethod;
     private Cliente_TarjetaAdapter tarjetaAdapter;
     private String totalPrice;
 
@@ -40,6 +42,7 @@ public class cliente_metodo_pago extends AppCompatActivity {
         rvPaymentMethods = findViewById(R.id.rv_payment_methods);
         tvTotalPrice = findViewById(R.id.tv_total_price);
         btnReservar = findViewById(R.id.btn_reservar);
+        fabAddMethod = findViewById(R.id.fab_add_method);
     }
 
     private void setupToolbar() {
@@ -97,6 +100,10 @@ public class cliente_metodo_pago extends AppCompatActivity {
             // Navegar a la pantalla de reserva realizada
             Intent intent = new Intent(this, cliente_reserva_realizada.class);
             intent.putExtra("total_price", totalPrice);
+            startActivity(intent);
+        });
+        fabAddMethod.setOnClickListener(v -> {
+            Intent intent = new Intent(this, cliente_nuevo_metodo_pago.class);
             startActivity(intent);
         });
     }
