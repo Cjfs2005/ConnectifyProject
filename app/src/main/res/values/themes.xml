@@ -1,21 +1,46 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme -->
+
+    <!-- Tema base -->
     <style name="Base.Theme.ConnectifyProject" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Aquí sí puedes personalizar colores -->
+        <!-- Colores de marca -->
         <item name="colorPrimary">@color/brand_purple_dark</item>
         <item name="colorPrimaryContainer">@color/brand_lilac</item>
         <item name="colorOnPrimary">#FFFFFF</item>
         <item name="colorSurface">@color/surface_soft</item>
+
+        <!-- Status bar -->
         <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimary</item>
+
+        <!-- 👇 Estilo global para TODAS las Toolbars -->
+        <item name="toolbarStyle">@style/Widget.Connectify.TopAppBar</item>
+        <!-- NOTA: No usamos 'materialToolbarStyle' para evitar el error -->
     </style>
 
+    <!-- Alias del tema -->
     <style name="Theme.ConnectifyProject" parent="Base.Theme.ConnectifyProject" />
 
-    <!-- Estilo para imágenes circulares -->
+    <!-- 🟣 Estilo global de Top App Bar (sirve para Toolbar y MaterialToolbar) -->
+    <style name="Widget.Connectify.TopAppBar" parent="Widget.Material3.Toolbar">
+        <!-- Doble refuerzo por compatibilidad -->
+        <item name="android:background">?attr/colorPrimary</item>
+        <item name="backgroundTint">?attr/colorPrimary</item>
+
+        <item name="titleTextColor">@android:color/white</item>
+        <item name="subtitleTextColor">@android:color/white</item>
+        <item name="navigationIconTint">@android:color/white</item>
+
+        <!-- Menús emergentes oscuros (overflow, etc.) -->
+        <item name="popupTheme">@style/ThemeOverlay.Material3.Dark</item>
+
+        <!-- Opcional: título alineado a la izquierda (como en 'Usuarios') -->
+        <item name="titleCentered">false</item>
+    </style>
+
+    <!-- (Opcional) Estilo para avatares circulares que ya tenías -->
     <style name="CircularImageView">
         <item name="android:scaleType">centerCrop</item>
         <item name="android:layout_width">60dp</item>
         <item name="android:layout_height">60dp</item>
     </style>
-</resources>
 
+</resources>

@@ -62,4 +62,10 @@
     <string name="menu_mark_all_read">Marcar todo como leído</string>
     <string name="menu_preferences">Preferencias</string>
     <string name="menu_view_all">Ver todo</string>
+
+    <string name="sa_requests_title">Solicitudes de Guía</string>
+    <string name="label_all">Todos</string>
+    <string name="label_sort">Orden</string>
+    <string name="hint_search_requests">Nombre / DNI / Empresa…</string>
+    <string name="action_enable">Habilitar</string>
 </resources>
