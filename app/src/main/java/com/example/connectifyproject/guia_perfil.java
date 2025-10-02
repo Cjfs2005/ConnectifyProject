@@ -72,7 +72,11 @@ public class guia_perfil extends AppCompatActivity {
             });
             dialog.show(getSupportFragmentManager(), "add_payment");
         });
-        binding.logoutBtn.setOnClickListener(v -> finish());
+        binding.logoutBtn.setOnClickListener(v -> {
+            Intent intent = new Intent(this, auth_login.class);
+            startActivity(intent);
+            finish();
+        });
 
         BottomNavigationView bottomNav = binding.bottomNav;
         bottomNav.setSelectedItemId(R.id.nav_perfil);
