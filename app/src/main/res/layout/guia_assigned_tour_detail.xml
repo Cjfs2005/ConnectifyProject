@@ -27,7 +27,10 @@
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="16dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
             app:cardCornerRadius="16dp"
             app:cardElevation="6dp">
 
@@ -139,41 +142,33 @@
                     android:visibility="gone">
 
                     <com.google.android.material.button.MaterialButton
+                        android:id="@+id/check_in_button"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Check-in"
+                        android:backgroundTint="#4CAF50"
+                        android:textColor="@android:color/white"
+                        app:cornerRadius="8dp" />
+
+                    <com.google.android.material.button.MaterialButton
                         android:id="@+id/map_button"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="Ver mapa"
                         android:backgroundTint="#3F51B5"
                         android:textColor="@android:color/white"
+                        android:layout_marginTop="8dp"
                         app:cornerRadius="8dp" />
 
-                    <LinearLayout
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/check_out_button"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:layout_marginTop="12dp">
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/check_in_button"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="Check-in"
-                            android:backgroundTint="#4CAF50"
-                            android:textColor="@android:color/white"
-                            android:layout_marginEnd="8dp"
-                            app:cornerRadius="8dp" />
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/check_out_button"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="Check-out"
-                            android:backgroundTint="#F44336"
-                            android:textColor="@android:color/white"
-                            app:cornerRadius="8dp" />
-                    </LinearLayout>
+                        android:text="Check-out"
+                        android:backgroundTint="#F44336"
+                        android:textColor="@android:color/white"
+                        android:layout_marginTop="8dp"
+                        app:cornerRadius="8dp" />
                 </LinearLayout>
             </LinearLayout>
         </androidx.cardview.widget.CardView>
