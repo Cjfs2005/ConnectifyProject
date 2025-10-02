@@ -39,11 +39,11 @@ public class Cliente_ToursAdapter extends RecyclerView.Adapter<Cliente_ToursAdap
     public void onBindViewHolder(@NonNull TourViewHolder holder, int position) {
         Cliente_Tour tour = tours.get(position);
         
-        holder.tvTourTitle.setText(tour.getTitle());
-        holder.tvTourCompany.setText(tour.getCompany());
-        holder.tvTourDuration.setText("Duración: " + tour.getDuration());
-        holder.tvTourDate.setText("Fecha: " + tour.getDate());
-        holder.tvTourPrice.setText(String.format("S/%.2f", tour.getPrice()));
+        holder.tvTourTitle.setText(tour.getTitulo());
+        holder.tvTourCompany.setText(tour.getCompanyName());
+        holder.tvTourDuration.setText("Duración: " + tour.getDuracion());
+        holder.tvTourDate.setText("Fecha: Hoy"); // Fecha simplificada
+        holder.tvTourPrice.setText(String.format("S/%.2f", tour.getPrecio()));
         
         // Usar la imagen por defecto para todos los tours
         holder.ivTourImage.setImageResource(R.drawable.cliente_tour_lima);
@@ -51,14 +51,7 @@ public class Cliente_ToursAdapter extends RecyclerView.Adapter<Cliente_ToursAdap
         // Click listener para abrir detalles del tour
         holder.itemView.setOnClickListener(v -> {
             Intent intent = new Intent(context, cliente_tour_detalle.class);
-            intent.putExtra("tour_id", tour.getId());
-            intent.putExtra("tour_title", tour.getTitle());
-            intent.putExtra("tour_company", tour.getCompany());
-            intent.putExtra("tour_duration", tour.getDuration());
-            intent.putExtra("tour_date", tour.getDate());
-            intent.putExtra("tour_price", tour.getPrice());
-            intent.putExtra("tour_location", tour.getLocation());
-            intent.putExtra("tour_description", tour.getDescription());
+            intent.putExtra("tour_object", tour);
             context.startActivity(intent);
         });
     }

@@ -9,6 +9,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.connectifyproject.models.Cliente_Tour;
+import com.example.connectifyproject.adapters.cliente_gallery_tour_adapter;
 import com.google.android.material.appbar.MaterialToolbar;
 import java.util.ArrayList;
 import java.util.List;
@@ -17,7 +18,7 @@ public class cliente_empresa_info extends AppCompatActivity {
 
     private RecyclerView rvReviews, rvToursGallery;
     private Cliente_ReviewsAdapter reviewsAdapter;
-    private Cliente_ToursGalleryAdapter toursGalleryAdapter;
+    private cliente_gallery_tour_adapter toursGalleryAdapter;
     private List<Cliente_Review> reviewsList;
     private List<Cliente_Tour> toursGalleryList;
     private TextView tvVerMasReviews;
@@ -97,17 +98,22 @@ public class cliente_empresa_info extends AppCompatActivity {
     private void setupToursGallery() {
         toursGalleryList = new ArrayList<>();
         
-        // Datos hardcodeados de tours en galería (usando el constructor correcto)
-        toursGalleryList.add(new Cliente_Tour("1", "City Tour Lima", "Lima Tours", "Todo el día", 
-                "2024-10-15", 80.0, "Lima Histórica", "Descubre la historia de Lima"));
-        toursGalleryList.add(new Cliente_Tour("2", "Tour Gastronómico", "Lima Tours", "4 horas", 
-                "2024-10-16", 120.0, "Miraflores", "Experiencia Culinaria"));
-        toursGalleryList.add(new Cliente_Tour("3", "Circuito Mágico", "Lima Tours", "3 horas", 
-                "2024-10-17", 60.0, "Parque de las Aguas", "Fuentes danzantes"));
-        toursGalleryList.add(new Cliente_Tour("4", "Barranco Bohemio", "Lima Tours", "5 horas", 
-                "2024-10-18", 90.0, "Barranco", "Arte y Cultura"));
+        // Datos hardcodeados de tours en galería (usando el nuevo constructor)
+        toursGalleryList.add(new Cliente_Tour("1", "City Tour Lima",
+            "Descubre la historia de Lima visitando sus lugares más emblemáticos",
+            "Todo el día", 80.0, "Lima Histórica", 4.5f, "Lima Tours"));
+        toursGalleryList.add(new Cliente_Tour("2", "Tour Gastronómico",
+            "Experiencia culinaria única por los mejores restaurantes de la ciudad",
+            "4 horas", 120.0, "Miraflores", 4.8f, "Lima Tours"));
+        toursGalleryList.add(new Cliente_Tour("3", "Circuito Mágico",
+            "Espectáculo de fuentes danzantes con luces y música",
+            "3 horas", 60.0, "Parque de las Aguas", 4.3f, "Lima Tours"));
+        toursGalleryList.add(new Cliente_Tour("4", "Barranco Bohemio",
+            "Recorre el distrito más artístico y cultural de Lima",
+            "5 horas", 90.0, "Barranco", 4.6f, "Lima Tours"));
 
-        toursGalleryAdapter = new Cliente_ToursGalleryAdapter(toursGalleryList, this);
+        toursGalleryAdapter = new cliente_gallery_tour_adapter(this, toursGalleryList);
+        // El adapter ya maneja la navegación por defecto con objetos completos
         LinearLayoutManager layoutManager = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
         rvToursGallery.setLayoutManager(layoutManager);
         rvToursGallery.setAdapter(toursGalleryAdapter);

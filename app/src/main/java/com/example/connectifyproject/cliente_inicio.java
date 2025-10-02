@@ -12,10 +12,10 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.example.connectifyproject.models.cliente_test_tour;
-import com.example.connectifyproject.models.cliente_test_data_generator;
-import com.example.connectifyproject.adapters.cliente_test_tour_adapter;
+import com.example.connectifyproject.models.Cliente_Tour;
+import com.example.connectifyproject.adapters.cliente_gallery_tour_adapter;
 import java.util.List;
+import java.util.ArrayList;
 
 /**
  * Actividad principal para Cliente
@@ -47,8 +47,8 @@ public class cliente_inicio extends AppCompatActivity {
     private RecyclerView rvToursCercanos;
     
     // Adapters para los RecyclerViews
-    private cliente_test_tour_adapter adapterToursRecientes;
-    private cliente_test_tour_adapter adapterToursCercanos;
+    private cliente_gallery_tour_adapter adapterToursRecientes;
+    private cliente_gallery_tour_adapter adapterToursCercanos;
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -121,11 +121,13 @@ public class cliente_inicio extends AppCompatActivity {
         rvToursRecientes.setLayoutManager(layoutManagerRecientes);
         
         // Obtener datos de tours recientes y configurar adapter
-        List<cliente_test_tour> toursRecientes = cliente_test_data_generator.generarToursRecientes();
-        adapterToursRecientes = new cliente_test_tour_adapter(this, toursRecientes);
+        List<Cliente_Tour> toursRecientes = generarToursRecientes();
+        adapterToursRecientes = new cliente_gallery_tour_adapter(this, toursRecientes);
         adapterToursRecientes.setOnTourClickListener(tour -> {
-            // TODO: Navegar a detalles del tour
-            Toast.makeText(this, "Tour: " + tour.getTitulo(), Toast.LENGTH_SHORT).show();
+            // Navegar al detalle del tour pasando el objeto completo
+            Intent intent = new Intent(this, cliente_tour_detalle.class);
+            intent.putExtra("tour_object", tour);
+            startActivity(intent);
         });
         rvToursRecientes.setAdapter(adapterToursRecientes);
         
@@ -134,11 +136,13 @@ public class cliente_inicio extends AppCompatActivity {
         rvToursCercanos.setLayoutManager(layoutManagerCercanos);
         
         // Obtener datos de tours cercanos y configurar adapter
-        List<cliente_test_tour> toursCercanos = cliente_test_data_generator.generarToursCercanos();
-        adapterToursCercanos = new cliente_test_tour_adapter(this, toursCercanos);
+        List<Cliente_Tour> toursCercanos = generarToursCercanos();
+        adapterToursCercanos = new cliente_gallery_tour_adapter(this, toursCercanos);
         adapterToursCercanos.setOnTourClickListener(tour -> {
-            // TODO: Navegar a detalles del tour
-            Toast.makeText(this, "Tour cercano: " + tour.getTitulo(), Toast.LENGTH_SHORT).show();
+            // Navegar al detalle del tour pasando el objeto completo
+            Intent intent = new Intent(this, cliente_tour_detalle.class);
+            intent.putExtra("tour_object", tour);
+            startActivity(intent);
         });
         rvToursCercanos.setAdapter(adapterToursCercanos);
     }
@@ -192,5 +196,60 @@ public class cliente_inicio extends AppCompatActivity {
         });
     }
     
+    // ========== MÉTODOS PARA GENERAR DATOS DE PRUEBA ==========
+    
+    /**
+     * Genera una lista de tours recién agregados
+     */
+    private List<Cliente_Tour> generarToursRecientes() {
+        List<Cliente_Tour> tours = new ArrayList<>();
+        
+        tours.add(new Cliente_Tour("tour_001", "City Tour Lima Centro Histórico",
+            "Explora el corazón colonial de Lima visitando la Plaza de Armas, Catedral y Palacio de Gobierno.",
+            "4 horas", 65.00, "Lima Centro", 4.6f, "Lima Tours"));
+            
+        tours.add(new Cliente_Tour("tour_002", "Barranco y Miraflores Tour",
+            "Recorre los distritos bohemios y modernos de Lima con vistas al océano.",
+            "3 horas", 55.00, "Barranco - Miraflores", 4.4f, "Lima Tours"));
+            
+        tours.add(new Cliente_Tour("tour_003", "Machu Picchu Full Day",
+            "Visita la maravilla del mundo en un tour completo desde Cusco.",
+            "16 horas", 250.00, "Machu Picchu", 4.9f, "Cusco Adventures"));
+            
+        tours.add(new Cliente_Tour("tour_004", "Valle Sagrado Adventure",
+            "Aventura completa por Pisaq, Ollantaytambo y pueblos tradicionales.",
+            "12 horas", 180.00, "Valle Sagrado", 4.7f, "Cusco Adventures"));
+            
+        tours.add(new Cliente_Tour("tour_005", "Cañón del Colca 2D/1N",
+            "Observa el vuelo de los cóndores en uno de los cañones más profundos del mundo.",
+            "2 días", 320.00, "Cañón del Colca", 4.5f, "Arequipa Explorer"));
+            
+        return tours;
+    }
+    
+    /**
+     * Genera una lista de tours cercanos a la ubicación
+     */
+    private List<Cliente_Tour> generarToursCercanos() {
+        List<Cliente_Tour> tours = new ArrayList<>();
+        
+        tours.add(new Cliente_Tour("tour_006", "Circuito Mágico del Agua",
+            "Espectáculo nocturno de fuentes danzantes con luces y música.",
+            "2 horas", 35.00, "Parque de la Reserva", 4.3f, "Lima Tours"));
+            
+        tours.add(new Cliente_Tour("tour_007", "Museo Larco y Pueblos",
+            "Visita al famoso museo y recorrido por pueblos tradicionales limeños.",
+            "5 horas", 85.00, "Pueblo Libre", 4.6f, "Lima Tours"));
+            
+        tours.add(new Cliente_Tour("tour_008", "Callao Monumental Tour",
+            "Descubre el arte urbano y la historia del primer puerto del Perú.",
+            "3 horas", 45.00, "Callao", 4.2f, "Lima Tours"));
+            
+        tours.add(new Cliente_Tour("tour_009", "Islas Palomino - Leones Marinos",
+            "Excursión marítima para nadar con leones marinos en su hábitat natural.",
+            "6 horas", 120.00, "Islas Palomino", 4.7f, "Lima Tours"));
+            
+        return tours;
+    }
 
 }

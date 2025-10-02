@@ -1,6 +1,7 @@
 package com.example.connectifyproject.adapters;
 
 import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,24 +11,26 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.connectifyproject.R;
-import com.example.connectifyproject.models.cliente_test_tour;
+import com.example.connectifyproject.cliente_tour_detalle;
+import com.example.connectifyproject.models.Cliente_Tour;
 import java.util.List;
 
 /**
- * Adapter para mostrar tours en RecyclerView con diseño de cards
+ * Adapter unificado para mostrar tours en galerías
+ * Usado en cliente_inicio y cliente_empresa_info
  * Basado en el diseño de cliente_item_tour_gallery.xml
  */
-public class cliente_test_tour_adapter extends RecyclerView.Adapter<cliente_test_tour_adapter.TourViewHolder> {
+public class cliente_gallery_tour_adapter extends RecyclerView.Adapter<cliente_gallery_tour_adapter.TourViewHolder> {
     
     private Context context;
-    private List<cliente_test_tour> tours;
+    private List<Cliente_Tour> tours;
     private OnTourClickListener listener;
     
     public interface OnTourClickListener {
-        void onTourClick(cliente_test_tour tour);
+        void onTourClick(Cliente_Tour tour);
     }
     
-    public cliente_test_tour_adapter(Context context, List<cliente_test_tour> tours) {
+    public cliente_gallery_tour_adapter(Context context, List<Cliente_Tour> tours) {
         this.context = context;
         this.tours = tours;
     }
@@ -45,13 +48,13 @@ public class cliente_test_tour_adapter extends RecyclerView.Adapter<cliente_test
     
     @Override
     public void onBindViewHolder(@NonNull TourViewHolder holder, int position) {
-        cliente_test_tour tour = tours.get(position);
+        Cliente_Tour tour = tours.get(position);
         
         // Configurar datos del tour
         holder.tvTourTitle.setText(tour.getTitulo());
-        holder.tvPrice.setText(tour.getPrecioFormateado());
-        holder.ratingBar.setRating((float) tour.getCalificacion());
-        holder.tvRating.setText(tour.getCalificacionFormateada());
+        holder.tvPrice.setText("S/" + String.format("%.2f", tour.getPrecio()));
+        holder.ratingBar.setRating(tour.getCalificacion());
+        holder.tvRating.setText(String.format("%.1f", tour.getCalificacion()));
         
         // Configurar imagen (por ahora usando imagen por defecto)
         // TODO: Implementar carga de imágenes con Picasso/Glide cuando se tengan URLs reales
@@ -60,7 +63,13 @@ public class cliente_test_tour_adapter extends RecyclerView.Adapter<cliente_test
         // Click listener para el card completo
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) {
+                // Usar el listener personalizado si está disponible
                 listener.onTourClick(tour);
+            } else {
+                // Navegación por defecto directa al detalle
+                Intent intent = new Intent(context, cliente_tour_detalle.class);
+                intent.putExtra("tour_object", tour);
+                context.startActivity(intent);
             }
         });
     }
@@ -70,7 +79,7 @@ public class cliente_test_tour_adapter extends RecyclerView.Adapter<cliente_test
         return tours != null ? tours.size() : 0;
     }
     
-    public void updateTours(List<cliente_test_tour> newTours) {
+    public void updateTours(List<Cliente_Tour> newTours) {
         this.tours = newTours;
         notifyDataSetChanged();
     }
