@@ -349,12 +349,7 @@
         android:elevation="8dp"
         android:padding="16dp">
 
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="@android:color/darker_gray"
-            android:alpha="0.3"
-            android:layout_marginBottom="12dp" />
+        
 
         <!-- People Counter and Total Price -->
         <LinearLayout
@@ -362,12 +357,13 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
+            android:minHeight="36dp"
             android:layout_marginBottom="16dp">
 
             <ImageButton
                 android:id="@+id/btn_decrease_people"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
                 android:layout_marginStart="0dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:src="@drawable/ic_remove_24"
@@ -375,17 +371,17 @@
 
             <TextView
                 android:id="@+id/tv_people_count"
-                android:layout_width="60dp"
+                android:layout_width="48dp"
                 android:layout_height="wrap_content"
                 android:gravity="center"
                 android:text="1"
-                android:textAppearance="@style/TextAppearance.Material3.TitleLarge"
+                android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
                 android:textStyle="bold" />
 
             <ImageButton
                 android:id="@+id/btn_increase_people"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:src="@drawable/ic_add_24"
                 app:tint="?attr/colorPrimary" />
@@ -406,7 +402,7 @@
                 android:id="@+id/tv_total_price"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textAppearance="@style/TextAppearance.Material3.TitleLarge"
+                android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
                 android:textColor="?attr/colorPrimary"
                 android:textStyle="bold"
                 android:layout_marginEnd="16dp"
@@ -418,10 +414,11 @@
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_continuar"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:padding="16dp"
+            android:layout_height="56dp"
+            android:padding="0dp"
             android:text="Continuar"
-            android:textAppearance="@style/TextAppearance.Material3.LabelLarge" />
+            android:textAppearance="@style/TextAppearance.Material3.LabelLarge"
+            app:cornerRadius="12dp" />
 
     </LinearLayout>
 
