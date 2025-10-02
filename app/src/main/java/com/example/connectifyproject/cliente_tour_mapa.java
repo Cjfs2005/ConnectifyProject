@@ -3,7 +3,6 @@ package com.example.connectifyproject;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.widget.TextView;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -29,7 +28,6 @@ public class cliente_tour_mapa extends AppCompatActivity implements Cliente_Itin
     private Cliente_ItinerarioAdapter itinerarioAdapter;
     private List<Cliente_ItinerarioItem> itinerarioItems;
     private GoogleMap mMap;
-    private TextView tvRouteInfo;
     
     private String tourId, tourTitle;
     
@@ -61,17 +59,16 @@ public class cliente_tour_mapa extends AppCompatActivity implements Cliente_Itin
     private void initViews() {
         toolbar = findViewById(R.id.toolbar);
         rvItinerario = findViewById(R.id.rv_itinerario);
-        tvRouteInfo = findViewById(R.id.tv_route_info);
     }
 
     private void setupToolbar() {
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            if (tourTitle != null) {
-                getSupportActionBar().setTitle("Ruta: " + tourTitle);
-            }
+            getSupportActionBar().setTitle("Itinerario");
         }
+        // Asegurar flecha de regreso en blanco
+        toolbar.setNavigationIconTint(Color.WHITE);
         
         toolbar.setNavigationOnClickListener(v -> onBackPressed());
     }
