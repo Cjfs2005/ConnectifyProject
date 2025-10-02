@@ -34,22 +34,45 @@
             android:layout_weight="1"
             android:orientation="vertical">
 
-            <!-- Tour Title -->
-            <TextView
-                android:id="@+id/tv_tour_title"
+            <!-- Tour Title and Price Row -->
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
-                android:textColor="?attr/colorOnSurface"
-                android:textStyle="bold"
-                tools:text="Tour histórico por Lima" />
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:id="@+id/tv_tour_title"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
+                    android:textColor="?attr/colorOnSurface"
+                    android:textStyle="bold"
+                    android:layout_marginEnd="8dp"
+                    tools:text="Tour histórico por Lima" />
+
+                <!-- Tour Price - Integrated -->
+                <TextView
+                    android:id="@+id/tv_tour_price"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
+                    android:textColor="?attr/colorPrimary"
+                    android:textStyle="bold"
+                    android:background="@drawable/price_badge_background"
+                    android:paddingHorizontal="8dp"
+                    android:paddingVertical="2dp"
+                    tools:text="S/160.00" />
+
+            </LinearLayout>
 
             <!-- Tour Company -->
             <TextView
                 android:id="@+id/tv_tour_company"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
+                android:layout_marginTop="4dp"
                 android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
                 android:textColor="?attr/colorOnSurfaceVariant"
                 tools:text="Lima Tours" />
@@ -75,17 +98,6 @@
                 tools:text="Fecha: 23/09/2025" />
 
         </LinearLayout>
-
-        <!-- Tour Price -->
-        <TextView
-            android:id="@+id/tv_tour_price"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical"
-            android:textAppearance="@style/TextAppearance.Material3.TitleLarge"
-            android:textColor="?attr/colorPrimary"
-            android:textStyle="bold"
-            tools:text="S/160.00" />
 
     </LinearLayout>
 
