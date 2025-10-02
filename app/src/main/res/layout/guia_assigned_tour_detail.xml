@@ -21,8 +21,8 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
-        android:paddingBottom="80dp"
-        android:clipToPadding="false">
+        android:clipToPadding="false"
+        android:paddingBottom="80dp">
 
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
@@ -45,7 +45,6 @@
                     android:textSize="20sp"
                     android:textColor="@android:color/black" />
 
-                <!-- Divider -->
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
@@ -108,7 +107,6 @@
                     android:textColor="#212121"
                     android:layout_marginTop="4dp" />
 
-                <!-- Divider -->
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
@@ -136,41 +134,46 @@
                     android:id="@+id/actions_layout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
+                    android:orientation="vertical"
                     android:layout_marginTop="24dp"
                     android:visibility="gone">
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/map_button"
-                        android:layout_width="0dp"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="🗺️ Ver mapa"
+                        android:text="Ver mapa"
                         android:backgroundTint="#3F51B5"
-                    android:textColor="@android:color/white"
-                    android:layout_marginEnd="8dp"
-                    app:cornerRadius="8dp" />
+                        android:textColor="@android:color/white"
+                        app:cornerRadius="8dp" />
 
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/check_in_button"
-                        android:layout_width="0dp"
+                    <LinearLayout
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="✅ Check-in"
-                        android:backgroundTint="#4CAF50"
-                    android:textColor="@android:color/white"
-                    android:layout_marginEnd="8dp"
-                    app:cornerRadius="8dp" />
+                        android:orientation="horizontal"
+                        android:layout_marginTop="12dp">
 
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/check_out_button"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="🚪 Check-out"
-                        android:backgroundTint="#F44336"
-                    android:textColor="@android:color/white"
-                    app:cornerRadius="8dp" />
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/check_in_button"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Check-in"
+                            android:backgroundTint="#4CAF50"
+                            android:textColor="@android:color/white"
+                            android:layout_marginEnd="8dp"
+                            app:cornerRadius="8dp" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/check_out_button"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Check-out"
+                            android:backgroundTint="#F44336"
+                            android:textColor="@android:color/white"
+                            app:cornerRadius="8dp" />
+                    </LinearLayout>
                 </LinearLayout>
             </LinearLayout>
         </androidx.cardview.widget.CardView>

@@ -23,8 +23,8 @@
 
             <ImageView
                 android:id="@+id/tour_icon"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
                 android:src="@drawable/ic_bus_guia"
                 android:scaleType="centerInside"
                 android:layout_marginEnd="12dp"
@@ -96,39 +96,39 @@
 
             <ImageView
                 android:id="@+id/details_icon"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
                 android:src="@drawable/ic_eye"
                 android:padding="4dp"
                 android:contentDescription="Ver detalles"
-                app:tint="#3F51B5" />  <!-- Elegant indigo -->
+                app:tint="#3F51B5" />
 
             <ImageView
                 android:id="@+id/map_icon"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
                 android:src="@drawable/ic_map"
                 android:padding="4dp"
                 android:contentDescription="Ver mapa"
-                app:tint="#009688" />  <!-- Elegant teal -->
+                app:tint="#009688" />
 
             <ImageView
                 android:id="@+id/check_in_icon"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
                 android:src="@drawable/ic_check_in"
                 android:padding="4dp"
                 android:contentDescription="Check-in"
-                app:tint="#4CAF50" />  <!-- Elegant green -->
+                app:tint="#4CAF50" />
 
             <ImageView
                 android:id="@+id/check_out_icon"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
                 android:src="@drawable/ic_check_out"
                 android:padding="4dp"
                 android:contentDescription="Check-out"
-                app:tint="#F44336" />
+                app:tint="#F44336" />  <!-- Elegant red -->
         </LinearLayout>
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>
