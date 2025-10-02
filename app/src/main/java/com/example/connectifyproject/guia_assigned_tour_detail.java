@@ -42,7 +42,7 @@ public class guia_assigned_tour_detail extends AppCompatActivity {
         String tourServices = intent.getStringExtra("tour_services");
         ArrayList<String> tourItinerario = intent.getStringArrayListExtra("tour_itinerario");
 
-        binding.tourName.setText(tourName + " - " + (tourStatus.equals("En Curso") ? "EN CURSO 🟢" : tourStatus));
+        binding.tourName.setText(tourName + " - " + tourStatus);
         binding.tourEmpresa.setText("Empresa: " + tourEmpresa);
         binding.tourInitio.setText("Fecha: " + tourInitio);
         binding.tourDuration.setText("Duración: " + tourDuration);
@@ -84,11 +84,11 @@ public class guia_assigned_tour_detail extends AppCompatActivity {
             Toast.makeText(this, "Check-out iniciado (simulado)", Toast.LENGTH_SHORT).show();
         });
 
-        binding.mapButton.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#2196F3")));
+        // Elegant colors
+        binding.mapButton.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#3F51B5")));
         binding.checkInButton.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#4CAF50")));
         binding.checkOutButton.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#F44336")));
 
-        // Nuevo Bottom Navigation con Toast
         BottomNavigationView bottomNav = binding.bottomNav;
         bottomNav.setSelectedItemId(R.id.nav_tours);
         bottomNav.setOnItemSelectedListener(item -> {
@@ -102,7 +102,7 @@ public class guia_assigned_tour_detail extends AppCompatActivity {
             } else if (id == R.id.nav_tours) {
                 return true;
             } else if (id == R.id.nav_perfil) {
-                startActivity(new Intent(this, guia_perfil.class)); // Placeholder, renombrado
+                startActivity(new Intent(this, guia_perfil.class));
                 return true;
             }
             return false;

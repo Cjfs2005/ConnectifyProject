@@ -14,10 +14,12 @@
         android:orientation="vertical"
         android:padding="12dp">
 
+        <!-- Header with icon and title/status side by side -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
 
             <ImageView
                 android:id="@+id/tour_icon"
@@ -45,74 +47,84 @@
                     android:id="@+id/tour_status"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textSize="14sp" />
-
-                <TextView
-                    android:id="@+id/tour_empresa"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textSize="14sp" />
-
-                <TextView
-                    android:id="@+id/tour_initio"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textSize="14sp" />
-
-                <TextView
-                    android:id="@+id/tour_duration"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textSize="14sp" />
-
-                <TextView
-                    android:id="@+id/tour_clients"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textSize="14sp" />
+                    android:textSize="14sp"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="8dp"
+                    android:paddingTop="4dp"
+                    android:paddingBottom="4dp"/>
             </LinearLayout>
         </LinearLayout>
 
+        <!-- Details -->
+        <TextView
+            android:id="@+id/tour_empresa"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="14sp"
+            android:layout_marginTop="8dp" />
+
+        <TextView
+            android:id="@+id/tour_initio"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="14sp"
+            android:layout_marginTop="4dp" />
+
+        <TextView
+            android:id="@+id/tour_duration"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="14sp"
+            android:layout_marginTop="4dp" />
+
+        <TextView
+            android:id="@+id/tour_clients"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="14sp"
+            android:layout_marginTop="4dp" />
+
+        <!-- Actions at bottom left -->
         <LinearLayout
             android:id="@+id/actions_layout"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:gravity="end"
+            android:gravity="start"
             android:visibility="gone"
-            android:layout_marginTop="8dp">
+            android:layout_marginTop="12dp">
 
             <ImageView
                 android:id="@+id/details_icon"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
                 android:src="@drawable/ic_eye"
                 android:padding="4dp"
                 android:contentDescription="Ver detalles"
-                app:tint="#2196F3" />
+                app:tint="#3F51B5" />  <!-- Elegant indigo -->
 
             <ImageView
                 android:id="@+id/map_icon"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
                 android:src="@drawable/ic_map"
                 android:padding="4dp"
                 android:contentDescription="Ver mapa"
-                app:tint="#4CAF50" />
+                app:tint="#009688" />  <!-- Elegant teal -->
 
             <ImageView
                 android:id="@+id/check_in_icon"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
                 android:src="@drawable/ic_check_in"
                 android:padding="4dp"
                 android:contentDescription="Check-in"
-                app:tint="#FFEB3B" />
+                app:tint="#4CAF50" />  <!-- Elegant green -->
 
             <ImageView
                 android:id="@+id/check_out_icon"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
                 android:src="@drawable/ic_check_out"
                 android:padding="4dp"
                 android:contentDescription="Check-out"
