@@ -1,32 +1,40 @@
 package com.example.connectifyproject.views.superadmin.reports;
 
 import android.os.Bundle;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.widget.PopupMenu;
 import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.connectifyproject.R;
 import com.example.connectifyproject.databinding.FragmentSaReportsBinding;
-import com.google.android.material.dialog.MaterialAlertDialogBuilder;
-import com.google.android.material.snackbar.Snackbar;
+import com.google.android.material.chip.Chip;
+import com.google.android.material.progressindicator.LinearProgressIndicator;
 
+import java.text.DateFormatSymbols;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 public class SaReportsFragment extends Fragment {
 
     private FragmentSaReportsBinding binding;
-    private SaReportsAdapter adapter;
-    private boolean sortAsc = true;
+
+    // Mock de datos: empresa -> reservas por mes (index 0..11)
+    private final Map<String, int[]> data = new LinkedHashMap<>();
+
+    // Estado UI
+    private int selectedMonth; // 0..11
+    private String selectedCompany = "Todas";
 
     @Nullable @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -36,93 +44,150 @@ public class SaReportsFragment extends Fragment {
         return binding.getRoot();
     }
 
-    @Override public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
+    @Override public void onViewCreated(@NonNull View v, @Nullable Bundle s) {
+        super.onViewCreated(v, s);
 
-        binding.rvCompanies.setLayoutManager(new LinearLayoutManager(requireContext()));
-        adapter = new SaReportsAdapter(mockCompanies(), item -> {
-            new MaterialAlertDialogBuilder(requireContext())
-                    .setTitle("Descargar reporte")
-                    .setMessage("¿Descargar reporte de reservas de \"" + item.name + "\"?")
-                    .setNegativeButton("Cancelar", null)
-                    .setPositiveButton("Descargar", (d, w) ->
-                            Snackbar.make(binding.getRoot(), "Descarga iniciada: " + item.name, Snackbar.LENGTH_LONG).show())
-                    .show();
+        // 1) Datos mock (empresas de transporte)
+        seedMock();
+
+        // 2) Mes actual por defecto
+        Calendar cal = Calendar.getInstance();
+        selectedMonth = cal.get(Calendar.MONTH);
+
+        // 3) Llenar dropdowns
+        setupMonthDropdown(binding.autoMonth);
+        setupCompanyDropdown(binding.autoCompany);
+
+        // 4) Restaurar estado si existe
+        if (s != null) {
+            selectedMonth = s.getInt("month", selectedMonth);
+            selectedCompany = s.getString("company", "Todas");
+        }
+        binding.autoMonth.setText(monthLabel(selectedMonth), false);
+        binding.autoCompany.setText(selectedCompany, false);
+
+        // 5) Listeners
+        binding.autoMonth.setOnItemClickListener((parent, view, position, id) -> {
+            selectedMonth = position;
+            rebuildDashboard();
         });
-        binding.rvCompanies.setAdapter(adapter);
+        binding.autoCompany.setOnItemClickListener((parent, view, position, id) -> {
+            selectedCompany = (String) parent.getItemAtPosition(position);
+            rebuildDashboard();
+        });
 
-        if (savedInstanceState != null) {
-            sortAsc = savedInstanceState.getBoolean("sortAsc", true);
-            adapter.setAsc(sortAsc);
-            String q = savedInstanceState.getString("q", "");
-            binding.etSearch.setText(q);
-            adapter.setQuery(q);
+        // 6) Construir dashboard
+        rebuildDashboard();
+    }
+
+    // ---------- Dashboard ----------
+    private void rebuildDashboard() {
+        // Empresas a mostrar (todas o una)
+        List<String> companies = new ArrayList<>(data.keySet());
+        if (!"Todas".equals(selectedCompany)) {
+            companies.clear();
+            companies.add(selectedCompany);
         }
 
-        binding.etSearch.addTextChangedListener(new TextWatcher() {
-            @Override public void beforeTextChanged(CharSequence s, int st, int c, int a) {}
-            @Override public void onTextChanged(CharSequence s, int st, int b, int c) {}
-            @Override public void afterTextChanged(Editable s) {
-                adapter.setQuery(s == null ? "" : s.toString());
-            }
-        });
+        // Totales y máximo para normalizar barras
+        int total = 0;
+        int active = 0;
+        int max = 0;
+        for (String c : companies) {
+            int v = data.get(c)[selectedMonth];
+            total += v;
+            if (v > 0) active++;
+            if (v > max) max = v;
+        }
 
-        binding.btnSort.setOnClickListener(this::showSortPopup);
-    }
+        // KPIs
+        binding.tvTotalMonth.setText(String.valueOf(total));
+        binding.tvActiveCompanies.setText(String.valueOf(active));
+        int days = daysInMonth(selectedMonth);
+        binding.tvAvgPerDay.setText(days == 0 ? "0" : String.valueOf(Math.round(total / (double) days)));
 
-    private void showSortPopup(View anchor) {
-        PopupMenu pm = new PopupMenu(requireContext(), anchor);
-        pm.getMenuInflater().inflate(R.menu.menu_reports_sort, pm.getMenu());
-
-        // Marcar correctamente el estado actual
-        pm.getMenu().findItem(R.id.sort_asc).setChecked(sortAsc);
-        pm.getMenu().findItem(R.id.sort_desc).setChecked(!sortAsc);
-
-        pm.setOnMenuItemClickListener(this::onSortItem);
-        pm.show();
-    }
-
-    private boolean onSortItem(MenuItem item) {
-        int id = item.getItemId();
-        if (id == R.id.sort_asc) {
-            sortAsc = true;
-            item.setChecked(true);     // radio
-        } else if (id == R.id.sort_desc) {
-            sortAsc = false;
-            item.setChecked(true);     // radio
+        // Lista de barras
+        binding.listContainer.removeAllViews();
+        if (companies.isEmpty() || max == 0) {
+            binding.tvEmpty.setVisibility(View.VISIBLE);
+            return;
         } else {
-            return false;
+            binding.tvEmpty.setVisibility(View.GONE);
         }
-        adapter.setAsc(sortAsc);
-        return true;
+
+        LayoutInflater inf = LayoutInflater.from(requireContext());
+        for (String c : companies) {
+            int value = data.get(c)[selectedMonth];
+
+            View row = inf.inflate(R.layout.item_report_company_bar, binding.listContainer, false);
+            TextView tvCompany = row.findViewById(R.id.tvCompany);
+            Chip chip = row.findViewById(R.id.chipCount);
+            LinearProgressIndicator prog = row.findViewById(R.id.progress);
+
+            tvCompany.setText(c);
+            chip.setText(String.valueOf(value));
+
+            int percent = max == 0 ? 0 : Math.round(value * 100f / max);
+            if (percent < 2 && value > 0) percent = 2; // que siempre se vea algo si hay valor
+            prog.setProgress(percent);
+
+            binding.listContainer.addView(row);
+        }
+    }
+
+    // ---------- Helpers ----------
+    private void setupMonthDropdown(AutoCompleteTextView view) {
+        String[] months = new DateFormatSymbols(new Locale("es")).getMonths();
+        List<String> list = new ArrayList<>();
+        for (int i = 0; i < 12; i++) list.add(capitalize(months[i]));
+        ArrayAdapter<String> ad = new ArrayAdapter<>(requireContext(),
+                android.R.layout.simple_list_item_1, list);
+        view.setAdapter(ad);
+    }
+
+    private void setupCompanyDropdown(AutoCompleteTextView view) {
+        List<String> items = new ArrayList<>();
+        items.add("Todas");
+        items.addAll(data.keySet());
+        ArrayAdapter<String> ad = new ArrayAdapter<>(requireContext(),
+                android.R.layout.simple_list_item_1, items);
+        view.setAdapter(ad);
+    }
+
+    private String monthLabel(int monthIndex) {
+        String[] months = new DateFormatSymbols(new Locale("es")).getMonths();
+        return capitalize(months[monthIndex]);
+    }
+
+    private String capitalize(String s) {
+        if (s == null || s.isEmpty()) return s;
+        return s.substring(0,1).toUpperCase(new Locale("es")) + s.substring(1);
+    }
+
+    private int daysInMonth(int monthIndex) {
+        Calendar c = Calendar.getInstance();
+        c.set(Calendar.MONTH, monthIndex);
+        c.set(Calendar.DAY_OF_MONTH, 1);
+        return c.getActualMaximum(Calendar.DAY_OF_MONTH);
+    }
+
+    private void seedMock() {
+        // Empresas de transporte (ejemplo)
+        data.put("PeruBus",            new int[]{120,150,160,140,180,210,230,220,190,170,160,200});
+        data.put("Inka Express",       new int[]{ 90,110,130,120,140,160,170,165,150,145,140,155});
+        data.put("Cusco Shuttle",      new int[]{ 60, 70, 80, 90,110,130,140,150,140,120,110,115});
+        data.put("Andes Transit",      new int[]{ 45, 55, 65, 60, 75, 85, 95,100, 90, 80, 70, 75});
+        data.put("Altiplano Coaches",  new int[]{ 30, 40, 50, 55, 60, 70, 80, 85, 78, 72, 66, 70});
     }
 
     @Override public void onSaveInstanceState(@NonNull Bundle out) {
         super.onSaveInstanceState(out);
-        out.putBoolean("sortAsc", sortAsc);
-        out.putString("q", binding.etSearch.getText() == null ? "" : binding.etSearch.getText().toString());
+        out.putInt("month", selectedMonth);
+        out.putString("company", selectedCompany);
     }
 
     @Override public void onDestroyView() {
         super.onDestroyView();
         binding = null;
-    }
-
-    // --------- Mock ----------
-    private List<SaReportsAdapter.CompanyItem> mockCompanies() {
-        String[] names = new String[] {
-                "Andes Adventure Perú",
-                "Aventura Inca Tours",
-                "Camino del Sol Travel",
-                "Cusco Mágico Expeditions",
-                "Descubre Perú Tours",
-                "Explora Andina",
-                "Inka Dreams Travel",
-                "Tierra de los Incas Tours",
-                "Viajes Pachamama"
-        };
-        List<SaReportsAdapter.CompanyItem> list = new ArrayList<>();
-        for (String n : names) list.add(new SaReportsAdapter.CompanyItem(n, 0));
-        return list;
     }
 }

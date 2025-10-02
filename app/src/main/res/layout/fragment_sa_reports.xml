@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- AppBar morado, MISMA campana que 'Usuarios' -->
+    <!-- AppBar morado con la MISMA campana que 'Usuarios' -->
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appBar"
         android:layout_width="0dp"
@@ -24,7 +24,6 @@
             android:background="@color/brand_purple_dark"
             android:theme="@style/ThemeOverlay.Material3.Dark.ActionBar">
 
-            <!-- Título (igual que en Usuarios) -->
             <TextView
                 android:id="@+id/tvTitle"
                 android:layout_width="wrap_content"
@@ -36,7 +35,6 @@
                 android:gravity="center_vertical"
                 android:paddingStart="16dp"/>
 
-            <!-- Campana idéntica -->
             <ImageButton
                 android:id="@+id/btnNotifications"
                 android:layout_width="wrap_content"
@@ -50,66 +48,183 @@
         </com.google.android.material.appbar.MaterialToolbar>
     </com.google.android.material.appbar.AppBarLayout>
 
-    <!-- Botón Orden -->
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnSort"
-        style="@style/Widget.Material3.Button.TonalButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Orden"
-        android:layout_marginTop="12dp"
-        android:layout_marginStart="12dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/appBar"/>
-
-    <!-- Buscador OUTLINED -->
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/tilSearch"
-        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginEnd="12dp"
-        app:layout_constraintStart_toEndOf="@id/btnSort"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@id/btnSort"
-        app:layout_constraintBottom_toBottomOf="@id/btnSort"
-        app:startIconDrawable="@drawable/ic_search_24"
-        app:startIconTint="@color/brand_purple_dark"
-        app:boxBackgroundColor="@android:color/white"
-        app:boxCornerRadiusTopStart="12dp"
-        app:boxCornerRadiusTopEnd="12dp"
-        app:boxCornerRadiusBottomStart="12dp"
-        app:boxCornerRadiusBottomEnd="12dp"
-        app:boxStrokeWidth="1dp"
-        app:boxStrokeWidthFocused="2dp"
-        app:boxStrokeColor="@color/search_stroke">
-
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/etSearch"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@null"
-            android:hint="Nombre"
-            android:imeOptions="actionSearch"
-            android:singleLine="true"
-            android:paddingVertical="10dp"
-            android:textSize="14sp"/>
-    </com.google.android.material.textfield.TextInputLayout>
-
-    <!-- Lista de empresas -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvCompanies"
+    <!-- Contenido -->
+    <ScrollView
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:clipToPadding="false"
-        android:paddingStart="12dp"
-        android:paddingEnd="12dp"
-        android:paddingBottom="16dp"
-        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-        app:layout_constraintTop_toBottomOf="@id/btnSort"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/appBar"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- Filtros: Mes y Empresa -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <!-- Mes -->
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/tilMonth"
+                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="12dp"
+                    android:hint="Mes"
+                    app:boxBackgroundColor="@android:color/white"
+                    app:layout_constraintWidth_default="wrap"
+                    android:layout_weight="1">
+
+                    <AutoCompleteTextView
+                        android:id="@+id/autoMonth"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="none"
+                        android:importantForAutofill="no" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <!-- Empresa -->
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/tilCompany"
+                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:hint="Empresa"
+                    app:boxBackgroundColor="@android:color/white"
+                    android:layout_weight="1">
+
+                    <AutoCompleteTextView
+                        android:id="@+id/autoCompany"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="none"
+                        android:importantForAutofill="no" />
+                </com.google.android.material.textfield.TextInputLayout>
+            </LinearLayout>
+
+            <!-- KPIs -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="16dp">
+
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    app:cardCornerRadius="16dp"
+                    android:layout_weight="1">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="12dp">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Total (mes)"
+                            android:textAppearance="@style/TextAppearance.Material3.BodySmall"/>
+                        <TextView
+                            android:id="@+id/tvTotalMonth"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="0"
+                            android:textStyle="bold"
+                            android:textSize="22sp"/>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    app:cardCornerRadius="16dp"
+                    android:layout_weight="1">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="12dp">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Empresas activas"
+                            android:textAppearance="@style/TextAppearance.Material3.BodySmall"/>
+                        <TextView
+                            android:id="@+id/tvActiveCompanies"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="0"
+                            android:textStyle="bold"
+                            android:textSize="22sp"/>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    app:cardCornerRadius="16dp"
+                    android:layout_weight="1">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="12dp">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Promedio/día"
+                            android:textAppearance="@style/TextAppearance.Material3.BodySmall"/>
+                        <TextView
+                            android:id="@+id/tvAvgPerDay"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="0"
+                            android:textStyle="bold"
+                            android:textSize="22sp"/>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+            </LinearLayout>
+
+            <!-- Título de la sección -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:text="Reservas por empresa (mes)"
+                android:textStyle="bold"
+                android:textAppearance="@style/TextAppearance.Material3.TitleMedium"/>
+
+            <!-- Contenedor de barras por empresa -->
+            <LinearLayout
+                android:id="@+id/listContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="8dp"/>
+
+            <!-- Placeholder si no hay datos -->
+            <TextView
+                android:id="@+id/tvEmpty"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Sin reservas en este mes."
+                android:visibility="gone"
+                android:gravity="center"
+                android:padding="24dp"
+                android:textAppearance="@style/TextAppearance.Material3.BodyMedium"/>
+
+        </LinearLayout>
+    </ScrollView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
