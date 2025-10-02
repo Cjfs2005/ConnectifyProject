@@ -17,15 +17,38 @@
         android:orientation="horizontal"
         android:padding="12dp">
 
-        <!-- Tour Image -->
-        <ImageView
-            android:id="@+id/iv_tour_image"
-            android:layout_width="80dp"
-            android:layout_height="80dp"
+        <!-- Tour Image and Price Container -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_marginEnd="12dp"
-            android:scaleType="centerCrop"
-            android:src="@drawable/cliente_tour_lima"
-            app:cardCornerRadius="8dp" />
+            android:orientation="vertical"
+            android:gravity="center_horizontal">
+
+            <!-- Tour Image -->
+            <ImageView
+                android:id="@+id/iv_tour_image"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:scaleType="centerCrop"
+                android:src="@drawable/cliente_tour_lima"
+                app:cardCornerRadius="8dp" />
+
+            <!-- Tour Price Below Image -->
+            <TextView
+                android:id="@+id/tv_tour_price"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:textAppearance="@style/TextAppearance.Material3.LabelMedium"
+                android:textColor="?attr/colorPrimary"
+                android:textStyle="bold"
+                android:background="@drawable/price_badge_background"
+                android:paddingHorizontal="6dp"
+                android:paddingVertical="2dp"
+                tools:text="S/160.00" />
+
+        </LinearLayout>
 
         <!-- Tour Information -->
         <LinearLayout
@@ -34,38 +57,15 @@
             android:layout_weight="1"
             android:orientation="vertical">
 
-            <!-- Tour Title and Price Row -->
-            <LinearLayout
+            <!-- Tour Title -->
+            <TextView
+                android:id="@+id/tv_tour_title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical">
-
-                <TextView
-                    android:id="@+id/tv_tour_title"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
-                    android:textColor="?attr/colorOnSurface"
-                    android:textStyle="bold"
-                    android:layout_marginEnd="8dp"
-                    tools:text="Tour histórico por Lima" />
-
-                <!-- Tour Price - Integrated -->
-                <TextView
-                    android:id="@+id/tv_tour_price"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
-                    android:textColor="?attr/colorPrimary"
-                    android:textStyle="bold"
-                    android:background="@drawable/price_badge_background"
-                    android:paddingHorizontal="8dp"
-                    android:paddingVertical="2dp"
-                    tools:text="S/160.00" />
-
-            </LinearLayout>
+                android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
+                android:textColor="?attr/colorOnSurface"
+                android:textStyle="bold"
+                tools:text="Tour histórico por Lima" />
 
             <!-- Tour Company -->
             <TextView
