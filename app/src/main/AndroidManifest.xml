@@ -66,6 +66,9 @@
         <activity android:name=".guia_tour_map" android:exported="false" />
         <service android:name=".service.GuiaLocationService" android:enabled="true" android:exported="true" android:foregroundServiceType="location" />
         <activity android:name=".guia_perfil" android:exported="false" />
+        <activity android:name=".guia_editar_perfil" android:exported="false" />
+        <activity android:name=".guia_notificaciones" android:exported="false" />
+        <activity android:name=".guia_permisos" android:exported="false" />
 
         <!-- Pantallas por rol -->
         <activity android:name=".cliente_inicio" android:exported="false" />

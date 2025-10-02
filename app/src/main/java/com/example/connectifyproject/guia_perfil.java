@@ -78,27 +78,21 @@ public class guia_perfil extends AppCompatActivity {
             finish();
         });
 
-        /*
-        // Added for similarity: Edit profile listener (assuming guia_editar_perfil exists)
         binding.editProfile.setOnClickListener(v -> {
             Intent intent = new Intent(this, guia_editar_perfil.class);
             startActivity(intent);
         });
 
-        // Added for similarity: Notifications listener (assuming guia_notificaciones exists)
-        binding.btnNotifications.setOnClickListener(v -> {
+        binding.layoutNotifications.setOnClickListener(v -> {
             Intent intent = new Intent(this, guia_notificaciones.class);
             intent.putExtra("origin_activity", "guia_perfil");
             startActivity(intent);
         });
 
-        // Added for similarity: Permissions listener (assuming guia_permisos exists)
         binding.layoutPermissions.setOnClickListener(v -> {
             Intent intent = new Intent(this, guia_permisos.class);
             startActivity(intent);
         });
-
-         */
 
         BottomNavigationView bottomNav = binding.bottomNav;
         bottomNav.setSelectedItemId(R.id.nav_perfil);
