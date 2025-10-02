@@ -10,6 +10,7 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.example.connectifyproject.models.Cliente_User;
 
 public class cliente_perfil extends AppCompatActivity {
 
@@ -22,6 +23,9 @@ public class cliente_perfil extends AppCompatActivity {
     private LinearLayout layoutPermissions;
     private LinearLayout layoutLogout;
     private BottomNavigationView bottomNavigation;
+    
+    // Modelo de datos del usuario
+    private Cliente_User currentUser;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,6 +33,7 @@ public class cliente_perfil extends AppCompatActivity {
         setContentView(R.layout.cliente_perfil);
 
         initViews();
+        loadUserData();
         setupBottomNavigation();
         setupClickListeners();
     }
@@ -122,6 +127,33 @@ public class cliente_perfil extends AppCompatActivity {
             startActivity(intent);
             finish();
         });
+    }
+
+    private void loadUserData() {
+        // TODO: En producción, esto vendría de una API o base de datos
+        // Por ahora usamos datos hardcodeados a través del método estático
+        currentUser = Cliente_User.crearUsuarioEjemplo();
+        
+        // Actualizar la interfaz con los datos cargados
+        updateUserInterface();
+    }
+
+    private void updateUserInterface() {
+        if (currentUser != null) {
+            // Actualizar nombre de usuario
+            tvUserName.setText(currentUser.getNombreCompleto());
+            
+            // TODO: En el futuro se pueden actualizar otros campos del perfil
+            // que actualmente están hardcodeados en el XML
+            // Por ejemplo:
+            // - Cargar imagen de perfil si existe: currentUser.getFotoPerfilUrl()
+            // - Mostrar datos dinámicos en lugar de los hardcodeados en XML
+        }
+    }
+
+    // Método para obtener el usuario actual (útil para otras activities)
+    public Cliente_User getCurrentUser() {
+        return currentUser;
     }
 
 

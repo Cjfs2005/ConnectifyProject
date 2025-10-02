@@ -10,11 +10,13 @@ import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.DatePicker;
 import android.widget.ImageView;
+import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
+import com.example.connectifyproject.models.Cliente_User;
 import java.util.Calendar;
 
 public class cliente_editar_perfil extends AppCompatActivity {
@@ -28,6 +30,9 @@ public class cliente_editar_perfil extends AppCompatActivity {
     private TextInputLayout tilFechaNacimiento;
     
     private String[] tiposDocumento = {"DNI", "Pasaporte", "Carnet de extranjería"};
+    
+    // Modelo de datos del usuario
+    private Cliente_User currentUser;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -151,9 +156,20 @@ public class cliente_editar_perfil extends AppCompatActivity {
     }
 
     private void loadUserData() {
-        // TODO: Replace with actual backend call
-        // For now, data is already set in the XML layout
-        // This method would typically make an API call to get user profile data
+        // TODO: En producción, esto vendría de Intent extras o API
+        // Por ahora usamos datos hardcodeados
+        currentUser = Cliente_User.crearUsuarioEjemplo();
+        
+        // Cargar datos en los campos del formulario
+        if (currentUser != null) {
+            etNombre.setText(currentUser.getNombre());
+            etApellido.setText(currentUser.getApellidos());
+            spinnerTipoDocumento.setText(currentUser.getTipoDocumento(), false);
+            etNumeroDocumento.setText(currentUser.getNumeroDocumento());
+            etTelefono.setText(currentUser.getTelefono());
+            etFechaNacimiento.setText(currentUser.getFechaNacimiento());
+            etDomicilio.setText(currentUser.getDomicilio());
+        }
     }
 
     private void saveProfile() {
@@ -173,8 +189,21 @@ public class cliente_editar_perfil extends AppCompatActivity {
             return;
         }
 
-        // TODO: Send data to backend
-        // For now, just finish the activity
+        // Actualizar el modelo con los nuevos datos
+        if (currentUser != null) {
+            currentUser.setNombre(nombre);
+            currentUser.setApellidos(apellido);
+            currentUser.setTipoDocumento(tipoDocumento);
+            currentUser.setNumeroDocumento(numeroDocumento);
+            currentUser.setTelefono(telefono);
+            currentUser.setFechaNacimiento(fechaNacimiento);
+            currentUser.setDomicilio(domicilio);
+        }
+        
+        // TODO: Send data to backend/API
+        // Por ahora solo mostramos un mensaje de éxito
+        Toast.makeText(this, "Perfil actualizado correctamente", Toast.LENGTH_SHORT).show();
+        
         finish();
     }
 
