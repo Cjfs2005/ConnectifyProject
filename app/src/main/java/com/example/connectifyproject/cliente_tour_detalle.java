@@ -24,8 +24,8 @@ import java.util.List;
 public class cliente_tour_detalle extends AppCompatActivity implements Cliente_ServiciosAdapter.OnServiceSelectedListener {
 
     private MaterialToolbar toolbar;
-    private TextView tvTourLocation, tvTourDuration, tvStartTime, tvEndTime, tvTourCompany;
-    private TextView tvTourPriceBadge, tvPeopleCount, tvTotalPrice;
+    private TextView tvTourLocation, tvTourPriceMain, tvStartTime, tvEndTime, tvTourCompany;
+    private TextView tvPeopleCount, tvTotalPrice;
     private RecyclerView rvServiciosAdicionales;
     private ImageButton btnDecreasePeople, btnIncreasePeople;
     private MaterialButton btnContinuar;
@@ -74,11 +74,10 @@ public class cliente_tour_detalle extends AppCompatActivity implements Cliente_S
     private void initViews() {
         toolbar = findViewById(R.id.toolbar);
         tvTourLocation = findViewById(R.id.tv_tour_location);
-        tvTourDuration = findViewById(R.id.tv_tour_duration);
+        tvTourPriceMain = findViewById(R.id.tv_tour_price_main);
         tvStartTime = findViewById(R.id.tv_start_time);
         tvEndTime = findViewById(R.id.tv_end_time);
         tvTourCompany = findViewById(R.id.tv_tour_company);
-        tvTourPriceBadge = findViewById(R.id.tv_tour_price_badge);
         tvPeopleCount = findViewById(R.id.tv_people_count);
         tvTotalPrice = findViewById(R.id.tv_total_price);
         rvServiciosAdicionales = findViewById(R.id.rv_servicios_adicionales);
@@ -160,13 +159,12 @@ public class cliente_tour_detalle extends AppCompatActivity implements Cliente_S
 
     private void updateUI() {
         tvTourLocation.setText(tour.getUbicacion());
-        tvTourDuration.setText(tour.getDuracion());
+        tvTourPriceMain.setText("S/" + String.format("%.2f", tour.getPrecio()));
         tvTourCompany.setText(tour.getCompanyName());
-        tvTourPriceBadge.setText("S/" + String.format("%.2f", tour.getPrecio()));
         
-        // Datos hardcodeados para las fechas
-        tvStartTime.setText("Hoy - 13:10");
-        tvEndTime.setText("Hoy - 18:40");
+        // Usar fechas y horas del objeto tour
+        tvStartTime.setText(tour.getDate() + " - " + tour.getStartTime());
+        tvEndTime.setText(tour.getDate() + " - " + tour.getEndTime());
         
         updatePeopleCount();
     }

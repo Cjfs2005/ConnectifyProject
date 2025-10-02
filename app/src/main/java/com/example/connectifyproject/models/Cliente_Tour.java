@@ -8,6 +8,8 @@ public class Cliente_Tour implements Serializable {
     private String company;
     private String duration;
     private String date;
+    private String startTime;
+    private String endTime;
     private double price;
     private String location;
     private String description;
@@ -22,6 +24,25 @@ public class Cliente_Tour implements Serializable {
         this.company = company;
         this.duration = duration;
         this.date = date;
+        this.startTime = "13:10"; // Valor por defecto
+        this.endTime = "18:40"; // Valor por defecto
+        this.price = price;
+        this.location = location;
+        this.description = description;
+        this.companyName = company;
+    }
+    
+    // Constructor completo con horarios
+    public Cliente_Tour(String id, String title, String company, String duration, 
+                       String date, String startTime, String endTime, double price, 
+                       String location, String description) {
+        this.id = id;
+        this.title = title;
+        this.company = company;
+        this.duration = duration;
+        this.date = date;
+        this.startTime = startTime;
+        this.endTime = endTime;
         this.price = price;
         this.location = location;
         this.description = description;
@@ -41,6 +62,8 @@ public class Cliente_Tour implements Serializable {
         this.companyName = nombreEmpresa;
         this.company = nombreEmpresa;
         this.date = "Hoy"; // Valor por defecto
+        this.startTime = "13:10"; // Valor por defecto
+        this.endTime = "18:40"; // Valor por defecto
     }
 
     // Getters
@@ -49,6 +72,8 @@ public class Cliente_Tour implements Serializable {
     public String getCompany() { return company; }
     public String getDuration() { return duration; }
     public String getDate() { return date; }
+    public String getStartTime() { return startTime; }
+    public String getEndTime() { return endTime; }
     public double getPrice() { return price; }
     public String getLocation() { return location; }
     public String getDescription() { return description; }
@@ -68,6 +93,8 @@ public class Cliente_Tour implements Serializable {
     public void setCompany(String company) { this.company = company; this.companyName = company; }
     public void setDuration(String duration) { this.duration = duration; }
     public void setDate(String date) { this.date = date; }
+    public void setStartTime(String startTime) { this.startTime = startTime; }
+    public void setEndTime(String endTime) { this.endTime = endTime; }
     public void setPrice(double price) { this.price = price; }
     public void setLocation(String location) { this.location = location; }
     public void setDescription(String description) { this.description = description; }
