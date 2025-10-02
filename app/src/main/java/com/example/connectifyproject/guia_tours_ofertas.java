@@ -26,7 +26,7 @@ public class guia_tours_ofertas extends AppCompatActivity implements GuiaFilterD
     private GuiaToursOfertasBinding binding;
     private GuiaTourAdapter adapter;
     private List<GuiaTour> allTours;
-    private List<GuiaItem> displayedItems = new ArrayList<>(); // Inicializar aquí para evitar null
+    private List<GuiaItem> displayedItems = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,7 +34,6 @@ public class guia_tours_ofertas extends AppCompatActivity implements GuiaFilterD
         binding = GuiaToursOfertasBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        // Hardcoded data (updated dates near current: September 2025+)
         allTours = new ArrayList<>();
         allTours.add(new GuiaTour("Tour por Centro Histórico de Lima", "Lima, Lima", 250, "9 horas", "Español,Inglés", "12:00", "23/10/2025",
                 "Visita Plaza de Armas, Catedral, etc.", "Pago neto, Almuerzo incluido, Certificado", "9:00 a.m. - 5:00 p.m.", "Avenida del Sol 1457, Playa Serena, Lima",
@@ -49,57 +48,31 @@ public class guia_tours_ofertas extends AppCompatActivity implements GuiaFilterD
                 "Explora monumentos coloniales.", "Pago neto, Transporte incluido", "8:00 a.m. - 4:00 p.m.", "Plaza Mayor, Lima",
                 "PeruGuides Inc", "Catedral (2hrs), Museo (1hr30min)", "2 años experiencia", "Alta puntualidad requerida", true, false));
 
-        // Setup RecyclerView PRIMERO
         binding.recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new GuiaTourAdapter(this, displayedItems); // Pasar lista vacía inicialmente
+        adapter = new GuiaTourAdapter(this, displayedItems);
         binding.recyclerView.setAdapter(adapter);
 
-        // Ahora llamar al filtro inicial
         onApplyFilters(null, null, null, null, null);
 
-        // Filter button
         binding.filterButton.setOnClickListener(v -> {
             GuiaFilterDialogFragment dialog = new GuiaFilterDialogFragment();
             dialog.show(getSupportFragmentManager(), "guia_filter_dialog");
         });
 
-        // Bottom Navigation original (comentado como solicitado)
-        /*
         BottomNavigationView bottomNav = binding.bottomNav;
         bottomNav.setSelectedItemId(R.id.nav_ofertas);
         bottomNav.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
             if (id == R.id.nav_historial) {
-                startActivity(new Intent(this, guia_historial.class)); // Placeholder, renombrado
+                startActivity(new Intent(this, guia_historial.class));
                 return true;
             } else if (id == R.id.nav_ofertas) {
                 return true;
             } else if (id == R.id.nav_tours) {
-                startActivity(new Intent(this, guia_assigned_tours.class)); // Renombrado
+                startActivity(new Intent(this, guia_assigned_tours.class));
                 return true;
             } else if (id == R.id.nav_perfil) {
-                startActivity(new Intent(this, guia_perfil.class)); // Placeholder, renombrado
-                return true;
-            }
-            return false;
-        });
-        */
-
-        // Nuevo Bottom Navigation con Toast
-        BottomNavigationView newBottomNav = binding.bottomNav;
-        newBottomNav.setSelectedItemId(R.id.nav_ofertas);
-        newBottomNav.setOnItemSelectedListener(item -> {
-            int id = item.getItemId();
-            if (id == R.id.nav_historial) {
-                startActivity(new Intent(this, guia_historial.class)); // Placeholder, renombrado
-                return true;
-            } else if (id == R.id.nav_ofertas) {
-                return true;
-            } else if (id == R.id.nav_tours) {
-                startActivity(new Intent(this, guia_assigned_tours.class)); // Renombrado
-                return true;
-            } else if (id == R.id.nav_perfil) {
-                startActivity(new Intent(this, guia_perfil.class)); // Placeholder, renombrado
+                startActivity(new Intent(this, guia_perfil.class));
                 return true;
             }
             return false;
@@ -124,14 +97,13 @@ public class guia_tours_ofertas extends AppCompatActivity implements GuiaFilterD
                     if (tourDate.after(toDate)) matches = false;
                 }
             } catch (ParseException e) {
-                matches = false; // Invalid date skips
+                matches = false;
             }
             if (amount != null && !amount.isEmpty()) {
                 try {
-                    double maxAmount = Double.parseDouble(amount.replaceAll("[^0-9.]", "")); // Clean S/.
+                    double maxAmount = Double.parseDouble(amount.replaceAll("[^0-9.]", ""));
                     if (tour.getPrice() > maxAmount) matches = false;
                 } catch (NumberFormatException e) {
-                    // Ignore invalid
                 }
             }
             if (duration != null && !duration.isEmpty() && !tour.getDuration().toLowerCase().contains(duration.toLowerCase())) matches = false;
@@ -139,19 +111,17 @@ public class guia_tours_ofertas extends AppCompatActivity implements GuiaFilterD
             if (matches) filteredTours.add(tour);
         }
 
-        // Group by date with headers
-        displayedItems.clear(); // Limpiar la lista existente
+        displayedItems.clear();
         String currentDate = null;
         for (GuiaTour tour : filteredTours) {
             if (!tour.getDate().equals(currentDate)) {
                 currentDate = tour.getDate();
-                String header = (currentDate.equals("23/10/2025") ? "Hoy, 23 de Octubre" : "Mañana, 24 de Octubre"); // Dynamic based on date
+                String header = (currentDate.equals("23/10/2025") ? "Hoy, 23 de Octubre" : "Mañana, 24 de Octubre");
                 displayedItems.add(new GuiaItem(header));
             }
             displayedItems.add(new GuiaItem(tour));
         }
 
-        // Show no results if empty
         if (displayedItems.isEmpty()) {
             binding.noResultsView.setVisibility(View.VISIBLE);
             binding.recyclerView.setVisibility(View.GONE);
@@ -160,6 +130,6 @@ public class guia_tours_ofertas extends AppCompatActivity implements GuiaFilterD
             binding.recyclerView.setVisibility(View.VISIBLE);
         }
 
-        adapter.updateItems(displayedItems); // Ahora adapter no es null
+        adapter.updateItems(displayedItems);
     }
 }

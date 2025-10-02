@@ -4,7 +4,6 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- Usa AppBarLayout para anclar el Toolbar -->
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -22,8 +21,8 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
-        android:paddingBottom="72dp"
-        android:clipToPadding="false"> <!-- Nuevo: Evita que el padding corte el contenido -->
+        android:paddingBottom="80dp"
+        android:clipToPadding="false">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -31,20 +30,17 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- Imagen reducida para no ocupar tanto espacio -->
             <ImageView
                 android:id="@+id/tour_image"
                 android:layout_width="match_parent"
-                android:layout_height="150dp"
-                android:scaleType="centerCrop"
-                android:src="@drawable/ic_tour_banner" />
+                android:layout_height="180dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/ic_tour_banner" />
 
-            <!-- CardView para separar la información del tour -->
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:layout_marginBottom="16dp"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="6dp"
                 android:background="@android:color/white">
@@ -55,98 +51,182 @@
                     android:orientation="vertical"
                     android:padding="16dp">
 
+                    <!-- Improved header section -->
                     <TextView
                         android:id="@+id/tour_name"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:textStyle="bold"
-                        android:textSize="18sp" />
+                        android:textSize="20sp"
+                        android:textColor="@android:color/black" />
+
                     <TextView
                         android:id="@+id/tour_location"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:textSize="16sp" />
+                        android:textSize="16sp"
+                        android:textColor="#757575"
+                        android:layout_marginTop="4dp" />
+
                     <TextView
                         android:id="@+id/tour_duration"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:textSize="16sp" />
+                        android:textSize="16sp"
+                        android:textColor="#757575"
+                        android:layout_marginTop="4dp" />
+
+                    <!-- Divider for sections -->
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="#E0E0E0"
+                        android:layout_marginTop="16dp"
+                        android:layout_marginBottom="16dp" />
+
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Detalles del Tour"
                         android:textStyle="bold"
-                        android:layout_marginTop="8dp" />
+                        android:textSize="18sp"
+                        android:textColor="@android:color/black" />
+
                     <TextView
                         android:id="@+id/tour_empresa"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content" />
+                        android:layout_height="wrap_content"
+                        android:textSize="16sp"
+                        android:textColor="#212121"
+                        android:layout_marginTop="8dp" />
+
                     <TextView
                         android:id="@+id/tour_itinerario"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content" />
+                        android:layout_height="wrap_content"
+                        android:textSize="16sp"
+                        android:textColor="#212121"
+                        android:layout_marginTop="4dp" />
+
                     <TextView
                         android:id="@+id/tour_description"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content" />
+                        android:layout_height="wrap_content"
+                        android:textSize="16sp"
+                        android:textColor="#212121"
+                        android:layout_marginTop="4dp" />
+
+                    <!-- Divider -->
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="#E0E0E0"
+                        android:layout_marginTop="16dp"
+                        android:layout_marginBottom="16dp" />
+
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Requerimientos"
                         android:textStyle="bold"
-                        android:layout_marginTop="8dp" />
+                        android:textSize="18sp"
+                        android:textColor="@android:color/black" />
+
                     <TextView
                         android:id="@+id/tour_languages"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content" />
+                        android:layout_height="wrap_content"
+                        android:textSize="16sp"
+                        android:textColor="#212121"
+                        android:layout_marginTop="8dp" />
+
                     <TextView
                         android:id="@+id/tour_experience"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content" />
+                        android:layout_height="wrap_content"
+                        android:textSize="16sp"
+                        android:textColor="#212121"
+                        android:layout_marginTop="4dp" />
+
                     <TextView
                         android:id="@+id/tour_punctuality"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content" />
+                        android:layout_height="wrap_content"
+                        android:textSize="16sp"
+                        android:textColor="#212121"
+                        android:layout_marginTop="4dp" />
+
+                    <!-- Divider -->
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="#E0E0E0"
+                        android:layout_marginTop="16dp"
+                        android:layout_marginBottom="16dp" />
+
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Beneficios"
                         android:textStyle="bold"
-                        android:layout_marginTop="8dp" />
+                        android:textSize="18sp"
+                        android:textColor="@android:color/black" />
+
                     <TextView
                         android:id="@+id/tour_benefits"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content" />
+                        android:layout_height="wrap_content"
+                        android:textSize="16sp"
+                        android:textColor="#212121"
+                        android:layout_marginTop="8dp" />
+
                     <TextView
                         android:id="@+id/tour_schedule"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content" />
+                        android:layout_height="wrap_content"
+                        android:textSize="16sp"
+                        android:textColor="#212121"
+                        android:layout_marginTop="4dp" />
+
+                    <!-- Divider -->
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="#E0E0E0"
+                        android:layout_marginTop="16dp"
+                        android:layout_marginBottom="16dp" />
+
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Ubicación"
                         android:textStyle="bold"
-                        android:layout_marginTop="8dp" />
+                        android:textSize="18sp"
+                        android:textColor="@android:color/black" />
+
                     <TextView
                         android:id="@+id/tour_meeting_point"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content" />
+                        android:layout_height="wrap_content"
+                        android:textSize="16sp"
+                        android:textColor="#212121"
+                        android:layout_marginTop="8dp" />
 
                     <com.google.android.gms.maps.MapView
                         android:id="@+id/map_view"
                         android:layout_width="match_parent"
-                        android:layout_height="200dp" />
+                        android:layout_height="220dp"
+                        android:layout_marginTop="8dp" />
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- Botones debajo del mapa, con margen inferior para no tocar el bottom nav -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center"
-                android:layout_marginTop="16dp"
-                android:layout_marginBottom="16dp">  <!-- Nuevo margen inferior -->
+                android:layout_marginTop="24dp"
+                android:layout_marginBottom="24dp">
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/accept_button"
@@ -154,9 +234,10 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="Aceptar"
-                    android:backgroundTint="@android:color/holo_green_dark"
-                    android:textColor="@android:color/white"
-                    android:layout_marginEnd="8dp" />
+                    android:backgroundTint="#4CAF50"
+                android:textColor="@android:color/white"
+                android:layout_marginEnd="12dp"
+                app:cornerRadius="8dp" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/reject_button"
@@ -164,8 +245,9 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="Rechazar"
-                    android:backgroundTint="@android:color/holo_red_dark"
-                    android:textColor="@android:color/white" />
+                    android:backgroundTint="#F44336"
+                android:textColor="@android:color/white"
+                app:cornerRadius="8dp" />
             </LinearLayout>
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
