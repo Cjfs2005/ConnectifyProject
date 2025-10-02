@@ -11,16 +11,21 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.connectifyproject.adapters.ChatCompanyAdapter;
+import com.example.connectifyproject.adapters.Cliente_ChatCompanyAdapter;
+import com.example.connectifyproject.models.Cliente_ChatCompany;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class cliente_chat_list extends AppCompatActivity {
 
     private RecyclerView recyclerView;
-    private ChatCompanyAdapter adapter;
+    private Cliente_ChatCompanyAdapter adapter;
     private EditText searchEditText;
     private ImageButton btnNotifications;
     private BottomNavigationView bottomNavigation;
+    private List<Cliente_ChatCompany> companies;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,7 +57,8 @@ public class cliente_chat_list extends AppCompatActivity {
 
     private void setupRecyclerView() {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new ChatCompanyAdapter(this);
+        loadCompaniesData();
+        adapter = new Cliente_ChatCompanyAdapter(this, companies);
         recyclerView.setAdapter(adapter);
     }
 
@@ -77,6 +83,18 @@ public class cliente_chat_list extends AppCompatActivity {
             intent.putExtra("origin_activity", "cliente_chat_list");
             startActivity(intent);
         });
+    }
+
+    private void loadCompaniesData() {
+        companies = new ArrayList<>();
+        // Todos con la imagen de Lima Tours como solicitado
+        companies.add(new Cliente_ChatCompany("Lima Tours", "Quedo atento para cualquier consulta", "10 min", R.drawable.cliente_tour_lima));
+        companies.add(new Cliente_ChatCompany("Arequipa Adventures", "El tour de mañana está confirmado", "25 min", R.drawable.cliente_tour_lima));
+        companies.add(new Cliente_ChatCompany("Cusco Explorer", "Gracias por contactarnos", "1 h", R.drawable.cliente_tour_lima));
+        companies.add(new Cliente_ChatCompany("Trujillo Expeditions", "¿En qué horario prefiere el tour?", "2 h", R.drawable.cliente_tour_lima));
+        companies.add(new Cliente_ChatCompany("Iquitos Nature", "Perfecto, nos vemos en el punto de encuentro", "1 día", R.drawable.cliente_tour_lima));
+        companies.add(new Cliente_ChatCompany("Paracas Ocean", "El tour incluye almuerzo típico", "2 días", R.drawable.cliente_tour_lima));
+        companies.add(new Cliente_ChatCompany("Huacachina Desert", "¿Cuántas personas serán para el tour?", "3 días", R.drawable.cliente_tour_lima));
     }
 
     private void setupBottomNavigation() {

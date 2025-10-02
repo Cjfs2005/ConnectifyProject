@@ -10,6 +10,7 @@
     android:focusable="true"
     app:cardCornerRadius="8dp"
     app:cardElevation="1dp"
+    app:cardBackgroundColor="@android:color/white"
     app:rippleColor="?attr/colorPrimary"
     style="@style/Widget.Material3.CardView.Filled">
 

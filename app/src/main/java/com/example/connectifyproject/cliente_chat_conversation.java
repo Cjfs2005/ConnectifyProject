@@ -10,7 +10,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.connectifyproject.adapters.ChatMessageAdapter;
+import com.example.connectifyproject.adapters.Cliente_ChatMessageAdapter;
+import com.example.connectifyproject.models.Cliente_ChatMessage;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
@@ -23,7 +24,7 @@ import java.util.Locale;
 public class cliente_chat_conversation extends AppCompatActivity {
 
     private RecyclerView recyclerViewMessages;
-    private ChatMessageAdapter messageAdapter;
+    private Cliente_ChatMessageAdapter messageAdapter;
     private EditText editTextMessage;
     private FloatingActionButton fabSend;
     private MaterialToolbar toolbar;
@@ -31,7 +32,7 @@ public class cliente_chat_conversation extends AppCompatActivity {
     private TextView tvCompanyNameToolbar;
     private TextView tvStatus;
 
-    private List<ChatMessageAdapter.MessageData> messages;
+    private List<Cliente_ChatMessage> messages;
     private String companyName;
     private int companyLogo;
 
@@ -84,7 +85,7 @@ public class cliente_chat_conversation extends AppCompatActivity {
 
     private void setupRecyclerView() {
         messages = new ArrayList<>();
-        messageAdapter = new ChatMessageAdapter(messages);
+        messageAdapter = new Cliente_ChatMessageAdapter(messages);
         
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         layoutManager.setStackFromEnd(true);
@@ -103,8 +104,8 @@ public class cliente_chat_conversation extends AppCompatActivity {
             String currentTime = getCurrentTime();
             
             // Agregar mensaje del usuario
-            messages.add(new ChatMessageAdapter.MessageData(messageText, currentTime, true));
-            messageAdapter.notifyItemInserted(messages.size() - 1);
+            Cliente_ChatMessage userMessage = new Cliente_ChatMessage(messageText, currentTime, true);
+            messageAdapter.addMessage(userMessage);
             editTextMessage.setText("");
             
             // Scroll to the bottom
@@ -123,8 +124,8 @@ public class cliente_chat_conversation extends AppCompatActivity {
             String backendResponse = getBackendResponseForMessage(userMessage, companyName);
             String currentTime = getCurrentTime();
             
-            messages.add(new ChatMessageAdapter.MessageData(backendResponse, currentTime, false));
-            messageAdapter.notifyItemInserted(messages.size() - 1);
+            Cliente_ChatMessage companyMessage = new Cliente_ChatMessage(backendResponse, currentTime, false);
+            messageAdapter.addMessage(companyMessage);
             
             // Scroll to the bottom
             recyclerViewMessages.scrollToPosition(messages.size() - 1);
@@ -183,7 +184,7 @@ public class cliente_chat_conversation extends AppCompatActivity {
             String time = messageData[1];
             boolean isFromUser = Boolean.parseBoolean(messageData[2]);
             
-            messages.add(new ChatMessageAdapter.MessageData(messageText, time, isFromUser));
+            messages.add(new Cliente_ChatMessage(messageText, time, isFromUser));
         }
         
         messageAdapter.notifyDataSetChanged();
