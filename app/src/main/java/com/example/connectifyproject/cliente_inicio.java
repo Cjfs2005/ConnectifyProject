@@ -13,7 +13,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.example.connectifyproject.models.Cliente_Tour;
-import com.example.connectifyproject.adapters.cliente_gallery_tour_adapter;
+import com.example.connectifyproject.adapters.Cliente_GalleryTourAdapter;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -47,8 +47,8 @@ public class cliente_inicio extends AppCompatActivity {
     private RecyclerView rvToursCercanos;
     
     // Adapters para los RecyclerViews
-    private cliente_gallery_tour_adapter adapterToursRecientes;
-    private cliente_gallery_tour_adapter adapterToursCercanos;
+    private Cliente_GalleryTourAdapter adapterToursRecientes;
+    private Cliente_GalleryTourAdapter adapterToursCercanos;
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -122,7 +122,7 @@ public class cliente_inicio extends AppCompatActivity {
         
         // Obtener datos de tours recientes y configurar adapter
         List<Cliente_Tour> toursRecientes = generarToursRecientes();
-        adapterToursRecientes = new cliente_gallery_tour_adapter(this, toursRecientes);
+        adapterToursRecientes = new Cliente_GalleryTourAdapter(this, toursRecientes);
         adapterToursRecientes.setOnTourClickListener(tour -> {
             // Navegar al detalle del tour pasando el objeto completo
             Intent intent = new Intent(this, cliente_tour_detalle.class);
@@ -137,7 +137,7 @@ public class cliente_inicio extends AppCompatActivity {
         
         // Obtener datos de tours cercanos y configurar adapter
         List<Cliente_Tour> toursCercanos = generarToursCercanos();
-        adapterToursCercanos = new cliente_gallery_tour_adapter(this, toursCercanos);
+        adapterToursCercanos = new Cliente_GalleryTourAdapter(this, toursCercanos);
         adapterToursCercanos.setOnTourClickListener(tour -> {
             // Navegar al detalle del tour pasando el objeto completo
             Intent intent = new Intent(this, cliente_tour_detalle.class);

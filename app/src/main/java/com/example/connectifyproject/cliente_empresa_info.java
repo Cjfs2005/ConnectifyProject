@@ -9,7 +9,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.connectifyproject.models.Cliente_Tour;
-import com.example.connectifyproject.adapters.cliente_gallery_tour_adapter;
+import com.example.connectifyproject.adapters.Cliente_GalleryTourAdapter;
 import com.google.android.material.appbar.MaterialToolbar;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,7 +18,7 @@ public class cliente_empresa_info extends AppCompatActivity {
 
     private RecyclerView rvReviews, rvToursGallery;
     private Cliente_ReviewsAdapter reviewsAdapter;
-    private cliente_gallery_tour_adapter toursGalleryAdapter;
+    private Cliente_GalleryTourAdapter toursGalleryAdapter;
     private List<Cliente_Review> reviewsList;
     private List<Cliente_Tour> toursGalleryList;
     private TextView tvVerMasReviews;
@@ -112,7 +112,7 @@ public class cliente_empresa_info extends AppCompatActivity {
             "Recorre el distrito más artístico y cultural de Lima",
             "5 horas", 90.0, "Barranco", 4.6f, "Lima Tours"));
 
-        toursGalleryAdapter = new cliente_gallery_tour_adapter(this, toursGalleryList);
+        toursGalleryAdapter = new Cliente_GalleryTourAdapter(this, toursGalleryList);
         // El adapter ya maneja la navegación por defecto con objetos completos
         LinearLayoutManager layoutManager = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
         rvToursGallery.setLayoutManager(layoutManager);

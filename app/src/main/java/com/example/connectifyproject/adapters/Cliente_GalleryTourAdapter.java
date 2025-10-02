@@ -20,7 +20,7 @@ import java.util.List;
  * Usado en cliente_inicio y cliente_empresa_info
  * Basado en el diseño de cliente_item_tour_gallery.xml
  */
-public class cliente_gallery_tour_adapter extends RecyclerView.Adapter<cliente_gallery_tour_adapter.TourViewHolder> {
+public class Cliente_GalleryTourAdapter extends RecyclerView.Adapter<Cliente_GalleryTourAdapter.TourViewHolder> {
     
     private Context context;
     private List<Cliente_Tour> tours;
@@ -30,7 +30,7 @@ public class cliente_gallery_tour_adapter extends RecyclerView.Adapter<cliente_g
         void onTourClick(Cliente_Tour tour);
     }
     
-    public cliente_gallery_tour_adapter(Context context, List<Cliente_Tour> tours) {
+    public Cliente_GalleryTourAdapter(Context context, List<Cliente_Tour> tours) {
         this.context = context;
         this.tours = tours;
     }
