@@ -19,59 +19,51 @@
         app:title="Tours"
         app:titleTextColor="?attr/colorOnPrimary">
 
-        <!-- Notifications Button -->
-        <ImageButton
-            android:id="@+id/btn_notifications"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+        <!-- Action Buttons -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_gravity="end"
-            android:layout_marginEnd="8dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Notificaciones"
-            android:src="@drawable/ic_bell"
-            app:tint="?attr/colorOnPrimary" />
+            android:orientation="horizontal">
+
+            <!-- Filter Button -->
+            <ImageButton
+                android:id="@+id/btn_filtros"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginEnd="4dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Filtros"
+                android:src="@drawable/ic_filter_list_24"
+                app:tint="?attr/colorOnPrimary" />
+
+            <!-- Notifications Button -->
+            <ImageButton
+                android:id="@+id/btn_notifications"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginEnd="8dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Notificaciones"
+                android:src="@drawable/ic_bell"
+                app:tint="?attr/colorOnPrimary" />
+
+        </LinearLayout>
 
     </com.google.android.material.appbar.MaterialToolbar>
 
-    <!-- Content Area -->
-    <LinearLayout
+    <!-- Tours RecyclerView -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv_tours"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:orientation="vertical"
+        android:clipToPadding="false"
         android:padding="16dp"
         app:layout_constraintBottom_toTopOf="@id/bottom_navigation"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/toolbar">
-
-        <!-- Filter Button -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="end"
-            android:layout_marginBottom="16dp">
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_filtros"
-                style="@style/Widget.Material3.Button.OutlinedButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Filtros"
-                app:icon="@drawable/ic_filter_list_24"
-                app:iconGravity="start" />
-
-        </LinearLayout>
-
-        <!-- Tours RecyclerView -->
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rv_tours"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:clipToPadding="false"
-            android:paddingBottom="8dp"
-            tools:listitem="@layout/cliente_item_tour" />
-
-    </LinearLayout>
+        app:layout_constraintTop_toBottomOf="@id/toolbar"
+        tools:listitem="@layout/cliente_item_tour" />
 
     <!-- Bottom Navigation -->
     <com.google.android.material.bottomnavigation.BottomNavigationView

@@ -63,7 +63,11 @@ public class cliente_tour_filtros extends AppCompatActivity {
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setTitle("Filtros de tours");
         }
+        
+        // Configurar el color blanco para el botón de retroceder
+        toolbar.setNavigationIconTint(getResources().getColor(android.R.color.white));
         
         toolbar.setNavigationOnClickListener(v -> onBackPressed());
     }

@@ -11,7 +11,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.connectifyproject.adapters.Cliente_ToursAdapter;
 import com.example.connectifyproject.models.Cliente_Tour;
-import com.google.android.material.button.MaterialButton;
+import android.widget.ImageButton;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import java.util.ArrayList;
@@ -20,7 +20,7 @@ import java.util.List;
 public class cliente_tours extends AppCompatActivity {
 
     private ImageButton btnNotifications;
-    private MaterialButton btnFiltros;
+    private ImageButton btnFiltros;
     private RecyclerView rvTours;
     private Cliente_ToursAdapter toursAdapter;
     private List<Cliente_Tour> allTours;
