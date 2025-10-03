@@ -52,7 +52,7 @@ public class GuiaAssignedTourAdapter extends RecyclerView.Adapter<RecyclerView.V
             GuiaAssignedTour tour = item.getAssignedTour();
             AssignedTourViewHolder tourHolder = (AssignedTourViewHolder) holder;
             tourHolder.binding.tourName.setText(tour.getName());
-            tourHolder.binding.tourStatus.setText("Estado: " + (tour.getStatus().equals("En Curso") ? "En Curso 🟢" : tour.getStatus()));
+            tourHolder.binding.tourStatus.setText("Estado: " + (tour.getStatus().equals("En Curso") ? "En Curso" : tour.getStatus()));
             tourHolder.binding.tourEmpresa.setText("Empresa: " + tour.getEmpresa());
             tourHolder.binding.tourInitio.setText("Inicio: " + tour.getInitio());
             tourHolder.binding.tourDuration.setText("Duración: " + tour.getDuration());
