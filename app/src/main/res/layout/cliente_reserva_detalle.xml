@@ -404,37 +404,52 @@
                             android:orientation="vertical"
                             android:layout_marginStart="8dp">
 
-                            <TextView
-                                android:id="@+id/tv_servicio_linea_1"
+                            <!-- Primera línea de servicio -->
+                            <LinearLayout
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:textAppearance="@style/TextAppearance.Material3.BodySmall"
-                                tools:text="• Folleto turístico (2 personas)" />
+                                android:orientation="horizontal"
+                                android:layout_marginBottom="4dp">
 
-                            <TextView
-                                android:id="@+id/tv_monto_linea_1"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:gravity="end"
-                                android:textAppearance="@style/TextAppearance.Material3.BodySmall"
-                                android:textStyle="bold"
-                                tools:text="S/0.00" />
+                                <TextView
+                                    android:id="@+id/tv_servicio_linea_1"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:textAppearance="@style/TextAppearance.Material3.BodySmall"
+                                    tools:text="• Folleto turístico (2 personas)" />
 
-                            <TextView
-                                android:id="@+id/tv_servicio_linea_2"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:textAppearance="@style/TextAppearance.Material3.BodySmall"
-                                tools:text="• Almuerzo (2 personas)" />
+                                <TextView
+                                    android:id="@+id/tv_monto_linea_1"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:textAppearance="@style/TextAppearance.Material3.BodySmall"
+                                    android:textStyle="bold"
+                                    tools:text="S/0.00" />
+                            </LinearLayout>
 
-                            <TextView
-                                android:id="@+id/tv_monto_linea_2"
+                            <!-- Segunda línea de servicio -->
+                            <LinearLayout
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:gravity="end"
-                                android:textAppearance="@style/TextAppearance.Material3.BodySmall"
-                                android:textStyle="bold"
-                                tools:text="S/32.00" />
+                                android:orientation="horizontal">
+
+                                <TextView
+                                    android:id="@+id/tv_servicio_linea_2"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:textAppearance="@style/TextAppearance.Material3.BodySmall"
+                                    tools:text="• Almuerzo (2 personas)" />
+
+                                <TextView
+                                    android:id="@+id/tv_monto_linea_2"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:textAppearance="@style/TextAppearance.Material3.BodySmall"
+                                    android:textStyle="bold"
+                                    tools:text="S/32.00" />
+                            </LinearLayout>
                         </LinearLayout>
 
                         <View
@@ -479,6 +494,7 @@
                 android:layout_marginBottom="8dp" />
 
             <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_chat"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
@@ -536,6 +552,7 @@
             </com.google.android.material.card.MaterialCardView>
 
             <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_cancelar"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:cardBackgroundColor="@android:color/white"

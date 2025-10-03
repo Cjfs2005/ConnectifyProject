@@ -57,27 +57,10 @@ public class Cliente_ReservasAdapter extends RecyclerView.Adapter<Cliente_Reserv
 
         // Click abre detalle de reserva
         holder.itemView.setOnClickListener(v -> {
-            try {
-                // Mostrar toast para confirmar que el click fue detectado
-                Toast.makeText(context, "Abriendo reserva: " + (tour != null ? tour.getTitulo() : "Reserva"), Toast.LENGTH_SHORT).show();
-                
-                System.out.println("Click detectado en reserva: " + (reserva != null ? reserva.getId() : "null"));
-                if (reserva == null) {
-                    System.out.println("Reserva es null, no se puede abrir detalle");
-                    Toast.makeText(context, "Error: Reserva no encontrada", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-                System.out.println("Intentando abrir detalle para reserva ID: " + reserva.getId());
+            if (reserva != null) {
                 Intent intent = new Intent(context, cliente_reserva_detalle.class);
-                // Alternativa por si hay problemas con la clase
-                // intent.setClassName(context, "com.example.connectifyproject.cliente_reserva_detalle");
                 intent.putExtra("reserva_object", reserva);
                 context.startActivity(intent);
-                System.out.println("startActivity ejecutado");
-            } catch (Exception e) {
-                System.out.println("Error al abrir detalle de reserva: " + e.getMessage());
-                Toast.makeText(context, "Error al abrir reserva: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                e.printStackTrace();
             }
         });
     }

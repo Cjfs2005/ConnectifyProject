@@ -1,6 +1,8 @@
 package com.example.connectifyproject;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -28,30 +30,25 @@ public class cliente_reserva_detalle extends AppCompatActivity {
     private TextView tvMetodoPago, tvResumenTarjeta, tvMontoTour, tvTotal;
     private TextView tvServicioLinea1, tvMontoLinea1, tvServicioLinea2, tvMontoLinea2;
     private ImageView ivHero;
+    
+    // Botones y tarjetas interactivas
+    private View layoutItinerario, cardEmpresa, cardChat, cardCancelar;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        System.out.println("cliente_reserva_detalle onCreate iniciado");
         try {
             setContentView(R.layout.cliente_reserva_detalle);
-            System.out.println("Layout establecido correctamente");
-
             initViews();
-            System.out.println("Views inicializadas correctamente");
-            setupToolbar();
-            System.out.println("Toolbar configurada correctamente");
             Cliente_Reserva reserva = (Cliente_Reserva) getIntent().getSerializableExtra("reserva_object");
             if (reserva == null) {
-                System.out.println("Error: reserva es null");
                 finish();
                 return;
             }
-            System.out.println("Reserva obtenida correctamente: " + reserva.getId());
+            setupToolbar(reserva);
             bindData(reserva);
-            System.out.println("Datos vinculados correctamente");
+            setupClickListeners(reserva);
         } catch (Exception e) {
-            System.out.println("Error en onCreate de cliente_reserva_detalle: " + e.getMessage());
             e.printStackTrace();
             finish();
         }
@@ -76,13 +73,21 @@ public class cliente_reserva_detalle extends AppCompatActivity {
         tvMontoLinea1 = findViewById(R.id.tv_monto_linea_1);
         tvServicioLinea2 = findViewById(R.id.tv_servicio_linea_2);
         tvMontoLinea2 = findViewById(R.id.tv_monto_linea_2);
+        
+        // Botones y tarjetas interactivas
+        layoutItinerario = findViewById(R.id.layout_itinerario);
+        cardEmpresa = findViewById(R.id.card_empresa);
+        cardChat = findViewById(R.id.card_chat);
+        cardCancelar = findViewById(R.id.card_cancelar);
     }
 
-    private void setupToolbar() {
+    private void setupToolbar(Cliente_Reserva reserva) {
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setTitle("Detalle de reserva");
+            String tituloTour = (reserva != null && reserva.getTour() != null) ? 
+                reserva.getTour().getTitulo() : "Detalle de reserva";
+            getSupportActionBar().setTitle(tituloTour);
         }
         toolbar.setNavigationOnClickListener(v -> onBackPressed());
     }
@@ -164,5 +169,60 @@ public class cliente_reserva_detalle extends AppCompatActivity {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+    
+    private void setupClickListeners(Cliente_Reserva reserva) {
+        if (reserva == null || reserva.getTour() == null) return;
+        
+        Cliente_Tour tour = reserva.getTour();
+        
+        // Itinerario - abrir mapa del tour
+        if (layoutItinerario != null) {
+            layoutItinerario.setOnClickListener(v -> {
+                Intent intent = new Intent(this, cliente_tour_mapa.class);
+                intent.putExtra("tour_id", tour.getId());
+                intent.putExtra("tour_title", tour.getTitulo());
+                startActivity(intent);
+            });
+        }
+        
+        // Empresa de turismo - abrir info de la empresa
+        if (cardEmpresa != null) {
+            cardEmpresa.setOnClickListener(v -> {
+                Intent intent = new Intent(this, cliente_empresa_info.class);
+                intent.putExtra("company_name", tour.getCompanyName());
+                startActivity(intent);
+            });
+        }
+        
+        // Chat con la empresa
+        if (cardChat != null) {
+            cardChat.setOnClickListener(v -> {
+                Intent intent = new Intent(this, cliente_chat_conversation.class);
+                // Agregar datos necesarios para el chat
+                startActivity(intent);
+            });
+        }
+        
+        // Cancelar reserva - mostrar diálogo de confirmación
+        if (cardCancelar != null) {
+            cardCancelar.setOnClickListener(v -> {
+                mostrarDialogoCancelarReserva();
+            });
+        }
+    }
+    
+    private void mostrarDialogoCancelarReserva() {
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Cancelar reserva")
+                .setMessage("¿Estás seguro de que deseas cancelar esta reserva?")
+                .setPositiveButton("Confirmar", (dialog, which) -> {
+                    // Por ahora solo cerramos el dialog
+                    dialog.dismiss();
+                })
+                .setNegativeButton("Cancelar", (dialog, which) -> {
+                    dialog.dismiss();
+                })
+                .show();
     }
 }
