@@ -35,16 +35,16 @@ public class guia_tours_ofertas extends AppCompatActivity implements GuiaFilterD
         setContentView(binding.getRoot());
 
         allTours = new ArrayList<>();
-        allTours.add(new GuiaTour("Tour por Centro Histórico de Lima", "Lima, Lima", 250, "9 horas", "Español,Inglés", "12:00", "23/10/2025",
+        allTours.add(new GuiaTour("Tour por Centro Histórico de Lima", "Lima, Lima", 250, "9 horas", "Español,Inglés", "12:00", "02/10/2025",
                 "Visita Plaza de Armas, Catedral, etc.", "Pago neto, Almuerzo incluido, Certificado", "9:00 a.m. - 5:00 p.m.", "Avenida del Sol 1457, Playa Serena, Lima",
                 "LimaTours SAC", "Plaza de Armas (1hrs30min), Catedral(1hrs), Convento San Francisco(1hrs), Museo Larco(2hrs)", "1 año como guía turístico", "Puntualidad en puntos de encuentro", true, true));
-        allTours.add(new GuiaTour("Tour por Centro Histórico de Lima", "Lima, Lima", 280, "8 horas", "Español,Francés", "11:00", "23/10/2025",
+        allTours.add(new GuiaTour("Tour por Centro Histórico de Lima", "Lima, Lima", 280, "8 horas", "Español,Francés", "11:00", "02/10/2025",
                 "Explora monumentos coloniales.", "Pago neto, Transporte incluido", "8:00 a.m. - 4:00 p.m.", "Plaza Mayor, Lima",
                 "PeruGuides Inc", "Catedral (2hrs), Museo (1hr30min)", "2 años experiencia", "Alta puntualidad requerida", true, false));
-        allTours.add(new GuiaTour("Tour por Centro Histórico de Lima", "Lima, Lima", 250, "9 horas", "Español,Inglés", "12:00", "23/10/2025",
+        allTours.add(new GuiaTour("Tour por Centro Histórico de Lima", "Lima, Lima", 250, "9 horas", "Español,Inglés", "12:00", "02/10/2025",
                 "Visita Plaza de Armas, Catedral, etc.", "Pago neto, Almuerzo incluido, Certificado", "9:00 a.m. - 5:00 p.m.", "Avenida del Sol 1457, Playa Serena, Lima",
                 "LimaTours SAC", "Plaza de Armas (1hrs30min), Catedral(1hrs), Convento San Francisco(1hrs), Museo Larco(2hrs)", "1 año como guía turístico", "Puntualidad en puntos de encuentro", true, true));
-        allTours.add(new GuiaTour("Tour por Centro Histórico de Lima", "Lima, Lima", 280, "8 horas", "Español,Francés", "11:00", "23/10/2025",
+        allTours.add(new GuiaTour("Tour por Centro Histórico de Lima", "Lima, Lima", 280, "8 horas", "Español,Francés", "11:00", "02/10/2025",
                 "Explora monumentos coloniales.", "Pago neto, Transporte incluido", "8:00 a.m. - 4:00 p.m.", "Plaza Mayor, Lima",
                 "PeruGuides Inc", "Catedral (2hrs), Museo (1hr30min)", "2 años experiencia", "Alta puntualidad requerida", true, false));
 
@@ -57,6 +57,12 @@ public class guia_tours_ofertas extends AppCompatActivity implements GuiaFilterD
         binding.filterButton.setOnClickListener(v -> {
             GuiaFilterDialogFragment dialog = new GuiaFilterDialogFragment();
             dialog.show(getSupportFragmentManager(), "guia_filter_dialog");
+        });
+
+        binding.btnNotifications.setOnClickListener(v -> {
+            Intent intent = new Intent(this, guia_notificaciones.class);
+            intent.putExtra("origin_activity", "guia_tours_ofertas");
+            startActivity(intent);
         });
 
         BottomNavigationView bottomNav = binding.bottomNav;
@@ -116,7 +122,7 @@ public class guia_tours_ofertas extends AppCompatActivity implements GuiaFilterD
         for (GuiaTour tour : filteredTours) {
             if (!tour.getDate().equals(currentDate)) {
                 currentDate = tour.getDate();
-                String header = (currentDate.equals("23/10/2025") ? "Hoy, 23 de Octubre" : "Mañana, 24 de Octubre");
+                String header = (currentDate.equals("02/10/2025") ? "Hoy, 02 de Octubre" : "Mañana, 03 de Octubre");
                 displayedItems.add(new GuiaItem(header));
             }
             displayedItems.add(new GuiaItem(tour));

@@ -35,42 +35,44 @@ public class guia_assigned_tours extends AppCompatActivity implements GuiaDateFi
         binding = GuiaAssignedToursBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        // Hardcoded data (dates near September 16, 2025)
+        // Hardcoded data (dates near October 02, 2025)
         allAssignedTours = new ArrayList<>();
         List<String> itinerario1 = new ArrayList<>();
         itinerario1.add("1. Plaza de Armas – 09:00 am");
         itinerario1.add("2. Catedral de Lima – 09:30 am");
         itinerario1.add("3. Convento San Francisco – 11:00 am");
         itinerario1.add("4. Museo Larco – 01:00 pm");
-        allAssignedTours.add(new GuiaAssignedTour("City Tour Histórico Lima", "LimaTours SAC", "16/09/2025 - 09:00 am", "6 h", 12, "En Curso", "16/09/2025", "Español, Inglés", "Desayuno, Almuerzo", itinerario1));
+        allAssignedTours.add(new GuiaAssignedTour("City Tour Histórico Lima", "LimaTours SAC", "02/10/2025 - 09:00 am", "6 h", 12, "En Curso", "02/10/2025", "Español, Inglés", "Desayuno, Almuerzo", itinerario1));
         List<String> itinerario2 = new ArrayList<>();
         itinerario2.add("1. Plaza de Armas – 09:00 am");
         itinerario2.add("2. Catedral de Lima – 09:30 am");
         itinerario2.add("3. Convento San Francisco – 11:00 am");
         itinerario2.add("4. Museo Larco – 01:00 pm");
-        allAssignedTours.add(new GuiaAssignedTour("Tour por Centro Histórico de Lima", "LimaTours SAC", "17/09/2025 - 09:00 am", "6 h", 12, "Pendiente", "17/09/2025", "Español, Inglés", "Desayuno, Almuerzo", itinerario2));
+        allAssignedTours.add(new GuiaAssignedTour("Tour por Centro Histórico de Lima", "LimaTours SAC", "03/10/2025 - 09:00 am", "6 h", 12, "Pendiente", "03/10/2025", "Español, Inglés", "Desayuno, Almuerzo", itinerario2));
         List<String> itinerario3 = new ArrayList<>();
         itinerario3.add("1. Plaza de Armas – 09:00 am");
         itinerario3.add("2. Catedral de Lima – 09:30 am");
         itinerario3.add("3. Convento San Francisco – 11:00 am");
         itinerario3.add("4. Museo Larco – 01:00 pm");
-        allAssignedTours.add(new GuiaAssignedTour("Tour por Centro Histórico de Lima", "LimaTours SAC", "18/09/2025 - 09:00 am", "6 h", 12, "Pendiente", "18/09/2025", "Español, Francés", "Almuerzo", itinerario3));
+        allAssignedTours.add(new GuiaAssignedTour("Tour por Centro Histórico de Lima", "LimaTours SAC", "04/10/2025 - 09:00 am", "6 h", 12, "Pendiente", "04/10/2025", "Español, Francés", "Almuerzo", itinerario3));
 
-        // Setup RecyclerView
         binding.recyclerView.setLayoutManager(new LinearLayoutManager(this));
         adapter = new GuiaAssignedTourAdapter(this, displayedItems);
         binding.recyclerView.setAdapter(adapter);
 
-        // Initial filter
         onApplyFilters(null, null, null, null, null);
 
-        // Filter button
         binding.filterButton.setOnClickListener(v -> {
             GuiaDateFilterDialogFragment dialog = new GuiaDateFilterDialogFragment();
             dialog.show(getSupportFragmentManager(), "guia_date_filter_dialog");
         });
 
-        // Nuevo Bottom Navigation con Toast
+        binding.btnNotifications.setOnClickListener(v -> {
+            Intent intent = new Intent(this, guia_notificaciones.class);
+            intent.putExtra("origin_activity", "guia_assigned_tours");
+            startActivity(intent);
+        });
+
         BottomNavigationView bottomNav = binding.bottomNav;
         bottomNav.setSelectedItemId(R.id.nav_tours);
         bottomNav.setOnItemSelectedListener(item -> {
@@ -84,7 +86,7 @@ public class guia_assigned_tours extends AppCompatActivity implements GuiaDateFi
             } else if (id == R.id.nav_tours) {
                 return true;
             } else if (id == R.id.nav_perfil) {
-                startActivity(new Intent(this, guia_perfil.class)); // Placeholder, renombrado
+                startActivity(new Intent(this, guia_perfil.class));
                 return true;
             }
             return false;
@@ -142,7 +144,7 @@ public class guia_assigned_tours extends AppCompatActivity implements GuiaDateFi
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
         try {
             Date tourDate = sdf.parse(date);
-            Date today = sdf.parse("16/09/2025"); // Current date
+            Date today = sdf.parse("02/10/2025"); // Current date
             if (sdf.format(today).equals(date)) {
                 return "Hoy, " + date.replace("/", " de ");
             } else {

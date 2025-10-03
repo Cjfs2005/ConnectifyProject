@@ -17,15 +17,27 @@
         app:title="Ofertas de Tours"
         app:titleTextColor="@android:color/white">
 
+        <ImageButton
+            android:id="@+id/btn_notifications"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_gravity="end"
+            android:layout_marginEnd="4dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Notificaciones"
+            android:src="@drawable/ic_bell"
+            app:tint="@android:color/white" />
+
         <com.google.android.material.button.MaterialButton
             android:id="@+id/filter_button"
             style="@style/Widget.MaterialComponents.Button.TextButton.Icon"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
             android:layout_gravity="end"
-            android:text="Filtro"
+            android:text=""
             android:textColor="@android:color/white"
-            app:icon="@drawable/ic_filter" />
+            app:icon="@drawable/ic_filter"
+            app:iconTint="@android:color/white" />
     </com.google.android.material.appbar.MaterialToolbar>
 
     <LinearLayout
