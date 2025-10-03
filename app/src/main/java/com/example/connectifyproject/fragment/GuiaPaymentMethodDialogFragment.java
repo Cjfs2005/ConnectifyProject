@@ -41,7 +41,7 @@ public class GuiaPaymentMethodDialogFragment extends DialogFragment {
     @NonNull
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
-        binding = GuiaDialogPaymentMethodEditBinding.inflate(getLayoutInflater());
+        binding = GuiaDialogPaymentMethodEditBinding.inflate(LayoutInflater.from(requireContext()));
 
         RadioGroup radioGroup = binding.paymentTypeRadioGroup;
         RadioButton creditCard = binding.creditCardRadio;

@@ -9,7 +9,6 @@ import android.os.Bundle;
 import android.view.View;
 import android.view.ViewParent;
 import android.widget.Toast;
-import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import com.example.connectifyproject.adapters.PlaceActivityAdapter;
@@ -72,7 +71,6 @@ public class admin_create_tour extends AppCompatActivity implements OnMapReadyCa
         setupListeners();
         setupAdapters();
         initializeMaps();
-        setupBackPressedCallback();
         updateStepVisibility();
     }
 
@@ -504,17 +502,12 @@ public class admin_create_tour extends AppCompatActivity implements OnMapReadyCa
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(lima, 11));
     }
 
-    private void setupBackPressedCallback() {
-        OnBackPressedCallback callback = new OnBackPressedCallback(true) {
-            @Override
-            public void handleOnBackPressed() {
-                if (currentStep > 1) {
-                    previousStep();
-                } else {
-                    finish();
-                }
-            }
-        };
-        getOnBackPressedDispatcher().addCallback(this, callback);
+    @Override
+    public void onBackPressed() {
+        if (currentStep > 1) {
+            previousStep();
+        } else {
+            super.onBackPressed();
+        }
     }
 }

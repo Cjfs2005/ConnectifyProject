@@ -40,7 +40,7 @@ public class GuiaFilterDialogFragment extends DialogFragment {
     @NonNull
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
-        binding = GuiaDialogFilterBinding.inflate(getLayoutInflater());
+        binding = GuiaDialogFilterBinding.inflate(LayoutInflater.from(getContext()));
         binding.dateFrom.setFocusable(false);
         binding.dateFrom.setClickable(true);
         binding.dateFrom.setOnClickListener(v -> showDatePicker(binding.dateFrom));

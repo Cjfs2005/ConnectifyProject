@@ -7,7 +7,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
-import java.util.Locale;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -101,10 +100,10 @@ public class AdminChatAdapter extends RecyclerView.Adapter<AdminChatAdapter.Chat
         if (query.isEmpty()) {
             filteredClients.addAll(clients);
         } else {
-            String lowerCaseQuery = query.toLowerCase(Locale.getDefault());
+            String lowerCaseQuery = query.toLowerCase();
             for (ClientData client : clients) {
-                if (client.name.toLowerCase(Locale.getDefault()).contains(lowerCaseQuery) ||
-                    client.lastMessage.toLowerCase(Locale.getDefault()).contains(lowerCaseQuery)) {
+                if (client.name.toLowerCase().contains(lowerCaseQuery) ||
+                    client.lastMessage.toLowerCase().contains(lowerCaseQuery)) {
                     filteredClients.add(client);
                 }
             }

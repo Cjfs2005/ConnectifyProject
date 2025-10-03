@@ -5,7 +5,6 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
 import android.widget.ImageView;
-import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
@@ -43,9 +42,6 @@ public class cliente_cambiar_contrasenia extends AppCompatActivity {
 
         // Initialize validation icons as unchecked
         resetValidationIcons();
-        
-        // Setup back pressed callback
-        setupBackPressedCallback();
 
         // Setup text watchers for password validation
         etNuevaContrasenia.addTextChangedListener(new TextWatcher() {
@@ -111,13 +107,9 @@ public class cliente_cambiar_contrasenia extends AppCompatActivity {
         updateValidationIcon(ivCheckLongitud, false);
     }
 
-    private void setupBackPressedCallback() {
-        OnBackPressedCallback callback = new OnBackPressedCallback(true) {
-            @Override
-            public void handleOnBackPressed() {
-                finish();
-            }
-        };
-        getOnBackPressedDispatcher().addCallback(this, callback);
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        finish();
     }
 }

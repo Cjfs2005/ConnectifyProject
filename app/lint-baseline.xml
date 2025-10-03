@@ -2,6 +2,94 @@
 <issues format="6" by="lint 8.12.3" type="baseline" client="gradle" dependencies="false" name="AGP (8.12.3)" variant="all" version="8.12.3">
 
     <issue
+        id="UseGetLayoutInflater"
+        message="Use of LayoutInflater.from(getContext()) detected. Consider using getLayoutInflater() instead"
+        errorLine1="        binding = GuiaDialogDateFilterBinding.inflate(LayoutInflater.from(getContext()));"
+        errorLine2="                                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/example/connectifyproject/fragment/GuiaDateFilterDialogFragment.java"
+            line="41"
+            column="55"/>
+    </issue>
+
+    <issue
+        id="UseGetLayoutInflater"
+        message="Use of LayoutInflater.from(getContext()) detected. Consider using getLayoutInflater() instead"
+        errorLine1="        binding = GuiaDialogFilterBinding.inflate(LayoutInflater.from(getContext()));"
+        errorLine2="                                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/example/connectifyproject/fragment/GuiaFilterDialogFragment.java"
+            line="43"
+            column="51"/>
+    </issue>
+
+    <issue
+        id="UseGetLayoutInflater"
+        message="Use of LayoutInflater.from(requireContext()) detected. Consider using getLayoutInflater() instead"
+        errorLine1="        binding = GuiaDialogLanguageEditBinding.inflate(LayoutInflater.from(requireContext()));"
+        errorLine2="                                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/example/connectifyproject/fragment/GuiaLanguageDialogFragment.java"
+            line="41"
+            column="57"/>
+    </issue>
+
+    <issue
+        id="UseGetLayoutInflater"
+        message="Use of LayoutInflater.from(requireContext()) detected. Consider using getLayoutInflater() instead"
+        errorLine1="        binding = GuiaDialogPaymentMethodEditBinding.inflate(LayoutInflater.from(requireContext()));"
+        errorLine2="                                                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/example/connectifyproject/fragment/GuiaPaymentMethodDialogFragment.java"
+            line="44"
+            column="62"/>
+    </issue>
+
+    <issue
+        id="RecyclerView"
+        message="Do not treat position as fixed; only use immediately and call `holder.getAdapterPosition()` to look it up later"
+        errorLine1="    public void onBindViewHolder(@NonNull TarjetaViewHolder holder, int position) {"
+        errorLine2="                                                                    ~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/example/connectifyproject/TarjetaAdapter.java"
+            line="60"
+            column="69"/>
+    </issue>
+
+    <issue
+        id="GestureBackNavigation"
+        message="`onBackPressed` is no longer called for back gestures; migrate to AndroidX&apos;s backward compatible `OnBackPressedDispatcher`"
+        errorLine1="    public void onBackPressed() {"
+        errorLine2="                ~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/example/connectifyproject/admin_create_tour.java"
+            line="506"
+            column="17"/>
+    </issue>
+
+    <issue
+        id="GestureBackNavigation"
+        message="`onBackPressed` is no longer called for back gestures; migrate to AndroidX&apos;s backward compatible `OnBackPressedDispatcher`"
+        errorLine1="    public void onBackPressed() {"
+        errorLine2="                ~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/example/connectifyproject/cliente_cambiar_contrasenia.java"
+            line="111"
+            column="17"/>
+    </issue>
+
+    <issue
+        id="GestureBackNavigation"
+        message="`onBackPressed` is no longer called for back gestures; migrate to AndroidX&apos;s backward compatible `OnBackPressedDispatcher`"
+        errorLine1="    public void onBackPressed() {"
+        errorLine2="                ~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/example/connectifyproject/cliente_editar_perfil.java"
+            line="195"
+            column="17"/>
+    </issue>
+
+    <issue
         id="GestureBackNavigation"
         message="`onBackPressed` is no longer called for back gestures; migrate to AndroidX&apos;s backward compatible `OnBackPressedDispatcher`"
         errorLine1="    public void onBackPressed() {"
@@ -32,6 +120,39 @@
             file="src/main/java/com/example/connectifyproject/cliente_permisos.java"
             line="85"
             column="17"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `toLowerCase(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`."
+        errorLine1="            String lowerCaseQuery = query.toLowerCase();"
+        errorLine2="                                          ~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/example/connectifyproject/adapters/AdminChatAdapter.java"
+            line="103"
+            column="43"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `toLowerCase(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`."
+        errorLine1="                if (client.name.toLowerCase().contains(lowerCaseQuery) ||"
+        errorLine2="                                ~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/example/connectifyproject/adapters/AdminChatAdapter.java"
+            line="105"
+            column="33"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `toLowerCase(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`."
+        errorLine1="                    client.lastMessage.toLowerCase().contains(lowerCaseQuery)) {"
+        errorLine2="                                       ~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/example/connectifyproject/adapters/AdminChatAdapter.java"
+            line="106"
+            column="40"/>
     </issue>
 
     <issue
@@ -415,7 +536,7 @@
         errorLine2="                                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/com/example/connectifyproject/cliente_editar_perfil.java"
-            line="114"
+            line="112"
             column="47"/>
     </issue>
 
@@ -569,11 +690,11 @@
         errorLine2="               ~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/com/example/connectifyproject/cliente_editar_perfil.java"
-            line="142"
+            line="140"
             column="16"/>
         <location
             file="src/main/java/com/example/connectifyproject/cliente_editar_perfil.java"
-            line="141"
+            line="139"
             column="56"
             message="Originally set here"/>
     </issue>
@@ -706,7 +827,7 @@
         errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="build.gradle.kts"
-            line="67"
+            line="66"
             column="20"/>
     </issue>
 
@@ -717,7 +838,7 @@
         errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="build.gradle.kts"
-            line="68"
+            line="67"
             column="20"/>
     </issue>
 
@@ -728,7 +849,7 @@
         errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="build.gradle.kts"
-            line="78"
+            line="77"
             column="20"/>
     </issue>
 
@@ -739,7 +860,7 @@
         errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="build.gradle.kts"
-            line="80"
+            line="79"
             column="20"/>
     </issue>
 
@@ -1036,7 +1157,7 @@
         errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/com/example/connectifyproject/adapters/AdminChatAdapter.java"
-            line="112"
+            line="111"
             column="9"/>
     </issue>
 
@@ -2883,7 +3004,7 @@
         errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="build.gradle.kts"
-            line="67"
+            line="66"
             column="20"/>
     </issue>
 
@@ -2894,7 +3015,7 @@
         errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="build.gradle.kts"
-            line="68"
+            line="67"
             column="20"/>
     </issue>
 
@@ -2905,7 +3026,7 @@
         errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="build.gradle.kts"
-            line="78"
+            line="77"
             column="20"/>
     </issue>
 
@@ -2916,7 +3037,7 @@
         errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="build.gradle.kts"
-            line="79"
+            line="78"
             column="20"/>
     </issue>
 
@@ -2927,7 +3048,7 @@
         errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="build.gradle.kts"
-            line="80"
+            line="79"
             column="20"/>
     </issue>
 
@@ -2938,7 +3059,7 @@
         errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="build.gradle.kts"
-            line="81"
+            line="80"
             column="20"/>
     </issue>
 
@@ -4379,7 +4500,7 @@
         errorLine2="                                            ~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/com/example/connectifyproject/admin_create_tour.java"
-            line="379"
+            line="377"
             column="45"/>
     </issue>
 
@@ -4390,7 +4511,7 @@
         errorLine2="                                                ~~~~~~~~~~~~~">
         <location
             file="src/main/java/com/example/connectifyproject/admin_create_tour.java"
-            line="380"
+            line="378"
             column="49"/>
     </issue>
 
@@ -4401,7 +4522,7 @@
         errorLine2="                                            ~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/com/example/connectifyproject/admin_create_tour.java"
-            line="384"
+            line="382"
             column="45"/>
     </issue>
 
@@ -4412,7 +4533,7 @@
         errorLine2="                                                ~~~~~~~~~~~~~">
         <location
             file="src/main/java/com/example/connectifyproject/admin_create_tour.java"
-            line="385"
+            line="383"
             column="49"/>
     </issue>
 
@@ -4423,7 +4544,7 @@
         errorLine2="                                            ~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/com/example/connectifyproject/admin_create_tour.java"
-            line="389"
+            line="387"
             column="45"/>
     </issue>
 
@@ -4434,7 +4555,7 @@
         errorLine2="                                                ~~~~~~~~~~~~~">
         <location
             file="src/main/java/com/example/connectifyproject/admin_create_tour.java"
-            line="390"
+            line="388"
             column="49"/>
     </issue>
 
@@ -4445,7 +4566,7 @@
         errorLine2="                                            ~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/com/example/connectifyproject/admin_create_tour.java"
-            line="396"
+            line="394"
             column="45"/>
     </issue>
 
@@ -4456,7 +4577,7 @@
         errorLine2="                                                ~~~~~~~~~~~~~">
         <location
             file="src/main/java/com/example/connectifyproject/admin_create_tour.java"
-            line="397"
+            line="395"
             column="49"/>
     </issue>
 

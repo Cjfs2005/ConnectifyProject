@@ -10,7 +10,6 @@ import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.DatePicker;
 import android.widget.ImageView;
-import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import com.google.android.material.button.MaterialButton;
@@ -38,7 +37,6 @@ public class cliente_editar_perfil extends AppCompatActivity {
         // Initialize views
         initViews();
         setupToolbar();
-        setupBackPressedCallback();
         setupDropdown();
         setupDatePicker();
         setupImageUpload();
@@ -193,13 +191,9 @@ public class cliente_editar_perfil extends AppCompatActivity {
         }
     }
 
-    private void setupBackPressedCallback() {
-        OnBackPressedCallback callback = new OnBackPressedCallback(true) {
-            @Override
-            public void handleOnBackPressed() {
-                finish();
-            }
-        };
-        getOnBackPressedDispatcher().addCallback(this, callback);
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        finish();
     }
 }
