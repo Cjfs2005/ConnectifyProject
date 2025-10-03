@@ -3,8 +3,11 @@ package com.example.connectifyproject;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.content.Intent;
+import android.location.Address;
+import android.location.Geocoder;
 import android.os.Bundle;
 import android.view.View;
+import android.view.ViewParent;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -22,7 +25,10 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.materialswitch.MaterialSwitch;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textfield.TextInputLayout;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -82,6 +88,21 @@ public class admin_create_tour extends AppCompatActivity implements OnMapReadyCa
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             getSupportActionBar().setDisplayShowHomeEnabled(true);
         }
+        
+        // Configurar listener para el ícono de búsqueda
+        setupSearchIconListener();
+    }
+    
+    private void setupSearchIconListener() {
+        // El TextInputLayout con ícono de búsqueda necesita ser configurado después del inflado
+        binding.getRoot().post(() -> {
+            // Buscar el TextInputLayout que contiene el campo de búsqueda
+            ViewParent parent = findViewById(R.id.et_search_places).getParent();
+            if (parent instanceof TextInputLayout) {
+                TextInputLayout tilSearch = (TextInputLayout) parent;
+                tilSearch.setEndIconOnClickListener(v -> searchLocation());
+            }
+        });
     }
 
     private void setupListeners() {
@@ -93,6 +114,12 @@ public class admin_create_tour extends AppCompatActivity implements OnMapReadyCa
         binding.btnAddPlace.setOnClickListener(v -> addPlace());
         binding.btnAddService.setOnClickListener(v -> showAddServiceDialog());
         binding.etTourDate.setOnClickListener(v -> showDatePicker());
+        
+        // Agregar listener para búsqueda de lugares con Enter
+        binding.etSearchPlaces.setOnEditorActionListener((v, actionId, event) -> {
+            searchLocation();
+            return true;
+        });
         
         binding.topAppBar.setNavigationOnClickListener(v -> onBackPressed());
     }
@@ -153,6 +180,43 @@ public class admin_create_tour extends AppCompatActivity implements OnMapReadyCa
         updateNextButtonVisibility();
     }
 
+    private void searchLocation() {
+        String searchText = binding.etSearchPlaces.getText().toString().trim();
+        if (searchText.isEmpty()) {
+            binding.etSearchPlaces.setError("Ingrese el nombre del lugar a buscar");
+            return;
+        }
+
+        Geocoder geocoder = new Geocoder(this, Locale.getDefault());
+        try {
+            List<Address> addresses = geocoder.getFromLocationName(searchText, 1);
+            if (addresses != null && !addresses.isEmpty()) {
+                Address address = addresses.get(0);
+                LatLng location = new LatLng(address.getLatitude(), address.getLongitude());
+                
+                if (mMapPlaces != null) {
+                    mMapPlaces.clear();
+                    mMapPlaces.addMarker(new MarkerOptions()
+                            .position(location)
+                            .title(searchText));
+                    mMapPlaces.moveCamera(CameraUpdateFactory.newLatLngZoom(location, 15));
+                    selectedLocation = location;
+                    
+                    Toast.makeText(this, "Ubicación encontrada. Verifique en el mapa y presione 'Agregar al Recorrido'", 
+                            Toast.LENGTH_LONG).show();
+                } else {
+                    Toast.makeText(this, "Error: Mapa no disponible", Toast.LENGTH_SHORT).show();
+                }
+            } else {
+                Toast.makeText(this, "No se encontró la ubicación. Intente con otro nombre.", 
+                        Toast.LENGTH_SHORT).show();
+            }
+        } catch (IOException e) {
+            Toast.makeText(this, "Error al buscar la ubicación. Verifique su conexión.", 
+                    Toast.LENGTH_SHORT).show();
+        }
+    }
+
     private void removePlace(int position) {
         selectedPlaces.remove(position);
         placeAdapter.notifyItemRemoved(position);
@@ -165,32 +229,46 @@ public class admin_create_tour extends AppCompatActivity implements OnMapReadyCa
         TextInputEditText etServiceName = dialogView.findViewById(R.id.et_service_name);
         TextInputEditText etServicePrice = dialogView.findViewById(R.id.et_service_price);
         TextInputEditText etServiceDescription = dialogView.findViewById(R.id.et_service_description);
+        MaterialSwitch switchIsPaid = dialogView.findViewById(R.id.switch_is_paid);
+        TextInputLayout tilServicePrice = dialogView.findViewById(R.id.til_service_price);
+        
+        // Configurar visibility del campo precio basado en el switch
+        switchIsPaid.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            tilServicePrice.setVisibility(isChecked ? View.VISIBLE : View.GONE);
+            if (!isChecked) {
+                etServicePrice.setText("");
+            }
+        });
         
         Dialog dialog = new MaterialAlertDialogBuilder(this)
-                .setTitle("Agregar Servicio")
                 .setView(dialogView)
-                .setPositiveButton("Agregar", null)
-                .setNegativeButton("Cancelar", null)
                 .create();
         
         dialogView.findViewById(R.id.btn_add).setOnClickListener(v -> {
             String name = etServiceName.getText().toString().trim();
             String priceText = etServicePrice.getText().toString().trim();
             String description = etServiceDescription.getText().toString().trim();
+            boolean isPaid = switchIsPaid.isChecked();
             
             if (name.isEmpty()) {
                 etServiceName.setError("Ingrese el nombre del servicio");
                 return;
             }
             
-            boolean isPaid = !priceText.isEmpty();
             double price = 0;
-            
             if (isPaid) {
+                if (priceText.isEmpty()) {
+                    etServicePrice.setError("Ingrese el precio del servicio");
+                    return;
+                }
                 try {
                     price = Double.parseDouble(priceText);
+                    if (price <= 0) {
+                        etServicePrice.setError("El precio debe ser mayor a 0");
+                        return;
+                    }
                 } catch (NumberFormatException e) {
-                    etServicePrice.setError("Ingrese un precio valido");
+                    etServicePrice.setError("Ingrese un precio válido");
                     return;
                 }
             }
@@ -202,6 +280,8 @@ public class admin_create_tour extends AppCompatActivity implements OnMapReadyCa
             dialog.dismiss();
             Toast.makeText(this, "Servicio agregado", Toast.LENGTH_SHORT).show();
         });
+        
+        dialogView.findViewById(R.id.btn_cancel).setOnClickListener(v -> dialog.dismiss());
         
         dialog.show();
     }
@@ -306,6 +386,7 @@ public class admin_create_tour extends AppCompatActivity implements OnMapReadyCa
                 binding.stepActivities.setVisibility(View.VISIBLE);
                 binding.tvStepTitle.setText("Fecha y Actividades");
                 binding.tvStepIndicator.setText("Paso 3 de 4");
+                updateActivitiesList();
                 updateMapRoute();
                 break;
             case 4:
@@ -358,6 +439,12 @@ public class admin_create_tour extends AppCompatActivity implements OnMapReadyCa
             LatLng firstPlace = new LatLng(selectedPlaces.get(0).getLatitude(), selectedPlaces.get(0).getLongitude());
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(firstPlace, 12));
         }
+    }
+
+    private void updateActivitiesList() {
+        // Actualizar el adapter con los lugares seleccionados para que aparezcan en el paso 3
+        activityAdapter = new PlaceActivityAdapter(selectedPlaces);
+        binding.rvPlaceActivities.setAdapter(activityAdapter);
     }
 
     private void saveDraft() {

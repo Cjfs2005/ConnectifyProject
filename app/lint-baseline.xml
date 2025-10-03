@@ -62,6 +62,17 @@
         errorLine1="    public void onBackPressed() {"
         errorLine2="                ~~~~~~~~~~~~~">
         <location
+            file="src/main/java/com/example/connectifyproject/admin_create_tour.java"
+            line="506"
+            column="17"/>
+    </issue>
+
+    <issue
+        id="GestureBackNavigation"
+        message="`onBackPressed` is no longer called for back gestures; migrate to AndroidX&apos;s backward compatible `OnBackPressedDispatcher`"
+        errorLine1="    public void onBackPressed() {"
+        errorLine2="                ~~~~~~~~~~~~~">
+        <location
             file="src/main/java/com/example/connectifyproject/cliente_cambiar_contrasenia.java"
             line="111"
             column="17"/>
@@ -366,24 +377,24 @@
 
     <issue
         id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead"
+        errorLine1="                tvServicePrice.setText(String.format(&quot;S/ %.2f&quot;, service.getPrice()));"
+        errorLine2="                                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/example/connectifyproject/adapters/TourServiceAdapter.java"
+            line="65"
+            column="40"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
         message="Implicitly using the default locale is a common source of bugs: Use `toLowerCase(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`."
         errorLine1="        String lowerMessage = adminMessage.toLowerCase();"
         errorLine2="                                           ~~~~~~~~~~~">
         <location
             file="src/main/java/com/example/connectifyproject/admin_chat_conversation.java"
-            line="140"
+            line="224"
             column="44"/>
-    </issue>
-
-    <issue
-        id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead"
-        errorLine1="        binding.tvStepIndicator.setText(String.format(&quot;Paso %d de %d&quot;, currentStep, TOTAL_STEPS));"
-        errorLine2="                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/connectifyproject/admin_create_tour.java"
-            line="85"
-            column="41"/>
     </issue>
 
     <issue
@@ -433,11 +444,22 @@
     <issue
         id="DefaultLocale"
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead"
+        errorLine1="            binding.etPlatformFee.setText(String.format(&quot;%.2f&quot;, platformFee));"
+        errorLine2="                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/example/connectifyproject/admin_payment_proposal.java"
+            line="78"
+            column="43"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead"
         errorLine1="            binding.tvTotalAmount.setText(String.format(&quot;S/ %.2f&quot;, total));"
         errorLine2="                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/com/example/connectifyproject/admin_payment_proposal.java"
-            line="78"
+            line="82"
             column="43"/>
     </issue>
 
@@ -448,7 +470,7 @@
         errorLine2="                               ~~~~~~~~~~~">
         <location
             file="src/main/java/com/example/connectifyproject/admin_select_guide.java"
-            line="113"
+            line="114"
             column="32"/>
     </issue>
 
@@ -459,7 +481,7 @@
         errorLine2="                                                            ~~~~~~~~~~~">
         <location
             file="src/main/java/com/example/connectifyproject/admin_select_guide.java"
-            line="113"
+            line="114"
             column="61"/>
     </issue>
 
@@ -470,7 +492,7 @@
         errorLine2="                                    ~~~~~~~~~~~">
         <location
             file="src/main/java/com/example/connectifyproject/admin_select_guide.java"
-            line="114"
+            line="115"
             column="37"/>
     </issue>
 
@@ -481,7 +503,7 @@
         errorLine2="                                                                 ~~~~~~~~~~~">
         <location
             file="src/main/java/com/example/connectifyproject/admin_select_guide.java"
-            line="114"
+            line="115"
             column="66"/>
     </issue>
 
@@ -492,7 +514,7 @@
         errorLine2="                                                          ~~~~~~~~~~~">
         <location
             file="src/main/java/com/example/connectifyproject/admin_tours.java"
-            line="73"
+            line="69"
             column="59"/>
     </issue>
 
@@ -684,7 +706,29 @@
         errorLine2="                         ~~~~~~~~">
         <location
             file="src/main/res/layout/admin_create_tour_view.xml"
-            line="228"
+            line="256"
+            column="26"/>
+    </issue>
+
+    <issue
+        id="FragmentTagUsage"
+        message="Replace the &lt;fragment> tag with FragmentContainerView."
+        errorLine1="                        &lt;fragment"
+        errorLine2="                         ~~~~~~~~">
+        <location
+            file="src/main/res/layout/admin_create_tour_view.xml"
+            line="360"
+            column="26"/>
+    </issue>
+
+    <issue
+        id="FragmentTagUsage"
+        message="Replace the &lt;fragment> tag with FragmentContainerView."
+        errorLine1="                        &lt;fragment"
+        errorLine2="                         ~~~~~~~~">
+        <location
+            file="src/main/res/layout/admin_create_tour_view_backup.xml"
+            line="248"
             column="26"/>
     </issue>
 
@@ -702,12 +746,12 @@
     <issue
         id="FragmentTagUsage"
         message="Replace the &lt;fragment> tag with FragmentContainerView."
-        errorLine1="                            &lt;fragment"
-        errorLine2="                             ~~~~~~~~">
+        errorLine1="                                &lt;fragment"
+        errorLine2="                                 ~~~~~~~~">
         <location
             file="src/main/res/layout/admin_tour_details_view.xml"
-            line="323"
-            column="30"/>
+            line="680"
+            column="34"/>
     </issue>
 
     <issue
@@ -771,7 +815,7 @@
         errorLine1="agp = &quot;8.12.3&quot;"
         errorLine2="      ~~~~~~~~">
         <location
-            file="$HOME/OneDrive/Escritorio/Software_Development/git_repositories/IoT/ConnectifyProject/gradle/libs.versions.toml"
+            file="$HOME/Desktop/Software_Development/IoT/Proyecto_IoT/ConnectifyProject/gradle/libs.versions.toml"
             line="3"
             column="7"/>
     </issue>
@@ -826,7 +870,7 @@
         errorLine1="androidxCore = &quot;1.13.1&quot;"
         errorLine2="               ~~~~~~~~">
         <location
-            file="$HOME/OneDrive/Escritorio/Software_Development/git_repositories/IoT/ConnectifyProject/gradle/libs.versions.toml"
+            file="$HOME/Desktop/Software_Development/IoT/Proyecto_IoT/ConnectifyProject/gradle/libs.versions.toml"
             line="7"
             column="16"/>
     </issue>
@@ -837,7 +881,7 @@
         errorLine1="activity = &quot;1.10.1&quot;"
         errorLine2="           ~~~~~~~~">
         <location
-            file="$HOME/OneDrive/Escritorio/Software_Development/git_repositories/IoT/ConnectifyProject/gradle/libs.versions.toml"
+            file="$HOME/Desktop/Software_Development/IoT/Proyecto_IoT/ConnectifyProject/gradle/libs.versions.toml"
             line="10"
             column="12"/>
     </issue>
@@ -848,7 +892,7 @@
         errorLine1="recyclerview = &quot;1.3.2&quot;"
         errorLine2="               ~~~~~~~">
         <location
-            file="$HOME/OneDrive/Escritorio/Software_Development/git_repositories/IoT/ConnectifyProject/gradle/libs.versions.toml"
+            file="$HOME/Desktop/Software_Development/IoT/Proyecto_IoT/ConnectifyProject/gradle/libs.versions.toml"
             line="11"
             column="16"/>
     </issue>
@@ -859,7 +903,7 @@
         errorLine1="navigationFragment = &quot;2.9.4&quot;"
         errorLine2="                     ~~~~~~~">
         <location
-            file="$HOME/OneDrive/Escritorio/Software_Development/git_repositories/IoT/ConnectifyProject/gradle/libs.versions.toml"
+            file="$HOME/Desktop/Software_Development/IoT/Proyecto_IoT/ConnectifyProject/gradle/libs.versions.toml"
             line="13"
             column="22"/>
     </issue>
@@ -870,7 +914,7 @@
         errorLine1="navigationUi = &quot;2.9.4&quot;"
         errorLine2="               ~~~~~~~">
         <location
-            file="$HOME/OneDrive/Escritorio/Software_Development/git_repositories/IoT/ConnectifyProject/gradle/libs.versions.toml"
+            file="$HOME/Desktop/Software_Development/IoT/Proyecto_IoT/ConnectifyProject/gradle/libs.versions.toml"
             line="14"
             column="16"/>
     </issue>
@@ -881,7 +925,7 @@
         errorLine1="lifecycle = &quot;2.8.6&quot;"
         errorLine2="            ~~~~~~~">
         <location
-            file="$HOME/OneDrive/Escritorio/Software_Development/git_repositories/IoT/ConnectifyProject/gradle/libs.versions.toml"
+            file="$HOME/Desktop/Software_Development/IoT/Proyecto_IoT/ConnectifyProject/gradle/libs.versions.toml"
             line="17"
             column="13"/>
     </issue>
@@ -892,7 +936,7 @@
         errorLine1="lifecycle = &quot;2.8.6&quot;"
         errorLine2="            ~~~~~~~">
         <location
-            file="$HOME/OneDrive/Escritorio/Software_Development/git_repositories/IoT/ConnectifyProject/gradle/libs.versions.toml"
+            file="$HOME/Desktop/Software_Development/IoT/Proyecto_IoT/ConnectifyProject/gradle/libs.versions.toml"
             line="17"
             column="13"/>
     </issue>
@@ -903,7 +947,7 @@
         errorLine1="lifecycle = &quot;2.8.6&quot;"
         errorLine2="            ~~~~~~~">
         <location
-            file="$HOME/OneDrive/Escritorio/Software_Development/git_repositories/IoT/ConnectifyProject/gradle/libs.versions.toml"
+            file="$HOME/Desktop/Software_Development/IoT/Proyecto_IoT/ConnectifyProject/gradle/libs.versions.toml"
             line="17"
             column="13"/>
     </issue>
@@ -914,7 +958,7 @@
         errorLine1="retrofit = &quot;2.11.0&quot;"
         errorLine2="           ~~~~~~~~">
         <location
-            file="$HOME/OneDrive/Escritorio/Software_Development/git_repositories/IoT/ConnectifyProject/gradle/libs.versions.toml"
+            file="$HOME/Desktop/Software_Development/IoT/Proyecto_IoT/ConnectifyProject/gradle/libs.versions.toml"
             line="20"
             column="12"/>
     </issue>
@@ -925,7 +969,7 @@
         errorLine1="retrofit = &quot;2.11.0&quot;"
         errorLine2="           ~~~~~~~~">
         <location
-            file="$HOME/OneDrive/Escritorio/Software_Development/git_repositories/IoT/ConnectifyProject/gradle/libs.versions.toml"
+            file="$HOME/Desktop/Software_Development/IoT/Proyecto_IoT/ConnectifyProject/gradle/libs.versions.toml"
             line="20"
             column="12"/>
     </issue>
@@ -936,7 +980,7 @@
         errorLine1="gson = &quot;2.11.0&quot;"
         errorLine2="       ~~~~~~~~">
         <location
-            file="$HOME/OneDrive/Escritorio/Software_Development/git_repositories/IoT/ConnectifyProject/gradle/libs.versions.toml"
+            file="$HOME/Desktop/Software_Development/IoT/Proyecto_IoT/ConnectifyProject/gradle/libs.versions.toml"
             line="21"
             column="8"/>
     </issue>
@@ -947,9 +991,31 @@
         errorLine1="glide = &quot;4.16.0&quot;"
         errorLine2="        ~~~~~~~~">
         <location
-            file="$HOME/OneDrive/Escritorio/Software_Development/git_repositories/IoT/ConnectifyProject/gradle/libs.versions.toml"
+            file="$HOME/Desktop/Software_Development/IoT/Proyecto_IoT/ConnectifyProject/gradle/libs.versions.toml"
             line="24"
             column="9"/>
+    </issue>
+
+    <issue
+        id="UseAppTint"
+        message="Must use `app:tint` instead of `android:tint`"
+        errorLine1="                                        android:tint=&quot;@color/brand_purple_dark&quot; />"
+        errorLine2="                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/admin_tour_details_view.xml"
+            line="492"
+            column="41"/>
+    </issue>
+
+    <issue
+        id="UseAppTint"
+        message="Must use `app:tint` instead of `android:tint`"
+        errorLine1="                                        android:tint=&quot;@color/text_secondary&quot; />"
+        errorLine2="                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/admin_tour_details_view.xml"
+            line="541"
+            column="41"/>
     </issue>
 
     <issue
@@ -1021,6 +1087,28 @@
     <issue
         id="UseAppTint"
         message="Must use `app:tint` instead of `android:tint`"
+        errorLine1="        android:tint=&quot;@color/primary&quot;"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/item_admin_itinerario.xml"
+            line="83"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="UseAppTint"
+        message="Must use `app:tint` instead of `android:tint`"
+        errorLine1="        android:tint=&quot;@color/success_500&quot; />"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/item_admin_servicio.xml"
+            line="16"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="UseAppTint"
+        message="Must use `app:tint` instead of `android:tint`"
         errorLine1="        android:tint=&quot;@color/kpi_subtext&quot; />"
         errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -1058,7 +1146,7 @@
         errorLine2="         ~~~~~~~">
         <location
             file="src/main/AndroidManifest.xml"
-            line="67"
+            line="68"
             column="10"/>
     </issue>
 
@@ -1070,6 +1158,28 @@
         <location
             file="src/main/java/com/example/connectifyproject/adapters/AdminChatAdapter.java"
             line="111"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="NotifyDataSetChanged"
+        message="It will always be more efficient to use more specific change events if you can. Rely on `notifyDataSetChanged` as a last resort."
+        errorLine1="        notifyDataSetChanged();"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/example/connectifyproject/adapters/AdminItinerarioAdapter.java"
+            line="77"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="NotifyDataSetChanged"
+        message="It will always be more efficient to use more specific change events if you can. Rely on `notifyDataSetChanged` as a last resort."
+        errorLine1="        notifyDataSetChanged();"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/example/connectifyproject/adapters/AdminServiciosAdapter.java"
+            line="45"
             column="9"/>
     </issue>
 
@@ -1252,12 +1362,12 @@
     <issue
         id="NotifyDataSetChanged"
         message="It will always be more efficient to use more specific change events if you can. Rely on `notifyDataSetChanged` as a last resort."
-        errorLine1="        messageAdapter.notifyDataSetChanged();"
-        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        errorLine1="            messageAdapter.notifyDataSetChanged();"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/com/example/connectifyproject/admin_chat_conversation.java"
-            line="185"
-            column="9"/>
+            line="298"
+            column="13"/>
     </issue>
 
     <issue
@@ -1300,7 +1410,7 @@
         errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/com/example/connectifyproject/admin_tours.java"
-            line="152"
+            line="148"
             column="9"/>
     </issue>
 
@@ -1488,12 +1598,34 @@
     </issue>
 
     <issue
+        id="UseCompoundDrawables"
+        message="This tag and its children can be replaced by one `&lt;TextView/>` and a compound drawable"
+        errorLine1="&lt;LinearLayout xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;"
+        errorLine2=" ~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/item_admin_servicio.xml"
+            line="2"
+            column="2"/>
+    </issue>
+
+    <issue
         id="DisableBaselineAlignment"
         message="Set `android:baselineAligned=&quot;false&quot;` on this element for better performance"
         errorLine1="                        &lt;LinearLayout"
         errorLine2="                         ~~~~~~~~~~~~">
         <location
             file="src/main/res/layout/admin_create_tour_view.xml"
+            line="142"
+            column="26"/>
+    </issue>
+
+    <issue
+        id="DisableBaselineAlignment"
+        message="Set `android:baselineAligned=&quot;false&quot;` on this element for better performance"
+        errorLine1="                        &lt;LinearLayout"
+        errorLine2="                         ~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/admin_create_tour_view_backup.xml"
             line="142"
             column="26"/>
     </issue>
@@ -1560,6 +1692,17 @@
         errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/layout/admin_create_tour_view.xml"
+            line="8"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="Overdraw"
+        message="Possible overdraw: Root element paints background `@color/background_color` with a theme that also paints a background (inferred theme is `@style/Theme.ConnectifyProject`)"
+        errorLine1="    android:background=&quot;@color/background_color&quot;"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/admin_create_tour_view_backup.xml"
             line="8"
             column="5"/>
     </issue>
@@ -1874,6 +2017,17 @@
 
     <issue
         id="UnusedResources"
+        message="The resource `R.layout.admin_create_tour_view_backup` appears to be unused"
+        errorLine1="&lt;androidx.coordinatorlayout.widget.CoordinatorLayout "
+        errorLine2="^">
+        <location
+            file="src/main/res/layout/admin_create_tour_view_backup.xml"
+            line="2"
+            column="1"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
         message="The resource `R.layout.admin_placeholder_view` appears to be unused"
         errorLine1="&lt;LinearLayout xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;"
         errorLine2="^">
@@ -1901,6 +2055,17 @@
         errorLine2="^">
         <location
             file="src/main/res/drawable/bg_circular.xml"
+            line="2"
+            column="1"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.drawable.bg_tour_hero_purple` appears to be unused"
+        errorLine1="&lt;shape xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;>"
+        errorLine2="^">
+        <location
+            file="src/main/res/drawable/bg_tour_hero_purple.xml"
             line="2"
             column="1"/>
     </issue>
@@ -2028,17 +2193,6 @@
 
     <issue
         id="UnusedResources"
-        message="The resource `R.color.primary_200` appears to be unused"
-        errorLine1="    &lt;color name=&quot;primary_200&quot;>#C4B5FD&lt;/color>"
-        errorLine2="           ~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/values/colors.xml"
-            line="52"
-            column="12"/>
-    </issue>
-
-    <issue
-        id="UnusedResources"
         message="The resource `R.color.neutral_500` appears to be unused"
         errorLine1="    &lt;color name=&quot;neutral_500&quot;>#6B7280&lt;/color>"
         errorLine2="           ~~~~~~~~~~~~~~~~~~">
@@ -2055,7 +2209,7 @@
         errorLine2="           ~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/colors.xml"
-            line="81"
+            line="84"
             column="12"/>
     </issue>
 
@@ -2066,7 +2220,7 @@
         errorLine2="           ~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/colors.xml"
-            line="85"
+            line="88"
             column="12"/>
     </issue>
 
@@ -2077,7 +2231,7 @@
         errorLine2="           ~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/colors.xml"
-            line="88"
+            line="91"
             column="12"/>
     </issue>
 
@@ -2088,7 +2242,7 @@
         errorLine2="           ~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/colors.xml"
-            line="90"
+            line="93"
             column="12"/>
     </issue>
 
@@ -2191,6 +2345,17 @@
         message="The resource `R.drawable.ic_dinero_morado` appears to be unused">
         <location
             file="src/main/res/drawable/ic_dinero_morado.png"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.drawable.ic_expand_more` appears to be unused"
+        errorLine1="&lt;vector xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;"
+        errorLine2="^">
+        <location
+            file="src/main/res/drawable/ic_expand_more.xml"
+            line="1"
+            column="1"/>
     </issue>
 
     <issue
@@ -2298,6 +2463,17 @@
         errorLine2="^">
         <location
             file="src/main/res/drawable/ic_nav_tours.xml"
+            line="1"
+            column="1"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.drawable.ic_publish` appears to be unused"
+        errorLine1="&lt;vector xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;"
+        errorLine2="^">
+        <location
+            file="src/main/res/drawable/ic_publish.xml"
             line="1"
             column="1"/>
     </issue>
@@ -2599,6 +2775,39 @@
     </issue>
 
     <issue
+        id="UselessLeaf"
+        message="This `LinearLayout` view is unnecessary (no children, no `background`, no `id`, no `style`)"
+        errorLine1="            &lt;LinearLayout"
+        errorLine2="             ~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/admin_select_guide_view.xml"
+            line="131"
+            column="14"/>
+    </issue>
+
+    <issue
+        id="TooDeepLayout"
+        message="`admin_tour_details_view.xml` has more than 10 levels, bad for performance"
+        errorLine1="                                    &lt;TextView"
+        errorLine2="                                     ~~~~~~~~">
+        <location
+            file="src/main/res/layout/admin_tour_details_view.xml"
+            line="400"
+            column="38"/>
+    </issue>
+
+    <issue
+        id="TooManyViews"
+        message="`admin_tour_details_view.xml` has more than 80 views, bad for performance"
+        errorLine1="            &lt;View"
+        errorLine2="             ~~~~">
+        <location
+            file="src/main/res/layout/admin_tour_details_view.xml"
+            line="705"
+            column="14"/>
+    </issue>
+
+    <issue
         id="IconLocation"
         message="Found bitmap drawable `res/drawable/cliente_qr_code.png` in densityless folder">
         <location
@@ -2852,6 +3061,28 @@
             file="build.gradle.kts"
             line="80"
             column="20"/>
+    </issue>
+
+    <issue
+        id="ContentDescription"
+        message="Missing `contentDescription` attribute on image"
+        errorLine1="                                    &lt;ImageView"
+        errorLine2="                                     ~~~~~~~~~">
+        <location
+            file="src/main/res/layout/admin_tour_details_view.xml"
+            line="486"
+            column="38"/>
+    </issue>
+
+    <issue
+        id="ContentDescription"
+        message="Missing `contentDescription` attribute on image"
+        errorLine1="                                    &lt;ImageView"
+        errorLine2="                                     ~~~~~~~~~">
+        <location
+            file="src/main/res/layout/admin_tour_details_view.xml"
+            line="535"
+            column="38"/>
     </issue>
 
     <issue
@@ -3462,6 +3693,28 @@
     <issue
         id="ContentDescription"
         message="Missing `contentDescription` attribute on image"
+        errorLine1="    &lt;ImageView"
+        errorLine2="     ~~~~~~~~~">
+        <location
+            file="src/main/res/layout/item_admin_itinerario.xml"
+            line="77"
+            column="6"/>
+    </issue>
+
+    <issue
+        id="ContentDescription"
+        message="Missing `contentDescription` attribute on image"
+        errorLine1="    &lt;ImageView"
+        errorLine2="     ~~~~~~~~~">
+        <location
+            file="src/main/res/layout/item_admin_servicio.xml"
+            line="10"
+            column="6"/>
+    </issue>
+
+    <issue
+        id="ContentDescription"
+        message="Missing `contentDescription` attribute on image"
         errorLine1="        &lt;ImageView"
         errorLine2="         ~~~~~~~~~">
         <location
@@ -3567,6 +3820,28 @@
             file="src/main/res/layout/cliente_tour_filtros.xml"
             line="232"
             column="26"/>
+    </issue>
+
+    <issue
+        id="SetTextI18n"
+        message="Do not concatenate text displayed with `setText`. Use resource string with placeholders."
+        errorLine1="            holder.tvDuracion.setText(&quot;Duración: &quot; + item.getDuration());"
+        errorLine2="                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/example/connectifyproject/adapters/AdminItinerarioAdapter.java"
+            line="49"
+            column="39"/>
+    </issue>
+
+    <issue
+        id="SetTextI18n"
+        message="String literal in `setText` can not be translated. Use Android resources instead."
+        errorLine1="            holder.tvDuracion.setText(&quot;Duración: &quot; + item.getDuration());"
+        errorLine2="                                      ~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/example/connectifyproject/adapters/AdminItinerarioAdapter.java"
+            line="49"
+            column="39"/>
     </issue>
 
     <issue
@@ -4199,56 +4474,111 @@
     <issue
         id="SetTextI18n"
         message="String literal in `setText` can not be translated. Use Android resources instead."
-        errorLine1="        tvStatus.setText(&quot;En línea&quot;);"
-        errorLine2="                         ~~~~~~~~~~">
+        errorLine1="                tvServicePrice.setText(&quot;Gratis&quot;);"
+        errorLine2="                                       ~~~~~~~~">
         <location
-            file="src/main/java/com/example/connectifyproject/admin_chat_conversation.java"
-            line="88"
-            column="26"/>
+            file="src/main/java/com/example/connectifyproject/adapters/TourServiceAdapter.java"
+            line="68"
+            column="40"/>
     </issue>
 
     <issue
         id="SetTextI18n"
         message="String literal in `setText` can not be translated. Use Android resources instead."
-        errorLine1="                binding.tvStepTitle.setText(&quot;Información Básica&quot;);"
+        errorLine1="                tvStatus.setText(&quot;En línea&quot;);"
+        errorLine2="                                 ~~~~~~~~~~">
+        <location
+            file="src/main/java/com/example/connectifyproject/admin_chat_conversation.java"
+            line="132"
+            column="34"/>
+    </issue>
+
+    <issue
+        id="SetTextI18n"
+        message="String literal in `setText` can not be translated. Use Android resources instead."
+        errorLine1="                binding.tvStepTitle.setText(&quot;Informacion Basica&quot;);"
         errorLine2="                                            ~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/com/example/connectifyproject/admin_create_tour.java"
-            line="90"
+            line="377"
             column="45"/>
     </issue>
 
     <issue
         id="SetTextI18n"
         message="String literal in `setText` can not be translated. Use Android resources instead."
-        errorLine1="                binding.tvStepSubtitle.setText(&quot;Ingresa los detalles principales del tour&quot;);"
-        errorLine2="                                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        errorLine1="                binding.tvStepIndicator.setText(&quot;Paso 1 de 4&quot;);"
+        errorLine2="                                                ~~~~~~~~~~~~~">
         <location
             file="src/main/java/com/example/connectifyproject/admin_create_tour.java"
-            line="91"
-            column="48"/>
+            line="378"
+            column="49"/>
     </issue>
 
     <issue
         id="SetTextI18n"
         message="String literal in `setText` can not be translated. Use Android resources instead."
-        errorLine1="                binding.tvStepTitle.setText(&quot;Ubicación en el Mapa&quot;);"
-        errorLine2="                                            ~~~~~~~~~~~~~~~~~~~~~~">
+        errorLine1="                binding.tvStepTitle.setText(&quot;Lugares del Recorrido&quot;);"
+        errorLine2="                                            ~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/com/example/connectifyproject/admin_create_tour.java"
-            line="94"
+            line="382"
             column="45"/>
     </issue>
 
     <issue
         id="SetTextI18n"
         message="String literal in `setText` can not be translated. Use Android resources instead."
-        errorLine1="                binding.tvStepSubtitle.setText(&quot;Selecciona la ubicación donde se realizará el tour&quot;);"
-        errorLine2="                                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        errorLine1="                binding.tvStepIndicator.setText(&quot;Paso 2 de 4&quot;);"
+        errorLine2="                                                ~~~~~~~~~~~~~">
         <location
             file="src/main/java/com/example/connectifyproject/admin_create_tour.java"
-            line="95"
-            column="48"/>
+            line="383"
+            column="49"/>
+    </issue>
+
+    <issue
+        id="SetTextI18n"
+        message="String literal in `setText` can not be translated. Use Android resources instead."
+        errorLine1="                binding.tvStepTitle.setText(&quot;Fecha y Actividades&quot;);"
+        errorLine2="                                            ~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/example/connectifyproject/admin_create_tour.java"
+            line="387"
+            column="45"/>
+    </issue>
+
+    <issue
+        id="SetTextI18n"
+        message="String literal in `setText` can not be translated. Use Android resources instead."
+        errorLine1="                binding.tvStepIndicator.setText(&quot;Paso 3 de 4&quot;);"
+        errorLine2="                                                ~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/example/connectifyproject/admin_create_tour.java"
+            line="388"
+            column="49"/>
+    </issue>
+
+    <issue
+        id="SetTextI18n"
+        message="String literal in `setText` can not be translated. Use Android resources instead."
+        errorLine1="                binding.tvStepTitle.setText(&quot;Servicios Adicionales&quot;);"
+        errorLine2="                                            ~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/example/connectifyproject/admin_create_tour.java"
+            line="394"
+            column="45"/>
+    </issue>
+
+    <issue
+        id="SetTextI18n"
+        message="String literal in `setText` can not be translated. Use Android resources instead."
+        errorLine1="                binding.tvStepIndicator.setText(&quot;Paso 4 de 4&quot;);"
+        errorLine2="                                                ~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/example/connectifyproject/admin_create_tour.java"
+            line="395"
+            column="49"/>
     </issue>
 
     <issue
@@ -4320,8 +4650,8 @@
     <issue
         id="SetTextI18n"
         message="String literal in `setText` can not be translated. Use Android resources instead."
-        errorLine1="        binding.etGuideCommission.setText(&quot;20.00&quot;);"
-        errorLine2="                                          ~~~~~~~">
+        errorLine1="        binding.etGuideCommission.setText(&quot;200.00&quot;);"
+        errorLine2="                                          ~~~~~~~~">
         <location
             file="src/main/java/com/example/connectifyproject/admin_payment_proposal.java"
             line="51"
@@ -4331,23 +4661,12 @@
     <issue
         id="SetTextI18n"
         message="String literal in `setText` can not be translated. Use Android resources instead."
-        errorLine1="        binding.etPlatformFee.setText(&quot;15.00&quot;);"
-        errorLine2="                                      ~~~~~~~">
+        errorLine1="            binding.etPlatformFee.setText(&quot;0.00&quot;);"
+        errorLine2="                                          ~~~~~~">
         <location
             file="src/main/java/com/example/connectifyproject/admin_payment_proposal.java"
-            line="52"
-            column="39"/>
-    </issue>
-
-    <issue
-        id="SetTextI18n"
-        message="String literal in `setText` can not be translated. Use Android resources instead."
-        errorLine1="        binding.tvTotalAmount.setText(&quot;S/ 185.00&quot;);"
-        errorLine2="                                      ~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/connectifyproject/admin_payment_proposal.java"
-            line="53"
-            column="39"/>
+            line="84"
+            column="43"/>
     </issue>
 
     <issue
@@ -4357,7 +4676,7 @@
         errorLine2="                                          ~~~~~~~~~">
         <location
             file="src/main/java/com/example/connectifyproject/admin_payment_proposal.java"
-            line="80"
+            line="85"
             column="43"/>
     </issue>
 
@@ -4368,7 +4687,7 @@
         errorLine2="                                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/com/example/connectifyproject/admin_tour_details.java"
-            line="89"
+            line="103"
             column="48"/>
     </issue>
 
@@ -4379,7 +4698,7 @@
         errorLine2="                                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/com/example/connectifyproject/admin_tour_details.java"
-            line="93"
+            line="107"
             column="48"/>
     </issue>
 
@@ -4390,7 +4709,7 @@
         errorLine2="                                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/com/example/connectifyproject/admin_tour_details.java"
-            line="97"
+            line="111"
             column="48"/>
     </issue>
 
@@ -4401,7 +4720,7 @@
         errorLine2="                                               ~~~~~~~~~~~~">
         <location
             file="src/main/java/com/example/connectifyproject/admin_tour_details.java"
-            line="101"
+            line="115"
             column="48"/>
     </issue>
 
@@ -4412,7 +4731,7 @@
         errorLine2="                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/com/example/connectifyproject/admin_tour_details.java"
-            line="131"
+            line="166"
             column="43"/>
     </issue>
 
@@ -4423,7 +4742,7 @@
         errorLine2="                                          ~~~~~~">
         <location
             file="src/main/java/com/example/connectifyproject/admin_tour_details.java"
-            line="134"
+            line="169"
             column="43"/>
     </issue>
 
@@ -4434,7 +4753,7 @@
         errorLine2="                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/com/example/connectifyproject/admin_tour_details.java"
-            line="135"
+            line="170"
             column="37"/>
     </issue>
 
@@ -4445,7 +4764,7 @@
         errorLine2="                                      ~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/com/example/connectifyproject/admin_tour_details.java"
-            line="138"
+            line="173"
             column="39"/>
     </issue>
 
@@ -4456,8 +4775,74 @@
         errorLine2="                                   ~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/com/example/connectifyproject/admin_tour_details.java"
-            line="139"
+            line="174"
             column="36"/>
+    </issue>
+
+    <issue
+        id="SetTextI18n"
+        message="String literal in `setText` can not be translated. Use Android resources instead."
+        errorLine1="            binding.tvTimelinePropuestaEnviada.setText(&quot;10:00 AM&quot;);"
+        errorLine2="                                                       ~~~~~~~~~~">
+        <location
+            file="src/main/java/com/example/connectifyproject/admin_tour_details.java"
+            line="313"
+            column="56"/>
+    </issue>
+
+    <issue
+        id="SetTextI18n"
+        message="String literal in `setText` can not be translated. Use Android resources instead."
+        errorLine1="            binding.tvTimelineGuiaVisualizo.setText(&quot;10:30 AM&quot;);"
+        errorLine2="                                                    ~~~~~~~~~~">
+        <location
+            file="src/main/java/com/example/connectifyproject/admin_tour_details.java"
+            line="314"
+            column="53"/>
+    </issue>
+
+    <issue
+        id="SetTextI18n"
+        message="String literal in `setText` can not be translated. Use Android resources instead."
+        errorLine1="            binding.tvGuiaNombre.setText(&quot;Carlos Mendoza&quot;);"
+        errorLine2="                                         ~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/example/connectifyproject/admin_tour_details.java"
+            line="332"
+            column="42"/>
+    </issue>
+
+    <issue
+        id="SetTextI18n"
+        message="String literal in `setText` can not be translated. Use Android resources instead."
+        errorLine1="            binding.tvGuiaExperiencia.setText(&quot;5 años de experiencia&quot;);"
+        errorLine2="                                              ~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/example/connectifyproject/admin_tour_details.java"
+            line="333"
+            column="47"/>
+    </issue>
+
+    <issue
+        id="SetTextI18n"
+        message="String literal in `setText` can not be translated. Use Android resources instead."
+        errorLine1="            binding.tvGuiaIdiomas.setText(&quot;Español, Inglés&quot;);"
+        errorLine2="                                          ~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/example/connectifyproject/admin_tour_details.java"
+            line="334"
+            column="43"/>
+    </issue>
+
+    <issue
+        id="SetTextI18n"
+        message="String literal in `setText` can not be translated. Use Android resources instead."
+        errorLine1="            binding.tvGuiaTelefono.setText(&quot;📞 +51 987 654 321&quot;);"
+        errorLine2="                                           ~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/example/connectifyproject/admin_tour_details.java"
+            line="335"
+            column="44"/>
     </issue>
 
     <issue
@@ -4990,8 +5375,8 @@
 
     <issue
         id="HardcodedText"
-        message="Hardcoded string &quot;Paso 1 de 2&quot;, should use `@string` resource"
-        errorLine1="                        android:text=&quot;Paso 1 de 2&quot;"
+        message="Hardcoded string &quot;Paso 1 de 4&quot;, should use `@string` resource"
+        errorLine1="                        android:text=&quot;Paso 1 de 4&quot;"
         errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/layout/admin_create_tour_view.xml"
@@ -5050,7 +5435,7 @@
         errorLine2="                                    ~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/layout/admin_create_tour_view.xml"
-            line="159"
+            line="160"
             column="37"/>
     </issue>
 
@@ -5061,30 +5446,107 @@
         errorLine2="                                    ~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/layout/admin_create_tour_view.xml"
-            line="176"
+            line="177"
             column="37"/>
     </issue>
 
     <issue
         id="HardcodedText"
-        message="Hardcoded string &quot;Selecciona la ubicación del tour&quot;, should use `@string` resource"
-        errorLine1="                            android:text=&quot;Selecciona la ubicación del tour&quot;"
-        errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        message="Hardcoded string &quot;Fecha de realización&quot;, should use `@string` resource"
+        errorLine1="                                android:hint=&quot;Fecha de realización&quot;"
+        errorLine2="                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/layout/admin_create_tour_view.xml"
-            line="213"
+            line="197"
+            column="33"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;Buscar lugares a visitar&quot;, should use `@string` resource"
+        errorLine1="                                android:hint=&quot;Buscar lugares a visitar&quot; />"
+        errorLine2="                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/admin_create_tour_view.xml"
+            line="243"
+            column="33"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;Toca en el mapa para seleccionar lugares:&quot;, should use `@string` resource"
+        errorLine1="                            android:text=&quot;Toca en el mapa para seleccionar lugares:&quot;"
+        errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/admin_create_tour_view.xml"
+            line="251"
             column="29"/>
     </issue>
 
     <issue
         id="HardcodedText"
-        message="Hardcoded string &quot;Toca en el mapa para seleccionar donde se realizará el tour&quot;, should use `@string` resource"
-        errorLine1="                            android:text=&quot;Toca en el mapa para seleccionar donde se realizará el tour&quot;"
-        errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        message="Hardcoded string &quot;Agregar al Recorrido&quot;, should use `@string` resource"
+        errorLine1="                            android:text=&quot;Agregar al Recorrido&quot;"
+        errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/layout/admin_create_tour_view.xml"
-            line="222"
+            line="268"
             column="29"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;Lugares del recorrido:&quot;, should use `@string` resource"
+        errorLine1="                            android:text=&quot;Lugares del recorrido:&quot;"
+        errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/admin_create_tour_view.xml"
+            line="279"
+            column="29"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;Actividades por lugar:&quot;, should use `@string` resource"
+        errorLine1="                            android:text=&quot;Actividades por lugar:&quot;"
+        errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/admin_create_tour_view.xml"
+            line="322"
+            column="29"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;Ruta del tour:&quot;, should use `@string` resource"
+        errorLine1="                            android:text=&quot;Ruta del tour:&quot;"
+        errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/admin_create_tour_view.xml"
+            line="355"
+            column="29"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;Servicios adicionales:&quot;, should use `@string` resource"
+        errorLine1="                                android:text=&quot;Servicios adicionales:&quot;"
+        errorLine2="                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/admin_create_tour_view.xml"
+            line="404"
+            column="33"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;Agregar Servicio&quot;, should use `@string` resource"
+        errorLine1="                                android:text=&quot;Agregar Servicio&quot;"
+        errorLine2="                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/admin_create_tour_view.xml"
+            line="412"
+            column="33"/>
     </issue>
 
     <issue
@@ -5094,7 +5556,7 @@
         errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/layout/admin_create_tour_view.xml"
-            line="255"
+            line="447"
             column="21"/>
     </issue>
 
@@ -5105,7 +5567,7 @@
         errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/layout/admin_create_tour_view.xml"
-            line="265"
+            line="457"
             column="21"/>
     </issue>
 
@@ -5116,7 +5578,161 @@
         errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/layout/admin_create_tour_view.xml"
-            line="284"
+            line="477"
+            column="21"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;Crear Tour&quot;, should use `@string` resource"
+        errorLine1="                    android:text=&quot;Crear Tour&quot;"
+        errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/admin_create_tour_view.xml"
+            line="486"
+            column="21"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;Paso 1 de 4&quot;, should use `@string` resource"
+        errorLine1="                        android:text=&quot;Paso 1 de 4&quot;"
+        errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/admin_create_tour_view_backup.xml"
+            line="59"
+            column="25"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;Información Básica&quot;, should use `@string` resource"
+        errorLine1="                        android:text=&quot;Información Básica&quot;"
+        errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/admin_create_tour_view_backup.xml"
+            line="69"
+            column="25"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;Ingresa los detalles principales del tour&quot;, should use `@string` resource"
+        errorLine1="                        android:text=&quot;Ingresa los detalles principales del tour&quot;"
+        errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/admin_create_tour_view_backup.xml"
+            line="79"
+            column="25"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;Título del tour&quot;, should use `@string` resource"
+        errorLine1="                                android:hint=&quot;Título del tour&quot;"
+        errorLine2="                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/admin_create_tour_view_backup.xml"
+            line="119"
+            column="33"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;Descripción del tour&quot;, should use `@string` resource"
+        errorLine1="                                android:hint=&quot;Descripción del tour&quot;"
+        errorLine2="                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/admin_create_tour_view_backup.xml"
+            line="135"
+            column="33"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;Precio&quot;, should use `@string` resource"
+        errorLine1="                                    android:hint=&quot;Precio&quot;"
+        errorLine2="                                    ~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/admin_create_tour_view_backup.xml"
+            line="159"
+            column="37"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;Duración&quot;, should use `@string` resource"
+        errorLine1="                                    android:hint=&quot;Duración&quot;"
+        errorLine2="                                    ~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/admin_create_tour_view_backup.xml"
+            line="176"
+            column="37"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;Fecha de realización&quot;, should use `@string` resource"
+        errorLine1="                                android:hint=&quot;Fecha de realización&quot;"
+        errorLine2="                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/admin_create_tour_view_backup.xml"
+            line="197"
+            column="33"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;Selecciona la ubicación del tour&quot;, should use `@string` resource"
+        errorLine1="                            android:text=&quot;Selecciona la ubicación del tour&quot;"
+        errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/admin_create_tour_view_backup.xml"
+            line="233"
+            column="29"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;Toca en el mapa para seleccionar donde se realizará el tour&quot;, should use `@string` resource"
+        errorLine1="                            android:text=&quot;Toca en el mapa para seleccionar donde se realizará el tour&quot;"
+        errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/admin_create_tour_view_backup.xml"
+            line="242"
+            column="29"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;Anterior&quot;, should use `@string` resource"
+        errorLine1="                    android:text=&quot;Anterior&quot;"
+        errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/admin_create_tour_view_backup.xml"
+            line="275"
+            column="21"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;Siguiente&quot;, should use `@string` resource"
+        errorLine1="                    android:text=&quot;Siguiente&quot;"
+        errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/admin_create_tour_view_backup.xml"
+            line="285"
+            column="21"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;Guardar Borrador&quot;, should use `@string` resource"
+        errorLine1="                    android:text=&quot;Guardar Borrador&quot;"
+        errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/admin_create_tour_view_backup.xml"
+            line="304"
             column="21"/>
     </issue>
 
@@ -5126,8 +5742,8 @@
         errorLine1="                    android:text=&quot;Publicar Tour&quot;"
         errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/res/layout/admin_create_tour_view.xml"
-            line="293"
+            file="src/main/res/layout/admin_create_tour_view_backup.xml"
+            line="313"
             column="21"/>
     </issue>
 
@@ -5347,7 +5963,7 @@
         errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/layout/admin_payment_proposal_view.xml"
-            line="58"
+            line="62"
             column="25"/>
     </issue>
 
@@ -5358,7 +5974,7 @@
         errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/layout/admin_payment_proposal_view.xml"
-            line="68"
+            line="72"
             column="25"/>
     </issue>
 
@@ -5369,7 +5985,7 @@
         errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/layout/admin_payment_proposal_view.xml"
-            line="77"
+            line="81"
             column="25"/>
     </issue>
 
@@ -5380,7 +5996,7 @@
         errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/layout/admin_payment_proposal_view.xml"
-            line="93"
+            line="97"
             column="29"/>
     </issue>
 
@@ -5391,7 +6007,7 @@
         errorLine2="                            ~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/layout/admin_payment_proposal_view.xml"
-            line="101"
+            line="105"
             column="29"/>
     </issue>
 
@@ -5402,7 +6018,7 @@
         errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/layout/admin_payment_proposal_view.xml"
-            line="110"
+            line="114"
             column="29"/>
     </issue>
 
@@ -5413,7 +6029,7 @@
         errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/layout/admin_payment_proposal_view.xml"
-            line="139"
+            line="143"
             column="25"/>
     </issue>
 
@@ -5424,7 +6040,7 @@
         errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/layout/admin_payment_proposal_view.xml"
-            line="158"
+            line="162"
             column="29"/>
     </issue>
 
@@ -5435,7 +6051,7 @@
         errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/layout/admin_payment_proposal_view.xml"
-            line="176"
+            line="180"
             column="29"/>
     </issue>
 
@@ -5446,7 +6062,7 @@
         errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/layout/admin_payment_proposal_view.xml"
-            line="194"
+            line="199"
             column="29"/>
     </issue>
 
@@ -5457,7 +6073,7 @@
         errorLine2="                            ~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/layout/admin_payment_proposal_view.xml"
-            line="216"
+            line="223"
             column="29"/>
     </issue>
 
@@ -5468,7 +6084,7 @@
         errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/layout/admin_payment_proposal_view.xml"
-            line="225"
+            line="232"
             column="29"/>
     </issue>
 
@@ -5479,7 +6095,7 @@
         errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/layout/admin_payment_proposal_view.xml"
-            line="253"
+            line="260"
             column="25"/>
     </issue>
 
@@ -5490,7 +6106,7 @@
         errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/layout/admin_payment_proposal_view.xml"
-            line="270"
+            line="277"
             column="29"/>
     </issue>
 
@@ -5501,30 +6117,30 @@
         errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/layout/admin_payment_proposal_view.xml"
-            line="285"
+            line="292"
             column="29"/>
     </issue>
 
     <issue
         id="HardcodedText"
         message="Hardcoded string &quot;Cancelar&quot;, should use `@string` resource"
-        errorLine1="                    android:text=&quot;Cancelar&quot;"
-        errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~">
+        errorLine1="            android:text=&quot;Cancelar&quot;"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/layout/admin_payment_proposal_view.xml"
-            line="309"
-            column="21"/>
+            line="324"
+            column="13"/>
     </issue>
 
     <issue
         id="HardcodedText"
         message="Hardcoded string &quot;Enviar Propuesta&quot;, should use `@string` resource"
-        errorLine1="                    android:text=&quot;Enviar Propuesta&quot;"
-        errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        errorLine1="            android:text=&quot;Enviar Propuesta&quot;"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/layout/admin_payment_proposal_view.xml"
-            line="318"
-            column="21"/>
+            line="333"
+            column="13"/>
     </issue>
 
     <issue
@@ -5567,29 +6183,84 @@
         errorLine2="                ~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/layout/admin_select_guide_view.xml"
-            line="46"
+            line="47"
             column="17"/>
     </issue>
 
     <issue
         id="HardcodedText"
-        message="Hardcoded string &quot;Lenguajes&quot;, should use `@string` resource"
-        errorLine1="                android:text=&quot;Lenguajes&quot;"
-        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~">
+        message="Hardcoded string &quot;Filtrar por idiomas:&quot;, should use `@string` resource"
+        errorLine1="                android:text=&quot;Filtrar por idiomas:&quot;"
+        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/layout/admin_select_guide_view.xml"
-            line="65"
+            line="64"
             column="17"/>
     </issue>
 
     <issue
         id="HardcodedText"
-        message="Hardcoded string &quot;4.8 • 120 tours&quot;, should use `@string` resource"
-        errorLine1="                    android:text=&quot;4.8 • 120 tours&quot;"
-        errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        message="Hardcoded string &quot;Español&quot;, should use `@string` resource"
+        errorLine1="                    android:text=&quot;Español&quot;"
+        errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/layout/admin_select_guide_view.xml"
-            line="82"
+            line="84"
+            column="21"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;Inglés&quot;, should use `@string` resource"
+        errorLine1="                    android:text=&quot;Inglés&quot;"
+        errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/admin_select_guide_view.xml"
+            line="92"
+            column="21"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;Francés&quot;, should use `@string` resource"
+        errorLine1="                    android:text=&quot;Francés&quot;"
+        errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/admin_select_guide_view.xml"
+            line="100"
+            column="21"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;Italiano&quot;, should use `@string` resource"
+        errorLine1="                    android:text=&quot;Italiano&quot;"
+        errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/admin_select_guide_view.xml"
+            line="108"
+            column="21"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;Mandarín&quot;, should use `@string` resource"
+        errorLine1="                    android:text=&quot;Mandarín&quot;"
+        errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/admin_select_guide_view.xml"
+            line="116"
+            column="21"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;Portugués&quot;, should use `@string` resource"
+        errorLine1="                    android:text=&quot;Portugués&quot;"
+        errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/admin_select_guide_view.xml"
+            line="124"
             column="21"/>
     </issue>
 
@@ -5651,133 +6322,287 @@
     <issue
         id="HardcodedText"
         message="Hardcoded string &quot;Información de Precio&quot;, should use `@string` resource"
-        errorLine1="                            android:text=&quot;Información de Precio&quot;"
-        errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        errorLine1="                                android:text=&quot;Información de Precio&quot;"
+        errorLine2="                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/layout/admin_tour_details_view.xml"
-            line="158"
-            column="29"/>
+            line="166"
+            column="33"/>
     </issue>
 
     <issue
         id="HardcodedText"
         message="Hardcoded string &quot;Costo por persona:&quot;, should use `@string` resource"
-        errorLine1="                                android:text=&quot;Costo por persona:&quot;"
-        errorLine2="                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        errorLine1="                                    android:text=&quot;Costo por persona:&quot;"
+        errorLine2="                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/layout/admin_tour_details_view.xml"
-            line="174"
-            column="33"/>
+            line="182"
+            column="37"/>
     </issue>
 
     <issue
         id="HardcodedText"
         message="Hardcoded string &quot;$499&quot;, should use `@string` resource"
-        errorLine1="                                android:text=&quot;$499&quot;"
-        errorLine2="                                ~~~~~~~~~~~~~~~~~~~">
+        errorLine1="                                    android:text=&quot;$499&quot;"
+        errorLine2="                                    ~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/layout/admin_tour_details_view.xml"
-            line="182"
-            column="33"/>
+            line="190"
+            column="37"/>
     </issue>
 
     <issue
         id="HardcodedText"
         message="Hardcoded string &quot;Servicios incluidos:&quot;, should use `@string` resource"
-        errorLine1="                                android:text=&quot;Servicios incluidos:&quot;"
-        errorLine2="                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        errorLine1="                                    android:text=&quot;Servicios incluidos:&quot;"
+        errorLine2="                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/layout/admin_tour_details_view.xml"
-            line="198"
-            column="33"/>
+            line="206"
+            column="37"/>
     </issue>
 
     <issue
         id="HardcodedText"
         message="Hardcoded string &quot;Guía, equipamiento&quot;, should use `@string` resource"
-        errorLine1="                                android:text=&quot;Guía, equipamiento&quot;"
-        errorLine2="                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        errorLine1="                                    android:text=&quot;Guía, equipamiento&quot;"
+        errorLine2="                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/layout/admin_tour_details_view.xml"
-            line="206"
-            column="33"/>
+            line="214"
+            column="37"/>
     </issue>
 
     <issue
         id="HardcodedText"
         message="Hardcoded string &quot;Duración del Tour&quot;, should use `@string` resource"
-        errorLine1="                            android:text=&quot;Duración del Tour&quot;"
-        errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        errorLine1="                                android:text=&quot;Duración del Tour&quot;"
+        errorLine2="                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/layout/admin_tour_details_view.xml"
-            line="233"
-            column="29"/>
+            line="241"
+            column="33"/>
     </issue>
 
     <issue
         id="HardcodedText"
         message="Hardcoded string &quot;Fecha de inicio:&quot;, should use `@string` resource"
-        errorLine1="                                android:text=&quot;Fecha de inicio:&quot;"
-        errorLine2="                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        errorLine1="                                    android:text=&quot;Fecha de inicio:&quot;"
+        errorLine2="                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/layout/admin_tour_details_view.xml"
-            line="249"
-            column="33"/>
+            line="257"
+            column="37"/>
     </issue>
 
     <issue
         id="HardcodedText"
         message="Hardcoded string &quot;15 de julio, 2024&quot;, should use `@string` resource"
-        errorLine1="                                android:text=&quot;15 de julio, 2024&quot;"
-        errorLine2="                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        errorLine1="                                    android:text=&quot;15 de julio, 2024&quot;"
+        errorLine2="                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/layout/admin_tour_details_view.xml"
-            line="257"
-            column="33"/>
+            line="265"
+            column="37"/>
     </issue>
 
     <issue
         id="HardcodedText"
         message="Hardcoded string &quot;Fecha de fin:&quot;, should use `@string` resource"
-        errorLine1="                                android:text=&quot;Fecha de fin:&quot;"
-        errorLine2="                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        errorLine1="                                    android:text=&quot;Fecha de fin:&quot;"
+        errorLine2="                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/layout/admin_tour_details_view.xml"
-            line="273"
-            column="33"/>
+            line="281"
+            column="37"/>
     </issue>
 
     <issue
         id="HardcodedText"
         message="Hardcoded string &quot;20 de julio, 2024&quot;, should use `@string` resource"
-        errorLine1="                                android:text=&quot;20 de julio, 2024&quot;"
-        errorLine2="                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        errorLine1="                                    android:text=&quot;20 de julio, 2024&quot;"
+        errorLine2="                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/layout/admin_tour_details_view.xml"
-            line="281"
+            line="289"
+            column="37"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;Itinerario del Tour&quot;, should use `@string` resource"
+        errorLine1="                                android:text=&quot;Itinerario del Tour&quot;"
+        errorLine2="                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/admin_tour_details_view.xml"
+            line="327"
             column="33"/>
     </issue>
 
     <issue
         id="HardcodedText"
-        message="Hardcoded string &quot;Ubicación del Tour&quot;, should use `@string` resource"
-        errorLine1="                            android:text=&quot;Ubicación del Tour&quot;"
-        errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        message="Hardcoded string &quot;Información del Guía&quot;, should use `@string` resource"
+        errorLine1="                                android:text=&quot;Información del Guía&quot;"
+        errorLine2="                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/layout/admin_tour_details_view.xml"
-            line="309"
+            line="370"
+            column="33"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;Carlos Mendoza&quot;, should use `@string` resource"
+        errorLine1="                                        android:text=&quot;Carlos Mendoza&quot;"
+        errorLine2="                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/admin_tour_details_view.xml"
+            line="404"
+            column="41"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;5 años de experiencia&quot;, should use `@string` resource"
+        errorLine1="                                        android:text=&quot;5 años de experiencia&quot;"
+        errorLine2="                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/admin_tour_details_view.xml"
+            line="413"
+            column="41"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;Español, Inglés&quot;, should use `@string` resource"
+        errorLine1="                                        android:text=&quot;Español, Inglés&quot;"
+        errorLine2="                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/admin_tour_details_view.xml"
+            line="421"
+            column="41"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;📞 +51 987 654 321&quot;, should use `@string` resource"
+        errorLine1="                                        android:text=&quot;📞 +51 987 654 321&quot;"
+        errorLine2="                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/admin_tour_details_view.xml"
+            line="429"
+            column="41"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;Este tour necesita un guía asignado&quot;, should use `@string` resource"
+        errorLine1="                                    android:text=&quot;Este tour necesita un guía asignado&quot;"
+        errorLine2="                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/admin_tour_details_view.xml"
+            line="451"
+            column="37"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;Buscar guía&quot;, should use `@string` resource"
+        errorLine1="                                    android:text=&quot;Buscar guía&quot;"
+        errorLine2="                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/admin_tour_details_view.xml"
+            line="461"
+            column="37"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;Propuesta enviada al guía&quot;, should use `@string` resource"
+        errorLine1="                                            android:text=&quot;Propuesta enviada al guía&quot;"
+        errorLine2="                                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/admin_tour_details_view.xml"
+            line="503"
+            column="45"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;10:00 AM&quot;, should use `@string` resource"
+        errorLine1="                                            android:text=&quot;10:00 AM&quot;"
+        errorLine2="                                            ~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/admin_tour_details_view.xml"
+            line="512"
+            column="45"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;El guía ha visualizado la propuesta&quot;, should use `@string` resource"
+        errorLine1="                                            android:text=&quot;El guía ha visualizado la propuesta&quot;"
+        errorLine2="                                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/admin_tour_details_view.xml"
+            line="552"
+            column="45"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;10:30 AM&quot;, should use `@string` resource"
+        errorLine1="                                            android:text=&quot;10:30 AM&quot;"
+        errorLine2="                                            ~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/admin_tour_details_view.xml"
+            line="560"
+            column="45"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;Servicios Incluidos&quot;, should use `@string` resource"
+        errorLine1="                                android:text=&quot;Servicios Incluidos&quot;"
+        errorLine2="                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/admin_tour_details_view.xml"
+            line="601"
+            column="33"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;🟢 En curso&quot;, should use `@string` resource"
+        errorLine1="                            android:text=&quot;🟢 En curso&quot;"
+        errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/admin_tour_details_view.xml"
+            line="642"
             column="29"/>
     </issue>
 
     <issue
         id="HardcodedText"
-        message="Hardcoded string &quot;Centro Histórico de Lima, Perú&quot;, should use `@string` resource"
-        errorLine1="                            android:text=&quot;Centro Histórico de Lima, Perú&quot;"
-        errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        message="Hardcoded string &quot;Recorrido del Tour&quot;, should use `@string` resource"
+        errorLine1="                                android:text=&quot;Recorrido del Tour&quot;"
+        errorLine2="                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/layout/admin_tour_details_view.xml"
-            line="335"
-            column="29"/>
+            line="666"
+            column="33"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;Centro Histórico de Lima, Perú&quot;, should use `@string` resource"
+        errorLine1="                                android:text=&quot;Centro Histórico de Lima, Perú&quot;"
+        errorLine2="                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/admin_tour_details_view.xml"
+            line="692"
+            column="33"/>
     </issue>
 
     <issue
@@ -5826,12 +6651,23 @@
 
     <issue
         id="HardcodedText"
+        message="Hardcoded string &quot;+ Crear Tour&quot;, should use `@string` resource"
+        errorLine1="        android:text=&quot;+ Crear Tour&quot;"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/admin_tours_view.xml"
+            line="115"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
         message="Hardcoded string &quot;Crear tour&quot;, should use `@string` resource"
         errorLine1="        android:contentDescription=&quot;Crear tour&quot; />"
         errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/layout/admin_tours_view.xml"
-            line="117"
+            line="118"
             column="9"/>
     </issue>
 
@@ -7307,6 +8143,83 @@
             file="src/main/res/layout/cliente_tours.xml"
             line="59"
             column="17"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;Agregar Servicio Adicional&quot;, should use `@string` resource"
+        errorLine1="        android:text=&quot;Agregar Servicio Adicional&quot;"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/dialog_add_service.xml"
+            line="12"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;Nombre del servicio&quot;, should use `@string` resource"
+        errorLine1="            android:hint=&quot;Nombre del servicio&quot; />"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/dialog_add_service.xml"
+            line="29"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;Descripción (opcional)&quot;, should use `@string` resource"
+        errorLine1="            android:hint=&quot;Descripción (opcional)&quot;"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/dialog_add_service.xml"
+            line="44"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;¿Es un servicio pagado?&quot;, should use `@string` resource"
+        errorLine1="            android:text=&quot;¿Es un servicio pagado?&quot;"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/dialog_add_service.xml"
+            line="61"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;Precio del servicio&quot;, should use `@string` resource"
+        errorLine1="            android:hint=&quot;Precio del servicio&quot;"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/dialog_add_service.xml"
+            line="86"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;Cancelar&quot;, should use `@string` resource"
+        errorLine1="            android:text=&quot;Cancelar&quot;"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/dialog_add_service.xml"
+            line="102"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;Agregar&quot;, should use `@string` resource"
+        errorLine1="            android:text=&quot;Agregar&quot;"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/dialog_add_service.xml"
+            line="110"
+            column="13"/>
     </issue>
 
     <issue
@@ -9159,6 +10072,61 @@
 
     <issue
         id="HardcodedText"
+        message="Hardcoded string &quot;09:00&quot;, should use `@string` resource"
+        errorLine1="            android:text=&quot;09:00&quot;"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/item_admin_itinerario.xml"
+            line="23"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;Plaza Mayor&quot;, should use `@string` resource"
+        errorLine1="            android:text=&quot;Plaza Mayor&quot;"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/item_admin_itinerario.xml"
+            line="49"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;Inicio del tour en el corazón de Lima colonial&quot;, should use `@string` resource"
+        errorLine1="            android:text=&quot;Inicio del tour en el corazón de Lima colonial&quot;"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/item_admin_itinerario.xml"
+            line="59"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;Duración: 1 hora&quot;, should use `@string` resource"
+        errorLine1="            android:text=&quot;Duración: 1 hora&quot;"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/item_admin_itinerario.xml"
+            line="68"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;Guía turístico profesional&quot;, should use `@string` resource"
+        errorLine1="        android:text=&quot;Guía turístico profesional&quot;"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/item_admin_servicio.xml"
+            line="24"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
         message="Hardcoded string &quot;Publicado&quot;, should use `@string` resource"
         errorLine1="                    android:text=&quot;Publicado&quot;"
         errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~">
@@ -9511,6 +10479,28 @@
 
     <issue
         id="HardcodedText"
+        message="Hardcoded string &quot;Nombre del lugar&quot;, should use `@string` resource"
+        errorLine1="            android:text=&quot;Nombre del lugar&quot;"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/item_place_activity.xml"
+            line="21"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;Actividades a realizar en este lugar&quot;, should use `@string` resource"
+        errorLine1="                android:hint=&quot;Actividades a realizar en este lugar&quot;"
+        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/item_place_activity.xml"
+            line="36"
+            column="17"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
         message="Hardcoded string &quot;Empresa&quot;, should use `@string` resource"
         errorLine1="            android:text=&quot;Empresa&quot;"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~">
@@ -9639,6 +10629,72 @@
             file="src/main/res/layout/item_tour.xml"
             line="80"
             column="17"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;Nombre del lugar&quot;, should use `@string` resource"
+        errorLine1="                android:text=&quot;Nombre del lugar&quot;"
+        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/item_tour_place.xml"
+            line="28"
+            column="17"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;Dirección del lugar&quot;, should use `@string` resource"
+        errorLine1="                android:text=&quot;Dirección del lugar&quot;"
+        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/item_tour_place.xml"
+            line="37"
+            column="17"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;Eliminar&quot;, should use `@string` resource"
+        errorLine1="            android:text=&quot;Eliminar&quot;"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/item_tour_place.xml"
+            line="48"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;Nombre del servicio&quot;, should use `@string` resource"
+        errorLine1="                android:text=&quot;Nombre del servicio&quot;"
+        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/item_tour_service.xml"
+            line="28"
+            column="17"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;Gratis&quot;, should use `@string` resource"
+        errorLine1="                android:text=&quot;Gratis&quot;"
+        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/item_tour_service.xml"
+            line="37"
+            column="17"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;Eliminar&quot;, should use `@string` resource"
+        errorLine1="            android:text=&quot;Eliminar&quot;"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/item_tour_service.xml"
+            line="49"
+            column="13"/>
     </issue>
 
     <issue
