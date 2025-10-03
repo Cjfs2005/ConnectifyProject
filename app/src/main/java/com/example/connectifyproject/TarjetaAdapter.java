@@ -67,12 +67,15 @@ public class TarjetaAdapter extends RecyclerView.Adapter<TarjetaAdapter.TarjetaV
 
         holder.itemView.setOnClickListener(v -> {
             int oldPosition = selectedPosition;
-            selectedPosition = position;
-            notifyItemChanged(oldPosition);
-            notifyItemChanged(selectedPosition);
-            
-            if (listener != null) {
-                listener.onTarjetaSelected(tarjeta, position);
+            int currentPosition = holder.getAdapterPosition();
+            if (currentPosition != RecyclerView.NO_POSITION) {
+                selectedPosition = currentPosition;
+                notifyItemChanged(oldPosition);
+                notifyItemChanged(selectedPosition);
+                
+                if (listener != null) {
+                    listener.onTarjetaSelected(tarjeta, currentPosition);
+                }
             }
         });
     }

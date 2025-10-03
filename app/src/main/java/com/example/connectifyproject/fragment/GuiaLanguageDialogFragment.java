@@ -38,7 +38,7 @@ public class GuiaLanguageDialogFragment extends DialogFragment {
     @NonNull
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
-        binding = GuiaDialogLanguageEditBinding.inflate(LayoutInflater.from(requireContext()));
+        binding = GuiaDialogLanguageEditBinding.inflate(getLayoutInflater());
 
         String[] langArray = {"Español", "Inglés", "Italiano", "Francés", "Alemán", "Chino", "Japonés"};
         ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, langArray);
