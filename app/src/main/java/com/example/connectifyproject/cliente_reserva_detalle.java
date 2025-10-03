@@ -32,19 +32,26 @@ public class cliente_reserva_detalle extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        System.out.println("cliente_reserva_detalle onCreate iniciado");
         try {
             setContentView(R.layout.cliente_reserva_detalle);
+            System.out.println("Layout establecido correctamente");
 
             initViews();
+            System.out.println("Views inicializadas correctamente");
             setupToolbar();
+            System.out.println("Toolbar configurada correctamente");
             Cliente_Reserva reserva = (Cliente_Reserva) getIntent().getSerializableExtra("reserva_object");
             if (reserva == null) {
-                // Log error and close activity
+                System.out.println("Error: reserva es null");
                 finish();
                 return;
             }
+            System.out.println("Reserva obtenida correctamente: " + reserva.getId());
             bindData(reserva);
+            System.out.println("Datos vinculados correctamente");
         } catch (Exception e) {
+            System.out.println("Error en onCreate de cliente_reserva_detalle: " + e.getMessage());
             e.printStackTrace();
             finish();
         }
