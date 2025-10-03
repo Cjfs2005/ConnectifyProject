@@ -1,50 +1,82 @@
 <?xml version="1.0" encoding="utf-8"?>
-<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+<navigation
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_sa"
     app:startDestination="@id/saUsersFragment">
 
+    <!-- Gestión / Usuarios -->
     <fragment
         android:id="@+id/saUsersFragment"
         android:name="com.example.connectifyproject.views.superadmin.users.SaUsersFragment"
-        android:label="Gestión" />
+        android:label="Gestión"
+        tools:layout="@layout/fragment_sa_users" />
 
+    <!-- Solicitudes -->
     <fragment
         android:id="@+id/saRequestsFragment"
         android:name="com.example.connectifyproject.views.superadmin.requests.SaRequestsFragment"
-        android:label="Solicitudes" />
+        android:label="Solicitudes"
+        tools:layout="@layout/fragment_sa_requests" />
 
+    <!-- Reportes -->
     <fragment
         android:id="@+id/saReportsFragment"
         android:name="com.example.connectifyproject.views.superadmin.reports.SaReportsFragment"
-        android:label="Reportes" />
+        android:label="Reportes"
+        tools:layout="@layout/fragment_sa_reports" />
 
+    <!-- Logs -->
     <fragment
         android:id="@+id/saLogsFragment"
         android:name="com.example.connectifyproject.views.superadmin.logs.SaLogsFragment"
-        android:label="Logs" />
+        android:label="Logs"
+        tools:layout="@layout/fragment_sa_logs" />
 
+    <!-- Detalles varios que ya tenías -->
     <fragment
         android:id="@+id/saUserDetailFragment"
         android:name="com.example.connectifyproject.views.superadmin.profile.SaUserDetailFragment"
-        android:label="Perfil de usuario" />
+        android:label="Perfil de usuario"
+        tools:layout="@layout/fragment_sa_user_detail" />
 
     <fragment
         android:id="@+id/saCreateAdminFragment"
         android:name="com.example.connectifyproject.views.superadmin.users.SaCreateAdminFragment"
-        android:label="Nuevo administrador" />
+        android:label="Nuevo administrador"
+        tools:layout="@layout/fragment_sa_create_admin" />
+
     <fragment
         android:id="@+id/saGuideRequestDetailFragment"
         android:name="com.example.connectifyproject.views.superadmin.requests.SaGuideRequestDetailFragment"
-        android:label="Perfil de guía" />
-    <fragment
-        android:id="@+id/nav_profile_self"
-        android:name="com.example.connectifyproject.views.superadmin.profile.SaProfileFragment"
-        android:label="Mi perfil" />
+        android:label="Perfil de guía"
+        tools:layout="@layout/fragment_sa_guide_request_detail" />
+
     <fragment
         android:id="@+id/saLogDetailFragment"
         android:name="com.example.connectifyproject.views.superadmin.logs.SaLogDetailFragment"
-        android:label="Detalle del log" />
+        android:label="Detalle del log"
+        tools:layout="@layout/fragment_sa_log_detail" />
 
+    <!-- Mi perfil (BOTTOM TAB) -->
+    <fragment
+        android:id="@+id/nav_profile_self"
+        android:name="com.example.connectifyproject.views.superadmin.profile.SaProfileFragment"
+        android:label="Mi perfil"
+        tools:layout="@layout/fragment_sa_profile">
+
+        <!-- Acción para ir a Editar perfil -->
+        <action
+            android:id="@+id/action_saProfileFragment_to_saEditProfileFragment"
+            app:destination="@id/saEditProfileFragment" />
+    </fragment>
+
+    <!-- Editar perfil -->
+    <fragment
+        android:id="@+id/saEditProfileFragment"
+        android:name="com.example.connectifyproject.views.superadmin.profile.SaEditProfileFragment"
+        android:label="Editar perfil"
+        tools:layout="@layout/fragment_sa_edit_profile" />
 
 </navigation>

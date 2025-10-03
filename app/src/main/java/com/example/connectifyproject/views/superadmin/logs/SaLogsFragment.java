@@ -9,6 +9,7 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.PopupMenu;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -17,6 +18,8 @@ import com.example.connectifyproject.R;
 import com.example.connectifyproject.databinding.FragmentSaLogsBinding;
 import com.example.connectifyproject.model.Role;
 import com.example.connectifyproject.model.User;
+import com.google.android.material.appbar.AppBarLayout;
+import com.google.android.material.appbar.MaterialToolbar;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
@@ -30,7 +33,8 @@ public class SaLogsFragment extends Fragment {
     private SaLogsAdapter.SortOrder sort = SaLogsAdapter.SortOrder.RECENT;
     private EnumSet<Role> selectedRoles = EnumSet.of(Role.GUIDE, Role.ADMIN, Role.CLIENT);
 
-    @Nullable @Override
+    @Nullable
+    @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
@@ -38,9 +42,23 @@ public class SaLogsFragment extends Fragment {
         return binding.getRoot();
     }
 
-    @Override public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
+    @Override
+    public void onViewCreated(@NonNull View v, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(v, savedInstanceState);
 
+        // 🟣 Forzar morado oscuro en la barra superior
+        int purple = ContextCompat.getColor(requireContext(), R.color.brand_purple_dark);
+        MaterialToolbar tb = v.findViewById(R.id.toolbar);
+        if (tb != null) {
+            tb.setBackgroundColor(purple);
+            tb.setTitleTextColor(0xFFFFFFFF);
+            tb.setNavigationIconTint(0xFFFFFFFF);
+        }
+        // <<<<<<<<<<<<<<<<<<<<< FIX AQUÍ: usar appBar (B mayúscula)
+        AppBarLayout appBar = v.findViewById(R.id.appBar);
+        if (appBar != null) appBar.setBackgroundColor(purple);
+
+        // Recycler + Adapter
         binding.rvLogs.setLayoutManager(new LinearLayoutManager(requireContext()));
         adapter = new SaLogsAdapter(mockLogs(), item -> {
             Bundle b = new Bundle();
@@ -52,6 +70,7 @@ public class SaLogsFragment extends Fragment {
         });
         binding.rvLogs.setAdapter(adapter);
 
+        // Restaurar estado
         if (savedInstanceState != null) {
             sort = savedInstanceState.getBoolean("sortOld", false)
                     ? SaLogsAdapter.SortOrder.OLD
@@ -63,6 +82,7 @@ public class SaLogsFragment extends Fragment {
             updateRoleButton();
         }
 
+        // Listeners
         binding.btnSort.setOnClickListener(this::showSortPopup);
         binding.btnRole.setOnClickListener(this::showRolePopup);
         updateRoleButton();
@@ -71,11 +91,8 @@ public class SaLogsFragment extends Fragment {
     private void showSortPopup(View anchor) {
         PopupMenu pm = new PopupMenu(requireContext(), anchor);
         pm.getMenuInflater().inflate(R.menu.menu_logs_sort, pm.getMenu());
-
-        // Marca correctamente el estado actual (radio)
         pm.getMenu().findItem(R.id.sort_recent).setChecked(sort == SaLogsAdapter.SortOrder.RECENT);
         pm.getMenu().findItem(R.id.sort_old).setChecked(sort == SaLogsAdapter.SortOrder.OLD);
-
         pm.setOnMenuItemClickListener(this::onSortItem);
         pm.show();
     }
@@ -88,9 +105,7 @@ public class SaLogsFragment extends Fragment {
         } else if (id == R.id.sort_old) {
             sort = SaLogsAdapter.SortOrder.OLD;
             item.setChecked(true);
-        } else {
-            return false;
-        }
+        } else return false;
         adapter.setSort(sort);
         return true;
     }
@@ -98,11 +113,9 @@ public class SaLogsFragment extends Fragment {
     private void showRolePopup(View anchor) {
         PopupMenu pm = new PopupMenu(requireContext(), anchor);
         pm.inflate(R.menu.menu_sa_roles);
-
         pm.getMenu().findItem(R.id.role_guide).setChecked(selectedRoles.contains(Role.GUIDE));
         pm.getMenu().findItem(R.id.role_admin).setChecked(selectedRoles.contains(Role.ADMIN));
         pm.getMenu().findItem(R.id.role_client).setChecked(selectedRoles.contains(Role.CLIENT));
-
         pm.setOnMenuItemClickListener(this::onRoleItemClicked);
         pm.show();
     }
@@ -110,9 +123,9 @@ public class SaLogsFragment extends Fragment {
     private boolean onRoleItemClicked(MenuItem item) {
         final int id = item.getItemId();
         item.setChecked(!item.isChecked());
-        if (id == R.id.role_guide)  toggle(Role.GUIDE,  item.isChecked());
-        else if (id == R.id.role_admin)  toggle(Role.ADMIN, item.isChecked());
-        else if (id == R.id.role_client) toggle(Role.CLIENT, item.isChecked());
+        if (id == R.id.role_guide)      toggle(Role.GUIDE,  item.isChecked());
+        else if (id == R.id.role_admin) toggle(Role.ADMIN, item.isChecked());
+        else if (id == R.id.role_client)toggle(Role.CLIENT, item.isChecked());
 
         if (selectedRoles.isEmpty()) selectedRoles = EnumSet.of(Role.GUIDE, Role.ADMIN, Role.CLIENT);
         adapter.setRoleFilter(selectedRoles);
@@ -145,7 +158,8 @@ public class SaLogsFragment extends Fragment {
         return set;
     }
 
-    @Override public void onSaveInstanceState(@NonNull Bundle out) {
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle out) {
         super.onSaveInstanceState(out);
         out.putBoolean("sortOld", sort == SaLogsAdapter.SortOrder.OLD);
         int mask = 0;
@@ -155,7 +169,8 @@ public class SaLogsFragment extends Fragment {
         out.putInt("roles", mask);
     }
 
-    @Override public void onDestroyView() { super.onDestroyView(); binding = null; }
+    @Override
+    public void onDestroyView() { super.onDestroyView(); binding = null; }
 
     // ---------------- Mock data ----------------
     private List<SaLogsAdapter.LogItem> mockLogs() {

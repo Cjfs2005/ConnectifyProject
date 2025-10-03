@@ -18,5 +18,9 @@
         <item name="itemTextColor">@color/sa_bottom_nav_tint</item>
         <item name="labelVisibilityMode">labeled</item>
     </style>
+    <!-- Título de toolbar más pequeño (como 'Usuarios') -->
+    <style name="TextAppearance.Connectify.ToolbarTitle" parent="TextAppearance.Material3.TitleMedium">
+        <item name="android:textColor">@android:color/white</item>
+    </style>
 
 </resources>
