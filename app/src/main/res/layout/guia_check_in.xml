@@ -22,69 +22,89 @@
         android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
         android:clipToPadding="false"
-        android:paddingBottom="80dp"> <!-- Added padding to avoid overlap with bottom nav -->
+        android:paddingBottom="80dp">
 
-        <LinearLayout
+        <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dp">
+            android:layout_margin="16dp"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="6dp">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Tour por Centro Histórico de Lima"
-                android:textSize="18sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Clientes hasta ahora registrados: 4/12" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Clientes pendientes: 8/12" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Instrucciones para el Check-in:"
-                android:textStyle="bold"
-                android:layout_marginTop="8dp" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="- Escanea el QR-Inicio que muestra cada cliente.\n- Se registrará automáticamente:\n- Nombre del cliente\n- Hora de ingreso" />
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/recycler_view"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp" />
+                android:orientation="vertical"
+                android:padding="16dp">
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/confirm_button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:text="Confirmar"
-                android:backgroundTint="@android:color/holo_green_dark"
-                android:textColor="@android:color/white"
-                android:layout_marginTop="8dp" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Tour por Centro Histórico de Lima"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="@android:color/black" />
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/start_tour_button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:text="Empezar Tour"
-                android:backgroundTint="@android:color/holo_blue_dark"
-                android:textColor="@android:color/white"
-                android:layout_marginTop="8dp" />
-        </LinearLayout>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Clientes hasta ahora registrados: 4/12"
+                    android:textSize="16sp"
+                    android:textColor="#212121"
+                    android:layout_marginTop="8dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Clientes pendientes: 8/12"
+                    android:textSize="16sp"
+                    android:textColor="#212121"
+                    android:layout_marginTop="4dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Instrucciones para el Check-in:"
+                    android:textStyle="bold"
+                    android:textSize="16sp"
+                    android:layout_marginTop="16dp"
+                    android:textColor="@android:color/black" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="- Escanea el QR-Inicio que muestra cada cliente.\n- Se registrará automáticamente:\n- Nombre del cliente\n- Hora de ingreso"
+                    android:textSize="14sp"
+                    android:textColor="#212121"
+                    android:layout_marginTop="4dp" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/recycler_view"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/confirm_button"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Confirmar"
+                    android:backgroundTint="#4CAF50"
+                    android:textColor="@android:color/white"
+                    android:layout_marginTop="16dp"
+                    app:cornerRadius="8dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/start_tour_button"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Empezar Tour"
+                    android:backgroundTint="#3F51B5"
+                    android:textColor="@android:color/white"
+                    android:layout_marginTop="8dp"
+                    app:cornerRadius="8dp" />
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
     </androidx.core.widget.NestedScrollView>
 
     <com.google.android.material.bottomnavigation.BottomNavigationView

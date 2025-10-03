@@ -21,13 +21,16 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
-        android:paddingBottom="72dp"
-        android:clipToPadding="false">
+        android:clipToPadding="false"
+        android:paddingBottom="80dp">
 
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="16dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
             app:cardCornerRadius="16dp"
             app:cardElevation="6dp">
 
@@ -42,99 +45,130 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textStyle="bold"
-                    android:textSize="18sp" />
+                    android:textSize="20sp"
+                    android:textColor="@android:color/black" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="#E0E0E0"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginBottom="8dp" />
 
                 <TextView
                     android:id="@+id/tour_empresa"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textSize="16sp" />
+                    android:textSize="16sp"
+                    android:textColor="#212121" />
 
                 <TextView
                     android:id="@+id/tour_initio"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textSize="16sp" />
+                    android:textSize="16sp"
+                    android:textColor="#212121"
+                    android:layout_marginTop="4dp" />
 
                 <TextView
                     android:id="@+id/tour_duration"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textSize="16sp" />
+                    android:textSize="16sp"
+                    android:textColor="#212121"
+                    android:layout_marginTop="4dp" />
 
                 <TextView
                     android:id="@+id/tour_languages"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textSize="16sp" />
+                    android:textSize="16sp"
+                    android:textColor="#212121"
+                    android:layout_marginTop="4dp" />
 
                 <TextView
                     android:id="@+id/tour_services"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textSize="16sp" />
+                    android:textSize="16sp"
+                    android:textColor="#212121"
+                    android:layout_marginTop="4dp" />
 
                 <TextView
                     android:id="@+id/tour_clients"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textSize="16sp" />
+                    android:textSize="16sp"
+                    android:textColor="#212121"
+                    android:layout_marginTop="4dp" />
 
                 <TextView
                     android:id="@+id/tour_status"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textSize="16sp" />
+                    android:textSize="16sp"
+                    android:textColor="#212121"
+                    android:layout_marginTop="4dp" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="#E0E0E0"
+                    android:layout_marginTop="16dp"
+                    android:layout_marginBottom="16dp" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Itinerario"
                     android:textStyle="bold"
-                    android:layout_marginTop="8dp" />
+                    android:textSize="18sp"
+                    android:textColor="@android:color/black" />
 
                 <TextView
                     android:id="@+id/tour_itinerario"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textSize="14sp" />
+                    android:textSize="14sp"
+                    android:textColor="#212121"
+                    android:layout_marginTop="8dp" />
 
                 <LinearLayout
                     android:id="@+id/actions_layout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:layout_marginTop="16dp"
+                    android:orientation="vertical"
+                    android:layout_marginTop="24dp"
                     android:visibility="gone">
 
                     <com.google.android.material.button.MaterialButton
-                        android:id="@+id/map_button"
-                        android:layout_width="0dp"
+                        android:id="@+id/check_in_button"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="🗺️ Ver mapa"
-                        android:backgroundTint="@android:color/holo_blue_dark"
+                        android:text="Check-in"
+                        android:backgroundTint="#4CAF50"
                         android:textColor="@android:color/white"
-                        android:layout_marginEnd="8dp" />
+                        app:cornerRadius="8dp" />
 
                     <com.google.android.material.button.MaterialButton
-                        android:id="@+id/check_in_button"
-                        android:layout_width="0dp"
+                        android:id="@+id/map_button"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="✅ Check-in"
-                        android:backgroundTint="@android:color/holo_green_dark"
+                        android:text="Ver mapa"
+                        android:backgroundTint="#3F51B5"
                         android:textColor="@android:color/white"
-                        android:layout_marginEnd="8dp" />
+                        android:layout_marginTop="8dp"
+                        app:cornerRadius="8dp" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/check_out_button"
-                        android:layout_width="0dp"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="🚪 Check-out"
-                        android:backgroundTint="@android:color/holo_red_dark"
-                        android:textColor="@android:color/white" />
+                        android:text="Check-out"
+                        android:backgroundTint="#F44336"
+                        android:textColor="@android:color/white"
+                        android:layout_marginTop="8dp"
+                        app:cornerRadius="8dp" />
                 </LinearLayout>
             </LinearLayout>
         </androidx.cardview.widget.CardView>

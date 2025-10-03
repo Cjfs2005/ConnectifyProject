@@ -49,6 +49,8 @@ public class guia_tour_detail extends AppCompatActivity implements OnMapReadyCal
             binding.tourItinerario.setText(extras.getString("tour_itinerario"));
             binding.tourExperience.setText(extras.getString("tour_experiencia_minima"));
             binding.tourPunctuality.setText(extras.getString("tour_puntualidad"));
+            // Note: Added tour_languages from model if available; adjust if needed
+            binding.tourLanguages.setText(extras.getString("tour_languages", "No especificado"));
         }
 
         binding.acceptButton.setOnClickListener(v -> {
@@ -68,43 +70,20 @@ public class guia_tour_detail extends AppCompatActivity implements OnMapReadyCal
             finish();
         });
 
-        // Bottom Navigation original (comentado como solicitado)
-        /*
         BottomNavigationView bottomNav = binding.bottomNav;
         bottomNav.setSelectedItemId(R.id.nav_ofertas);
         bottomNav.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
             if (id == R.id.nav_historial) {
-                startActivity(new Intent(this, guia_historial.class)); // Placeholder, renombrado
+                startActivity(new Intent(this, guia_historial.class));
                 return true;
             } else if (id == R.id.nav_ofertas) {
                 return true;
             } else if (id == R.id.nav_tours) {
-                startActivity(new Intent(this, guia_assigned_tours.class)); // Renombrado
+                startActivity(new Intent(this, guia_assigned_tours.class));
                 return true;
             } else if (id == R.id.nav_perfil) {
-                startActivity(new Intent(this, guia_perfil.class)); // Placeholder, renombrado
-                return true;
-            }
-            return false;
-        });
-        */
-
-        // Nuevo Bottom Navigation con Toast
-        BottomNavigationView newBottomNav = binding.bottomNav;
-        newBottomNav.setSelectedItemId(R.id.nav_ofertas);
-        newBottomNav.setOnItemSelectedListener(item -> {
-            int id = item.getItemId();
-            if (id == R.id.nav_historial) {
-                startActivity(new Intent(this, guia_historial.class)); // Placeholder, renombrado
-                return true;
-            } else if (id == R.id.nav_ofertas) {
-                return true;
-            } else if (id == R.id.nav_tours) {
-                startActivity(new Intent(this, guia_assigned_tours.class)); // Renombrado
-                return true;
-            } else if (id == R.id.nav_perfil) {
-                startActivity(new Intent(this, guia_perfil.class)); // Placeholder, renombrado
+                startActivity(new Intent(this, guia_perfil.class));
                 return true;
             }
             return false;

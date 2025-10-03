@@ -72,7 +72,33 @@ public class guia_perfil extends AppCompatActivity {
             });
             dialog.show(getSupportFragmentManager(), "add_payment");
         });
-        binding.logoutBtn.setOnClickListener(v -> finish());
+        binding.logoutBtn.setOnClickListener(v -> {
+            Intent intent = new Intent(this, auth_login.class);
+            startActivity(intent);
+            finish();
+        });
+
+        binding.editProfile.setOnClickListener(v -> {
+            Intent intent = new Intent(this, guia_editar_perfil.class);
+            startActivity(intent);
+        });
+
+        binding.layoutNotifications.setOnClickListener(v -> {
+            Intent intent = new Intent(this, guia_notificaciones.class);
+            intent.putExtra("origin_activity", "guia_perfil");
+            startActivity(intent);
+        });
+
+        binding.layoutPermissions.setOnClickListener(v -> {
+            Intent intent = new Intent(this, guia_permisos.class);
+            startActivity(intent);
+        });
+
+        binding.btnNotifications.setOnClickListener(v -> {
+            Intent intent = new Intent(this, guia_notificaciones.class);
+            intent.putExtra("origin_activity", getClass().getSimpleName()); // O usa el nombre específico, e.g., "guia_historial"
+            startActivity(intent);
+        });
 
         BottomNavigationView bottomNav = binding.bottomNav;
         bottomNav.setSelectedItemId(R.id.nav_perfil);
