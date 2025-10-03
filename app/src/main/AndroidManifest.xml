@@ -96,6 +96,7 @@
         <activity android:name=".cliente_servicio_detalle" android:exported="false" />
         <activity android:name=".cliente_metodo_pago" android:exported="false" />
         <activity android:name=".cliente_reserva_realizada" android:exported="false" />
+    <activity android:name=".cliente_reserva_detalle" android:exported="false" />
 
     </application>
 </manifest>

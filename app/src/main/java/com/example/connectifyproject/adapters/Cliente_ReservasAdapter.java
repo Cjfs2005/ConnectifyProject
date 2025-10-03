@@ -13,7 +13,8 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.connectifyproject.R;
-import com.example.connectifyproject.cliente_tour_detalle;
+import com.example.connectifyproject.cliente_reserva_detalle;
+import com.example.connectifyproject.models.Cliente_Reserva;
 import com.example.connectifyproject.models.Cliente_Tour;
 
 import java.util.List;
@@ -21,9 +22,9 @@ import java.util.List;
 public class Cliente_ReservasAdapter extends RecyclerView.Adapter<Cliente_ReservasAdapter.ReservaViewHolder> {
 
     private Context context;
-    private List<Cliente_Tour> reservas;
+    private List<Cliente_Reserva> reservas;
 
-    public Cliente_ReservasAdapter(Context context, List<Cliente_Tour> reservas) {
+    public Cliente_ReservasAdapter(Context context, List<Cliente_Reserva> reservas) {
         this.context = context;
         this.reservas = reservas;
     }
@@ -37,15 +38,36 @@ public class Cliente_ReservasAdapter extends RecyclerView.Adapter<Cliente_Reserv
 
     @Override
     public void onBindViewHolder(@NonNull ReservaViewHolder holder, int position) {
-        Cliente_Tour reserva = reservas.get(position);
+        Cliente_Reserva reserva = reservas.get(position);
+        Cliente_Tour tour = reserva.getTour();
         
-        holder.tvTourTitle.setText(reserva.getTitulo());
-        holder.tvTourCompany.setText(reserva.getCompanyName());
-        holder.tvTourDuration.setText("Duración: " + reserva.getDuracion());
-        holder.tvTourDate.setText("Fecha: " + reserva.getDate());
+        if (tour != null) {
+            holder.tvTourTitle.setText(tour.getTitulo());
+            holder.tvTourCompany.setText(tour.getCompanyName());
+            holder.tvTourDuration.setText("Duración: " + tour.getDuracion());
+        } else {
+            holder.tvTourTitle.setText("Reserva");
+            holder.tvTourCompany.setText("");
+            holder.tvTourDuration.setText("");
+        }
+        holder.tvTourDate.setText("Fecha: " + reserva.getFecha());
         
         // Usar la imagen por defecto para todas las reservas
         holder.ivTourImage.setImageResource(R.drawable.cliente_tour_lima);
+
+        // Click abre detalle de reserva
+        holder.itemView.setOnClickListener(v -> {
+            try {
+                if (reserva == null) {
+                    return;
+                }
+                Intent intent = new Intent(context, cliente_reserva_detalle.class);
+                intent.putExtra("reserva_object", reserva);
+                context.startActivity(intent);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
     }
 
     @Override
@@ -53,7 +75,7 @@ public class Cliente_ReservasAdapter extends RecyclerView.Adapter<Cliente_Reserv
         return reservas.size();
     }
 
-    public void updateReservas(List<Cliente_Tour> newReservas) {
+    public void updateReservas(List<Cliente_Reserva> newReservas) {
         this.reservas = newReservas;
         notifyDataSetChanged();
     }

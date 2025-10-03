@@ -9,7 +9,10 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.connectifyproject.adapters.Cliente_ReservasAdapter;
+import com.example.connectifyproject.models.Cliente_Reserva;
 import com.example.connectifyproject.models.Cliente_Tour;
+import com.example.connectifyproject.models.Cliente_ServicioAdicional;
+import com.example.connectifyproject.models.Cliente_PaymentMethod;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
@@ -22,8 +25,8 @@ public class cliente_reservas extends AppCompatActivity {
     private TabLayout tabLayoutReservas;
     private RecyclerView rvReservas;
     private Cliente_ReservasAdapter reservasAdapter;
-    private List<Cliente_Tour> allReservas;
-    private List<Cliente_Tour> filteredReservas;
+    private List<Cliente_Reserva> allReservas;
+    private List<Cliente_Reserva> filteredReservas;
     private boolean showingProximas = true;
     private BottomNavigationView bottomNavigation;
 
@@ -124,77 +127,81 @@ public class cliente_reservas extends AppCompatActivity {
 
 
     private void setupRecyclerView() {
-        allReservas = new ArrayList<>();
-        filteredReservas = new ArrayList<>();
-        reservasAdapter = new Cliente_ReservasAdapter(this, filteredReservas);
+    allReservas = new ArrayList<>();
+    filteredReservas = new ArrayList<>();
+    reservasAdapter = new Cliente_ReservasAdapter(this, filteredReservas);
         
         rvReservas.setLayoutManager(new LinearLayoutManager(this));
         rvReservas.setAdapter(reservasAdapter);
     }
 
     private void loadReservasData() {
-        // Datos hardcodeados duplicados - separados en próximas y pasadas
+        // Construir reservas ejemplo con servicios y método de pago
         
-        // Reservas próximas (futuras - 2025 en adelante)
-        allReservas.add(new Cliente_Tour("1", "Tour histórico por Lima", "Lima Tours", 
-                "5 hrs 30 min", "23/12/2025", 160.00, "Lima, Perú", 
-                "Explora el centro histórico de Lima y sus principales atractivos"));
+        // Reservas próximas (2 reservas futuras)
+        allReservas.add(crearReservaEjemplo(
+                new Cliente_Tour("1", "Tour histórico por Lima", "Lima Tours",
+                        "5 hrs 30 min", "23/12/2025", 160.00, "Lima, Perú",
+                        "Explora el centro histórico de Lima y sus principales atractivos"),
+                2, "23/12/2025", "13:10", "18:40", "Próxima"));
         
-        allReservas.add(new Cliente_Tour("2", "Tour histórico por Arequipa", "Arequipa Tours", 
-                "5 hrs 30 min", "15/01/2026", 160.00, "Arequipa, Perú", 
-                "Descubre la ciudad blanca y su arquitectura colonial"));
-        
-        allReservas.add(new Cliente_Tour("3", "Tour por Cusco", "Cusco Adventures", 
-                "6 hrs", "20/02/2026", 180.00, "Cusco, Perú", 
-                "Explora la capital del imperio Inca"));
-                
-        allReservas.add(new Cliente_Tour("4", "Tour gastronómico por Lima", "Lima Food Tours", 
-                "4 hrs", "10/11/2025", 120.00, "Lima, Perú", 
-                "Descubre los sabores de la gastronomía peruana"));
-                
-        allReservas.add(new Cliente_Tour("5", "Tour por Machu Picchu", "Inca Trails", 
-                "8 hrs", "05/03/2026", 350.00, "Cusco, Perú", 
-                "Visita la maravilla del mundo"));
-                
-        allReservas.add(new Cliente_Tour("6", "Tour por Huacachina", "Desert Tours", 
-                "6 hrs", "18/01/2026", 200.00, "Ica, Perú", 
-                "Aventura en el desierto y sandboarding"));
+        allReservas.add(crearReservaEjemplo(
+                new Cliente_Tour("2", "Tour gastronómico por Lima", "Lima Food Tours",
+                        "4 hrs", "15/01/2026", 120.00, "Lima, Perú",
+                        "Descubre los sabores de la gastronomía peruana"),
+                1, "15/01/2026", "18:00", "22:00", "Próxima"));
 
-        // Reservas pasadas (anteriores - 2024 y anteriores)
-        allReservas.add(new Cliente_Tour("7", "Tour histórico por Lima", "Lima Tours", 
-                "5 hrs 30 min", "15/08/2024", 160.00, "Lima, Perú", 
-                "Explora el centro histórico de Lima"));
-        
-        allReservas.add(new Cliente_Tour("8", "Tour por Trujillo", "Norte Tours", 
-                "4 hrs", "10/07/2024", 140.00, "Trujillo, Perú", 
-                "Descubre la ciudad de la eterna primavera"));
-        
-        allReservas.add(new Cliente_Tour("9", "Tour histórico por Arequipa", "Arequipa Tours", 
-                "5 hrs 30 min", "25/06/2024", 160.00, "Arequipa, Perú", 
-                "Descubre la ciudad blanca"));
+        // Reservas pasadas (7 reservas pasadas)
+        allReservas.add(crearReservaEjemplo(
+                new Cliente_Tour("3", "Tour histórico por Lima", "Lima Tours",
+                        "5 hrs 30 min", "15/08/2024", 160.00, "Lima, Perú",
+                        "Explora el centro histórico de Lima"),
+                2, "15/08/2024", "09:00", "14:30", "Pasada"));
                 
-        allReservas.add(new Cliente_Tour("10", "Tour por las Líneas de Nazca", "Nazca Flights", 
-                "3 hrs", "12/05/2024", 280.00, "Nazca, Perú", 
-                "Sobrevuela las misteriosas líneas de Nazca"));
+        allReservas.add(crearReservaEjemplo(
+                new Cliente_Tour("4", "Tour por Arequipa", "Arequipa Tours",
+                        "6 hrs", "10/07/2024", 180.00, "Arequipa, Perú",
+                        "Descubre la ciudad blanca y su arquitectura colonial"),
+                3, "10/07/2024", "08:00", "14:00", "Pasada"));
                 
-        allReservas.add(new Cliente_Tour("11", "Tour por Chachapoyas", "Amazonia Tours", 
-                "7 hrs", "20/04/2024", 220.00, "Chachapoyas, Perú", 
-                "Explora la fortaleza de Kuélap"));
+        allReservas.add(crearReservaEjemplo(
+                new Cliente_Tour("5", "Tour por Cusco", "Cusco Adventures",
+                        "7 hrs", "25/06/2024", 200.00, "Cusco, Perú",
+                        "Explora la capital del imperio Inca"),
+                2, "25/06/2024", "07:30", "14:30", "Pasada"));
                 
-        allReservas.add(new Cliente_Tour("12", "Tour por Paracas", "Costa Tours", 
-                "5 hrs", "08/03/2024", 170.00, "Paracas, Perú", 
-                "Observa la fauna marina en las Islas Ballestas"));
+        allReservas.add(crearReservaEjemplo(
+                new Cliente_Tour("6", "Tour por las Líneas de Nazca", "Nazca Flights",
+                        "3 hrs", "12/05/2024", 280.00, "Nazca, Perú",
+                        "Sobrevuela las misteriosas líneas de Nazca"),
+                1, "12/05/2024", "10:00", "13:00", "Pasada"));
+                
+        allReservas.add(crearReservaEjemplo(
+                new Cliente_Tour("7", "Tour por Machu Picchu", "Inca Trails",
+                        "8 hrs", "20/04/2024", 350.00, "Cusco, Perú",
+                        "Visita la maravilla del mundo"),
+                2, "20/04/2024", "06:00", "14:00", "Pasada"));
+                
+        allReservas.add(crearReservaEjemplo(
+                new Cliente_Tour("8", "Tour por Trujillo", "Norte Tours",
+                        "5 hrs", "08/03/2024", 140.00, "Trujillo, Perú",
+                        "Descubre la ciudad de la eterna primavera"),
+                2, "08/03/2024", "09:00", "14:00", "Pasada"));
+                
+        allReservas.add(crearReservaEjemplo(
+                new Cliente_Tour("9", "Tour por Paracas", "Costa Tours",
+                        "4 hrs", "15/02/2024", 170.00, "Paracas, Perú",
+                        "Observa la fauna marina en las Islas Ballestas"),
+                3, "15/02/2024", "08:30", "12:30", "Pasada"));
 
         // Mostrar próximas por defecto
         filterReservas();
-    }
-
-    private void filterReservas() {
+    }    private void filterReservas() {
         filteredReservas.clear();
         
-        for (Cliente_Tour reserva : allReservas) {
-            String fecha = reserva.getDate();
-            boolean esFutura = isFutureDate(fecha);
+    for (Cliente_Reserva reserva : allReservas) {
+        String fecha = reserva.getFecha();
+        boolean esFutura = isFutureDate(fecha);
             
             if (showingProximas && esFutura) {
                 filteredReservas.add(reserva);
@@ -211,6 +218,62 @@ public class cliente_reservas extends AppCompatActivity {
         // En una app real, aquí se compararía con la fecha actual
         return dateString.contains("2025") || dateString.contains("2026") || 
                dateString.contains("2027") || dateString.contains("2028");
+    }
+
+    private Cliente_Reserva crearReservaEjemplo(Cliente_Tour tour, int personas,
+                                                String fecha, String horaInicio, String horaFin,
+                                                String estado) {
+        // Servicios disponibles para ese tour (variar según el tour)
+        List<Cliente_ServicioAdicional> servicios = new ArrayList<>();
+        
+        // Servicios base que siempre están disponibles
+        Cliente_ServicioAdicional folleto = new Cliente_ServicioAdicional("sa1", "Folleto turístico", "Guía impresa con información del tour", 0.0);
+        Cliente_ServicioAdicional almuerzo = new Cliente_ServicioAdicional("sa2", "Almuerzo", "Menú turístico en restaurante local", 16.0);
+        Cliente_ServicioAdicional traslado = new Cliente_ServicioAdicional("sa3", "Traslado hotel", "Recojo y retorno al hotel", 10.0);
+        
+        // Variar la selección según el ID del tour para tener diversidad
+        int tourIdNum = Integer.parseInt(tour.getId());
+        if (tourIdNum % 3 == 0) {
+            // Solo folleto y traslado
+            folleto.setSelected(true);
+            almuerzo.setSelected(false);
+            traslado.setSelected(true);
+        } else if (tourIdNum % 3 == 1) {
+            // Todos los servicios
+            folleto.setSelected(true);
+            almuerzo.setSelected(true);
+            traslado.setSelected(false);
+        } else {
+            // Solo almuerzo
+            folleto.setSelected(false);
+            almuerzo.setSelected(true);
+            traslado.setSelected(false);
+        }
+        
+        servicios.add(folleto);
+        servicios.add(almuerzo);
+        servicios.add(traslado);
+
+        // Alternar método de pago
+        Cliente_PaymentMethod metodoPago = tourIdNum % 2 == 0 ? 
+            Cliente_PaymentMethod.crearEjemploVisa() : 
+            Cliente_PaymentMethod.crearEjemploMastercard();
+
+        Cliente_Reserva reserva = new Cliente_Reserva();
+        reserva.setId(tour.getId());
+        reserva.setTour(tour);
+        reserva.setPersonas(personas);
+        reserva.setFecha(fecha);
+        reserva.setHoraInicio(horaInicio);
+        reserva.setHoraFin(horaFin);
+        reserva.setServicios(servicios);
+        reserva.setMetodoPago(metodoPago);
+        // Calcular totales
+        double totalServiciosPorPersona = reserva.calcularTotalServiciosSeleccionadosPorPersona();
+        reserva.setTotalServicios(totalServiciosPorPersona * personas);
+        reserva.setTotal((tour.getPrecio() + totalServiciosPorPersona) * personas);
+        reserva.setEstado(estado);
+        return reserva;
     }
 
 
