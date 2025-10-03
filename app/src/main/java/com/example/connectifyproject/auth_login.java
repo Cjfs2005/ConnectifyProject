@@ -62,6 +62,11 @@ public class auth_login extends AppCompatActivity {
                         String.valueOf(binding.etPassword.getText())
                 )
         );
+
+        binding.btnRegister.setOnClickListener(v -> {
+            Intent intent = new Intent(this, RegisterTypeSelectionActivity.class);
+            startActivity(intent);
+        });
     }
 
     private Intent getIntentForUserType(LoginResult.UserType userType) {
