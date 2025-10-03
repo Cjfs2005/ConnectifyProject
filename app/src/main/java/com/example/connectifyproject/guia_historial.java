@@ -27,6 +27,13 @@ public class guia_historial extends AppCompatActivity {
 
         setSupportActionBar(binding.toolbar);
 
+        // Notificaciones (redirige a guia_notificaciones)
+        binding.btnNotifications.setOnClickListener(v -> {
+            Intent intent = new Intent(this, guia_notificaciones.class);
+            intent.putExtra("origin_activity", getClass().getSimpleName());
+            startActivity(intent);
+        });
+
         // ViewPager con tabs (Pagos en pos 0, Tours en pos 1)
         binding.viewPager.setAdapter(new FragmentStateAdapter(this) {
             @Override
@@ -60,10 +67,10 @@ public class guia_historial extends AppCompatActivity {
                 startActivity(new Intent(this, guia_tours_ofertas.class));
                 return true;
             } else if (id == R.id.nav_tours) {
-                startActivity(new Intent(this, guia_assigned_tours.class)); // Renombrado
+                startActivity(new Intent(this, guia_assigned_tours.class));
                 return true;
             } else if (id == R.id.nav_perfil) {
-                startActivity(new Intent(this, guia_perfil.class)); // Placeholder, renombrado
+                startActivity(new Intent(this, guia_perfil.class));
                 return true;
             }
             return false;

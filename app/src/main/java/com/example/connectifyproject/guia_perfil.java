@@ -94,6 +94,12 @@ public class guia_perfil extends AppCompatActivity {
             startActivity(intent);
         });
 
+        binding.btnNotifications.setOnClickListener(v -> {
+            Intent intent = new Intent(this, guia_notificaciones.class);
+            intent.putExtra("origin_activity", getClass().getSimpleName()); // O usa el nombre específico, e.g., "guia_historial"
+            startActivity(intent);
+        });
+
         BottomNavigationView bottomNav = binding.bottomNav;
         bottomNav.setSelectedItemId(R.id.nav_perfil);
         bottomNav.setOnItemSelectedListener(item -> {
