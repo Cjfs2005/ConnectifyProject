@@ -63,10 +63,6 @@ public class admin_tours extends AppCompatActivity {
     }
 
     private void setupTabs() {
-        binding.tabLayout.addTab(binding.tabLayout.newTab().setText("Publicados"));
-        binding.tabLayout.addTab(binding.tabLayout.newTab().setText("Borrador"));
-        binding.tabLayout.addTab(binding.tabLayout.newTab().setText("Cancelados"));
-
         binding.tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {

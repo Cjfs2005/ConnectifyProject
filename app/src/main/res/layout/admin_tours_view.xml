@@ -105,15 +105,16 @@
     </androidx.core.widget.NestedScrollView>
 
     <!-- Botón flotante para crear tour -->
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
+    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
         android:id="@+id/fabCreateTour"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
-        android:layout_margin="16dp"
-        android:src="@drawable/ic_add"
+        android:layout_marginBottom="100dp"
+        android:layout_marginEnd="16dp"
+        android:text="+ Crear Tour"
+        android:textColor="@android:color/white"
         app:backgroundTint="@color/brand_purple_dark"
-        app:tint="@android:color/white"
         android:contentDescription="Crear tour" />
 
     <!-- Container para el fragment de navegación inferior -->
