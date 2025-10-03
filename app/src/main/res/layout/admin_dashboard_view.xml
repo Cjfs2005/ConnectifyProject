@@ -1,17 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
 <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/surface_soft">
 
-    <!-- AppBar minimal -->
-    <com.google.android.material.appbar.MaterialToolbar
-        android:id="@+id/topAppBar"
-        style="@style/Widget.Material3.Toolbar"
+    <!-- AppBar con colores SA -->
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appBarLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@android:color/transparent"
-        app:title=""
-        app:titleCentered="false" />
+        android:background="@color/brand_purple_dark"
+        android:fitsSystemWindows="true"
+        app:elevation="0dp">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/topAppBar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="@color/brand_purple_dark"
+            android:theme="@style/ThemeOverlay.Material3.Dark.ActionBar"
+            app:title="Dashboard"
+            app:titleTextColor="@android:color/white"
+            app:titleCentered="false" />
+
+    </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.core.widget.NestedScrollView
         android:id="@+id/scroll"
@@ -24,372 +38,302 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:paddingHorizontal="20dp"
+            android:paddingVertical="24dp">
 
-            <!-- Header con fondo lila, esquinas redondeadas y badge -->
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/cardHeader"
+            <!-- Header con background fijo y campana visible -->
+
+            <!-- KPIs Cards -->
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="24dp"
-                app:cardCornerRadius="24dp"
-                app:cardElevation="0dp"
-                app:cardBackgroundColor="@color/brand_lilac"
-                app:strokeColor="@android:color/transparent">
+                android:background="@color/brand_purple_dark"
+                android:orientation="horizontal"
+                android:padding="16dp">
 
-                <RelativeLayout
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Mundo Tours"
+                        android:textColor="@android:color/white"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Administrador: Tony Flores"
+                        android:textColor="@color/brand_lilac"
+                        android:textSize="14sp" />
+
+                </LinearLayout>
+
+                <!-- Campana de notificaciones mejorada -->
+                <ImageView
+                    android:id="@+id/ivNotification"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:layout_gravity="center_vertical"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Notificaciones"
+                    android:padding="4dp"
+                    android:src="@drawable/ic_notifications"
+                    app:tint="@android:color/white" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginBottom="24dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Métricas del Día"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/on_surface"
+                    android:layout_marginBottom="16dp" />
+
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:padding="20dp">
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="16dp">
 
-                    <ImageView
-                        android:id="@+id/ivHeaderLogo"
-                        android:layout_width="48dp"
-                        android:layout_height="48dp"
-                        android:src="@mipmap/tourly_logo_img"
-                        android:contentDescription="@string/app_name" />
-
-                    <LinearLayout
-                        android:layout_width="wrap_content"
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_toRightOf="@id/ivHeaderLogo"
-                        android:layout_toEndOf="@id/ivHeaderLogo"
-                        android:layout_marginStart="16dp"
-                        android:layout_centerVertical="true"
-                        android:orientation="vertical">
+                        android:layout_weight="1"
+                        android:layout_marginEnd="8dp"
+                        app:cardCornerRadius="12dp"
+                        app:cardElevation="4dp"
+                        app:cardBackgroundColor="@android:color/white">
 
-                        <TextView
-                            android:id="@+id/tvWelcomeName"
-                            android:layout_width="wrap_content"
+                        <LinearLayout
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:textStyle="bold"
-                            android:textColor="@color/text_primary"
-                            android:textSize="22sp"
-                            android:letterSpacing="0.01"
-                            android:text="Bienvenido, Tony" />
+                            android:orientation="vertical"
+                            android:padding="16dp">
 
-                        <TextView
-                            android:id="@+id/tvWelcomeCompany"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="2dp"
-                            android:textColor="@color/text_secondary"
-                            android:textSize="14sp"
-                            android:text="@string/welcome_company" />
-                    </LinearLayout>
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="125"
+                                android:textSize="24sp"
+                                android:textStyle="bold"
+                                android:textColor="@color/brand_purple_dark" />
 
-                    <FrameLayout
-                        android:id="@+id/notifications_container"
-                        android:layout_width="wrap_content"
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Servicios Activos"
+                                android:textSize="12sp"
+                                android:textColor="@color/on_surface_variant" />
+
+                        </LinearLayout>
+
+                    </com.google.android.material.card.MaterialCardView>
+
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_alignParentEnd="true"
-                        android:layout_alignParentRight="true"
-                        android:layout_centerVertical="true"
-                        android:layout_marginEnd="4dp">
+                        android:layout_weight="1"
+                        android:layout_marginStart="8dp"
+                        app:cardCornerRadius="12dp"
+                        app:cardElevation="4dp"
+                        app:cardBackgroundColor="@android:color/white">
 
-                        <ImageView
-                            android:id="@+id/ivNotifications"
-                            android:layout_width="28dp"
-                            android:layout_height="28dp"
-                            android:contentDescription="@string/notifications"
-                            android:src="@drawable/ic_bell" />
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:padding="16dp">
 
-                        <TextView
-                            android:id="@+id/tvBadge"
-                            android:layout_width="20dp"
-                            android:layout_height="20dp"
-                            android:layout_gravity="top|end"
-                            android:layout_marginTop="2dp"
-                            android:layout_marginEnd="2dp"
-                            android:background="@drawable/bg_badge"
-                            android:gravity="center"
-                            android:text="1"
-                            android:textColor="@color/badge_text"
-                            android:textSize="11sp"
-                            android:textStyle="bold" />
-                    </FrameLayout>
-                </RelativeLayout>
-            </com.google.android.material.card.MaterialCardView>
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="89"
+                                android:textSize="24sp"
+                                android:textStyle="bold"
+                                android:textColor="@color/brand_purple_dark" />
 
-            <!-- KPIs: grilla 2x2 con tarjetas (centrado de contenido) -->
-            <GridLayout
-                android:id="@+id/kpiGrid"
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Nuevos Clientes"
+                                android:textSize="12sp"
+                                android:textColor="@color/on_surface_variant" />
+
+                        </LinearLayout>
+
+                    </com.google.android.material.card.MaterialCardView>
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginEnd="8dp"
+                        app:cardCornerRadius="12dp"
+                        app:cardElevation="4dp"
+                        app:cardBackgroundColor="@android:color/white">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:padding="16dp">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="S/2,450"
+                                android:textSize="24sp"
+                                android:textStyle="bold"
+                                android:textColor="@color/brand_purple_dark" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Ingresos Hoy"
+                                android:textSize="12sp"
+                                android:textColor="@color/on_surface_variant" />
+
+                        </LinearLayout>
+
+                    </com.google.android.material.card.MaterialCardView>
+
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="8dp"
+                        app:cardCornerRadius="12dp"
+                        app:cardElevation="4dp"
+                        app:cardBackgroundColor="@android:color/white">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:padding="16dp">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="94%"
+                                android:textSize="24sp"
+                                android:textStyle="bold"
+                                android:textColor="@color/brand_purple_dark" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Satisfacción"
+                                android:textSize="12sp"
+                                android:textColor="@color/on_surface_variant" />
+
+                        </LinearLayout>
+
+                    </com.google.android.material.card.MaterialCardView>
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <!-- Sección de Ventas de Servicios -->
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:columnCount="2"
-                android:rowCount="2"
-                android:layout_marginBottom="24dp"
-                android:useDefaultMargins="true">
+                android:orientation="vertical"
+                android:layout_marginBottom="24dp">
 
-                <!-- Tours en curso -->
-                <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/kpiToursEnCurso"
-                    android:layout_width="0dp"
-                    android:layout_height="130dp"
-                    android:layout_columnWeight="1"
-                    android:layout_rowWeight="1"
-                    android:layout_margin="8dp"
-                    app:cardCornerRadius="20dp"
-                    app:cardElevation="0dp"
-                    app:cardBackgroundColor="@color/white"
-                    app:strokeColor="@color/border_light"
-                    app:strokeWidth="1dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:orientation="vertical"
-                        android:padding="20dp"
-                        android:gravity="center">
-
-                        <LinearLayout
-                            android:layout_width="48dp"
-                            android:layout_height="48dp"
-                            android:gravity="center"
-                            android:background="@drawable/bg_circle"
-                            android:backgroundTint="@color/kpi_icon_bg">
-
-                            <ImageView
-                                android:id="@+id/ivKpiIcon1"
-                                android:layout_width="24dp"
-                                android:layout_height="24dp"
-                                                                android:src="@drawable/ic_tour_morado" />
-                        </LinearLayout>
-
-                        <TextView
-                            android:id="@+id/tvKpiValue1"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="12dp"
-                            android:text="3"
-                            android:textColor="@color/kpi_value_text"
-                            android:textSize="28sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:id="@+id/tvKpiLabel1"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
-                            android:text="Tours en curso"
-                            android:textColor="@color/text_secondary"
-                            android:textSize="12sp"
-                            android:gravity="center" />
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-
-                <!-- Próximos tours -->
-                <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/kpiProximosTours"
-                    android:layout_width="0dp"
-                    android:layout_height="130dp"
-                    android:layout_columnWeight="1"
-                    android:layout_rowWeight="1"
-                    android:layout_margin="8dp"
-                    app:cardCornerRadius="20dp"
-                    app:cardElevation="0dp"
-                    app:cardBackgroundColor="@color/white"
-                    app:strokeColor="@color/border_light"
-                    app:strokeWidth="1dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:orientation="vertical"
-                        android:padding="20dp"
-                        android:gravity="center">
-
-                        <LinearLayout
-                            android:layout_width="48dp"
-                            android:layout_height="48dp"
-                            android:gravity="center"
-                            android:background="@drawable/bg_circle"
-                            android:backgroundTint="@color/kpi_icon_bg">
-
-                            <ImageView
-                                android:id="@+id/ivKpiIcon2"
-                                android:layout_width="24dp"
-                                android:layout_height="24dp"
-                                android:src="@drawable/ic_calendario_morado" />
-                        </LinearLayout>
-
-                        <TextView
-                            android:id="@+id/tvKpiValue2"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="12dp"
-                            android:text="5"
-                            android:textColor="@color/kpi_value_text"
-                            android:textSize="28sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:id="@+id/tvKpiLabel2"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
-                            android:text="Próximos tours"
-                            android:textColor="@color/text_secondary"
-                            android:textSize="12sp"
-                            android:gravity="center" />
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-
-                <!-- Ventas totales -->
-                <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/kpiVentasTotales"
-                    android:layout_width="0dp"
-                    android:layout_height="130dp"
-                    android:layout_columnWeight="1"
-                    android:layout_rowWeight="1"
-                    android:layout_margin="8dp"
-                    app:cardCornerRadius="20dp"
-                    app:cardElevation="0dp"
-                    app:cardBackgroundColor="@color/white"
-                    app:strokeColor="@color/border_light"
-                    app:strokeWidth="1dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:orientation="vertical"
-                        android:padding="20dp"
-                        android:gravity="center">
-
-                        <LinearLayout
-                            android:layout_width="48dp"
-                            android:layout_height="48dp"
-                            android:gravity="center"
-                            android:background="@drawable/bg_circle"
-                            android:backgroundTint="@color/kpi_icon_bg">
-
-                            <ImageView
-                                android:id="@+id/ivKpiIcon3"
-                                android:layout_width="24dp"
-                                android:layout_height="24dp"
-                                android:src="@drawable/ic_dinero_morado" />
-                        </LinearLayout>
-
-                        <TextView
-                            android:id="@+id/tvKpiValue3"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="12dp"
-                            android:text="$4500"
-                            android:textColor="@color/kpi_value_text"
-                            android:textSize="28sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:id="@+id/tvKpiLabel3"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
-                            android:text="Ventas totales"
-                            android:textColor="@color/text_secondary"
-                            android:textSize="12sp"
-                            android:gravity="center" />
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-
-                <!-- Ventas de tours -->
-                <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/kpiVentasTours"
-                    android:layout_width="0dp"
-                    android:layout_height="130dp"
-                    android:layout_columnWeight="1"
-                    android:layout_rowWeight="1"
-                    android:layout_margin="8dp"
-                    app:cardCornerRadius="20dp"
-                    app:cardElevation="0dp"
-                    app:cardBackgroundColor="@color/white"
-                    app:strokeColor="@color/border_light"
-                    app:strokeWidth="1dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:orientation="vertical"
-                        android:padding="20dp"
-                        android:gravity="center">
-
-                        <LinearLayout
-                            android:layout_width="48dp"
-                            android:layout_height="48dp"
-                            android:gravity="center"
-                            android:background="@drawable/bg_circle"
-                            android:backgroundTint="@color/kpi_icon_bg">
-
-                            <ImageView
-                                android:id="@+id/ivKpiIcon4"
-                                android:layout_width="24dp"
-                                android:layout_height="24dp"
-                                android:src="@drawable/ic_dinero_morado" />
-                        </LinearLayout>
-
-                        <TextView
-                            android:id="@+id/tvKpiValue4"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="12dp"
-                            android:text="$2500"
-                            android:textColor="@color/kpi_value_text"
-                            android:textSize="28sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:id="@+id/tvKpiLabel4"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
-                            android:text="Ventas de tours"
-                            android:textColor="@color/text_secondary"
-                            android:textSize="12sp"
-                            android:gravity="center" />
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-            </GridLayout>
-
-            <!-- Título lista -->
-            <TextView
-                android:id="@+id/tvSalesTitle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:layout_marginBottom="16dp"
-                android:text="Ventas por servicios"
-                android:textColor="@color/text_primary"
-                android:textSize="20sp"
-                android:textStyle="bold" />
-
-            <!-- Contenedor de la "gráfica" tipo barras -->
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/cardSales"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="0dp"
-                app:cardBackgroundColor="@color/brand_lilac"
-                app:cardCornerRadius="20dp"
-                app:cardElevation="0dp">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Ventas por Servicio"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/on_surface"
+                    android:layout_marginBottom="16dp" />
 
                 <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/rvServiceSales"
+                    android:id="@+id/recyclerServiceSales"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:padding="20dp"
                     android:nestedScrollingEnabled="false" />
-            </com.google.android.material.card.MaterialCardView>
 
-            <View
+            </LinearLayout>
+
+            <!-- Acciones Rápidas -->
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="84dp" />
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Acciones Rápidas"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/on_surface"
+                    android:layout_marginBottom="16dp" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnAddService"
+                        style="@style/Widget.Material3.Button.TonalButton"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginEnd="8dp"
+                        android:text="Nuevo Servicio"
+                        app:icon="@drawable/ic_add" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnManageUsers"
+                        style="@style/Widget.Material3.Button.TonalButton"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="8dp"
+                        android:text="Gestionar Usuarios"
+                        app:icon="@drawable/ic_groups_24" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
         </LinearLayout>
+
     </androidx.core.widget.NestedScrollView>
 
-    <!-- Fragment del Bottom Navigation -->
+    <!-- Container para el fragment de navegación inferior -->
     <FrameLayout
         android:id="@+id/bottomNavContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom" />
+
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

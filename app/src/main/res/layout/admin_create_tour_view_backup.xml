@@ -142,8 +142,7 @@
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:layout_marginBottom="12dp">
+                            android:orientation="horizontal">
 
                             <com.google.android.material.textfield.TextInputLayout
                                 android:layout_width="0dp"
@@ -186,6 +185,7 @@
                             android:id="@+id/til_tour_date"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
                             app:endIconMode="custom"
                             app:endIconDrawable="@drawable/ic_calendar"
                             style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
@@ -206,9 +206,9 @@
 
             </LinearLayout>
 
-            <!-- PASO 2: Lugares a Visitar -->
+            <!-- PASO 2: Ubicación en Mapa -->
             <LinearLayout
-                android:id="@+id/step_places"
+                android:id="@+id/step_location_map"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
@@ -227,66 +227,29 @@
                         android:orientation="vertical"
                         android:padding="16dp">
 
-                        <!-- Búsqueda de lugares -->
-                        <com.google.android.material.textfield.TextInputLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginBottom="12dp"
-                            app:endIconMode="custom"
-                            app:endIconDrawable="@drawable/ic_search"
-                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
-
-                            <com.google.android.material.textfield.TextInputEditText
-                                android:id="@+id/et_search_places"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:hint="Buscar lugares a visitar" />
-
-                        </com.google.android.material.textfield.TextInputLayout>
-
-                        <!-- Mapa para buscar lugares -->
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Toca en el mapa para seleccionar lugares:"
+                            android:text="Selecciona la ubicación del tour"
+                            android:textColor="@color/text_primary"
+                            android:textSize="16sp"
+                            android:textStyle="bold"
+                            android:layout_marginBottom="8dp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Toca en el mapa para seleccionar donde se realizará el tour"
                             android:textColor="@color/text_secondary"
                             android:textSize="14sp"
-                            android:layout_marginBottom="8dp" />
+                            android:layout_marginBottom="16dp" />
 
+                        <!-- Mapa -->
                         <fragment
-                            android:id="@+id/map_fragment_places"
+                            android:id="@+id/mapFragment"
                             android:name="com.google.android.gms.maps.SupportMapFragment"
                             android:layout_width="match_parent"
-                            android:layout_height="200dp"
-                            android:layout_marginBottom="12dp" />
-
-                        <!-- Botón agregar lugar -->
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btn_add_place"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Agregar al Recorrido"
-                            android:textColor="@android:color/white"
-                            android:layout_gravity="end"
-                            app:backgroundTint="@color/brand_purple_dark"
-                            app:icon="@drawable/ic_add"
-                            app:iconTint="@android:color/white" />
-
-                        <!-- Lista de lugares seleccionados -->
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Lugares del recorrido:"
-                            android:textColor="@color/text_primary"
-                            android:textStyle="bold"
-                            android:layout_marginTop="16dp"
-                            android:layout_marginBottom="8dp" />
-
-                        <androidx.recyclerview.widget.RecyclerView
-                            android:id="@+id/rv_selected_places"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:minHeight="100dp" />
+                            android:layout_height="300dp" />
 
                     </LinearLayout>
 
@@ -294,149 +257,14 @@
 
             </LinearLayout>
 
-            <!-- PASO 3: Actividades y Mapa -->
-            <LinearLayout
-                android:id="@+id/step_activities"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:visibility="gone">
-
-                <!-- Actividades por lugar -->
-                <com.google.android.material.card.MaterialCardView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
-                    app:cardCornerRadius="12dp"
-                    app:cardElevation="2dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="16dp">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Actividades por lugar:"
-                            android:textColor="@color/text_primary"
-                            android:textStyle="bold"
-                            android:layout_marginBottom="12dp" />
-
-                        <!-- Lista de lugares con actividades -->
-                        <androidx.recyclerview.widget.RecyclerView
-                            android:id="@+id/rv_place_activities"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:minHeight="150dp" />
-
-                    </LinearLayout>
-
-                </com.google.android.material.card.MaterialCardView>
-
-                <!-- Mapa estático de la ruta -->
-                <com.google.android.material.card.MaterialCardView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
-                    app:cardCornerRadius="12dp"
-                    app:cardElevation="2dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="16dp">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Ruta del tour:"
-                            android:textColor="@color/text_primary"
-                            android:textStyle="bold"
-                            android:layout_marginBottom="12dp" />
-
-                        <fragment
-                            android:id="@+id/map_fragment"
-                            android:name="com.google.android.gms.maps.SupportMapFragment"
-                            android:layout_width="match_parent"
-                            android:layout_height="250dp" />
-
-                    </LinearLayout>
-
-                </com.google.android.material.card.MaterialCardView>
-
-            </LinearLayout>
-
-            <!-- PASO 4: Servicios Adicionales -->
-            <LinearLayout
-                android:id="@+id/step_services"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:visibility="gone">
-
-                <com.google.android.material.card.MaterialCardView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
-                    app:cardCornerRadius="12dp"
-                    app:cardElevation="2dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="16dp">
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:gravity="center_vertical"
-                            android:layout_marginBottom="12dp">
-
-                            <TextView
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:text="Servicios adicionales:"
-                                android:textColor="@color/text_primary"
-                                android:textStyle="bold" />
-
-                            <com.google.android.material.button.MaterialButton
-                                android:id="@+id/btn_add_service"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Agregar Servicio"
-                                android:textColor="@android:color/white"
-                                app:backgroundTint="@color/brand_purple_dark"
-                                app:icon="@drawable/ic_add"
-                                app:iconTint="@android:color/white" />
-
-                        </LinearLayout>
-
-                        <!-- Lista de servicios -->
-                        <androidx.recyclerview.widget.RecyclerView
-                            android:id="@+id/rv_services"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:minHeight="100dp" />
-
-                    </LinearLayout>
-
-                </com.google.android.material.card.MaterialCardView>
-
-            </LinearLayout>
-
-            <!-- Navegación entre pasos -->
+            <!-- Botones de Navegación -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center"
-                android:layout_marginBottom="16dp">
+                android:layout_marginTop="24dp"
+                android:layout_marginBottom="24dp">
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btn_previous"
@@ -455,7 +283,6 @@
                     android:layout_weight="1"
                     android:layout_marginStart="8dp"
                     android:text="Siguiente"
-                    app:backgroundTint="@color/brand_purple_dark"
                     app:icon="@drawable/ic_arrow_forward" />
 
             </LinearLayout>
@@ -478,15 +305,14 @@
                     style="@style/Widget.Material3.Button.OutlinedButton" />
 
                 <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btn_create_tour"
+                    android:id="@+id/btn_publish"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginStart="8dp"
-                    android:text="Crear Tour"
+                    android:text="Publicar Tour"
                     android:visibility="gone"
-                    app:backgroundTint="@color/brand_purple_dark"
-                    app:icon="@drawable/ic_check_circle" />
+                    app:icon="@drawable/ic_publish" />
 
             </LinearLayout>
 

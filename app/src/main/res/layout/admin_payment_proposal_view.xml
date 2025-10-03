@@ -19,8 +19,9 @@
             android:id="@+id/topAppBar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="@color/primary_color"
+            android:background="@color/brand_purple_dark"
             app:navigationIcon="@drawable/ic_arrow_back"
+            app:navigationIconTint="@android:color/white"
             app:title="Propuesta de Pago"
             app:titleTextColor="@android:color/white" />
 
@@ -30,6 +31,9 @@
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_marginBottom="80dp"
+        android:clipToPadding="false"
+        android:paddingBottom="16dp"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <LinearLayout
@@ -178,13 +182,14 @@
 
                     </com.google.android.material.textfield.TextInputLayout>
 
-                    <!-- Tarifa de Plataforma -->
+                    <!-- Tarifa de Plataforma (calculada automáticamente) -->
                     <com.google.android.material.textfield.TextInputLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="16dp"
                         app:startIconDrawable="@drawable/ic_platform"
                         app:suffixText="S/"
+                        app:helperText="2% del precio base + comisión del guía"
                         style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
 
                         <com.google.android.material.textfield.TextInputEditText
@@ -192,7 +197,9 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:hint="Tarifa de plataforma"
-                            android:inputType="numberDecimal" />
+                            android:inputType="numberDecimal"
+                            android:enabled="false"
+                            android:textColor="@color/text_secondary" />
 
                     </com.google.android.material.textfield.TextInputLayout>
 
@@ -292,37 +299,42 @@
 
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Botones de Acción -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center"
-                android:layout_marginBottom="24dp">
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btn_cancel"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginEnd="8dp"
-                    android:text="Cancelar"
-                    style="@style/Widget.Material3.Button.OutlinedButton" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btn_send_proposal"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginStart="8dp"
-                    android:text="Enviar Propuesta"
-                    app:icon="@drawable/ic_send" />
-
-            </LinearLayout>
-
         </LinearLayout>
 
     </androidx.core.widget.NestedScrollView>
+
+    <!-- Botones de Acción (Fijos en la parte inferior) -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:padding="16dp"
+        android:background="@color/surface"
+        android:elevation="8dp"
+        app:layout_anchor="@id/bottomNavContainer"
+        app:layout_anchorGravity="top">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_cancel"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginEnd="8dp"
+            android:text="Cancelar"
+            style="@style/Widget.Material3.Button.OutlinedButton" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_send_proposal"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="8dp"
+            android:text="Enviar Propuesta"
+            android:backgroundTint="@color/brand_purple_dark"
+            app:icon="@drawable/ic_send" />
+
+    </LinearLayout>
 
     <!-- Bottom Navigation Container -->
     <FrameLayout

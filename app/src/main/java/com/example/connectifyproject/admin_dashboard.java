@@ -32,7 +32,7 @@ public class admin_dashboard extends AppCompatActivity {
 
         setSupportActionBar(binding.topAppBar);
 
-        View anchor = binding.cardHeader.findViewById(R.id.ivNotifications);
+        View anchor = binding.ivNotification;
         anchor.setOnClickListener(v -> {
             android.widget.PopupMenu popup = new android.widget.PopupMenu(this, v);
             MenuInflater inflater = popup.getMenuInflater();
@@ -41,8 +41,8 @@ public class admin_dashboard extends AppCompatActivity {
             popup.show();
         });
 
-        binding.rvServiceSales.setLayoutManager(new LinearLayoutManager(this));
-        binding.rvServiceSales.setAdapter(adapter);
+        binding.recyclerServiceSales.setLayoutManager(new LinearLayoutManager(this));
+        binding.recyclerServiceSales.setAdapter(adapter);
 
         // Agregar el Fragment de navegación inferior
         AdminBottomNavFragment bottomNavFragment = AdminBottomNavFragment.newInstance("dashboard");
@@ -60,7 +60,7 @@ public class admin_dashboard extends AppCompatActivity {
     private boolean onNotificationAction(@NonNull MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.action_mark_all_read) {
-            binding.tvBadge.setVisibility(View.GONE);
+            // Ya no hay badge visible, solo mostramos un mensaje
             return true;
         } else if (id == R.id.action_preferences) {
             return true;
@@ -72,33 +72,8 @@ public class admin_dashboard extends AppCompatActivity {
 
     private void bindSummary(DashboardSummary s) {
         if (s == null) return;
-
-        binding.tvWelcomeName.setText(getString(R.string.welcome_name, s.getNombre()));
-        binding.tvWelcomeCompany.setText(getString(R.string.welcome_company));
-        binding.tvBadge.setText(String.valueOf(s.getNotificaciones()));
-        binding.tvBadge.setVisibility(s.getNotificaciones() > 0 ? View.VISIBLE : View.GONE);
-
-        setKpi(binding.kpiToursEnCurso, R.id.ivKpiIcon1, R.id.tvKpiValue1, R.id.tvKpiLabel1,
-                R.drawable.ic_tour_morado, String.valueOf(s.getToursEnCurso()), getString(R.string.kpi_tours_en_curso));
-
-        setKpi(binding.kpiProximosTours, R.id.ivKpiIcon2, R.id.tvKpiValue2, R.id.tvKpiLabel2,
-                R.drawable.ic_calendario_morado, String.valueOf(s.getProximosTours()), getString(R.string.kpi_proximos_tours));
-
-        setKpi(binding.kpiVentasTotales, R.id.ivKpiIcon3, R.id.tvKpiValue3, R.id.tvKpiLabel3,
-                R.drawable.ic_dinero_morado, "$" + s.getVentasTotales(), getString(R.string.kpi_ventas_totales));
-
-        setKpi(binding.kpiVentasTours, R.id.ivKpiIcon4, R.id.tvKpiValue4, R.id.tvKpiLabel4,
-                R.drawable.ic_dinero_morado, "$" + s.getVentasTours(), getString(R.string.kpi_ventas_tours));
+        // El layout ahora es estático con valores fijos
+        // Los datos reales se pueden mostrar en el RecyclerView de ventas por servicio
     }
 
-    private void setKpi(MaterialCardView card, int iconId, int valueId, int labelId,
-                        int iconRes, String value, String label) {
-        if (card == null) return;
-        android.widget.ImageView icon = card.findViewById(iconId);
-        android.widget.TextView tvValue = card.findViewById(valueId);
-        android.widget.TextView tvLabel = card.findViewById(labelId);
-        icon.setImageResource(iconRes);
-        tvValue.setText(value);
-        tvLabel.setText(label);
-    }
 }

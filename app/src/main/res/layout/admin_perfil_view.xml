@@ -3,19 +3,31 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/surface_soft">
 
-    <!-- AppBar con título -->
-    <com.google.android.material.appbar.MaterialToolbar
-        android:id="@+id/topAppBar"
-        style="@style/Widget.Material3.Toolbar"
+    <!-- AppBar con colores SA -->
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appBarLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="?attr/colorPrimary"
-        android:theme="@style/ThemeOverlay.Material3.Dark.ActionBar"
-        app:title="@string/profile_edit_title"
-        app:navigationIcon="@drawable/ic_arrow_back_24"
-        app:titleCentered="false" />
+        android:background="@color/brand_purple_dark"
+        android:fitsSystemWindows="true"
+        app:elevation="0dp">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/topAppBar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="@color/brand_purple_dark"
+            android:theme="@style/ThemeOverlay.Material3.Dark.ActionBar"
+            app:title="@string/profile_edit_title"
+            app:titleTextColor="@android:color/white"
+            app:navigationIcon="@drawable/ic_arrow_back_24"
+            app:navigationIconTint="@android:color/white"
+            app:titleCentered="false" />
+
+    </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.core.widget.NestedScrollView
         android:id="@+id/scroll"
@@ -28,27 +40,26 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="24dp"
-            android:paddingTop="72dp">
+            android:padding="24dp">
 
-            <!-- Logo de la empresa -->
+            <!-- Logo de la empresa con mejor posicionamiento -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:gravity="center"
-                android:layout_marginTop="24dp"
+                android:layout_marginTop="16dp"
                 android:layout_marginBottom="32dp">
 
                 <ImageView
                     android:id="@+id/ivCompanyLogo"
-                    android:layout_width="120dp"
-                    android:layout_height="120dp"
+                    android:layout_width="100dp"
+                    android:layout_height="100dp"
                     android:src="@mipmap/tourly_logo_img"
                     android:background="@drawable/bg_circle"
                     android:backgroundTint="@color/brand_lilac"
                     android:padding="16dp"
-                    android:text="@string/profile_company_logo" />
+                    android:contentDescription="@string/profile_company_logo" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnChangeLogo"
@@ -57,6 +68,7 @@
                     android:layout_marginTop="16dp"
                     android:text="@string/profile_change_logo"
                     style="@style/Widget.Material3.Button.TonalButton"
+                    app:backgroundTint="@color/brand_lilac"
                     app:cornerRadius="20dp" />
             </LinearLayout>
 
@@ -94,7 +106,7 @@
                     android:text="934125834" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Ubicación de la oficina -->
+            <!-- Ubicación de la oficina con búsqueda manual -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilLocation"
                 android:layout_width="match_parent"
@@ -110,17 +122,21 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="textPostalAddress"
-                    android:text="Jirón Arequipa 253, Lima, Perú" />
+                    android:text="Jirón Arequipa 253, Lima, Perú"
+                    android:imeOptions="actionDone" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Mapa -->
+            <!-- Mapa sin barra de búsqueda interna -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardMap"
                 android:layout_width="match_parent"
                 android:layout_height="200dp"
                 android:layout_marginBottom="16dp"
                 app:cardCornerRadius="16dp"
-                app:cardElevation="2dp">
+                app:cardElevation="2dp"
+                app:cardBackgroundColor="@color/white"
+                app:strokeColor="@color/border_light"
+                app:strokeWidth="1dp">
 
                 <FrameLayout
                     android:layout_width="match_parent"
@@ -141,38 +157,6 @@
                         android:layout_gravity="center"
                         android:visibility="gone" />
 
-                    <!-- Barra de búsqueda sobre el mapa -->
-                    <com.google.android.material.card.MaterialCardView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_margin="12dp"
-                        app:cardCornerRadius="8dp"
-                        app:cardElevation="4dp">
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:padding="12dp"
-                            android:gravity="center_vertical">
-
-                            <ImageView
-                                android:layout_width="20dp"
-                                android:layout_height="20dp"
-                                android:src="@drawable/ic_search_24"
-                                android:layout_marginEnd="8dp"
-                                android:contentDescription="Buscar" />
-
-                            <TextView
-                                android:id="@+id/tvSearchHint"
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:text="@string/profile_search_placeholder"
-                                android:textColor="@color/text_secondary"
-                                android:textSize="14sp" />
-                        </LinearLayout>
-                    </com.google.android.material.card.MaterialCardView>
                 </FrameLayout>
             </com.google.android.material.card.MaterialCardView>
 
@@ -184,11 +168,13 @@
                 android:layout_marginBottom="24dp"
                 android:text="@string/profile_photos_section"
                 style="@style/Widget.Material3.Button.TonalButton"
+                app:backgroundTint="@color/brand_lilac"
                 app:cornerRadius="20dp"
                 app:icon="@drawable/ic_image_24"
+                app:iconTint="@color/brand_purple_dark"
                 app:iconGravity="textStart" />
 
-            <!-- Botón Guardar -->
+            <!-- Botón Guardar con colores SA -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnSave"
                 android:layout_width="match_parent"
@@ -196,6 +182,7 @@
                 android:layout_marginBottom="16dp"
                 android:text="@string/profile_save"
                 style="@style/Widget.Material3.Button"
+                app:backgroundTint="@color/brand_purple_dark"
                 app:cornerRadius="20dp" />
 
         </LinearLayout>

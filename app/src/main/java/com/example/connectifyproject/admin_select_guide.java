@@ -59,6 +59,7 @@ public class admin_select_guide extends AppCompatActivity {
         initializeGuides();
         setupRecyclerView();
         setupSearch();
+        setupLanguageFilters();
         setupBottomNavigation();
     }
 
@@ -119,6 +120,50 @@ public class admin_select_guide extends AppCompatActivity {
         // Actualizar el adaptador con la nueva lista filtrada
         guideAdapter = new GuideAdapter(convertToAdapterGuides(filteredGuides), this::onGuideSelected);
         binding.recyclerViewGuides.setAdapter(guideAdapter);
+    }
+
+    private void setupLanguageFilters() {
+        binding.chipGroupLanguages.setOnCheckedStateChangeListener((group, checkedIds) -> {
+            applyLanguageFilter();
+        });
+    }
+
+    private void applyLanguageFilter() {
+        List<String> selectedLanguages = new ArrayList<>();
+        
+        if (binding.chipEspanol.isChecked()) selectedLanguages.add("Español");
+        if (binding.chipIngles.isChecked()) selectedLanguages.add("Inglés");
+        if (binding.chipFrances.isChecked()) selectedLanguages.add("Francés");
+        if (binding.chipItaliano.isChecked()) selectedLanguages.add("Italiano");
+        if (binding.chipMandarin.isChecked()) selectedLanguages.add("Mandarín");
+        if (binding.chipPortugues.isChecked()) selectedLanguages.add("Portugués");
+
+        filteredGuides.clear();
+        
+        if (selectedLanguages.isEmpty()) {
+            // Si no hay filtros seleccionados, mostrar todos los guías
+            filteredGuides.addAll(allGuides);
+        } else {
+            // Filtrar guías que hablen al menos uno de los idiomas seleccionados
+            for (GuideItem guide : allGuides) {
+                for (String language : selectedLanguages) {
+                    if (guide.languages.contains(language)) {
+                        filteredGuides.add(guide);
+                        break; // Evitar duplicados
+                    }
+                }
+            }
+        }
+        
+        // También aplicar filtro de búsqueda si hay texto
+        String searchQuery = binding.etSearch.getText().toString().trim();
+        if (!searchQuery.isEmpty()) {
+            filterGuides(searchQuery);
+        } else {
+            // Actualizar el adaptador con la nueva lista filtrada
+            guideAdapter = new GuideAdapter(convertToAdapterGuides(filteredGuides), this::onGuideSelected);
+            binding.recyclerViewGuides.setAdapter(guideAdapter);
+        }
     }
 
     private void onGuideSelected(GuideItem guide) {

@@ -20,7 +20,7 @@
 
         <!-- Avatar del cliente -->
         <com.google.android.material.imageview.ShapeableImageView
-            android:id="@+id/ivAvatar"
+            android:id="@+id/ivClientAvatar"
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:scaleType="centerCrop"
@@ -39,18 +39,18 @@
             android:layout_marginEnd="8dp"
             android:ellipsize="end"
             android:maxLines="1"
-            android:text="Cliente: Alex"
+            android:text="Alex Rodríguez"
             android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
             android:textColor="?attr/colorOnSurface"
             android:textStyle="bold"
-            app:layout_constraintEnd_toStartOf="@id/tvPaymentTime"
-            app:layout_constraintStart_toEndOf="@id/ivAvatar"
-            app:layout_constraintTop_toTopOf="@id/ivAvatar"
-            tools:text="Cliente: Alex" />
+            app:layout_constraintEnd_toStartOf="@id/tvTime"
+            app:layout_constraintStart_toEndOf="@id/ivClientAvatar"
+            app:layout_constraintTop_toTopOf="@id/ivClientAvatar"
+            tools:text="Alex Rodríguez" />
 
-        <!-- Estado del pago -->
+        <!-- Último mensaje -->
         <TextView
-            android:id="@+id/tvPaymentStatus"
+            android:id="@+id/tvLastMessage"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="12dp"
@@ -58,26 +58,38 @@
             android:layout_marginEnd="8dp"
             android:ellipsize="end"
             android:maxLines="1"
-            android:text="Pago completado"
+            android:text="Perfecto, me interesa el de 3 días"
             android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
             android:textColor="?attr/colorOnSurfaceVariant"
-            app:layout_constraintBottom_toBottomOf="@id/ivAvatar"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@id/ivAvatar"
+            app:layout_constraintBottom_toBottomOf="@id/ivClientAvatar"
+            app:layout_constraintEnd_toStartOf="@id/vNewMessageIndicator"
+            app:layout_constraintStart_toEndOf="@id/ivClientAvatar"
             app:layout_constraintTop_toBottomOf="@id/tvClientName"
-            tools:text="Pago completado" />
+            tools:text="Perfecto, me interesa el de 3 días" />
 
-        <!-- Hora del pago -->
+        <!-- Tiempo -->
         <TextView
-            android:id="@+id/tvPaymentTime"
+            android:id="@+id/tvTime"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="10:30 AM"
+            android:text="9:20"
             android:textAppearance="@style/TextAppearance.Material3.LabelSmall"
             android:textColor="?attr/colorOnSurfaceVariant"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="@id/tvClientName"
-            tools:text="10:30 AM" />
+            tools:text="9:20" />
+
+        <!-- Indicador de mensaje nuevo -->
+        <View
+            android:id="@+id/vNewMessageIndicator"
+            android:layout_width="8dp"
+            android:layout_height="8dp"
+            android:background="@drawable/bg_circle"
+            android:backgroundTint="@color/brand_purple_dark"
+            android:visibility="visible"
+            app:layout_constraintBottom_toBottomOf="@id/tvLastMessage"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@id/tvLastMessage" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

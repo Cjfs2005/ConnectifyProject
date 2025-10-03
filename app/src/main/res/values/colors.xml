@@ -52,12 +52,16 @@
     <color name="primary_200">#C4B5FD</color>
     <color name="primary_container">#EDE7F6</color>
     <color name="neutral_500">#6B7280</color>
+    <color name="success_50">#ECFDF5</color>
+    <color name="success_200">#A7F3D0</color>
     <color name="success_500">#10B981</color>
+    <color name="success_700">#047857</color>
     <color name="error_500">#EF4444</color>
 
     <!-- Colores Material Design 3 -->
     <color name="surface">#FFFFFF</color>
     <color name="on_surface">#1C1B1F</color>
+    <color name="on_surface_variant">#49454F</color>
 
     <!-- Colores adicionales para las nuevas vistas -->
     <color name="background_color">#FFFFFF</color>

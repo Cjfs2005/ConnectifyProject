@@ -4,8 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/surface_soft"
-    tools:context=".admin_pagos">
+    android:background="@color/surface_soft">
 
     <!-- Toolbar con colores SA -->
     <com.google.android.material.appbar.MaterialToolbar
@@ -17,7 +16,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:title="Registro de pagos"
+        app:title="Chat"
         app:titleTextColor="@android:color/white">
 
         <!-- Botón de notificaciones -->
@@ -41,7 +40,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
-        android:hint="Buscar registros de pago..."
+        android:hint="Buscar clientes..."
         app:boxCornerRadiusBottomEnd="8dp"
         app:boxCornerRadiusBottomStart="8dp"
         app:boxCornerRadiusTopEnd="8dp"
@@ -60,9 +59,9 @@
 
     </com.google.android.material.textfield.TextInputLayout>
 
-    <!-- Lista de pagos -->
+    <!-- Lista de chats -->
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerViewPagos"
+        android:id="@+id/recyclerViewChats"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:clipToPadding="false"
@@ -72,7 +71,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tilSearch"
-        tools:listitem="@layout/item_pago_cliente" />
+        tools:listitem="@layout/item_admin_chat" />
 
     <!-- Bottom Navigation Container -->
     <FrameLayout

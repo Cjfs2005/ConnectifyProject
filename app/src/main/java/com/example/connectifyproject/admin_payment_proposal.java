@@ -48,35 +48,40 @@ public class admin_payment_proposal extends AppCompatActivity {
 
         // Configurar información de pago por defecto
         binding.etTourPrice.setText("150.00");
-        binding.etGuideCommission.setText("20.00");
-        binding.etPlatformFee.setText("15.00");
-        binding.tvTotalAmount.setText("S/ 185.00");
-
-        // Calcular automáticamente cuando cambien los valores
+        binding.etGuideCommission.setText("200.00");
+        
+        // Calcular automáticamente la tarifa de plataforma y el total
+        calculatePlatformFeeAndTotal();
+        
+        // Configurar cálculo automático cuando cambien los valores
         setupPriceCalculation();
     }
 
     private void setupPriceCalculation() {
         View.OnFocusChangeListener recalculateListener = (v, hasFocus) -> {
             if (!hasFocus) {
-                calculateTotal();
+                calculatePlatformFeeAndTotal();
             }
         };
 
         binding.etTourPrice.setOnFocusChangeListener(recalculateListener);
         binding.etGuideCommission.setOnFocusChangeListener(recalculateListener);
-        binding.etPlatformFee.setOnFocusChangeListener(recalculateListener);
     }
 
-    private void calculateTotal() {
+    private void calculatePlatformFeeAndTotal() {
         try {
             double tourPrice = Double.parseDouble(binding.etTourPrice.getText().toString());
             double guideCommission = Double.parseDouble(binding.etGuideCommission.getText().toString());
-            double platformFee = Double.parseDouble(binding.etPlatformFee.getText().toString());
             
-            double total = tourPrice + guideCommission + platformFee;
+            // Calcular tarifa de plataforma: 2% de (precio base + comisión del guía)
+            double platformFee = (tourPrice + guideCommission) * 0.02;
+            binding.etPlatformFee.setText(String.format("%.2f", platformFee));
+            
+            // Total = Comisión del guía + Tarifa de plataforma (NO incluir precio base)
+            double total = guideCommission + platformFee;
             binding.tvTotalAmount.setText(String.format("S/ %.2f", total));
         } catch (NumberFormatException e) {
+            binding.etPlatformFee.setText("0.00");
             binding.tvTotalAmount.setText("S/ 0.00");
         }
     }

@@ -49,7 +49,7 @@ public class admin_tours extends AppCompatActivity {
         setupBottomNavigation();
 
         // Configurar botón crear tour
-        binding.fabCrearTour.setOnClickListener(v -> {
+        binding.fabCreateTour.setOnClickListener(v -> {
             Intent intent = new Intent(this, admin_create_tour.class);
             startActivity(intent);
         });
@@ -63,10 +63,6 @@ public class admin_tours extends AppCompatActivity {
     }
 
     private void setupTabs() {
-        binding.tabLayout.addTab(binding.tabLayout.newTab().setText("Publicados"));
-        binding.tabLayout.addTab(binding.tabLayout.newTab().setText("Borrador"));
-        binding.tabLayout.addTab(binding.tabLayout.newTab().setText("Cancelados"));
-
         binding.tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
