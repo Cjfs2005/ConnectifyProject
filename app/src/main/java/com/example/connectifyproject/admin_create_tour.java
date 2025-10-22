@@ -7,7 +7,6 @@ import android.location.Address;
 import android.location.Geocoder;
 import android.os.Bundle;
 import android.view.View;
-import android.view.ViewParent;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -17,6 +16,9 @@ import com.example.connectifyproject.adapters.TourServiceAdapter;
 import com.example.connectifyproject.databinding.AdminCreateTourViewBinding;
 import com.example.connectifyproject.models.TourPlace;
 import com.example.connectifyproject.models.TourService;
+import com.example.connectifyproject.storage.AdminStorage;
+import com.example.connectifyproject.storage.AdminStorage.TourDraft;
+import com.example.connectifyproject.utils.NotificationHelper;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -59,6 +61,7 @@ public class admin_create_tour extends AppCompatActivity implements OnMapReadyCa
     
     private Calendar selectedCalendar;
     private SimpleDateFormat dateFormat;
+    private final AdminStorage adminStorage = new AdminStorage();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,6 +74,9 @@ public class admin_create_tour extends AppCompatActivity implements OnMapReadyCa
         setupListeners();
         setupAdapters();
         initializeMaps();
+        // Notificaciones: crear canal y solicitar permiso si aplica
+        NotificationHelper.createChannels(this);
+        NotificationHelper.requestPostNotificationsIfNeeded(this);
         updateStepVisibility();
     }
 
@@ -80,6 +86,28 @@ public class admin_create_tour extends AppCompatActivity implements OnMapReadyCa
         selectedCalendar = Calendar.getInstance();
         dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
         binding.etTourDate.setText(dateFormat.format(selectedCalendar.getTime()));
+
+        // Cargar borrador si existe
+        try {
+            if (adminStorage.hasDraft(this)) {
+                TourDraft draft = adminStorage.loadDraft(this);
+                if (draft != null) {
+                    binding.etTourTitle.setText(draft.title);
+                    binding.etTourDescription.setText(draft.description);
+                    binding.etTourPrice.setText(draft.price);
+                    binding.etTourDuration.setText(draft.duration);
+                    if (draft.date != null && !draft.date.isEmpty()) {
+                        binding.etTourDate.setText(draft.date);
+                    }
+                    if (draft.places != null) {
+                        selectedPlaces.addAll(draft.places);
+                    }
+                    if (draft.services != null) {
+                        additionalServices.addAll(draft.services);
+                    }
+                }
+            }
+        } catch (Exception ignored) { }
     }
 
     private void setupUI() {
@@ -89,21 +117,10 @@ public class admin_create_tour extends AppCompatActivity implements OnMapReadyCa
             getSupportActionBar().setDisplayShowHomeEnabled(true);
         }
         
-        // Configurar listener para el ícono de búsqueda
-        setupSearchIconListener();
+        // Configurar listener para el ícono de búsqueda (usa id del TextInputLayout)
+        binding.tilSearchPlaces.setEndIconOnClickListener(v -> searchLocation());
     }
     
-    private void setupSearchIconListener() {
-        // El TextInputLayout con ícono de búsqueda necesita ser configurado después del inflado
-        binding.getRoot().post(() -> {
-            // Buscar el TextInputLayout que contiene el campo de búsqueda
-            ViewParent parent = findViewById(R.id.et_search_places).getParent();
-            if (parent instanceof TextInputLayout) {
-                TextInputLayout tilSearch = (TextInputLayout) parent;
-                tilSearch.setEndIconOnClickListener(v -> searchLocation());
-            }
-        });
-    }
 
     private void setupListeners() {
         binding.btnNext.setOnClickListener(v -> nextStep());
@@ -448,13 +465,36 @@ public class admin_create_tour extends AppCompatActivity implements OnMapReadyCa
     }
 
     private void saveDraft() {
-        Toast.makeText(this, "Borrador guardado", Toast.LENGTH_SHORT).show();
+        try {
+            TourDraft draft = new TourDraft();
+            draft.title = binding.etTourTitle.getText().toString().trim();
+            draft.description = binding.etTourDescription.getText().toString().trim();
+            draft.price = binding.etTourPrice.getText().toString().trim();
+            draft.duration = binding.etTourDuration.getText().toString().trim();
+            draft.date = binding.etTourDate.getText().toString().trim();
+            draft.places = new ArrayList<>(selectedPlaces);
+            draft.services = new ArrayList<>(additionalServices);
+            adminStorage.saveDraft(this, draft);
+            Toast.makeText(this, "Borrador guardado", Toast.LENGTH_SHORT).show();
+            // Volver automáticamente a la pantalla de gestión de tours
+            Intent intent = new Intent(this, admin_tours.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            startActivity(intent);
+            finish();
+        } catch (Exception e) {
+            Toast.makeText(this, "No se pudo guardar el borrador", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void finishTour() {
         if (validateCurrentStep()) {
+            // Enviar notificación de creado
+            Intent openIntent = new Intent(this, admin_tours.class);
+            NotificationHelper.notifyTourCreated(this, openIntent);
+            // Limpiar borrador
+            adminStorage.clearDraft(this);
             Intent intent = new Intent(this, admin_tours.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
             startActivity(intent);
             finish();
         }
