@@ -2,6 +2,7 @@ package com.example.connectifyproject;
 
 import android.app.DatePickerDialog;
 import android.app.Dialog;
+import android.content.ClipData;
 import android.content.Intent;
 import android.location.Address;
 import android.location.Geocoder;
@@ -13,6 +14,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import com.example.connectifyproject.adapters.PlaceActivityAdapter;
 import com.example.connectifyproject.adapters.TourPlaceAdapter;
 import com.example.connectifyproject.adapters.TourServiceAdapter;
+import com.example.connectifyproject.adapters.SelectedImageAdapter;
 import com.example.connectifyproject.databinding.AdminCreateTourViewBinding;
 import com.example.connectifyproject.models.TourPlace;
 import com.example.connectifyproject.models.TourService;
@@ -30,6 +32,9 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.materialswitch.MaterialSwitch;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import android.net.Uri;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -58,10 +63,14 @@ public class admin_create_tour extends AppCompatActivity implements OnMapReadyCa
     private TourPlaceAdapter placeAdapter;
     private PlaceActivityAdapter activityAdapter;
     private TourServiceAdapter serviceAdapter;
+    private SelectedImageAdapter imageAdapter;
     
     private Calendar selectedCalendar;
     private SimpleDateFormat dateFormat;
     private final AdminStorage adminStorage = new AdminStorage();
+    private final ArrayList<String> selectedImageUris = new ArrayList<>();
+    private String currentDraftId = null;
+    private ActivityResultLauncher<Intent> pickImagesLauncher;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,6 +82,7 @@ public class admin_create_tour extends AppCompatActivity implements OnMapReadyCa
         setupUI();
         setupListeners();
         setupAdapters();
+    setupImagesPicker();
         initializeMaps();
         // Notificaciones: crear canal y solicitar permiso si aplica
         NotificationHelper.createChannels(this);
@@ -87,11 +97,13 @@ public class admin_create_tour extends AppCompatActivity implements OnMapReadyCa
         dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
         binding.etTourDate.setText(dateFormat.format(selectedCalendar.getTime()));
 
-        // Cargar borrador si existe
-        try {
-            if (adminStorage.hasDraft(this)) {
-                TourDraft draft = adminStorage.loadDraft(this);
+        // Si viene un borrador específico, cargarlo
+        String draftId = getIntent().getStringExtra("draft_id");
+        if (draftId != null && !draftId.isEmpty()) {
+            try {
+                TourDraft draft = adminStorage.loadDraft(this, draftId);
                 if (draft != null) {
+                    currentDraftId = draft.id;
                     binding.etTourTitle.setText(draft.title);
                     binding.etTourDescription.setText(draft.description);
                     binding.etTourPrice.setText(draft.price);
@@ -105,9 +117,12 @@ public class admin_create_tour extends AppCompatActivity implements OnMapReadyCa
                     if (draft.services != null) {
                         additionalServices.addAll(draft.services);
                     }
+                    if (draft.imageUris != null) {
+                        selectedImageUris.addAll(draft.imageUris);
+                    }
                 }
-            }
-        } catch (Exception ignored) { }
+            } catch (Exception ignored) { }
+        }
     }
 
     private void setupUI() {
@@ -153,6 +168,54 @@ public class admin_create_tour extends AppCompatActivity implements OnMapReadyCa
         serviceAdapter = new TourServiceAdapter(additionalServices, this::removeService);
         binding.rvServices.setLayoutManager(new LinearLayoutManager(this));
         binding.rvServices.setAdapter(serviceAdapter);
+
+        // Adapter para imágenes seleccionadas (horizontal)
+        imageAdapter = new SelectedImageAdapter(selectedImageUris);
+        LinearLayoutManager lm = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
+        binding.rvTourImages.setLayoutManager(lm);
+        binding.rvTourImages.setAdapter(imageAdapter);
+    }
+
+    private void setupImagesPicker() {
+        pickImagesLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+            if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                Intent data = result.getData();
+                ArrayList<String> newUris = new ArrayList<>();
+                if (data.getClipData() != null) {
+                    ClipData clip = data.getClipData();
+                    for (int i = 0; i < clip.getItemCount() && newUris.size() < 3; i++) {
+                        Uri uri = clip.getItemAt(i).getUri();
+                        takePersistableUri(uri);
+                        newUris.add(uri.toString());
+                    }
+                } else if (data.getData() != null) {
+                    Uri uri = data.getData();
+                    takePersistableUri(uri);
+                    newUris.add(uri.toString());
+                }
+                // Limitar total a 3
+                for (String u : newUris) {
+                    if (selectedImageUris.size() < 3) selectedImageUris.add(u);
+                }
+                imageAdapter.notifyDataSetChanged();
+            }
+        });
+
+        binding.btnAddImages.setOnClickListener(v -> {
+            Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+            intent.addCategory(Intent.CATEGORY_OPENABLE);
+            intent.setType("image/*");
+            intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
+            pickImagesLauncher.launch(intent);
+        });
+    }
+
+    private void takePersistableUri(Uri uri) {
+        try {
+            getContentResolver().takePersistableUriPermission(uri,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        } catch (Exception ignored) { }
     }
 
     private void showDatePicker() {
@@ -467,6 +530,7 @@ public class admin_create_tour extends AppCompatActivity implements OnMapReadyCa
     private void saveDraft() {
         try {
             TourDraft draft = new TourDraft();
+            draft.id = currentDraftId;
             draft.title = binding.etTourTitle.getText().toString().trim();
             draft.description = binding.etTourDescription.getText().toString().trim();
             draft.price = binding.etTourPrice.getText().toString().trim();
@@ -474,7 +538,8 @@ public class admin_create_tour extends AppCompatActivity implements OnMapReadyCa
             draft.date = binding.etTourDate.getText().toString().trim();
             draft.places = new ArrayList<>(selectedPlaces);
             draft.services = new ArrayList<>(additionalServices);
-            adminStorage.saveDraft(this, draft);
+            draft.imageUris = new ArrayList<>(selectedImageUris);
+            currentDraftId = adminStorage.saveDraft(this, draft);
             Toast.makeText(this, "Borrador guardado", Toast.LENGTH_SHORT).show();
             // Volver automáticamente a la pantalla de gestión de tours
             Intent intent = new Intent(this, admin_tours.class);
@@ -492,7 +557,9 @@ public class admin_create_tour extends AppCompatActivity implements OnMapReadyCa
             Intent openIntent = new Intent(this, admin_tours.class);
             NotificationHelper.notifyTourCreated(this, openIntent);
             // Limpiar borrador
-            adminStorage.clearDraft(this);
+            if (currentDraftId != null) {
+                adminStorage.deleteDraft(this, currentDraftId);
+            }
             Intent intent = new Intent(this, admin_tours.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
             startActivity(intent);

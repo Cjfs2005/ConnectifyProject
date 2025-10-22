@@ -17,6 +17,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.connectifyproject.databinding.AdminToursViewBinding;
 import com.example.connectifyproject.ui.admin.AdminBottomNavFragment;
 import com.google.android.material.tabs.TabLayout;
+import com.example.connectifyproject.storage.AdminStorage;
+import com.example.connectifyproject.storage.AdminStorage.TourDraft;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,6 +28,7 @@ public class admin_tours extends AppCompatActivity {
     private ToursAdapter toursAdapter;
     private List<TourItem> toursList;
     private String currentTab = "publicados";
+    private final AdminStorage adminStorage = new AdminStorage();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,47 +93,53 @@ public class admin_tours extends AppCompatActivity {
                     "Jul 15",
                     "Publicado",
                     R.drawable.tour_lima_centro,
-                    true
+                    true,
+                    null
                 ));
                 toursList.add(new TourItem(
                     "Casonas antiguas",
                     "Ago 5",
                     "Publicado",
                     R.drawable.tour_casonas,
-                    true
+                    true,
+                    null
                 ));
                 toursList.add(new TourItem(
                     "Montaña Huascarán",
                     "Sep 1 - Sep 5",
                     "Publicado",
                     R.drawable.tour_huascaran,
-                    true
+                    true,
+                    null
                 ));
                 break;
                 
             case "borrador":
-                // Tours en borrador que necesitan información adicional
-                toursList.add(new TourItem(
-                    "Exploración por el centro de Lima",
-                    "Jul 15",
-                    "Guía no seleccionado",
-                    R.drawable.tour_lima_centro,
-                    false
-                ));
-                toursList.add(new TourItem(
-                    "Casonas antiguas",
-                    "Ago 5",
-                    "En espera de confirmación",
-                    R.drawable.tour_casonas,
-                    false
-                ));
-                toursList.add(new TourItem(
-                    "Montaña Huascarán",
-                    "Sep 1 - Sep 5",
-                    "Hay datos sin completar",
-                    R.drawable.tour_huascaran,
-                    false
-                ));
+                // Cargar borradores reales desde almacenamiento
+                List<TourDraft> drafts = adminStorage.listDrafts(this);
+                if (drafts.isEmpty()) {
+                    toursList.add(new TourItem(
+                        "Sin borradores",
+                        "",
+                        "No hay tours en borrador",
+                        R.drawable.tour_lima_centro,
+                        false,
+                        null
+                    ));
+                } else {
+                    for (TourDraft d : drafts) {
+                        String title = (d.title != null && !d.title.isEmpty()) ? d.title : "Borrador sin título";
+                        String fecha = (d.date != null && !d.date.isEmpty()) ? d.date : "Fecha no definida";
+                        toursList.add(new TourItem(
+                            title,
+                            fecha,
+                            "Borrador",
+                            R.drawable.tour_lima_centro,
+                            false,
+                            d.id
+                        ));
+                    }
+                }
                 break;
                 
             case "cancelados":
@@ -140,7 +149,8 @@ public class admin_tours extends AppCompatActivity {
                     "Oct 1",
                     "Cancelado",
                     R.drawable.tour_lima_centro,
-                    false
+                    false,
+                    null
                 ));
                 break;
         }
@@ -162,13 +172,15 @@ public class admin_tours extends AppCompatActivity {
         private String estado;
         private int imagenResource;
         private boolean esPublicado;
+        private String draftId; // null si no es borrador
 
-        public TourItem(String titulo, String fecha, String estado, int imagenResource, boolean esPublicado) {
+        public TourItem(String titulo, String fecha, String estado, int imagenResource, boolean esPublicado, String draftId) {
             this.titulo = titulo;
             this.fecha = fecha;
             this.estado = estado;
             this.imagenResource = imagenResource;
             this.esPublicado = esPublicado;
+            this.draftId = draftId;
         }
 
         // Getters
@@ -177,6 +189,7 @@ public class admin_tours extends AppCompatActivity {
         public String getEstado() { return estado; }
         public int getImagenResource() { return imagenResource; }
         public boolean isEsPublicado() { return esPublicado; }
+        public String getDraftId() { return draftId; }
     }
 
     // Adapter para RecyclerView
@@ -235,11 +248,17 @@ public class admin_tours extends AppCompatActivity {
 
                 // Click listener para ir a detalles del tour
                 itemView.setOnClickListener(v -> {
-                    Intent intent = new Intent(admin_tours.this, admin_tour_details.class);
-                    intent.putExtra("tour_titulo", tour.getTitulo());
-                    intent.putExtra("tour_estado", tour.getEstado());
-                    intent.putExtra("tour_es_publicado", tour.isEsPublicado());
-                    startActivity(intent);
+                    if (tour.getDraftId() != null) {
+                        Intent intent = new Intent(admin_tours.this, admin_create_tour.class);
+                        intent.putExtra("draft_id", tour.getDraftId());
+                        startActivity(intent);
+                    } else {
+                        Intent intent = new Intent(admin_tours.this, admin_tour_details.class);
+                        intent.putExtra("tour_titulo", tour.getTitulo());
+                        intent.putExtra("tour_estado", tour.getEstado());
+                        intent.putExtra("tour_es_publicado", tour.isEsPublicado());
+                        startActivity(intent);
+                    }
                 });
             }
         }

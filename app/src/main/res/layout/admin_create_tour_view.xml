@@ -336,6 +336,65 @@
 
                 </com.google.android.material.card.MaterialCardView>
 
+                <!-- Imágenes del tour (1-3) -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="2dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:layout_marginBottom="12dp">
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="Imágenes del tour (1–3)"
+                                android:textColor="@color/text_primary"
+                                android:textStyle="bold" />
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btn_add_images"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Agregar imágenes"
+                                android:textColor="@android:color/white"
+                                app:backgroundTint="@color/brand_purple_dark"
+                                app:icon="@drawable/ic_add"
+                                app:iconTint="@android:color/white" />
+
+                        </LinearLayout>
+
+                        <androidx.recyclerview.widget.RecyclerView
+                            android:id="@+id/rv_tour_images"
+                            android:layout_width="match_parent"
+                            android:layout_height="96dp"
+                            android:orientation="horizontal" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Selecciona entre 1 y 3 imágenes para representar el tour."
+                            android:textColor="@color/text_secondary"
+                            android:textSize="12sp"
+                            android:layout_marginTop="8dp"/>
+
+                    </LinearLayout>
+
+                </com.google.android.material.card.MaterialCardView>
+
                 <!-- Mapa estático de la ruta -->
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="match_parent"
