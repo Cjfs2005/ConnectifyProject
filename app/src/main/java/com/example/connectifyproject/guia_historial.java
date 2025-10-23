@@ -1,10 +1,15 @@
 package com.example.connectifyproject;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
 import androidx.viewpager2.widget.ViewPager2;
@@ -12,12 +17,17 @@ import androidx.viewpager2.widget.ViewPager2;
 import com.example.connectifyproject.databinding.GuiaHistorialBinding;
 import com.example.connectifyproject.fragment.GuiaPagosFragment;
 import com.example.connectifyproject.fragment.GuiaToursFragment;
+import com.example.connectifyproject.service.GuiaNotificationService;
+import com.example.connectifyproject.storage.GuiaPreferencesManager;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 
 public class guia_historial extends AppCompatActivity {
     private GuiaHistorialBinding binding;
+    private GuiaNotificationService notificationService;
+    private GuiaPreferencesManager preferencesManager;
+    private static final int NOTIFICATION_PERMISSION_REQUEST_CODE = 101;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -25,7 +35,17 @@ public class guia_historial extends AppCompatActivity {
         binding = GuiaHistorialBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
+        // Inicializar servicios
+        notificationService = new GuiaNotificationService(this);
+        preferencesManager = new GuiaPreferencesManager(this);
+
+        // Verificar permisos de notificaciones
+        checkNotificationPermissions();
+
         setSupportActionBar(binding.toolbar);
+
+        // Verificar si viene de una notificación
+        handleNotificationIntent();
 
         // Notificaciones (redirige a guia_notificaciones)
         binding.btnNotifications.setOnClickListener(v -> {
@@ -75,5 +95,155 @@ public class guia_historial extends AppCompatActivity {
             }
             return false;
         });
+
+        // BOTONES DE PRUEBA PARA NOTIFICACIONES
+        addTestNotificationButtons();
+        
+        // Inicializar configuraciones por defecto
+        initializeDefaultPreferences();
+    }
+
+    private void checkNotificationPermissions() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) 
+                    != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, 
+                        new String[]{Manifest.permission.POST_NOTIFICATIONS}, 
+                        NOTIFICATION_PERMISSION_REQUEST_CODE);
+            }
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        
+        if (requestCode == NOTIFICATION_PERMISSION_REQUEST_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                Toast.makeText(this, "✅ Permisos de notificación concedidos", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, "❌ Permisos de notificación denegados", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    private void handleNotificationIntent() {
+        String notificationType = getIntent().getStringExtra("notification_type");
+        if (notificationType != null) {
+            switch (notificationType) {
+                case "tour_reminder":
+                    binding.viewPager.setCurrentItem(1); // Tab de tours
+                    Toast.makeText(this, "📅 Recordatorio de tour activado", Toast.LENGTH_LONG).show();
+                    break;
+                case "new_offer":
+                    Toast.makeText(this, "🎯 Nueva oferta disponible", Toast.LENGTH_LONG).show();
+                    break;
+            }
+        }
+    }
+
+    private void initializeDefaultPreferences() {
+        // Configurar preferencias por defecto si es la primera vez
+        if (preferencesManager.getGuideLanguages().isEmpty()) {
+            java.util.Set<String> defaultLanguages = new java.util.HashSet<>();
+            defaultLanguages.add("Español");
+            defaultLanguages.add("Inglés");
+            preferencesManager.saveGuideLanguages(defaultLanguages);
+        }
+        
+        // Exportar configuraciones actuales al log para debugging
+        preferencesManager.exportPreferencesToLog();
+    }
+
+    // MÉTODOS DE PRUEBA PARA NOTIFICACIONES
+    private void addTestNotificationButtons() {
+        // NOTA: Estos son eventos de prueba - en producción serían llamados por eventos reales
+        
+        // Simular nueva oferta (presionar 3 segundos el toolbar)
+        binding.toolbar.setOnLongClickListener(v -> {
+            testNewOfferNotification();
+            return true;
+        });
+        
+        // Simular recordatorios de tours (presionar 3 segundos el viewpager)
+        binding.viewPager.setOnLongClickListener(v -> {
+            testTourReminders();
+            return true;
+        });
+        
+        // Simular recordatorio de ubicación (presionar 3 segundos el tablayout)
+        binding.tabLayout.setOnLongClickListener(v -> {
+            testLocationReminder();
+            return true;
+        });
+    }
+
+    // MÉTODOS DE PRUEBA ESPECÍFICOS
+    
+    public void testNewOfferNotification() {
+        if (preferencesManager.isNotificationEnabled("new_offers")) {
+            notificationService.sendNewTourOfferNotification(
+                "Tour Machu Picchu Premium", 
+                "Inca Adventures SAC", 
+                450.0
+            );
+            Toast.makeText(this, "🎯 Notificación de nueva oferta enviada", Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(this, "⚠️ Notificaciones de ofertas desactivadas", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    public void testTourReminders() {
+        if (preferencesManager.isNotificationEnabled("tour_reminders")) {
+            // Simular 3 recordatorios: hoy, mañana, en 2 días
+            notificationService.sendTourReminderNotification(
+                "City Tour Lima Histórica", "23/10/2025", "9:00 AM", 0
+            );
+            notificationService.sendTourReminderNotification(
+                "Tour Barranco y Miraflores", "24/10/2025", "2:00 PM", 1
+            );
+            notificationService.sendTourReminderNotification(
+                "Tour Gastronómico", "25/10/2025", "11:00 AM", 2
+            );
+            Toast.makeText(this, "📅 Recordatorios de tours enviados (hoy, mañana, 2 días)", Toast.LENGTH_LONG).show();
+        } else {
+            Toast.makeText(this, "⚠️ Recordatorios de tours desactivados", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    public void testLocationReminder() {
+        if (preferencesManager.isNotificationEnabled("location_reminders")) {
+            notificationService.sendLocationReminderNotification("Plaza de Armas");
+            Toast.makeText(this, "📍 Recordatorio de ubicación enviado", Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(this, "⚠️ Recordatorios de ubicación desactivados", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    public void testCheckInReminder() {
+        if (preferencesManager.isNotificationEnabled("checkin_reminders")) {
+            notificationService.sendCheckInReminderNotification("City Tour Lima Histórica");
+            Toast.makeText(this, "✅ Recordatorio de check-in enviado", Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(this, "⚠️ Recordatorios de check-in desactivados", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    public void testCheckOutReminder() {
+        if (preferencesManager.isNotificationEnabled("checkout_reminders")) {
+            notificationService.sendCheckOutReminderNotification("City Tour Lima Histórica");
+            Toast.makeText(this, "🏁 Recordatorio de check-out enviado", Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(this, "⚠️ Recordatorios de check-out desactivados", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    // Métodos públicos para llamar desde otras actividades
+    public void simulateCheckInPhase(String tourName) {
+        testCheckInReminder();
+    }
+
+    public void simulateCheckOutPhase(String tourName) {
+        testCheckOutReminder();
     }
 }

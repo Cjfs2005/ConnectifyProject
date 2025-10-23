@@ -14,6 +14,8 @@ import com.example.connectifyproject.databinding.GuiaAssignedToursBinding;
 import com.example.connectifyproject.fragment.GuiaDateFilterDialogFragment;
 import com.example.connectifyproject.model.GuiaAssignedItem;
 import com.example.connectifyproject.model.GuiaAssignedTour;
+import com.example.connectifyproject.service.GuiaNotificationService;
+import com.example.connectifyproject.storage.GuiaPreferencesManager;
 import com.example.connectifyproject.ui.guia.GuiaAssignedTourAdapter;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
@@ -33,12 +35,20 @@ public class guia_assigned_tours extends AppCompatActivity implements GuiaDateFi
     private List<GuiaAssignedTour> originalTours = new ArrayList<>();
     private boolean isLoading = false;
     private String currentDateFrom, currentDateTo, currentAmount, currentDuration, currentLanguages;
+    
+    // Servicios para notificaciones y preferencias
+    private GuiaNotificationService notificationService;
+    private GuiaPreferencesManager preferencesManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = GuiaAssignedToursBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+
+        // Inicializar servicios para notificaciones
+        notificationService = new GuiaNotificationService(this);
+        preferencesManager = new GuiaPreferencesManager(this);
 
         // Hardcoded original data, duplicated for verification, limited to generate up to 20 items
         List<String> itinerario1 = new ArrayList<>();
@@ -226,6 +236,59 @@ public class guia_assigned_tours extends AppCompatActivity implements GuiaDateFi
             }
         } catch (ParseException e) {
             return date;
+        }
+    }
+
+    // === MÉTODOS PARA SIMULAR NOTIFICACIONES DE CHECK-IN/CHECK-OUT ===
+    
+    public void simulateCheckInNotification(String tourName) {
+        if (preferencesManager.isNotificationEnabled("checkin_reminders")) {
+            notificationService.sendCheckInReminderNotification(tourName);
+            Toast.makeText(this, "✅ Notificación de check-in enviada para: " + tourName, Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(this, "⚠️ Notificaciones de check-in desactivadas", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    public void simulateCheckOutNotification(String tourName) {
+        if (preferencesManager.isNotificationEnabled("checkout_reminders")) {
+            notificationService.sendCheckOutReminderNotification(tourName);
+            Toast.makeText(this, "🏁 Notificación de check-out enviada para: " + tourName, Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(this, "⚠️ Notificaciones de check-out desactivadas", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    public void simulateLocationReminderNotification(String location) {
+        if (preferencesManager.isNotificationEnabled("location_reminders")) {
+            notificationService.sendLocationReminderNotification(location);
+            Toast.makeText(this, "📍 Recordatorio de ubicación enviado para: " + location, Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(this, "⚠️ Recordatorios de ubicación desactivados", Toast.LENGTH_SHORT).show();
+        }
+    }
+    
+    // Método público para acceso desde adaptadores
+    public void testNotificationsForTour(String tourName, String status) {
+        // Simular diferentes notificaciones según el estado del tour
+        switch (status) {
+            case "En Curso":
+                // Simular check-in y recordatorio de ubicación
+                simulateCheckInNotification(tourName);
+                // Esperar 3 segundos y enviar recordatorio de ubicación
+                new android.os.Handler().postDelayed(() -> {
+                    simulateLocationReminderNotification("Plaza de Armas");
+                }, 3000);
+                break;
+            case "Pendiente":
+                // Simular recordatorio de tour próximo
+                notificationService.sendTourReminderNotification(tourName, "Mañana", "9:00 AM", 1);
+                Toast.makeText(this, "📅 Recordatorio de tour próximo enviado", Toast.LENGTH_SHORT).show();
+                break;
+            case "Finalizado":
+                // Simular check-out
+                simulateCheckOutNotification(tourName);
+                break;
         }
     }
 }
