@@ -165,17 +165,9 @@ public class guia_historial extends AppCompatActivity {
             return true;
         });
         
-        // Simular recordatorios de tours (presionar 3 segundos el viewpager)
-        binding.viewPager.setOnLongClickListener(v -> {
-            testTourReminders();
-            return true;
-        });
-        
-        // Simular recordatorio de ubicación (presionar 3 segundos el tablayout)
-        binding.tabLayout.setOnLongClickListener(v -> {
-            testLocationReminder();
-            return true;
-        });
+        // Las pruebas de recordatorios se han movido a lugares más fáciles de activar:
+        // - Recordatorios de Tours: Toolbar de guia_assigned_tours
+        // - Recordatorio de Ubicación: Toolbar de guia_tours_ofertas
     }
 
     // MÉTODOS DE PRUEBA ESPECÍFICOS

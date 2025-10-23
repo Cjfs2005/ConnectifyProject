@@ -104,6 +104,18 @@ public class guia_assigned_tours extends AppCompatActivity implements GuiaDateFi
             startActivity(intent);
         });
 
+        // PRUEBA FÁCIL: Mantener presionado toolbar por 3 segundos para probar recordatorios de tours
+        setSupportActionBar(binding.toolbar);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setTitle("Tours Asignados");
+        }
+        
+        binding.toolbar.setOnLongClickListener(v -> {
+            testTourReminders();
+            return true;
+        });
+
         BottomNavigationView bottomNav = binding.bottomNav;
         bottomNav.setSelectedItemId(R.id.nav_tours);
         bottomNav.setOnItemSelectedListener(item -> {
@@ -268,6 +280,25 @@ public class guia_assigned_tours extends AppCompatActivity implements GuiaDateFi
         }
     }
     
+    // MÉTODO DE PRUEBA: Recordatorios de Tours (desde toolbar)
+    public void testTourReminders() {
+        if (preferencesManager.isNotificationEnabled("tour_reminders")) {
+            // Simular 3 recordatorios: hoy, mañana, en 2 días
+            notificationService.sendTourReminderNotification(
+                "City Tour Lima Histórica", "23/10/2025", "9:00 AM", 0
+            );
+            notificationService.sendTourReminderNotification(
+                "Tour Barranco y Miraflores", "24/10/2025", "2:00 PM", 1
+            );
+            notificationService.sendTourReminderNotification(
+                "Tour Gastronómico", "25/10/2025", "11:00 AM", 2
+            );
+            Toast.makeText(this, "📅 Recordatorios de tours enviados (hoy, mañana, 2 días)", Toast.LENGTH_LONG).show();
+        } else {
+            Toast.makeText(this, "⚠️ Recordatorios de tours desactivados", Toast.LENGTH_SHORT).show();
+        }
+    }
+
     // Método público para acceso desde adaptadores
     public void testNotificationsForTour(String tourName, String status) {
         // Simular diferentes notificaciones según el estado del tour
