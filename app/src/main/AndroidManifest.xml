@@ -79,6 +79,7 @@
         <activity android:name=".guia_perfil" android:exported="false" />
         <activity android:name=".guia_editar_perfil" android:exported="false" />
         <activity android:name=".guia_notificaciones" android:exported="false" />
+        <activity android:name=".guia_config_notificaciones" android:exported="false" />
         <activity android:name=".guia_permisos" android:exported="false" />
 
         <!-- Pantallas por rol -->
