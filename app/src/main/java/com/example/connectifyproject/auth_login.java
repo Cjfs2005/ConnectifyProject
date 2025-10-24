@@ -9,6 +9,7 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.example.connectifyproject.databinding.MainLoginViewBinding;
 import com.example.connectifyproject.model.LoginResult;
+import com.example.connectifyproject.utils.Cliente_PreferencesManager;
 import com.example.connectifyproject.viewmodel.AuthLoginViewModel;
 import com.example.connectifyproject.views.superadmin.users.SaUsersFragment;
 
@@ -16,6 +17,7 @@ public class auth_login extends AppCompatActivity {
 
     private MainLoginViewBinding binding;
     private AuthLoginViewModel viewModel;
+    private Cliente_PreferencesManager prefsManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -23,7 +25,11 @@ public class auth_login extends AppCompatActivity {
         binding = MainLoginViewBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
+        prefsManager = new Cliente_PreferencesManager(this);
         viewModel = new ViewModelProvider(this).get(AuthLoginViewModel.class);
+
+        // Cargar credenciales guardadas si existen
+        loadSavedCredentials();
 
         viewModel.getLoading().observe(this, isLoading -> {
             boolean show = isLoading != null && isLoading;
@@ -48,6 +54,9 @@ public class auth_login extends AppCompatActivity {
 
         viewModel.getLoginResult().observe(this, result -> {
             if (result != null && result.isSuccess()) {
+                // Guardar credenciales si el checkbox está marcado
+                saveCredentialsIfNeeded();
+                
                 Intent intent = getIntentForUserType(result.getUserType());
                 if (intent != null) {
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -67,6 +76,33 @@ public class auth_login extends AppCompatActivity {
             Intent intent = new Intent(this, RegisterTypeSelectionActivity.class);
             startActivity(intent);
         });
+    }
+
+    /**
+     * Cargar credenciales guardadas si el usuario había marcado "Recordarme"
+     */
+    private void loadSavedCredentials() {
+        if (prefsManager.shouldRememberLogin()) {
+            String savedEmail = prefsManager.getSavedEmail();
+            String savedPassword = prefsManager.getSavedPassword();
+            
+            if (!savedEmail.isEmpty() && !savedPassword.isEmpty()) {
+                binding.etEmail.setText(savedEmail);
+                binding.etPassword.setText(savedPassword);
+                binding.cbKeepSession.setChecked(true);
+            }
+        }
+    }
+
+    /**
+     * Guardar credenciales si el checkbox está marcado
+     */
+    private void saveCredentialsIfNeeded() {
+        String email = String.valueOf(binding.etEmail.getText());
+        String password = String.valueOf(binding.etPassword.getText());
+        boolean rememberMe = binding.cbKeepSession.isChecked();
+        
+        prefsManager.saveLoginCredentials(email, password, rememberMe);
     }
 
     private Intent getIntentForUserType(LoginResult.UserType userType) {

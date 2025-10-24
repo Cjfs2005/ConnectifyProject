@@ -45,13 +45,30 @@
         android:textColor="#4CAF50"
         android:layout_marginBottom="80dp" />
 
+    <!-- Download Button -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_descargar"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginBottom="16dp"
+        android:text="Descargar Comprobante"
+        android:textAppearance="@style/TextAppearance.Material3.LabelLarge"
+        android:textColor="?attr/colorPrimary"
+        app:backgroundTint="@color/white"
+        app:strokeColor="?attr/colorPrimary"
+        app:strokeWidth="2dp"
+        app:cornerRadius="12dp"
+        app:icon="@drawable/ic_check_circle"
+        app:iconGravity="textStart" />
+
     <!-- Accept Button -->
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_aceptar"
         android:layout_width="match_parent"
         android:layout_height="56dp"
         android:layout_marginHorizontal="16dp"
-        android:layout_marginBottom="32dp"
+        android:layout_marginBottom="16dp"
         android:text="Aceptar"
         android:textAppearance="@style/TextAppearance.Material3.LabelLarge"
         android:textColor="@color/white"
