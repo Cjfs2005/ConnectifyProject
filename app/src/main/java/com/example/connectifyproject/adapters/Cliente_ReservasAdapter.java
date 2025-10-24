@@ -16,6 +16,8 @@ import com.example.connectifyproject.R;
 import com.example.connectifyproject.cliente_reserva_detalle;
 import com.example.connectifyproject.models.Cliente_Reserva;
 import com.example.connectifyproject.models.Cliente_Tour;
+import com.example.connectifyproject.utils.Cliente_FileStorageManager;
+import com.google.android.material.button.MaterialButton;
 
 import java.util.List;
 
@@ -23,10 +25,12 @@ public class Cliente_ReservasAdapter extends RecyclerView.Adapter<Cliente_Reserv
 
     private Context context;
     private List<Cliente_Reserva> reservas;
+    private Cliente_FileStorageManager fileManager;
 
     public Cliente_ReservasAdapter(Context context, List<Cliente_Reserva> reservas) {
         this.context = context;
         this.reservas = reservas;
+        this.fileManager = new Cliente_FileStorageManager(context);
     }
 
     @NonNull
@@ -42,9 +46,9 @@ public class Cliente_ReservasAdapter extends RecyclerView.Adapter<Cliente_Reserv
         Cliente_Tour tour = reserva.getTour();
         
         if (tour != null) {
-            holder.tvTourTitle.setText(tour.getTitulo());
+            holder.tvTourTitle.setText(tour.getTitle());
             holder.tvTourCompany.setText(tour.getCompanyName());
-            holder.tvTourDuration.setText("Duración: " + tour.getDuracion());
+            holder.tvTourDuration.setText("Duración: " + tour.getDuration());
         } else {
             holder.tvTourTitle.setText("Reserva");
             holder.tvTourCompany.setText("");
@@ -63,6 +67,13 @@ public class Cliente_ReservasAdapter extends RecyclerView.Adapter<Cliente_Reserv
                 context.startActivity(intent);
             }
         });
+
+        // Click del botón de descarga
+        holder.btnDownload.setOnClickListener(v -> {
+            if (reserva != null) {
+                downloadReservationPDF(reserva);
+            }
+        });
     }
 
     @Override
@@ -73,6 +84,17 @@ public class Cliente_ReservasAdapter extends RecyclerView.Adapter<Cliente_Reserv
     public void updateReservas(List<Cliente_Reserva> newReservas) {
         this.reservas = newReservas;
         notifyDataSetChanged();
+    }
+
+    /**
+     * Descargar PDF de la reserva
+     */
+    private void downloadReservationPDF(Cliente_Reserva reserva) {
+        if (fileManager.downloadReservationPDF(reserva)) {
+            Toast.makeText(context, "Comprobante descargado en Descargas", Toast.LENGTH_LONG).show();
+        } else {
+            Toast.makeText(context, "Error al descargar el comprobante", Toast.LENGTH_SHORT).show();
+        }
     }
     
     private String getReservationStatus(String date) {
@@ -94,6 +116,7 @@ public class Cliente_ReservasAdapter extends RecyclerView.Adapter<Cliente_Reserv
     static class ReservaViewHolder extends RecyclerView.ViewHolder {
         ImageView ivTourImage;
         TextView tvTourTitle, tvTourCompany, tvTourDuration, tvTourDate;
+        MaterialButton btnDownload;
 
         public ReservaViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -102,6 +125,7 @@ public class Cliente_ReservasAdapter extends RecyclerView.Adapter<Cliente_Reserv
             tvTourCompany = itemView.findViewById(R.id.tv_tour_company);
             tvTourDuration = itemView.findViewById(R.id.tv_tour_duration);
             tvTourDate = itemView.findViewById(R.id.tv_tour_date);
+            btnDownload = itemView.findViewById(R.id.btn_download);
         }
     }
 }

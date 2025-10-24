@@ -29,8 +29,9 @@
 
         <!-- Tour Information (Sin precio) -->
         <LinearLayout
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:orientation="vertical">
 
             <!-- Tour Title -->
@@ -73,9 +74,20 @@
                 android:textColor="?attr/colorOnSurfaceVariant"
                 tools:text="Fecha: 23/09/2025" />
 
-
-
         </LinearLayout>
+
+        <!-- Download Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_download"
+            style="@style/Widget.Material3.Button.IconButton"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_gravity="center_vertical"
+            android:layout_marginStart="8dp"
+            android:text="⬇"
+            android:textSize="18sp"
+            android:textColor="?attr/colorPrimary"
+            android:contentDescription="Descargar comprobante" />
 
     </LinearLayout>
 

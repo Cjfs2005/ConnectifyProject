@@ -12,6 +12,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.example.connectifyproject.models.Cliente_User;
+import com.example.connectifyproject.utils.Cliente_PreferencesManager;
 
 public class cliente_perfil extends AppCompatActivity {
 
@@ -24,6 +25,7 @@ public class cliente_perfil extends AppCompatActivity {
     private LinearLayout layoutPermissions;
     private LinearLayout layoutLogout;
     private BottomNavigationView bottomNavigation;
+    private Cliente_PreferencesManager preferencesManager;
     
     // Modelo de datos del usuario
     private Cliente_User currentUser;
@@ -33,6 +35,8 @@ public class cliente_perfil extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.cliente_perfil);
 
+        preferencesManager = new Cliente_PreferencesManager(this);
+        
         initViews();
         loadUserData();
         setupBottomNavigation();
@@ -123,6 +127,10 @@ public class cliente_perfil extends AppCompatActivity {
         });
 
         layoutLogout.setOnClickListener(v -> {
+            // Limpiar credenciales guardadas para evitar auto-login
+            preferencesManager.clearLoginCredentials();
+            
+            // Ir a la pantalla de login
             Intent intent = new Intent(this, auth_login.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(intent);

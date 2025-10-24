@@ -2,6 +2,11 @@ package com.example.connectifyproject.utils;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.Typeface;
+import android.graphics.pdf.PdfDocument;
 import android.os.Environment;
 
 import com.example.connectifyproject.models.Cliente_Reserva;
@@ -43,21 +48,16 @@ public class Cliente_FileStorageManager {
         }
 
         try {
-            // Generar contenido del PDF como texto (simulación)
-            String pdfContent = generateReservationContent(reserva);
-            
-            // Crear nombre del archivo
+            // Crear nombre del archivo PDF
             String fileName = "Reserva_" + reserva.getTour().getTitle().replaceAll("[^a-zA-Z0-9]", "_") + 
-                            "_" + getCurrentTimestamp() + ".txt";
+                            "_" + getCurrentTimestamp() + ".pdf";
             
             // Guardar en directorio de Descargas
             File downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
             File reservationFile = new File(downloadsDir, fileName);
             
-            // Escribir contenido al archivo
-            try (FileWriter writer = new FileWriter(reservationFile)) {
-                writer.write(pdfContent);
-            }
+            // Generar PDF real
+            generatePDF(reserva, reservationFile);
             
             // Mostrar notificación de descarga completada
             NotificationHelper.showDownloadCompletedNotification(context, fileName);
@@ -200,5 +200,112 @@ public class Cliente_FileStorageManager {
         File reservasDir = new File(context.getFilesDir(), "reservas");
         File file = new File(reservasDir, fileName);
         return file.exists() && file.delete();
+    }
+
+    /**
+     * Generar PDF con el contenido de la reserva
+     */
+    private void generatePDF(Cliente_Reserva reserva, File outputFile) throws IOException {
+        // Crear documento PDF
+        PdfDocument pdfDocument = new PdfDocument();
+        
+        // Crear página
+        PdfDocument.PageInfo pageInfo = new PdfDocument.PageInfo.Builder(595, 842, 1).create(); // A4
+        PdfDocument.Page page = pdfDocument.startPage(pageInfo);
+        
+        Canvas canvas = page.getCanvas();
+        
+        // Configurar fuentes
+        Paint titlePaint = new Paint();
+        titlePaint.setColor(Color.BLACK);
+        titlePaint.setTextSize(24);
+        titlePaint.setTypeface(Typeface.DEFAULT_BOLD);
+        
+        Paint headerPaint = new Paint();
+        headerPaint.setColor(Color.BLACK);
+        headerPaint.setTextSize(16);
+        headerPaint.setTypeface(Typeface.DEFAULT_BOLD);
+        
+        Paint bodyPaint = new Paint();
+        bodyPaint.setColor(Color.BLACK);
+        bodyPaint.setTextSize(12);
+        bodyPaint.setTypeface(Typeface.DEFAULT);
+        
+        // Coordenadas iniciales
+        int x = 50;
+        int y = 80;
+        int lineHeight = 25;
+        
+        // Título principal
+        canvas.drawText("COMPROBANTE DE RESERVA", x, y, titlePaint);
+        y += lineHeight * 2;
+        
+        // Información de la reserva
+        canvas.drawText("INFORMACIÓN DE LA RESERVA", x, y, headerPaint);
+        y += lineHeight;
+        canvas.drawText("Código de reserva: " + reserva.getId(), x, y, bodyPaint);
+        y += lineHeight;
+        canvas.drawText("Fecha de reserva: " + reserva.getFecha(), x, y, bodyPaint);
+        y += lineHeight;
+        canvas.drawText("Número de personas: " + reserva.getPersonas(), x, y, bodyPaint);
+        y += lineHeight;
+        canvas.drawText("Estado: " + reserva.getEstado(), x, y, bodyPaint);
+        y += lineHeight * 2;
+        
+        // Información del tour
+        canvas.drawText("INFORMACIÓN DEL TOUR", x, y, headerPaint);
+        y += lineHeight;
+        canvas.drawText("Tour: " + reserva.getTour().getTitle(), x, y, bodyPaint);
+        y += lineHeight;
+        canvas.drawText("Ubicación: " + reserva.getTour().getLocation(), x, y, bodyPaint);
+        y += lineHeight;
+        canvas.drawText("Duración: " + reserva.getTour().getDuration(), x, y, bodyPaint);
+        y += lineHeight;
+        canvas.drawText("Fecha del tour: " + reserva.getFecha(), x, y, bodyPaint);
+        y += lineHeight * 2;
+        
+        // Servicios adicionales
+        if (reserva.getServiciosAdicionales() != null && !reserva.getServiciosAdicionales().isEmpty()) {
+            canvas.drawText("SERVICIOS ADICIONALES", x, y, headerPaint);
+            y += lineHeight;
+            for (int i = 0; i < reserva.getServiciosAdicionales().size(); i++) {
+                String servicio = "• " + reserva.getServiciosAdicionales().get(i).getName() + 
+                                " - S/" + reserva.getServiciosAdicionales().get(i).getPrice();
+                canvas.drawText(servicio, x, y, bodyPaint);
+                y += lineHeight;
+            }
+            y += lineHeight;
+        }
+        
+        // Información de pago
+        canvas.drawText("INFORMACIÓN DE PAGO", x, y, headerPaint);
+        y += lineHeight;
+        canvas.drawText("Método de pago: " + reserva.getMetodoPago().getCardType(), x, y, bodyPaint);
+        y += lineHeight;
+        canvas.drawText("Tarjeta: " + reserva.getMetodoPago().getMaskedCardNumber(), x, y, bodyPaint);
+        y += lineHeight * 2;
+        
+        // Totales
+        canvas.drawText("RESUMEN DE PAGO", x, y, headerPaint);
+        y += lineHeight;
+        canvas.drawText("Subtotal: S/" + String.format("%.2f", reserva.getSubtotal()), x, y, bodyPaint);
+        y += lineHeight;
+        canvas.drawText("TOTAL: S/" + String.format("%.2f", reserva.getTotal()), x, y, titlePaint);
+        y += lineHeight * 2;
+        
+        // Pie de página
+        canvas.drawText("Gracias por elegir nuestros servicios", x, y + 50, bodyPaint);
+        canvas.drawText("Documento generado el: " + getCurrentTimestamp(), x, y + 70, bodyPaint);
+        
+        // Finalizar página
+        pdfDocument.finishPage(page);
+        
+        // Escribir archivo
+        try (FileOutputStream outputStream = new FileOutputStream(outputFile)) {
+            pdfDocument.writeTo(outputStream);
+        }
+        
+        // Cerrar documento
+        pdfDocument.close();
     }
 }
