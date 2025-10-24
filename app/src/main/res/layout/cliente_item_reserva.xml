@@ -76,19 +76,6 @@
 
         </LinearLayout>
 
-        <!-- Download Button -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_download"
-            style="@style/Widget.Material3.Button.IconButton"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_gravity="center_vertical"
-            android:layout_marginStart="8dp"
-            android:text="⬇"
-            android:textSize="18sp"
-            android:textColor="?attr/colorPrimary"
-            android:contentDescription="Descargar comprobante" />
-
     </LinearLayout>
 
 </androidx.cardview.widget.CardView>

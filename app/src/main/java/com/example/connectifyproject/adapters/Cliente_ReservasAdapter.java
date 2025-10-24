@@ -67,13 +67,6 @@ public class Cliente_ReservasAdapter extends RecyclerView.Adapter<Cliente_Reserv
                 context.startActivity(intent);
             }
         });
-
-        // Click del botón de descarga
-        holder.btnDownload.setOnClickListener(v -> {
-            if (reserva != null) {
-                downloadReservationPDF(reserva);
-            }
-        });
     }
 
     @Override
@@ -84,17 +77,6 @@ public class Cliente_ReservasAdapter extends RecyclerView.Adapter<Cliente_Reserv
     public void updateReservas(List<Cliente_Reserva> newReservas) {
         this.reservas = newReservas;
         notifyDataSetChanged();
-    }
-
-    /**
-     * Descargar PDF de la reserva
-     */
-    private void downloadReservationPDF(Cliente_Reserva reserva) {
-        if (fileManager.downloadReservationPDF(reserva)) {
-            Toast.makeText(context, "Comprobante descargado en Descargas", Toast.LENGTH_LONG).show();
-        } else {
-            Toast.makeText(context, "Error al descargar el comprobante", Toast.LENGTH_SHORT).show();
-        }
     }
     
     private String getReservationStatus(String date) {
@@ -116,7 +98,6 @@ public class Cliente_ReservasAdapter extends RecyclerView.Adapter<Cliente_Reserv
     static class ReservaViewHolder extends RecyclerView.ViewHolder {
         ImageView ivTourImage;
         TextView tvTourTitle, tvTourCompany, tvTourDuration, tvTourDate;
-        MaterialButton btnDownload;
 
         public ReservaViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -125,7 +106,6 @@ public class Cliente_ReservasAdapter extends RecyclerView.Adapter<Cliente_Reserv
             tvTourCompany = itemView.findViewById(R.id.tv_tour_company);
             tvTourDuration = itemView.findViewById(R.id.tv_tour_duration);
             tvTourDate = itemView.findViewById(R.id.tv_tour_date);
-            btnDownload = itemView.findViewById(R.id.btn_download);
         }
     }
 }
