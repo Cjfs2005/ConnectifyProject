@@ -11,6 +11,8 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.NavController;
+import androidx.navigation.fragment.NavHostFragment;
 
 import com.example.connectifyproject.R;
 import com.example.connectifyproject.databinding.FragmentSaReportsBinding;
@@ -28,12 +30,8 @@ import java.util.Map;
 public class SaReportsFragment extends Fragment {
 
     private FragmentSaReportsBinding binding;
-
-    // Mock de datos: empresa -> reservas por mes (index 0..11)
     private final Map<String, int[]> data = new LinkedHashMap<>();
-
-    // Estado UI
-    private int selectedMonth; // 0..11
+    private int selectedMonth;
     private String selectedCompany = "Todas";
 
     @Nullable @Override
@@ -47,18 +45,25 @@ public class SaReportsFragment extends Fragment {
     @Override public void onViewCreated(@NonNull View v, @Nullable Bundle s) {
         super.onViewCreated(v, s);
 
-        // 1) Datos mock (empresas de transporte)
-        seedMock();
+        final NavController nav = NavHostFragment.findNavController(this);
 
-        // 2) Mes actual por defecto
+        // 🔔 Campanita → Notificaciones (enviamos fromDestId)
+        View bell = v.findViewById(R.id.btnNotifications);
+        if (bell != null) {
+            bell.setOnClickListener(x -> {
+                Bundle args = new Bundle();
+                args.putInt("fromDestId", nav.getCurrentDestination() != null ? nav.getCurrentDestination().getId() : 0);
+                nav.navigate(R.id.saNotificationsFragment, args);
+            });
+        }
+
+        seedMock();
         Calendar cal = Calendar.getInstance();
         selectedMonth = cal.get(Calendar.MONTH);
 
-        // 3) Llenar dropdowns
         setupMonthDropdown(binding.autoMonth);
         setupCompanyDropdown(binding.autoCompany);
 
-        // 4) Restaurar estado si existe
         if (s != null) {
             selectedMonth = s.getInt("month", selectedMonth);
             selectedCompany = s.getString("company", "Todas");
@@ -66,7 +71,6 @@ public class SaReportsFragment extends Fragment {
         binding.autoMonth.setText(monthLabel(selectedMonth), false);
         binding.autoCompany.setText(selectedCompany, false);
 
-        // 5) Listeners
         binding.autoMonth.setOnItemClickListener((parent, view, position, id) -> {
             selectedMonth = position;
             rebuildDashboard();
@@ -76,23 +80,17 @@ public class SaReportsFragment extends Fragment {
             rebuildDashboard();
         });
 
-        // 6) Construir dashboard
         rebuildDashboard();
     }
 
-    // ---------- Dashboard ----------
     private void rebuildDashboard() {
-        // Empresas a mostrar (todas o una)
         List<String> companies = new ArrayList<>(data.keySet());
         if (!"Todas".equals(selectedCompany)) {
             companies.clear();
             companies.add(selectedCompany);
         }
 
-        // Totales y máximo para normalizar barras
-        int total = 0;
-        int active = 0;
-        int max = 0;
+        int total = 0, active = 0, max = 0;
         for (String c : companies) {
             int v = data.get(c)[selectedMonth];
             total += v;
@@ -100,13 +98,11 @@ public class SaReportsFragment extends Fragment {
             if (v > max) max = v;
         }
 
-        // KPIs
         binding.tvTotalMonth.setText(String.valueOf(total));
         binding.tvActiveCompanies.setText(String.valueOf(active));
         int days = daysInMonth(selectedMonth);
         binding.tvAvgPerDay.setText(days == 0 ? "0" : String.valueOf(Math.round(total / (double) days)));
 
-        // Lista de barras
         binding.listContainer.removeAllViews();
         if (companies.isEmpty() || max == 0) {
             binding.tvEmpty.setVisibility(View.VISIBLE);
@@ -128,14 +124,13 @@ public class SaReportsFragment extends Fragment {
             chip.setText(String.valueOf(value));
 
             int percent = max == 0 ? 0 : Math.round(value * 100f / max);
-            if (percent < 2 && value > 0) percent = 2; // que siempre se vea algo si hay valor
+            if (percent < 2 && value > 0) percent = 2;
             prog.setProgress(percent);
 
             binding.listContainer.addView(row);
         }
     }
 
-    // ---------- Helpers ----------
     private void setupMonthDropdown(AutoCompleteTextView view) {
         String[] months = new DateFormatSymbols(new Locale("es")).getMonths();
         List<String> list = new ArrayList<>();
@@ -172,22 +167,10 @@ public class SaReportsFragment extends Fragment {
     }
 
     private void seedMock() {
-        // Empresas de transporte (ejemplo)
         data.put("PeruBus",            new int[]{120,150,160,140,180,210,230,220,190,170,160,200});
         data.put("Inka Express",       new int[]{ 90,110,130,120,140,160,170,165,150,145,140,155});
         data.put("Cusco Shuttle",      new int[]{ 60, 70, 80, 90,110,130,140,150,140,120,110,115});
         data.put("Andes Transit",      new int[]{ 45, 55, 65, 60, 75, 85, 95,100, 90, 80, 70, 75});
         data.put("Altiplano Coaches",  new int[]{ 30, 40, 50, 55, 60, 70, 80, 85, 78, 72, 66, 70});
-    }
-
-    @Override public void onSaveInstanceState(@NonNull Bundle out) {
-        super.onSaveInstanceState(out);
-        out.putInt("month", selectedMonth);
-        out.putString("company", selectedCompany);
-    }
-
-    @Override public void onDestroyView() {
-        super.onDestroyView();
-        binding = null;
     }
 }

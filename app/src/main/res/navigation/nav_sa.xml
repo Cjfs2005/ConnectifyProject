@@ -78,5 +78,11 @@
         android:name="com.example.connectifyproject.views.superadmin.profile.SaEditProfileFragment"
         android:label="Editar perfil"
         tools:layout="@layout/fragment_sa_edit_profile" />
+    <fragment
+        android:id="@+id/saNotificationsFragment"
+        android:name="com.example.connectifyproject.views.superadmin.notifications.SaNotificationsFragment"
+        android:label="Notificaciones"
+        tools:layout="@layout/fragment_sa_notifications" />
+
 
 </navigation>

@@ -12,6 +12,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.PopupMenu;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -46,11 +47,23 @@ public class SaRequestsFragment extends Fragment {
     public void onViewCreated(@NonNull View v, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(v, savedInstanceState);
 
-        RecyclerView rv = v.findViewById(R.id.rvRequests);
+        final NavController nav = NavHostFragment.findNavController(this);
+
+        RecyclerView rv   = v.findViewById(R.id.rvRequests);
         View btnSelectAll = v.findViewById(R.id.btnSelectAll);
         View btnSort      = v.findViewById(R.id.btnSort);
         etSearch          = v.findViewById(R.id.etSearch);
         fabEnable         = v.findViewById(R.id.fabEnable);
+
+        // 🔔 Campanita → Notificaciones (enviamos fromDestId)
+        View bell = v.findViewById(R.id.btnNotifications);
+        if (bell != null) {
+            bell.setOnClickListener(x -> {
+                Bundle args = new Bundle();
+                args.putInt("fromDestId", nav.getCurrentDestination() != null ? nav.getCurrentDestination().getId() : 0);
+                nav.navigate(R.id.saNotificationsFragment, args);
+            });
+        }
 
         rv.setLayoutManager(new LinearLayoutManager(requireContext()));
         adapter = new SaGuideRequestsAdapter(buildMock(), new SaGuideRequestsAdapter.Listener() {
@@ -59,8 +72,7 @@ public class SaRequestsFragment extends Fragment {
                 Bundle b = new Bundle();
                 b.putParcelable("user", req.user);
                 b.putLong("requestedAt", req.requestedAt);
-                NavHostFragment.findNavController(SaRequestsFragment.this)
-                        .navigate(R.id.saGuideRequestDetailFragment, b);
+                nav.navigate(R.id.saGuideRequestDetailFragment, b);
             }
         });
         rv.setAdapter(adapter);
@@ -120,7 +132,6 @@ public class SaRequestsFragment extends Fragment {
         PopupMenu pm = new PopupMenu(requireContext(), anchor);
         pm.getMenuInflater().inflate(R.menu.menu_sa_requests_sort, pm.getMenu());
 
-        // Estado actual -> marca el radio correcto
         pm.getMenu().findItem(R.id.sort_recent).setChecked(sort == SaGuideRequestsAdapter.SortOrder.RECENT);
         pm.getMenu().findItem(R.id.sort_old).setChecked(sort == SaGuideRequestsAdapter.SortOrder.OLD);
 
@@ -132,10 +143,10 @@ public class SaRequestsFragment extends Fragment {
         int id = item.getItemId();
         if (id == R.id.sort_recent) {
             sort = SaGuideRequestsAdapter.SortOrder.RECENT;
-            item.setChecked(true); // radio
+            item.setChecked(true);
         } else if (id == R.id.sort_old) {
             sort = SaGuideRequestsAdapter.SortOrder.OLD;
-            item.setChecked(true); // radio
+            item.setChecked(true);
         } else {
             return false;
         }

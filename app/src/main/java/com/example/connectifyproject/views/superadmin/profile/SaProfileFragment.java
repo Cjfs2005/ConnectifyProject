@@ -34,7 +34,8 @@ public class SaProfileFragment extends Fragment {
         );
 
         binding.btnNotifications.setOnClickListener(btn ->
-                Snackbar.make(binding.getRoot(), "Notificaciones (demo)", Snackbar.LENGTH_SHORT).show()
+                NavHostFragment.findNavController(this)
+                        .navigate(R.id.saNotificationsFragment)
         );
 
         binding.tvEditProfile.setOnClickListener(x ->
