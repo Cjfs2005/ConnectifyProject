@@ -288,14 +288,11 @@ public class Cliente_FileStorageManager {
         // Totales
         canvas.drawText("RESUMEN DE PAGO", x, y, headerPaint);
         y += lineHeight;
-        canvas.drawText("Subtotal: S/" + String.format("%.2f", reserva.getSubtotal()), x, y, bodyPaint);
-        y += lineHeight;
         canvas.drawText("TOTAL: S/" + String.format("%.2f", reserva.getTotal()), x, y, titlePaint);
         y += lineHeight * 2;
         
         // Pie de página
         canvas.drawText("Gracias por elegir nuestros servicios", x, y + 50, bodyPaint);
-        canvas.drawText("Documento generado el: " + getCurrentTimestamp(), x, y + 70, bodyPaint);
         
         // Finalizar página
         pdfDocument.finishPage(page);

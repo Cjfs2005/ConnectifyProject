@@ -28,11 +28,6 @@ public class auth_login extends AppCompatActivity {
         prefsManager = new Cliente_PreferencesManager(this);
         viewModel = new ViewModelProvider(this).get(AuthLoginViewModel.class);
 
-        // Verificar si hay credenciales guardadas para auto-login
-        if (checkAutoLogin()) {
-            return; // Se está haciendo auto-login, no continuar con el setup
-        }
-
         // Cargar credenciales guardadas si existen (para mostrar en UI)
         loadSavedCredentials();
 
@@ -126,36 +121,4 @@ public class auth_login extends AppCompatActivity {
         }
     }
 
-    /**
-     * Verificar si hay credenciales guardadas para auto-login
-     */
-    private boolean checkAutoLogin() {
-        if (prefsManager.shouldRememberLogin()) {
-            String savedEmail = prefsManager.getSavedEmail();
-            String savedPassword = prefsManager.getSavedPassword();
-            
-            if (!savedEmail.isEmpty() && !savedPassword.isEmpty()) {
-                // Hacer auto-login
-                performAutoLogin(savedEmail, savedPassword);
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Realizar login automático con credenciales guardadas
-     */
-    private void performAutoLogin(String email, String password) {
-        binding.progress.setVisibility(View.VISIBLE);
-        
-        // Simular autenticación (reemplazar con lógica real)
-        new android.os.Handler().postDelayed(() -> {
-            // Por ahora asumimos que es un cliente - puedes expandir esto
-            Intent intent = new Intent(this, cliente_inicio.class);
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            startActivity(intent);
-            finish();
-        }, 1000);
-    }
 }
