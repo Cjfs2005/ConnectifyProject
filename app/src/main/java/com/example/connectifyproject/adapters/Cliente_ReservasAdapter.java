@@ -16,6 +16,8 @@ import com.example.connectifyproject.R;
 import com.example.connectifyproject.cliente_reserva_detalle;
 import com.example.connectifyproject.models.Cliente_Reserva;
 import com.example.connectifyproject.models.Cliente_Tour;
+import com.example.connectifyproject.utils.Cliente_FileStorageManager;
+import com.google.android.material.button.MaterialButton;
 
 import java.util.List;
 
@@ -23,10 +25,12 @@ public class Cliente_ReservasAdapter extends RecyclerView.Adapter<Cliente_Reserv
 
     private Context context;
     private List<Cliente_Reserva> reservas;
+    private Cliente_FileStorageManager fileManager;
 
     public Cliente_ReservasAdapter(Context context, List<Cliente_Reserva> reservas) {
         this.context = context;
         this.reservas = reservas;
+        this.fileManager = new Cliente_FileStorageManager(context);
     }
 
     @NonNull
@@ -42,9 +46,9 @@ public class Cliente_ReservasAdapter extends RecyclerView.Adapter<Cliente_Reserv
         Cliente_Tour tour = reserva.getTour();
         
         if (tour != null) {
-            holder.tvTourTitle.setText(tour.getTitulo());
+            holder.tvTourTitle.setText(tour.getTitle());
             holder.tvTourCompany.setText(tour.getCompanyName());
-            holder.tvTourDuration.setText("Duración: " + tour.getDuracion());
+            holder.tvTourDuration.setText("Duración: " + tour.getDuration());
         } else {
             holder.tvTourTitle.setText("Reserva");
             holder.tvTourCompany.setText("");

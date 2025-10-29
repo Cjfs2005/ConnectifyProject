@@ -45,7 +45,6 @@ public class cliente_permisos extends AppCompatActivity {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 savePreference(KEY_POSICION, isChecked);
-                // TODO: Handle location permission logic
             }
         });
 
@@ -53,7 +52,6 @@ public class cliente_permisos extends AppCompatActivity {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 savePreference(KEY_NOTIFICACIONES, isChecked);
-                // TODO: Handle notification permission logic
             }
         });
 

@@ -29,8 +29,9 @@
 
         <!-- Tour Information (Sin precio) -->
         <LinearLayout
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:orientation="vertical">
 
             <!-- Tour Title -->
@@ -72,8 +73,6 @@
                 android:textAppearance="@style/TextAppearance.Material3.BodySmall"
                 android:textColor="?attr/colorOnSurfaceVariant"
                 tools:text="Fecha: 23/09/2025" />
-
-
 
         </LinearLayout>
 

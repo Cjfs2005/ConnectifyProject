@@ -101,4 +101,33 @@ public class Cliente_Tour implements Serializable {
     public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
     public void setCalificacion(float calificacion) { this.calificacion = calificacion; }
     public void setCompanyName(String companyName) { this.companyName = companyName; this.company = companyName; }
+
+    // Método estático para crear ejemplos de tours
+    public static java.util.List<Cliente_Tour> getToursExample() {
+        java.util.List<Cliente_Tour> tours = new java.util.ArrayList<>();
+        
+        tours.add(new Cliente_Tour(
+            "T001",
+            "Tour por el Centro Histórico",
+            "Tours Lima Colonial",
+            "4 horas",
+            "2024-01-15",
+            45.0,
+            "Plaza de Armas, Lima",
+            "Descubre la historia colonial de Lima con un recorrido por sus principales monumentos."
+        ));
+        
+        tours.add(new Cliente_Tour(
+            "T002", 
+            "Circuito Mágico del Agua",
+            "Lima Adventures",
+            "3 horas",
+            "2024-01-16",
+            35.0,
+            "Parque de la Reserva",
+            "Espectáculo de luces y agua en las fuentes ornamentales del parque."
+        ));
+        
+        return tours;
+    }
 }

@@ -7,8 +7,16 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <!-- Permiso de notificaciones (Android 13+) -->
+    <uses-permission
+        android:name="android.permission.POST_NOTIFICATIONS"
+        tools:targetApi="33" />
 
     <application
+        android:name=".ConnectifyApp"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -35,6 +43,13 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- Register Activities -->
+        <activity android:name=".RegisterTypeSelectionActivity" android:exported="false" />
+        <activity android:name=".RegisterBasicDataActivity" android:exported="false" />
+        <activity android:name=".RegisterDocumentDataActivity" android:exported="false" />
+        <activity android:name=".RegisterPasswordActivity" android:exported="false" />
+        <activity android:name=".RegisterPhotoActivity" android:exported="false" />
 
         <activity
             android:name=".auth_login"

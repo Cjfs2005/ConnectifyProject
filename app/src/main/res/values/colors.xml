@@ -29,6 +29,14 @@
     <color name="badge_bg">#FF3D00</color>
     <color name="badge_text">#FFFFFF</color>
     
+    <!-- Grises para texto -->
+    <color name="gray_600">#666666</color>
+    <color name="gray_400">#999999</color>
+    <color name="gray_300">#CCCCCC</color>
+    
+    <!-- Transparente -->
+    <color name="transparent">#00000000</color>
+    
     <!-- Cliente colors -->
     <color name="cliente_progress_active">#7C4DFF</color>
     <color name="cliente_progress_inactive">#BDBDBD</color>

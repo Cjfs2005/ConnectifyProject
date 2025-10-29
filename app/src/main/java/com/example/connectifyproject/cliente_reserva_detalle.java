@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -15,6 +16,7 @@ import com.example.connectifyproject.adapters.Cliente_ServiciosAdapter;
 import com.example.connectifyproject.models.Cliente_Reserva;
 import com.example.connectifyproject.models.Cliente_ServicioAdicional;
 import com.example.connectifyproject.models.Cliente_Tour;
+import com.example.connectifyproject.utils.Cliente_FileStorageManager;
 import com.google.android.material.appbar.MaterialToolbar;
 
 import java.util.ArrayList;
@@ -32,7 +34,7 @@ public class cliente_reserva_detalle extends AppCompatActivity {
     private ImageView ivHero;
     
     // Botones y tarjetas interactivas
-    private View layoutItinerario, cardEmpresa, cardChat, cardCancelar;
+    private View layoutItinerario, cardEmpresa, cardChat, cardDescargar, cardCancelar;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -78,6 +80,7 @@ public class cliente_reserva_detalle extends AppCompatActivity {
         layoutItinerario = findViewById(R.id.layout_itinerario);
         cardEmpresa = findViewById(R.id.card_empresa);
         cardChat = findViewById(R.id.card_chat);
+        cardDescargar = findViewById(R.id.card_descargar);
         cardCancelar = findViewById(R.id.card_cancelar);
     }
 
@@ -204,6 +207,13 @@ public class cliente_reserva_detalle extends AppCompatActivity {
             });
         }
         
+        // Descargar recibo PDF
+        if (cardDescargar != null) {
+            cardDescargar.setOnClickListener(v -> {
+                descargarReciboPDF(reserva);
+            });
+        }
+        
         // Cancelar reserva - mostrar diálogo de confirmación
         if (cardCancelar != null) {
             cardCancelar.setOnClickListener(v -> {
@@ -224,5 +234,26 @@ public class cliente_reserva_detalle extends AppCompatActivity {
                     dialog.dismiss();
                 })
                 .show();
+    }
+    
+    private void descargarReciboPDF(Cliente_Reserva reserva) {
+        if (reserva == null) {
+            Toast.makeText(this, "Error: No hay datos de reserva disponibles", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
+        try {
+            Cliente_FileStorageManager fileManager = new Cliente_FileStorageManager(this);
+            boolean success = fileManager.downloadReservationPDF(reserva);
+            
+            if (success) {
+                Toast.makeText(this, "Recibo descargado exitosamente en Descargas", Toast.LENGTH_LONG).show();
+            } else {
+                Toast.makeText(this, "Error al generar el recibo PDF", Toast.LENGTH_SHORT).show();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Error al descargar el recibo: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
     }
 }

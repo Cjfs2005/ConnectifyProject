@@ -80,4 +80,43 @@ public class Cliente_Reserva implements Serializable {
         double serviciosSeleccionados = calcularTotalServiciosSeleccionadosPorPersona();
         return (base + serviciosSeleccionados) * Math.max(1, personas);
     }
+
+    // Métodos adicionales para FileStorageManager
+    public List<Cliente_ServicioAdicional> getServiciosAdicionales() {
+        return servicios;
+    }
+
+    public double getSubtotal() {
+        return getTotal() / 1.18; // Sin IGV
+    }
+
+    public double getIgv() {
+        return getTotal() - getSubtotal(); // 18% IGV
+    }
+
+    /**
+     * Crear reserva de ejemplo para testing
+     */
+    public static Cliente_Reserva getReservaExample() {
+        Cliente_Tour tour = Cliente_Tour.getToursExample().get(0);
+        List<Cliente_ServicioAdicional> servicios = new ArrayList<>();
+        servicios.add(new Cliente_ServicioAdicional("1", "Almuerzo incluido", "Comida incluida en el tour", 25.0));
+        servicios.add(new Cliente_ServicioAdicional("2", "Guía bilingüe", "Guía que habla español e inglés", 15.0));
+        
+        Cliente_PaymentMethod metodoPago = new Cliente_PaymentMethod("pm_001", "**** **** **** 1234", "12/25", "Jorge Romero", "VISA", true);
+        
+        return new Cliente_Reserva(
+            "R001",
+            tour,
+            2,
+            "15/11/2024",
+            "09:00",
+            "18:00",
+            servicios,
+            metodoPago,
+            80.0,
+            200.0,
+            "Confirmada"
+        );
+    }
 }
