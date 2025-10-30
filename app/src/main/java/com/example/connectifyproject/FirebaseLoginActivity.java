@@ -2,35 +2,46 @@ package com.example.connectifyproject;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
+import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.connectifyproject.utils.AuthConstants;
+import com.firebase.ui.auth.AuthUI;
+import com.firebase.ui.auth.FirebaseAuthUIActivityResultContract;
+import com.firebase.ui.auth.data.model.FirebaseAuthUIAuthenticationResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
-/**
- * Activity inicial - Verifica autenticación de Firebase y redirige
- */
-public class SplashActivity extends AppCompatActivity {
+import java.util.Arrays;
+import java.util.List;
 
-    private static final String TAG = "SplashActivity";
-    private static final int SPLASH_DELAY = 1500; // 1.5 segundos
-    
+/**
+ * Activity para login con Firebase UI
+ * Usa layout personalizado con logo de Tourly
+ */
+public class FirebaseLoginActivity extends AppCompatActivity {
+
+    private static final String TAG = "FirebaseLogin";
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
+    
+    // Launcher para Firebase UI
+    private final ActivityResultLauncher<Intent> signInLauncher = registerForActivityResult(
+            new FirebaseAuthUIActivityResultContract(),
+            this::onSignInResult
+    );
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_splash);
+        setContentView(R.layout.activity_firebase_login);
 
-        // Ocultar la action bar
+        // Ocultar action bar
         if (getSupportActionBar() != null) {
             getSupportActionBar().hide();
         }
@@ -38,49 +49,72 @@ public class SplashActivity extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
-        // Mostrar splash por un momento y luego verificar autenticación
-        new Handler(Looper.getMainLooper()).postDelayed(this::checkAuthenticationState, SPLASH_DELAY);
+        // Iniciar Firebase UI
+        startFirebaseUI();
     }
 
     /**
-     * Verificar estado de autenticación de Firebase
+     * Configurar e iniciar Firebase UI con layout personalizado
      */
-    private void checkAuthenticationState() {
-        FirebaseUser currentUser = mAuth.getCurrentUser();
-        
-        if (currentUser != null) {
-            // Usuario autenticado → Verificar rol
-            Log.d(TAG, "Usuario autenticado: " + currentUser.getEmail());
-            handleAuthenticatedUser(currentUser);
+    private void startFirebaseUI() {
+        // Proveedores de autenticación
+        List<AuthUI.IdpConfig> providers = Arrays.asList(
+                new AuthUI.IdpConfig.EmailBuilder().build(),
+                new AuthUI.IdpConfig.GoogleBuilder().build()
+        );
+
+        // Intent de Firebase UI con configuración básica
+        Intent signInIntent = AuthUI.getInstance()
+                .createSignInIntentBuilder()
+                .setAvailableProviders(providers)
+                .setTheme(R.style.Theme_ConnectifyProject)
+                .setLogo(R.mipmap.tourly_logo)
+                .setIsSmartLockEnabled(false)
+                .build();
+
+        signInLauncher.launch(signInIntent);
+    }
+
+    /**
+     * Callback cuando Firebase UI termina
+     */
+    private void onSignInResult(FirebaseAuthUIAuthenticationResult result) {
+        if (result.getResultCode() == RESULT_OK) {
+            // Login exitoso
+            FirebaseUser user = mAuth.getCurrentUser();
+            if (user != null) {
+                Log.d(TAG, "Login exitoso: " + user.getEmail());
+                handleSuccessfulLogin(user);
+            }
         } else {
-            // No hay usuario autenticado → Ir a login
-            Log.d(TAG, "No hay usuario autenticado");
-            goToLogin();
+            // Login fallido o cancelado
+            Log.e(TAG, "Login fallido o cancelado");
+            Toast.makeText(this, "Login cancelado", Toast.LENGTH_SHORT).show();
+            finish(); // Volver al splash
         }
     }
 
     /**
-     * Manejar usuario autenticado - verificar si es SuperAdmin o buscar en Firestore
+     * Manejar login exitoso - verificar rol y redirigir
      */
-    private void handleAuthenticatedUser(FirebaseUser user) {
+    private void handleSuccessfulLogin(FirebaseUser user) {
         String email = user.getEmail();
         
-        // Verificar si es SuperAdmin PRIMERO
+        // Verificar si es SuperAdmin
         if (AuthConstants.isSuperAdmin(email)) {
-            Log.d(TAG, "SuperAdmin detectado: " + email);
+            Log.d(TAG, "SuperAdmin detectado");
             redirectToSuperAdmin();
             return;
         }
 
-        // No es SuperAdmin → Buscar rol en Firestore
+        // Buscar documento en Firestore para usuarios normales
         db.collection(AuthConstants.COLLECTION_USUARIOS)
                 .document(user.getUid())
                 .get()
                 .addOnSuccessListener(this::handleFirestoreDocument)
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Error al consultar Firestore", e);
-                    // En caso de error, ir a login
-                    goToLogin();
+                    Toast.makeText(this, "Error al verificar usuario", Toast.LENGTH_SHORT).show();
                 });
     }
 
@@ -94,14 +128,14 @@ public class SplashActivity extends AppCompatActivity {
             Log.d(TAG, "Rol encontrado: " + rol);
             redirectByRole(rol);
         } else {
-            // Usuario autenticado pero sin documento → Ir a selección de rol
-            Log.d(TAG, "Usuario sin rol asignado");
+            // Usuario nuevo → Ir a selección de rol
+            Log.d(TAG, "Usuario nuevo sin rol asignado");
             redirectToRoleSelection();
         }
     }
 
     /**
-     * Redirigir según rol de Firestore
+     * Redirigir según rol
      */
     private void redirectByRole(String rol) {
         Intent intent;
@@ -122,7 +156,7 @@ public class SplashActivity extends AppCompatActivity {
     }
 
     /**
-     * Redirigir a selección de rol
+     * Redirigir a pantalla de selección de rol
      */
     private void redirectToRoleSelection() {
         Intent intent = new Intent(this, RoleSelectionActivity.class);
@@ -132,20 +166,10 @@ public class SplashActivity extends AppCompatActivity {
     }
 
     /**
-     * Redirigir a SuperAdmin dashboard
+     * Redirigir a dashboard de SuperAdmin
      */
     private void redirectToSuperAdmin() {
         Intent intent = new Intent(this, MainActivity.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        startActivity(intent);
-        finish();
-    }
-
-    /**
-     * Ir a la pantalla de login con Firebase
-     */
-    private void goToLogin() {
-        Intent intent = new Intent(this, FirebaseLoginActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();

@@ -14,6 +14,7 @@ import com.example.connectifyproject.model.GuiaLanguage;
 import com.example.connectifyproject.model.GuiaPaymentMethod;
 import com.example.connectifyproject.ui.guia.GuiaLanguageAdapter;
 import com.example.connectifyproject.ui.guia.GuiaPaymentMethodAdapter;
+import com.firebase.ui.auth.AuthUI;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import java.util.ArrayList;
@@ -73,9 +74,15 @@ public class guia_perfil extends AppCompatActivity {
             dialog.show(getSupportFragmentManager(), "add_payment");
         });
         binding.logoutBtn.setOnClickListener(v -> {
-            Intent intent = new Intent(this, auth_login.class);
-            startActivity(intent);
-            finish();
+            // Cerrar sesión de Firebase Auth
+            AuthUI.getInstance()
+                    .signOut(this)
+                    .addOnCompleteListener(task -> {
+                        Intent intent = new Intent(this, SplashActivity.class);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                        startActivity(intent);
+                        finish();
+                    });
         });
 
         binding.editProfile.setOnClickListener(v -> {

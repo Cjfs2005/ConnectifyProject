@@ -13,6 +13,7 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.example.connectifyproject.models.Cliente_User;
 import com.example.connectifyproject.utils.Cliente_PreferencesManager;
+import com.firebase.ui.auth.AuthUI;
 
 public class cliente_perfil extends AppCompatActivity {
 
@@ -127,14 +128,16 @@ public class cliente_perfil extends AppCompatActivity {
         });
 
         layoutLogout.setOnClickListener(v -> {
-            // Limpiar credenciales guardadas para evitar auto-login
-            preferencesManager.clearLoginCredentials();
-            
-            // Ir a la pantalla de login
-            Intent intent = new Intent(this, auth_login.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            startActivity(intent);
-            finish();
+            // Cerrar sesión de Firebase Auth
+            AuthUI.getInstance()
+                    .signOut(this)
+                    .addOnCompleteListener(task -> {
+                        // Ir al SplashActivity que redirigirá al login
+                        Intent intent = new Intent(this, SplashActivity.class);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                        startActivity(intent);
+                        finish();
+                    });
         });
     }
 

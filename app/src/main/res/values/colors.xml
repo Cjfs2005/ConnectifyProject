@@ -30,6 +30,7 @@
     <color name="badge_text">#FFFFFF</color>
     
     <!-- Grises para texto -->
+    <color name="gray">#6D6D6D</color>
     <color name="gray_600">#666666</color>
     <color name="gray_400">#999999</color>
     <color name="gray_300">#CCCCCC</color>
