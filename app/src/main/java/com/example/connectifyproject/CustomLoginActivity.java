@@ -12,6 +12,7 @@ import com.example.connectifyproject.utils.AuthConstants;
 import com.firebase.ui.auth.AuthUI;
 import com.firebase.ui.auth.FirebaseAuthUIActivityResultContract;
 import com.firebase.ui.auth.data.model.FirebaseAuthUIAuthenticationResult;
+import com.google.android.material.button.MaterialButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -21,14 +22,17 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Activity para login con Firebase UI
- * Usa layout personalizado con logo de Tourly
+ * Activity de login personalizada con diseño mejorado
+ * Usa Firebase UI directamente
  */
-public class FirebaseLoginActivity extends AppCompatActivity {
+public class CustomLoginActivity extends AppCompatActivity {
 
-    private static final String TAG = "FirebaseLogin";
+    private static final String TAG = "CustomLogin";
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
+    
+    private MaterialButton btnEmailLogin;
+    private MaterialButton btnGoogleLogin;
     
     // Launcher para Firebase UI
     private final ActivityResultLauncher<Intent> signInLauncher = registerForActivityResult(
@@ -39,9 +43,8 @@ public class FirebaseLoginActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_firebase_login);
+        setContentView(R.layout.layout_firebase_ui_custom);
 
-        // Ocultar action bar
         if (getSupportActionBar() != null) {
             getSupportActionBar().hide();
         }
@@ -49,21 +52,46 @@ public class FirebaseLoginActivity extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
-        // Iniciar Firebase UI
-        startFirebaseUI();
+        initViews();
+        setupListeners();
+    }
+
+    private void initViews() {
+        btnEmailLogin = findViewById(R.id.email_button);
+        btnGoogleLogin = findViewById(R.id.google_button);
+    }
+
+    private void setupListeners() {
+        btnEmailLogin.setOnClickListener(v -> startFirebaseUIWithEmail());
+        btnGoogleLogin.setOnClickListener(v -> startFirebaseUIWithGoogle());
     }
 
     /**
-     * Configurar e iniciar Firebase UI
+     * Iniciar Firebase UI solo con Email
      */
-    private void startFirebaseUI() {
-        // Proveedores de autenticación
+    private void startFirebaseUIWithEmail() {
         List<AuthUI.IdpConfig> providers = Arrays.asList(
-                new AuthUI.IdpConfig.EmailBuilder().build(),
+                new AuthUI.IdpConfig.EmailBuilder().build()
+        );
+
+        Intent signInIntent = AuthUI.getInstance()
+                .createSignInIntentBuilder()
+                .setAvailableProviders(providers)
+                .setTheme(R.style.Theme_ConnectifyProject)
+                .setIsSmartLockEnabled(false)
+                .build();
+
+        signInLauncher.launch(signInIntent);
+    }
+
+    /**
+     * Iniciar Firebase UI solo con Google
+     */
+    private void startFirebaseUIWithGoogle() {
+        List<AuthUI.IdpConfig> providers = Arrays.asList(
                 new AuthUI.IdpConfig.GoogleBuilder().build()
         );
 
-        // Intent de Firebase UI con configuración básica
         Intent signInIntent = AuthUI.getInstance()
                 .createSignInIntentBuilder()
                 .setAvailableProviders(providers)
@@ -89,12 +117,12 @@ public class FirebaseLoginActivity extends AppCompatActivity {
             // Login fallido o cancelado
             Log.e(TAG, "Login fallido o cancelado");
             Toast.makeText(this, "Inicio de sesión cancelado", Toast.LENGTH_SHORT).show();
-            finish(); // Volver al splash
+            // NO cerrar la actividad, permitir que el usuario lo intente de nuevo
         }
     }
 
     /**
-     * Manejar login exitoso - verificar rol y redirigir
+     * Verificar usuario y redirigir
      */
     private void handleSuccessfulLogin(FirebaseUser user) {
         String email = user.getEmail();
@@ -106,7 +134,7 @@ public class FirebaseLoginActivity extends AppCompatActivity {
             return;
         }
 
-        // Buscar documento en Firestore para usuarios normales
+        // Buscar documento en Firestore
         db.collection(AuthConstants.COLLECTION_USUARIOS)
                 .document(user.getUid())
                 .get()
@@ -117,25 +145,17 @@ public class FirebaseLoginActivity extends AppCompatActivity {
                 });
     }
 
-    /**
-     * Manejar documento de Firestore
-     */
     private void handleFirestoreDocument(DocumentSnapshot document) {
         if (document.exists()) {
-            // Usuario tiene documento → Leer rol y redirigir
             String rol = document.getString(AuthConstants.FIELD_ROL);
             Log.d(TAG, "Rol encontrado: " + rol);
             redirectByRole(rol);
         } else {
-            // Usuario nuevo → Ir a selección de rol
             Log.d(TAG, "Usuario nuevo sin rol asignado");
             redirectToRoleSelection();
         }
     }
 
-    /**
-     * Redirigir según rol
-     */
     private void redirectByRole(String rol) {
         Intent intent;
         
@@ -144,7 +164,6 @@ public class FirebaseLoginActivity extends AppCompatActivity {
         } else if (AuthConstants.ROLE_GUIA.equals(rol)) {
             intent = new Intent(this, guia_tours_ofertas.class);
         } else {
-            // Rol desconocido → Ir a selección de rol
             redirectToRoleSelection();
             return;
         }
@@ -154,9 +173,6 @@ public class FirebaseLoginActivity extends AppCompatActivity {
         finish();
     }
 
-    /**
-     * Redirigir a pantalla de selección de rol
-     */
     private void redirectToRoleSelection() {
         Intent intent = new Intent(this, RoleSelectionActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -164,9 +180,6 @@ public class FirebaseLoginActivity extends AppCompatActivity {
         finish();
     }
 
-    /**
-     * Redirigir a dashboard de SuperAdmin
-     */
     private void redirectToSuperAdmin() {
         Intent intent = new Intent(this, MainActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);

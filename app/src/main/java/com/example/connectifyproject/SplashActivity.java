@@ -142,10 +142,10 @@ public class SplashActivity extends AppCompatActivity {
     }
 
     /**
-     * Ir a la pantalla de login con Firebase
+     * Ir a la pantalla de login con diseño personalizado
      */
     private void goToLogin() {
-        Intent intent = new Intent(this, FirebaseLoginActivity.class);
+        Intent intent = new Intent(this, CustomLoginActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();

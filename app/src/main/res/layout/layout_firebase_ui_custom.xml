@@ -9,14 +9,14 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="24dp">
+        android:padding="32dp">
 
-        <!-- Logo de Tourly -->
+        <!-- Logo de Tourly - Más grande y centrado -->
         <ImageView
             android:id="@+id/imgTourlyLogo"
-            android:layout_width="150dp"
-            android:layout_height="150dp"
-            android:layout_marginTop="40dp"
+            android:layout_width="200dp"
+            android:layout_height="200dp"
+            android:layout_marginTop="60dp"
             android:src="@mipmap/tourly_logo_img"
             android:contentDescription="@string/app_name"
             app:layout_constraintTop_toTopOf="parent"
@@ -28,9 +28,9 @@
             android:id="@+id/tvWelcome"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
+            android:layout_marginTop="32dp"
             android:text="Bienvenido a Tourly"
-            android:textSize="24sp"
+            android:textSize="26sp"
             android:textStyle="bold"
             android:textColor="@color/black"
             app:layout_constraintTop_toBottomOf="@id/imgTourlyLogo"
@@ -45,75 +45,84 @@
             android:layout_marginTop="8dp"
             android:text="Inicia sesión para continuar"
             android:textSize="16sp"
-            android:textColor="@color/gray"
+            android:textColor="@color/text_secondary"
             app:layout_constraintTop_toBottomOf="@id/tvWelcome"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
 
-        <!-- Botón de Google -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnGoogleLogin"
-            android:layout_width="0dp"
-            android:layout_height="56dp"
-            android:layout_marginTop="40dp"
-            android:text="Continuar con Google"
-            android:textAllCaps="false"
-            android:textSize="16sp"
-            app:cornerRadius="8dp"
-            app:strokeColor="@color/gray"
-            app:strokeWidth="1dp"
-            style="@style/Widget.Material3.Button.OutlinedButton"
-            app:layout_constraintTop_toBottomOf="@id/tvSubtitle"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
-
-        <!-- Divisor con texto "O" -->
+        <!-- Contenedor para botones de autenticación -->
         <LinearLayout
-            android:id="@+id/dividerLayout"
+            android:id="@+id/layoutAuthButtons"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            app:layout_constraintTop_toBottomOf="@id/btnGoogleLogin"
+            android:orientation="vertical"
+            android:layout_marginTop="48dp"
+            app:layout_constraintTop_toBottomOf="@id/tvSubtitle"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent">
 
-            <View
-                android:layout_width="0dp"
-                android:layout_height="1dp"
-                android:layout_weight="1"
-                android:background="@color/gray" />
+            <!-- Botón de Email -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/email_button"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:text="Iniciar sesión con Email"
+                android:textAllCaps="false"
+                android:textSize="16sp"
+                app:cornerRadius="8dp"
+                app:icon="@android:drawable/ic_dialog_email"
+                app:iconGravity="textStart"
+                app:iconPadding="12dp"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp" />
 
-            <TextView
-                android:layout_width="wrap_content"
+            <!-- Divisor con texto "O" -->
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginEnd="16dp"
-                android:text="O"
-                android:textColor="@color/gray"
-                android:textSize="14sp" />
+                android:layout_marginTop="24dp"
+                android:layout_marginBottom="24dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
 
-            <View
-                android:layout_width="0dp"
-                android:layout_height="1dp"
-                android:layout_weight="1"
-                android:background="@color/gray" />
+                <View
+                    android:layout_width="0dp"
+                    android:layout_height="1dp"
+                    android:layout_weight="1"
+                    android:background="@color/gray_300" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginEnd="16dp"
+                    android:text="O"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="14sp" />
+
+                <View
+                    android:layout_width="0dp"
+                    android:layout_height="1dp"
+                    android:layout_weight="1"
+                    android:background="@color/gray_300" />
+            </LinearLayout>
+
+            <!-- Botón de Google -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/google_button"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:text="Continuar con Google"
+                android:textAllCaps="false"
+                android:textSize="16sp"
+                app:cornerRadius="8dp"
+                app:strokeColor="@color/gray_300"
+                app:strokeWidth="1dp"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp" />
+
         </LinearLayout>
-
-        <!-- Botón de Email -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnEmailLogin"
-            android:layout_width="0dp"
-            android:layout_height="56dp"
-            android:layout_marginTop="24dp"
-            android:text="Continuar con Email"
-            android:textAllCaps="false"
-            android:textSize="16sp"
-            app:cornerRadius="8dp"
-            app:layout_constraintTop_toBottomOf="@id/dividerLayout"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
 
         <!-- Texto de política -->
         <TextView
@@ -123,9 +132,9 @@
             android:layout_marginTop="32dp"
             android:text="Al continuar, aceptas nuestros Términos de Servicio y Política de Privacidad"
             android:textSize="12sp"
-            android:textColor="@color/gray"
+            android:textColor="@color/text_secondary"
             android:gravity="center"
-            app:layout_constraintTop_toBottomOf="@id/btnEmailLogin"
+            app:layout_constraintTop_toBottomOf="@id/layoutAuthButtons"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
