@@ -69,6 +69,10 @@ public class GuiaAssignedTourAdapter extends RecyclerView.Adapter<RecyclerView.V
 
             if (isEnCurso) {
                 tourHolder.binding.mapIcon.setOnClickListener(v -> {
+                    // Simular notificación de ubicación antes de abrir el mapa
+                    if (context instanceof com.example.connectifyproject.guia_assigned_tours) {
+                        ((com.example.connectifyproject.guia_assigned_tours) context).simulateLocationReminderNotification("Plaza de Armas");
+                    }
                     Intent intent = new Intent(context, guia_tour_map.class);
                     intent.putExtra("tour_name", tour.getName());
                     intent.putExtra("tour_status", tour.getStatus());
@@ -76,8 +80,22 @@ public class GuiaAssignedTourAdapter extends RecyclerView.Adapter<RecyclerView.V
                     intent.putExtra("tour_clients", tour.getClients());
                     context.startActivity(intent);
                 });
-                tourHolder.binding.checkInIcon.setOnClickListener(v -> context.startActivity(new Intent(context, guia_check_in.class)));
-                tourHolder.binding.checkOutIcon.setOnClickListener(v -> context.startActivity(new Intent(context, guia_check_out.class)));
+                
+                tourHolder.binding.checkInIcon.setOnClickListener(v -> {
+                    // Simular notificación de check-in antes de abrir la pantalla
+                    if (context instanceof com.example.connectifyproject.guia_assigned_tours) {
+                        ((com.example.connectifyproject.guia_assigned_tours) context).simulateCheckInNotification(tour.getName());
+                    }
+                    context.startActivity(new Intent(context, guia_check_in.class));
+                });
+                
+                tourHolder.binding.checkOutIcon.setOnClickListener(v -> {
+                    // Simular notificación de check-out antes de abrir la pantalla  
+                    if (context instanceof com.example.connectifyproject.guia_assigned_tours) {
+                        ((com.example.connectifyproject.guia_assigned_tours) context).simulateCheckOutNotification(tour.getName());
+                    }
+                    context.startActivity(new Intent(context, guia_check_out.class));
+                });
                 tourHolder.binding.detailsIcon.setOnClickListener(v -> startDetailIntent(tour));
             }
         }

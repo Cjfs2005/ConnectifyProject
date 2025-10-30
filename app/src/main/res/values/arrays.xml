@@ -5,4 +5,10 @@
         <item>Pasaporte</item>
         <item>Carnet de extranjería</item>
     </string-array>
+
+    <string-array name="reminder_days_options">
+        <item>1 día antes</item>
+        <item>2 días antes</item>
+        <item>3 días antes</item>
+    </string-array>
 </resources>

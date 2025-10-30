@@ -10,11 +10,9 @@
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    <!-- Permiso de notificaciones (Android 13+) -->
-    <uses-permission
-        android:name="android.permission.POST_NOTIFICATIONS"
-        tools:targetApi="33" />
-
+    <!-- Permisos para notificaciones (Android 13+) -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.VIBRATE" />
     <application
         android:name=".ConnectifyApp"
         android:allowBackup="true"
@@ -91,6 +89,7 @@
         <activity android:name=".guia_perfil" android:exported="false" />
         <activity android:name=".guia_editar_perfil" android:exported="false" />
         <activity android:name=".guia_notificaciones" android:exported="false" />
+        <activity android:name=".guia_config_notificaciones" android:exported="false" />
         <activity android:name=".guia_permisos" android:exported="false" />
 
         <!-- Pantallas por rol -->

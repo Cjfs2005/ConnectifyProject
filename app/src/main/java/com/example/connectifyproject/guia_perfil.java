@@ -84,8 +84,7 @@ public class guia_perfil extends AppCompatActivity {
         });
 
         binding.layoutNotifications.setOnClickListener(v -> {
-            Intent intent = new Intent(this, guia_notificaciones.class);
-            intent.putExtra("origin_activity", "guia_perfil");
+            Intent intent = new Intent(this, guia_config_notificaciones.class);
             startActivity(intent);
         });
 

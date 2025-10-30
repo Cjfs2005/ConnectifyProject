@@ -14,6 +14,8 @@ import com.example.connectifyproject.databinding.GuiaToursOfertasBinding;
 import com.example.connectifyproject.fragment.GuiaFilterDialogFragment;
 import com.example.connectifyproject.model.GuiaItem;
 import com.example.connectifyproject.model.GuiaTour;
+import com.example.connectifyproject.service.GuiaNotificationService;
+import com.example.connectifyproject.storage.GuiaPreferencesManager;
 import com.example.connectifyproject.ui.guia.GuiaTourAdapter;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
@@ -33,12 +35,32 @@ public class guia_tours_ofertas extends AppCompatActivity implements GuiaFilterD
     private List<GuiaTour> originalTours = new ArrayList<>();
     private boolean isLoading = false;
     private String currentDateFrom, currentDateTo, currentAmount, currentDuration, currentLanguages;
+    
+    // Servicios para notificaciones
+    private GuiaNotificationService notificationService;
+    private GuiaPreferencesManager preferencesManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = GuiaToursOfertasBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+
+        // Inicializar servicios para notificaciones
+        notificationService = new GuiaNotificationService(this);
+        preferencesManager = new GuiaPreferencesManager(this);
+
+        // PRUEBA FÁCIL: Configurar toolbar con test de ubicación
+        setSupportActionBar(binding.toolbar);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setTitle("Ofertas de Tours");
+        }
+        
+        binding.toolbar.setOnLongClickListener(v -> {
+            testLocationReminder();
+            return true;
+        });
 
         // Hardcoded original data, duplicated for verification, limited to generate up to 20 items
         originalTours.add(new GuiaTour("Tour por Centro Histórico de Lima", "Lima, Lima", 250, "9 horas", "Español,Inglés", "12:00", "02/10/2025",
@@ -233,6 +255,16 @@ public class guia_tours_ofertas extends AppCompatActivity implements GuiaFilterD
             }
         } catch (ParseException e) {
             return date;
+        }
+    }
+
+    // MÉTODO DE PRUEBA: Recordatorio de Ubicación (desde toolbar)
+    public void testLocationReminder() {
+        if (preferencesManager.isNotificationEnabled("location_reminders")) {
+            notificationService.sendLocationReminderNotification("Plaza de Armas");
+            Toast.makeText(this, "📍 Recordatorio de ubicación enviado", Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(this, "⚠️ Recordatorios de ubicación desactivados", Toast.LENGTH_SHORT).show();
         }
     }
 }
