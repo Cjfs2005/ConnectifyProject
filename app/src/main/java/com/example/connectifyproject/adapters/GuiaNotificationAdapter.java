@@ -27,7 +27,7 @@ import java.util.Locale;
  *  - Constructor que recibe List<NotificationAdapter.NotificationData> (como usa cliente_notificaciones.java)
  *  - Constructor que recibe Listener (para tu flujo de Superadmin)
  */
-public class NotificationAdapter extends ListAdapter<NotificationItem, NotificationAdapter.VH> {
+public class GuiaNotificationAdapter extends ListAdapter<NotificationItem, NotificationAdapter.VH> {
 
     /** Listener (opcional). Si no se pasa, se usa NO_OP_LISTENER para evitar NPE. */
     public interface Listener {
