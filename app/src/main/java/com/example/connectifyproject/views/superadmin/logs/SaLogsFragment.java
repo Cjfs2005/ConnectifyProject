@@ -11,6 +11,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.widget.PopupMenu;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
@@ -46,7 +47,8 @@ public class SaLogsFragment extends Fragment {
     public void onViewCreated(@NonNull View v, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(v, savedInstanceState);
 
-        // 🟣 Forzar morado oscuro en la barra superior
+        final NavController nav = NavHostFragment.findNavController(this);
+
         int purple = ContextCompat.getColor(requireContext(), R.color.brand_purple_dark);
         MaterialToolbar tb = v.findViewById(R.id.toolbar);
         if (tb != null) {
@@ -54,11 +56,19 @@ public class SaLogsFragment extends Fragment {
             tb.setTitleTextColor(0xFFFFFFFF);
             tb.setNavigationIconTint(0xFFFFFFFF);
         }
-        // <<<<<<<<<<<<<<<<<<<<< FIX AQUÍ: usar appBar (B mayúscula)
         AppBarLayout appBar = v.findViewById(R.id.appBar);
         if (appBar != null) appBar.setBackgroundColor(purple);
 
-        // Recycler + Adapter
+        // 🔔 Campanita → Notificaciones (enviamos fromDestId)
+        View bell = v.findViewById(R.id.btnNotifications);
+        if (bell != null) {
+            bell.setOnClickListener(x -> {
+                Bundle args = new Bundle();
+                args.putInt("fromDestId", nav.getCurrentDestination() != null ? nav.getCurrentDestination().getId() : 0);
+                nav.navigate(R.id.saNotificationsFragment, args);
+            });
+        }
+
         binding.rvLogs.setLayoutManager(new LinearLayoutManager(requireContext()));
         adapter = new SaLogsAdapter(mockLogs(), item -> {
             Bundle b = new Bundle();
@@ -66,11 +76,10 @@ public class SaLogsFragment extends Fragment {
             b.putLong("at", item.atMillis);
             b.putString("action", item.action);
             b.putString("role", item.role.name());
-            NavHostFragment.findNavController(this).navigate(R.id.saLogDetailFragment, b);
+            nav.navigate(R.id.saLogDetailFragment, b);
         });
         binding.rvLogs.setAdapter(adapter);
 
-        // Restaurar estado
         if (savedInstanceState != null) {
             sort = savedInstanceState.getBoolean("sortOld", false)
                     ? SaLogsAdapter.SortOrder.OLD
@@ -82,7 +91,6 @@ public class SaLogsFragment extends Fragment {
             updateRoleButton();
         }
 
-        // Listeners
         binding.btnSort.setOnClickListener(this::showSortPopup);
         binding.btnRole.setOnClickListener(this::showRolePopup);
         updateRoleButton();
@@ -172,7 +180,6 @@ public class SaLogsFragment extends Fragment {
     @Override
     public void onDestroyView() { super.onDestroyView(); binding = null; }
 
-    // ---------------- Mock data ----------------
     private List<SaLogsAdapter.LogItem> mockLogs() {
         List<SaLogsAdapter.LogItem> list = new ArrayList<>();
         long now = System.currentTimeMillis();
