@@ -68,7 +68,7 @@ public class FirebaseLoginActivity extends AppCompatActivity {
                 .createSignInIntentBuilder()
                 .setAvailableProviders(providers)
                 .setTheme(R.style.Theme_ConnectifyProject)
-                .setLogo(R.mipmap.tourly_logo)
+                .setLogo(R.mipmap.tourly_logo_img)
                 .setIsSmartLockEnabled(false)
                 .build();
 
@@ -89,7 +89,7 @@ public class FirebaseLoginActivity extends AppCompatActivity {
         } else {
             // Login fallido o cancelado
             Log.e(TAG, "Login fallido o cancelado");
-            Toast.makeText(this, "Login cancelado", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Inicio de sesión cancelado", Toast.LENGTH_SHORT).show();
             finish(); // Volver al splash
         }
     }

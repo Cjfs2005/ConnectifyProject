@@ -129,12 +129,12 @@ public class GuiaRegisterActivity extends AppCompatActivity {
                 .set(guiaData)
                 .addOnSuccessListener(aVoid -> {
                     Log.d(TAG, "Guía guardado exitosamente");
-                    Toast.makeText(this, "Registro completado", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "¡Registro completado exitosamente!", Toast.LENGTH_SHORT).show();
                     redirectToGuiaDashboard();
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Error al guardar guía", e);
-                    Toast.makeText(this, "Error al guardar datos", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Error al guardar los datos", Toast.LENGTH_SHORT).show();
                     btnGuardar.setEnabled(true);
                     btnGuardar.setText("Guardar");
                 });

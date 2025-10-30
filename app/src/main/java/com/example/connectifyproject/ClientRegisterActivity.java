@@ -122,12 +122,12 @@ public class ClientRegisterActivity extends AppCompatActivity {
                 .set(clienteData)
                 .addOnSuccessListener(aVoid -> {
                     Log.d(TAG, "Cliente guardado exitosamente");
-                    Toast.makeText(this, "Registro completado", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "¡Registro completado exitosamente!", Toast.LENGTH_SHORT).show();
                     redirectToClientDashboard();
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Error al guardar cliente", e);
-                    Toast.makeText(this, "Error al guardar datos", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Error al guardar los datos", Toast.LENGTH_SHORT).show();
                     btnGuardar.setEnabled(true);
                     btnGuardar.setText("Guardar");
                 });

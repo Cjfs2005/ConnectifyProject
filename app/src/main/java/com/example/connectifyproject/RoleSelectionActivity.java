@@ -100,7 +100,7 @@ public class RoleSelectionActivity extends AppCompatActivity {
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Error al guardar rol", e);
-                    Toast.makeText(this, "Error al guardar rol", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Error al guardar el rol", Toast.LENGTH_SHORT).show();
                     setButtonsEnabled(true);
                 });
     }
