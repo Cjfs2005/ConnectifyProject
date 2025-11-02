@@ -20,6 +20,7 @@ public class AuthConstants {
     // Roles de usuarios en Firestore
     public static final String ROLE_CLIENTE = "Cliente";
     public static final String ROLE_GUIA = "Guia";
+    public static final String ROLE_ADMIN = "Administrador";
     
     // Colecciones de Firestore
     public static final String COLLECTION_USUARIOS = "usuarios";

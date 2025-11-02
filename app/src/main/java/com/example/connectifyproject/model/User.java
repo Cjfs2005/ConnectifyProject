@@ -28,6 +28,9 @@ public class User implements Parcelable, Serializable {
     
     // UID de Firebase (mutable)
     @Nullable private String uid;
+    
+    // Estado de habilitación (mutable)
+    private boolean enabled;
 
     // Constructor completo
     public User(String name,
@@ -53,6 +56,7 @@ public class User implements Parcelable, Serializable {
         this.phone = phone;
         this.address = address;
         this.photoUri = photoUri;
+        this.enabled = true; // Por defecto habilitado
     }
 
     // Constructor antiguo (compatibilidad): asume docType = "DNI" y sin extras
@@ -74,9 +78,13 @@ public class User implements Parcelable, Serializable {
     @Nullable public String getAddress() { return address; }
     @Nullable public String getPhotoUri(){ return photoUri; }
     @Nullable public String getUid()     { return uid; }
+    public boolean isEnabled()           { return enabled; }
     
     // Setter para uid (necesario para Firebase)
     public void setUid(@Nullable String uid) { this.uid = uid; }
+    
+    // Setter para enabled (necesario para Firebase)
+    public void setEnabled(boolean enabled) { this.enabled = enabled; }
 
     // Útil para el "circulito" inicial del avatar
     public String getInitial() {
@@ -104,6 +112,7 @@ public class User implements Parcelable, Serializable {
         this.address = in.readString();
         this.photoUri = in.readString();
         this.uid = in.readString();
+        this.enabled = in.readByte() != 0;
     }
 
     @Override
@@ -120,6 +129,7 @@ public class User implements Parcelable, Serializable {
         dest.writeString(this.address);
         dest.writeString(this.photoUri);
         dest.writeString(this.uid);
+        dest.writeByte((byte) (this.enabled ? 1 : 0));
     }
 
     @Override

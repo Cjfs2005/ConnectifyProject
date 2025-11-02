@@ -101,4 +101,8 @@
 
     <color name="kpi_value_text">#2D2D2D</color>
 
+    <!-- Estados de habilitación -->
+    <color name="status_enabled">#4CAF50</color>   <!-- Verde para habilitado -->
+    <color name="status_disabled">#F44336</color>  <!-- Rojo para deshabilitado -->
+
 </resources>

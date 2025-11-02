@@ -1,8 +1,10 @@
 package com.example.connectifyproject.views.superadmin.users;
 
+import android.net.Uri;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -21,15 +23,22 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.connectifyproject.R;
 import com.example.connectifyproject.model.Role;
 import com.example.connectifyproject.model.User;
+import com.example.connectifyproject.utils.AuthConstants;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 
 public class SaUsersFragment extends Fragment {
+
+    private static final String TAG = "SaUsersFragment";
 
     private SaUsersAdapter adapter;
     private EnumSet<Role> selectedRoles = EnumSet.of(Role.GUIDE, Role.ADMIN, Role.CLIENT);
@@ -39,6 +48,9 @@ public class SaUsersFragment extends Fragment {
     private MaterialButton btnRoles;
     private FloatingActionButton fabAdd;
     private ImageButton btnNotifications;
+    
+    private FirebaseFirestore db;
+    private FirebaseStorage storage;
 
     public SaUsersFragment() {}
 
@@ -55,11 +67,15 @@ public class SaUsersFragment extends Fragment {
         super.onViewCreated(v, savedInstanceState);
 
         final NavController nav = NavHostFragment.findNavController(this);
+        
+        // Inicializar Firebase
+        db = FirebaseFirestore.getInstance();
+        storage = FirebaseStorage.getInstance();
 
         // --- Recycler ---
         RecyclerView rv = v.findViewById(R.id.rvUsers);
         rv.setLayoutManager(new LinearLayoutManager(requireContext()));
-        adapter = new SaUsersAdapter(buildMockUsers(), u -> {
+        adapter = new SaUsersAdapter(new ArrayList<>(), u -> {
             Bundle b = new Bundle();
             b.putParcelable("user", u);
             nav.navigate(R.id.saUserDetailFragment, b);
@@ -111,6 +127,9 @@ public class SaUsersFragment extends Fragment {
 
         // --- Botón "Roles" ---
         btnRoles.setOnClickListener(this::showRolesPopup);
+        
+        // Cargar usuarios desde Firebase
+        loadUsersFromFirebase();
     }
 
     private void showRolesPopup(View anchor) {
@@ -158,6 +177,8 @@ public class SaUsersFragment extends Fragment {
         fabAdd = null;
         btnNotifications = null;
         adapter = null;
+        db = null;
+        storage = null;
     }
 
     @Override
@@ -171,18 +192,116 @@ public class SaUsersFragment extends Fragment {
         out.putString("q", currentQuery);
     }
 
-    private List<User> buildMockUsers() {
-        List<User> list = new ArrayList<>();
-        list.add(new User("Alejandro","Mora A.","70456789","Perú Travel",Role.ADMIN,"DNI","08/17/1996","alejandro@perutravel.com","999888777","Av. Perú 123",null));
-        list.add(new User("Alessandro","Mazz I.","74444444","Cusco Guide",Role.GUIDE,"DNI","06/19/1991","alessandro@cuscoguide.pe","999111222","Av. Cultura 555",null));
-        list.add(new User("Carlos","Antama C.","70124567","Inca Tours",Role.ADMIN,"DNI","09/21/1990","carlos@incatours.com","988776655","Av. Inca 101",null));
-        list.add(new User("María","Chávez P.","71230011","Cusco Guide",Role.GUIDE,"DNI","05/02/1993","maria.chavez@cuscoguide.pe","987654321","Jr. Mapi 456",null));
-        list.add(new User("Mateo","Rentería S.","70456799","Perú Travel",Role.CLIENT,"DNI","07/10/1997","mateo@correo.com","955667788","Psj. Lima 22",null));
-        list.add(new User("Miranda","Asturia B.","70112345","Andes Corp",Role.CLIENT,"DNI","01/15/1998","miranda@andescorp.com","901223344","Calle Sol 300",null));
-        list.add(new User("Mónica","Asturias Z.","70660606","Perú Travel",Role.CLIENT,"DNI","04/28/1994","monica@correo.com","913579246","Urb. Santa Ana 12",null));
-        list.add(new User("Sandra","Vera F.","70991122","Inca Tours",Role.CLIENT,"DNI","11/08/1999","sandra@correo.com","912345678","Jr. Tres Cruces 77",null));
-        list.add(new User("Sergio","Tiravanti R.","72233445","Andes Corp",Role.ADMIN,"DNI","12/30/1992","sergio@andescorp.com","970334455","Jr. Qosqo 120",null));
-        list.add(new User("Sofía","Loaiza B.","73322110","Wayna Picchu",Role.GUIDE,"DNI","03/03/1995","sofia@wpicchu.pe","980112233","Mz. B Lt. 5",null));
-        return list;
+    private void loadUsersFromFirebase() {
+        db.collection(AuthConstants.COLLECTION_USUARIOS)
+                .whereEqualTo(AuthConstants.FIELD_PERFIL_COMPLETO, true)
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    List<User> users = new ArrayList<>();
+                    for (DocumentSnapshot doc : querySnapshot.getDocuments()) {
+                        try {
+                            String uid = doc.getId();
+                            String nombreCompleto = doc.getString(AuthConstants.FIELD_NOMBRE_COMPLETO);
+                            String dni = doc.getString(AuthConstants.FIELD_NUMERO_DOCUMENTO);
+                            String tipoDocumento = doc.getString(AuthConstants.FIELD_TIPO_DOCUMENTO);
+                            String rolStr = doc.getString(AuthConstants.FIELD_ROL);
+                            String email = doc.getString(AuthConstants.FIELD_EMAIL);
+                            String telefono = doc.getString(AuthConstants.FIELD_TELEFONO);
+                            String direccion = doc.getString(AuthConstants.FIELD_DOMICILIO);
+                            String fechaNacimiento = doc.getString(AuthConstants.FIELD_FECHA_NACIMIENTO);
+                            Boolean habilitado = doc.getBoolean(AuthConstants.FIELD_HABILITADO);
+                            
+                            // Separar nombre y apellidos (si están juntos)
+                            String nombre = "";
+                            String apellidos = "";
+                            if (nombreCompleto != null && !nombreCompleto.isEmpty()) {
+                                String[] partes = nombreCompleto.split(" ", 2);
+                                nombre = partes[0];
+                                if (partes.length > 1) {
+                                    apellidos = partes[1];
+                                }
+                            }
+                            
+                            // Variables finales para usar en lambda
+                            final String finalNombre = nombre;
+                            final String finalApellidos = apellidos;
+                            
+                            // Construir URI de foto de perfil
+                            String photoPath = "usuarios/" + uid + "/perfil.jpg";
+                            StorageReference photoRef = storage.getReference(photoPath);
+                            
+                            // Convertir rol
+                            Role role = convertRole(rolStr);
+                            
+                            // Crear objeto User
+                            User user = new User(
+                                    finalNombre,
+                                    finalApellidos,
+                                    dni != null ? dni : "",
+                                    "", // company no se usa
+                                    role,
+                                    tipoDocumento,
+                                    fechaNacimiento,
+                                    email,
+                                    telefono,
+                                    direccion,
+                                    null // photoUri se establece después
+                            );
+                            
+                            user.setUid(uid);
+                            user.setEnabled(habilitado != null ? habilitado : true);
+                            
+                            // Obtener URL de la foto
+                            photoRef.getDownloadUrl()
+                                    .addOnSuccessListener(uri -> {
+                                        // Recrear el objeto con la URI
+                                        User updatedUser = new User(
+                                                finalNombre,
+                                                finalApellidos,
+                                                dni != null ? dni : "",
+                                                "",
+                                                role,
+                                                tipoDocumento,
+                                                fechaNacimiento,
+                                                email,
+                                                telefono,
+                                                direccion,
+                                                uri.toString()
+                                        );
+                                        updatedUser.setUid(uid);
+                                        updatedUser.setEnabled(habilitado != null ? habilitado : true);
+                                        
+                                        // Actualizar en la lista
+                                        int index = users.indexOf(user);
+                                        if (index >= 0) {
+                                            users.set(index, updatedUser);
+                                            adapter.replaceAll(new ArrayList<>(users));
+                                        }
+                                    })
+                                    .addOnFailureListener(e -> {
+                                        Log.w(TAG, "Error loading photo for user " + uid, e);
+                                        // Mantener el usuario sin foto
+                                    });
+                            
+                            users.add(user);
+                        } catch (Exception e) {
+                            Log.e(TAG, "Error parsing user document", e);
+                        }
+                    }
+                    adapter.replaceAll(users);
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error loading users", e);
+                });
+    }
+    
+    private Role convertRole(String rolStr) {
+        if (rolStr == null) return Role.CLIENT;
+        switch (rolStr) {
+            case AuthConstants.ROLE_GUIA: return Role.GUIDE;
+            case AuthConstants.ROLE_ADMIN: return Role.ADMIN;
+            case AuthConstants.ROLE_CLIENTE: return Role.CLIENT;
+            default: return Role.CLIENT;
+        }
     }
 }

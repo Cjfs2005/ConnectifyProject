@@ -5,7 +5,7 @@ import android.graphics.drawable.Drawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -13,6 +13,7 @@ import androidx.core.content.ContextCompat;
 import androidx.core.graphics.drawable.DrawableCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.example.connectifyproject.R;
 import com.example.connectifyproject.model.Role;
 import com.example.connectifyproject.model.User;
@@ -64,12 +65,22 @@ public class SaUsersAdapter extends RecyclerView.Adapter<SaUsersAdapter.VH> {
 
             if (!query.isEmpty()) {
                 String haystack = (s(u.getName()) + " " + s(u.getLastName()) + " "
-                        + s(u.getDni()) + " " + s(u.getCompany())).toLowerCase();
+                        + s(u.getDni()) + " " + roleToString(u.getRole())).toLowerCase();
                 if (!haystack.contains(query)) continue;
             }
             items.add(u);
         }
         notifyDataSetChanged();
+    }
+
+    private static String roleToString(Role r) {
+        if (r == null) return "";
+        switch (r) {
+            case GUIDE: return "Guía";
+            case ADMIN: return "Administrador";
+            case CLIENT: return "Cliente";
+            default: return "";
+        }
     }
 
     static String s(String v) { return v == null ? "" : v; }
@@ -90,63 +101,64 @@ public class SaUsersAdapter extends RecyclerView.Adapter<SaUsersAdapter.VH> {
     public int getItemCount() { return items.size(); }
 
     static class VH extends RecyclerView.ViewHolder {
-        TextView tvAvatar, tvName, tvSub;
-        ImageButton btnProfile;
+        ImageView ivAvatar;
+        TextView tvName, tvSub;
+        View vStatusIndicator;
 
         VH(@NonNull View itemView) {
             super(itemView);
-            tvAvatar   = itemView.findViewById(R.id.tvAvatar);
-            tvName     = itemView.findViewById(R.id.tvName);
-            tvSub      = itemView.findViewById(R.id.tvSub);
-            btnProfile = itemView.findViewById(R.id.btnProfile);
+            ivAvatar          = itemView.findViewById(R.id.ivAvatar);
+            tvName            = itemView.findViewById(R.id.tvName);
+            tvSub             = itemView.findViewById(R.id.tvSub);
+            vStatusIndicator  = itemView.findViewById(R.id.vStatusIndicator);
         }
 
         void bind(User u, OnUserClickListener listener) {
-            // Avatar: inicial
-            tvAvatar.setText(u.getInitial());
+            // Cargar foto de perfil con Glide
+            Glide.with(itemView.getContext())
+                    .load(u.getPhotoUri())
+                    .circleCrop()
+                    .placeholder(R.drawable.ic_account_circle_24)
+                    .error(R.drawable.ic_account_circle_24)
+                    .into(ivAvatar);
 
-            // -> Color del avatar desde paleta fija
-            int color = pickAvatarColor(itemView.getContext(), u);
-            Drawable bg = tvAvatar.getBackground();
-            if (bg != null) {
-                bg = bg.mutate();
-                DrawableCompat.setTint(bg, color);
-                tvAvatar.setBackground(bg);
-            } else {
-                tvAvatar.setBackgroundTintList(ColorStateList.valueOf(color));
-            }
-
-            // Nombre
+            // Nombre completo
             String fullName = (u.getName() == null ? "" : u.getName());
             if (u.getLastName() != null && !u.getLastName().isEmpty()) {
                 fullName += " " + u.getLastName();
             }
             tvName.setText(fullName.trim());
 
-            // Subtítulo: DOC + DNI • Empresa
+            // Subtítulo: DOC + DNI • Rol
             String doc = u.getDocType() != null ? u.getDocType() : "DNI";
             String sub = doc + " " + (u.getDni() == null ? "" : u.getDni());
-            if (u.getCompany() != null && !u.getCompany().isEmpty()) {
-                sub += " • " + u.getCompany();
+            String rol = roleToString(u.getRole());
+            if (!rol.isEmpty()) {
+                sub += " • " + rol;
             }
             tvSub.setText(sub);
 
+            // Indicador de estado: verde si habilitado, rojo si no
+            int statusColor;
+            if (u.isEnabled()) {
+                statusColor = ContextCompat.getColor(itemView.getContext(), R.color.status_enabled);
+            } else {
+                statusColor = ContextCompat.getColor(itemView.getContext(), R.color.status_disabled);
+            }
+            vStatusIndicator.setBackgroundTintList(ColorStateList.valueOf(statusColor));
+
             View.OnClickListener open = v -> { if (listener != null) listener.onView(u); };
-            itemView.setOnClickListener(open);   // click en toda la tarjeta
-            btnProfile.setOnClickListener(open); // click en la lupa
+            itemView.setOnClickListener(open);
         }
 
-        /** Paleta: #08807B, #F1A20B, #8D9C09, #D20D20 elegida por hash */
-        private static int pickAvatarColor(android.content.Context ctx, User u) {
-            int[] palette = new int[] {
-                    ContextCompat.getColor(ctx, R.color.avatar_teal),   // #08807B
-                    ContextCompat.getColor(ctx, R.color.avatar_amber),  // #F1A20B
-                    ContextCompat.getColor(ctx, R.color.avatar_olive),  // #8D9C09
-                    ContextCompat.getColor(ctx, R.color.avatar_red)     // #D20D20
-            };
-            String key = (s(u.getName()) + s(u.getLastName()) + s(u.getDni()));
-            int idx = Math.abs(key.hashCode()) % palette.length;
-            return palette[idx];
+        private static String roleToString(Role r) {
+            if (r == null) return "";
+            switch (r) {
+                case GUIDE: return "Guía";
+                case ADMIN: return "Administrador";
+                case CLIENT: return "Cliente";
+                default: return "";
+            }
         }
     }
 }
