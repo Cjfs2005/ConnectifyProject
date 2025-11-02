@@ -1,32 +1,56 @@
 package com.example.connectifyproject.views.superadmin.profile;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 
+import com.bumptech.glide.Glide;
 import com.example.connectifyproject.R;
+import com.example.connectifyproject.model.Role;
 import com.example.connectifyproject.model.User;
+import com.example.connectifyproject.utils.AuthConstants;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.firebase.Timestamp;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
 
 public class SaUserDetailFragment extends Fragment {
 
-    private TextInputEditText etFirstName, etLastName, etDocType, etDocNumber,
-            etBirth, etEmail, etPhone, etAddress;
+    private static final String TAG = "SaUserDetailFragment";
 
-    private MaterialButton btnActivate, btnDeactivate;
+    private ImageView ivProfilePhoto;
+    private TextView tvTitle;
+    private LinearLayout layoutAdminMessage, layoutUserFields;
+    
+    private TextInputEditText etRegDate, etRegTime, etFullName, etDocType, etDocNumber,
+            etBirth, etEmail, etPhone, etAddress, etLanguages;
+    
+    private MaterialButton btnToggleStatus;
     private ImageButton btnBack;
 
-    private boolean isActive = true;   // estado simple
     private User user;
+    private FirebaseFirestore db;
+    private FirebaseStorage storage;
 
     @Nullable
     @Override
@@ -40,116 +64,225 @@ public class SaUserDetailFragment extends Fragment {
     public void onViewCreated(@NonNull View root, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(root, savedInstanceState);
 
-        // 1) Bind de vistas
-        btnBack       = root.findViewById(R.id.btnBack);
-        btnActivate   = root.findViewById(R.id.btnActivate);
-        btnDeactivate = root.findViewById(R.id.btnDeactivate);
+        // Inicializar Firebase
+        db = FirebaseFirestore.getInstance();
+        storage = FirebaseStorage.getInstance();
 
-        etFirstName = root.findViewById(R.id.etFirstName);
-        etLastName  = root.findViewById(R.id.etLastName);
-        etDocType   = root.findViewById(R.id.etDocType);
+        // Bind de vistas
+        btnBack = root.findViewById(R.id.btnBack);
+        tvTitle = root.findViewById(R.id.tvTitle);
+        ivProfilePhoto = root.findViewById(R.id.ivProfilePhoto);
+        
+        layoutAdminMessage = root.findViewById(R.id.layoutAdminMessage);
+        layoutUserFields = root.findViewById(R.id.layoutUserFields);
+        
+        etRegDate = root.findViewById(R.id.etRegDate);
+        etRegTime = root.findViewById(R.id.etRegTime);
+        etFullName = root.findViewById(R.id.etFullName);
+        etDocType = root.findViewById(R.id.etDocType);
         etDocNumber = root.findViewById(R.id.etDocNumber);
-        etBirth     = root.findViewById(R.id.etBirth);
-        etEmail     = root.findViewById(R.id.etEmail);
-        etPhone     = root.findViewById(R.id.etPhone);
-        etAddress   = root.findViewById(R.id.etAddress);
+        etBirth = root.findViewById(R.id.etBirth);
+        etEmail = root.findViewById(R.id.etEmail);
+        etPhone = root.findViewById(R.id.etPhone);
+        etAddress = root.findViewById(R.id.etAddress);
+        etLanguages = root.findViewById(R.id.etLanguages);
+        
+        btnToggleStatus = root.findViewById(R.id.btnToggleStatus);
 
-        // 2) Traer el usuario enviado por la lista (Parcelable o Serializable)
+        // Obtener usuario de los argumentos
         Bundle args = getArguments();
         if (args != null) {
-            // Preferir Parcelable si tu User lo implementa
             user = args.getParcelable("user");
-            if (user == null) {
-                Object obj = args.getSerializable("user");
-                if (obj instanceof User) user = (User) obj;
-            }
-            if (args.containsKey("active")) {
-                isActive = args.getBoolean("active", true);
-            }
         }
 
-        // 3) Pintar datos
-        renderUser();
-
-        // 4) Botón atrás
-        btnBack.setOnClickListener(v ->
-                NavHostFragment.findNavController(this).navigateUp()
-        );
-
-        // 5) Activar / Desactivar (con feedback)
-        btnDeactivate.setOnClickListener(v -> {
-            isActive = false;
-            updateButtons();
-            Snackbar.make(root, "🛑 Usuario desactivado", Snackbar.LENGTH_LONG).show();
-        });
-
-        btnActivate.setOnClickListener(v -> {
-            isActive = true;
-            updateButtons();
-            Snackbar.make(root, "✅ Usuario activado", Snackbar.LENGTH_LONG).show();
-        });
-
-        if (savedInstanceState != null) {
-            isActive = savedInstanceState.getBoolean("active_state", isActive);
+        if (user == null) {
+            Snackbar.make(root, "Error: usuario no encontrado", Snackbar.LENGTH_SHORT).show();
+            NavHostFragment.findNavController(this).navigateUp();
+            return;
         }
-        updateButtons();
+
+        // Botón atrás
+        btnBack.setOnClickListener(v -> NavHostFragment.findNavController(this).navigateUp());
+
+        // Configurar según el rol
+        setupByRole();
+        
+        // Cargar datos adicionales desde Firebase
+        loadAdditionalData();
+        
+        // Cargar foto de perfil
+        loadProfilePhoto();
+        
+        // Botón para cambiar estado
+        btnToggleStatus.setOnClickListener(v -> toggleUserStatus());
     }
 
-    private void renderUser() {
-        if (user == null) return;
-
-        // Usa name + lastName del modelo; si lastName viene null, intenta separar el name
-        String first = nvl(user.getName());
-        String last  = nvl(user.getLastName());
-        if (last.isEmpty()) {
-            int sp = first.indexOf(' ');
-            if (sp > 0) {
-                last = first.substring(sp + 1).trim();
-                first = first.substring(0, sp).trim();
+    private void setupByRole() {
+        if (user.getRole() == Role.ADMIN) {
+            // Mostrar mensaje de "próximamente" para administradores
+            tvTitle.setText("PERFIL DE ADMINISTRADOR");
+            layoutAdminMessage.setVisibility(View.VISIBLE);
+            layoutUserFields.setVisibility(View.GONE);
+        } else {
+            // Mostrar campos completos para guías y clientes
+            layoutAdminMessage.setVisibility(View.GONE);
+            layoutUserFields.setVisibility(View.VISIBLE);
+            
+            if (user.getRole() == Role.GUIDE) {
+                tvTitle.setText("PERFIL DE GUÍA");
+                // Mostrar campo de idiomas solo para guías
+                findViewById(R.id.tilLanguages).setVisibility(View.VISIBLE);
+            } else {
+                tvTitle.setText("PERFIL DE CLIENTE");
+                // Ocultar campo de idiomas para clientes
+                findViewById(R.id.tilLanguages).setVisibility(View.GONE);
             }
+            
+            // Mostrar datos básicos del usuario
+            renderBasicData();
         }
+    }
 
-        etFirstName.setText(first);
-        etLastName.setText(last);
+    private View findViewById(int id) {
+        return requireView().findViewById(id);
+    }
 
-        String docType = user.getDocType() != null ? user.getDocType() : "DNI";
-        etDocType.setText(docType);
+    private void renderBasicData() {
+        // Nombre completo
+        String fullName = (user.getName() != null ? user.getName() : "") + 
+                         (user.getLastName() != null ? " " + user.getLastName() : "");
+        etFullName.setText(fullName.trim());
+        
+        // Tipo de documento
+        etDocType.setText(user.getDocType() != null ? user.getDocType() : "");
+        
+        // Número de documento
+        etDocNumber.setText(user.getDni() != null ? user.getDni() : "");
+        
+        // Fecha de nacimiento
+        etBirth.setText(user.getBirth() != null ? user.getBirth() : "");
+        
+        // Email
+        etEmail.setText(user.getEmail() != null ? user.getEmail() : "");
+        
+        // Teléfono
+        etPhone.setText(user.getPhone() != null ? user.getPhone() : "");
+        
+        // Dirección
+        etAddress.setText(user.getAddress() != null ? user.getAddress() : "");
+        
+        // Estado del botón
+        updateToggleButton();
+    }
 
-        etDocNumber.setText(nvl(user.getDni()));
-        etBirth.setText(nvl(user.getBirth()));    // ✅ antes usabas getBirthDate()
-        etEmail.setText(nvl(user.getEmail()));
-        etPhone.setText(nvl(user.getPhone()));
-        etAddress.setText(nvl(user.getAddress()));
+    private void loadAdditionalData() {
+        if (user.getUid() == null || user.getRole() == Role.ADMIN) return;
+        
+        db.collection(AuthConstants.COLLECTION_USUARIOS)
+                .document(user.getUid())
+                .get()
+                .addOnSuccessListener(doc -> {
+                    if (doc.exists()) {
+                        // Fecha de creación
+                        Timestamp fechaCreacion = doc.getTimestamp(AuthConstants.FIELD_FECHA_CREACION);
+                        if (fechaCreacion != null) {
+                            Date date = fechaCreacion.toDate();
+                            SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+                            SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm", Locale.getDefault());
+                            
+                            etRegDate.setText(dateFormat.format(date));
+                            etRegTime.setText(timeFormat.format(date));
+                        }
+                        
+                        // Idiomas (solo para guías)
+                        if (user.getRole() == Role.GUIDE) {
+                            List<String> idiomas = (List<String>) doc.get(AuthConstants.FIELD_IDIOMAS);
+                            if (idiomas != null && !idiomas.isEmpty()) {
+                                etLanguages.setText(String.join(", ", idiomas));
+                            }
+                        }
+                    }
+                })
+                .addOnFailureListener(e -> 
+                    Log.e(TAG, "Error loading additional data", e)
+                );
+    }
+
+    private void loadProfilePhoto() {
+        if (user.getUid() == null) return;
+        
+        String photoPath = "usuarios/" + user.getUid() + "/perfil.jpg";
+        StorageReference photoRef = storage.getReference(photoPath);
+        
+        photoRef.getDownloadUrl()
+                .addOnSuccessListener(uri -> 
+                    Glide.with(this)
+                            .load(uri)
+                            .circleCrop()
+                            .placeholder(R.drawable.ic_account_circle_24)
+                            .error(R.drawable.ic_account_circle_24)
+                            .into(ivProfilePhoto)
+                )
+                .addOnFailureListener(e -> {
+                    Log.w(TAG, "Error loading profile photo", e);
+                    // Mantener la imagen por defecto
+                });
+    }
+
+    private void toggleUserStatus() {
+        if (user == null || user.getUid() == null) return;
+        
+        boolean newStatus = !user.isEnabled();
+        
+        db.collection(AuthConstants.COLLECTION_USUARIOS)
+                .document(user.getUid())
+                .update(AuthConstants.FIELD_HABILITADO, newStatus)
+                .addOnSuccessListener(unused -> {
+                    user.setEnabled(newStatus);
+                    updateToggleButton();
+                    String message = newStatus ? "✅ Usuario habilitado" : "🛑 Usuario deshabilitado";
+                    Snackbar.make(requireView(), message, Snackbar.LENGTH_SHORT).show();
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error updating user status", e);
+                    Snackbar.make(requireView(), "Error al cambiar el estado", Snackbar.LENGTH_SHORT).show();
+                });
+    }
+
+    private void updateToggleButton() {
+        if (user.isEnabled()) {
+            btnToggleStatus.setText("Deshabilitar usuario");
+        } else {
+            btnToggleStatus.setText("Habilitar usuario");
+        }
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
         // Limpiar referencias para evitar memory leaks
-        etFirstName = null;
-        etLastName = null;
+        ivProfilePhoto = null;
+        tvTitle = null;
+        layoutAdminMessage = null;
+        layoutUserFields = null;
+        etRegDate = null;
+        etRegTime = null;
+        etFullName = null;
         etDocType = null;
         etDocNumber = null;
         etBirth = null;
         etEmail = null;
         etPhone = null;
         etAddress = null;
-        btnActivate = null;
-        btnDeactivate = null;
+        etLanguages = null;
+        btnToggleStatus = null;
         btnBack = null;
         user = null;
+        db = null;
+        storage = null;
     }
 
-    private void updateButtons() {
-        btnActivate.setEnabled(!isActive);
-        btnDeactivate.setEnabled(isActive);
-    }
-
-    private static String nvl(String s) { return s == null ? "" : s; }
-
-    @Override
-    public void onSaveInstanceState(@NonNull Bundle out) {
-        super.onSaveInstanceState(out);
-        out.putBoolean("active_state", isActive);
+    private static String nvl(String s) { 
+        return s == null ? "" : s; 
     }
 }
