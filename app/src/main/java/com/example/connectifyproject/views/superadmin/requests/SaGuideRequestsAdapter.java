@@ -94,7 +94,7 @@ public class SaGuideRequestsAdapter extends RecyclerView.Adapter<SaGuideRequests
         for (GuideRequest r : full) {
             User u = r.user;
             String haystack = (s(u.getName()) + " " + s(u.getLastName()) + " " +
-                    s(u.getDni()) + " " + s(u.getCompany())).toLowerCase(Locale.ROOT);
+                    s(u.getDni())).toLowerCase(Locale.ROOT);
             if (!q.isEmpty() && !haystack.contains(q)) continue;
             items.add(r);
         }
@@ -153,9 +153,6 @@ public class SaGuideRequestsAdapter extends RecyclerView.Adapter<SaGuideRequests
 
             String doc = u.getDocType() != null ? u.getDocType() : "DNI";
             String sub = doc + " " + (u.getDni() == null ? "" : u.getDni());
-            if (u.getCompany() != null && !u.getCompany().isEmpty()) {
-                sub += " • " + u.getCompany();
-            }
             tvSub.setText(sub);
 
             // checkbox selecciona

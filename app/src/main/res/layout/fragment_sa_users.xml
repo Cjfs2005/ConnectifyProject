@@ -81,7 +81,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@id/btnAll"
         app:layout_constraintBottom_toBottomOf="@id/btnAll"
-        app:startIconDrawable="@drawable/ic_search_24"
+        app:startIconDrawable="@drawable/ic_search_18"
         app:startIconTint="@color/brand_purple_dark"
         app:boxBackgroundColor="@android:color/white"
         app:boxCornerRadiusTopStart="12dp"

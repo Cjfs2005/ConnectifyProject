@@ -3,6 +3,7 @@ package com.example.connectifyproject.views.superadmin.requests;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -20,16 +21,22 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.connectifyproject.R;
 import com.example.connectifyproject.model.Role;
 import com.example.connectifyproject.model.User;
+import com.example.connectifyproject.utils.AuthConstants;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.firebase.Timestamp;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class SaRequestsFragment extends Fragment {
 
+    private static final String TAG = "SaRequestsFragment";
+    private FirebaseFirestore db;
     private SaGuideRequestsAdapter adapter;
     private SaGuideRequestsAdapter.SortOrder sort = SaGuideRequestsAdapter.SortOrder.RECENT;
 
@@ -40,6 +47,7 @@ public class SaRequestsFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater,
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
+        db = FirebaseFirestore.getInstance();
         return inflater.inflate(R.layout.fragment_sa_requests, container, false);
     }
 
@@ -66,7 +74,7 @@ public class SaRequestsFragment extends Fragment {
         }
 
         rv.setLayoutManager(new LinearLayoutManager(requireContext()));
-        adapter = new SaGuideRequestsAdapter(buildMock(), new SaGuideRequestsAdapter.Listener() {
+        adapter = new SaGuideRequestsAdapter(new ArrayList<>(), new SaGuideRequestsAdapter.Listener() {
             @Override public void onSelectionChanged(int count) { refreshFab(); }
             @Override public void onOpen(SaGuideRequestsAdapter.GuideRequest req) {
                 Bundle b = new Bundle();
@@ -76,6 +84,9 @@ public class SaRequestsFragment extends Fragment {
             }
         });
         rv.setAdapter(adapter);
+        
+        // Cargar guías no habilitados desde Firestore
+        loadPendingGuides();
 
         adapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
             @Override public void onChanged() { refreshFab(); }
@@ -118,9 +129,7 @@ public class SaRequestsFragment extends Fragment {
                     .setMessage("¿Habilitar " + n + " guía(s)?")
                     .setNegativeButton("Cancelar", null)
                     .setPositiveButton("Habilitar", (d, w) -> {
-                        adapter.selectAll(false);
-                        refreshFab();
-                        Snackbar.make(view, "Guías habilitados", Snackbar.LENGTH_SHORT).show();
+                        enableSelectedGuides();
                     })
                     .show();
         });
@@ -168,17 +177,101 @@ public class SaRequestsFragment extends Fragment {
         out.putString("q", etSearch.getText() == null ? "" : etSearch.getText().toString());
     }
 
-    // ------- MOCK DATA -------
-    private List<SaGuideRequestsAdapter.GuideRequest> buildMock() {
-        List<SaGuideRequestsAdapter.GuideRequest> list = new ArrayList<>();
-        list.add(req(new User("Rosa","Paye D.", "74561230","Cusco Guide", Role.GUIDE,"DNI","10/01/1995","rosa@cg.pe","999111222","Cusco",null), daysAgo(1)));
-        list.add(req(new User("Nicolás","Zapata L.", "71230987","Inca Tours", Role.GUIDE,"DNI","03/11/1992","nico@incatours.com","988776655","Cusco",null), daysAgo(2)));
-        list.add(req(new User("Sebastián","Flores F.", "70123456","Perú Travel", Role.GUIDE,"DNI","07/05/1990","seb@perutravel.com","977665544","Lima",null), daysAgo(0)));
-        list.add(req(new User("Ricardo","Montero M.","75678901","Andes Corp", Role.GUIDE,"DNI","09/21/1994","rick@andescorp.pe","955667788","Arequipa",null), daysAgo(5)));
-        list.add(req(new User("Laslo","Fernandez S.","70011223","Wayna Picchu", Role.GUIDE,"DNI","12/12/1993","laslo@wp.pe","933221100","Cusco",null), daysAgo(3)));
-        list.add(req(new User("Samira","Ezaguirre L.","73456789","Cusco Guide", Role.GUIDE,"DNI","04/30/1997","samira@cg.pe","944556677","Cusco",null), daysAgo(8)));
-        return list;
+    // ------- FIREBASE METHODS -------
+    private void loadPendingGuides() {
+        db.collection(AuthConstants.COLLECTION_USUARIOS)
+                .whereEqualTo(AuthConstants.FIELD_ROL, AuthConstants.ROLE_GUIA)
+                .whereEqualTo(AuthConstants.FIELD_HABILITADO, false)
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    List<SaGuideRequestsAdapter.GuideRequest> requests = new ArrayList<>();
+                    
+                    for (DocumentSnapshot doc : querySnapshot.getDocuments()) {
+                        try {
+                            String nombre = doc.getString(AuthConstants.FIELD_NOMBRE_COMPLETO);
+                            String[] parts = nombre != null ? nombre.split(" ", 2) : new String[]{"", ""};
+                            String firstName = parts.length > 0 ? parts[0] : "";
+                            String lastName = parts.length > 1 ? parts[1] : "";
+                            
+                            String dni = doc.getString(AuthConstants.FIELD_NUMERO_DOCUMENTO);
+                            String tipoDoc = doc.getString(AuthConstants.FIELD_TIPO_DOCUMENTO);
+                            String email = doc.getString(AuthConstants.FIELD_EMAIL);
+                            String phone = doc.getString(AuthConstants.FIELD_TELEFONO);
+                            String address = doc.getString(AuthConstants.FIELD_DOMICILIO);
+                            String photoUrl = doc.getString(AuthConstants.FIELD_PHOTO_URL);
+                            
+                            // Obtener timestamp de creación
+                            Timestamp fechaCreacion = doc.getTimestamp(AuthConstants.FIELD_FECHA_CREACION);
+                            long requestedAt = fechaCreacion != null ? fechaCreacion.toDate().getTime() : System.currentTimeMillis();
+                            
+                            User user = new User(
+                                    firstName,
+                                    lastName,
+                                    dni,
+                                    "", // company (no aplica para guías)
+                                    Role.GUIDE,
+                                    tipoDoc,
+                                    doc.getString(AuthConstants.FIELD_FECHA_NACIMIENTO),
+                                    email,
+                                    phone,
+                                    address,
+                                    photoUrl
+                            );
+                            user.setUid(doc.getId());
+                            
+                            requests.add(new SaGuideRequestsAdapter.GuideRequest(user, requestedAt));
+                        } catch (Exception e) {
+                            Log.e(TAG, "Error parsing guide document: " + doc.getId(), e);
+                        }
+                    }
+                    
+                    adapter.replaceAll(requests);
+                    Log.d(TAG, "Loaded " + requests.size() + " pending guides");
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error loading pending guides", e);
+                    Snackbar.make(requireView(), "Error al cargar solicitudes", Snackbar.LENGTH_SHORT).show();
+                });
     }
-    private SaGuideRequestsAdapter.GuideRequest req(User u, long when) { return new SaGuideRequestsAdapter.GuideRequest(u, when); }
-    private long daysAgo(int d) { return System.currentTimeMillis() - d * 24L * 60 * 60 * 1000L; }
+    
+    private void enableSelectedGuides() {
+        List<SaGuideRequestsAdapter.GuideRequest> selected = adapter.getSelected();
+        if (selected.isEmpty()) return;
+        
+        int total = selected.size();
+        int[] completed = {0};
+        
+        for (SaGuideRequestsAdapter.GuideRequest req : selected) {
+            String uid = req.user.getUid();
+            if (uid == null) {
+                Log.w(TAG, "Guide has no UID, skipping");
+                completed[0]++;
+                continue;
+            }
+            
+            db.collection(AuthConstants.COLLECTION_USUARIOS)
+                    .document(uid)
+                    .update(AuthConstants.FIELD_HABILITADO, true)
+                    .addOnSuccessListener(aVoid -> {
+                        completed[0]++;
+                        Log.d(TAG, "Guide enabled: " + uid);
+                        
+                        if (completed[0] == total) {
+                            // Recargar lista
+                            loadPendingGuides();
+                            adapter.selectAll(false);
+                            refreshFab();
+                            Snackbar.make(requireView(), total + " guía(s) habilitado(s)", Snackbar.LENGTH_SHORT).show();
+                        }
+                    })
+                    .addOnFailureListener(e -> {
+                        completed[0]++;
+                        Log.e(TAG, "Error enabling guide: " + uid, e);
+                        
+                        if (completed[0] == total) {
+                            Snackbar.make(requireView(), "Error al habilitar algunos guías", Snackbar.LENGTH_SHORT).show();
+                        }
+                    });
+        }
+    }
 }

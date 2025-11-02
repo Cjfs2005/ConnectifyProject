@@ -25,6 +25,9 @@ public class User implements Parcelable, Serializable {
     @Nullable private final String phone;
     @Nullable private final String address;
     @Nullable private final String photoUri;   // content:// o file:// (opcional)
+    
+    // UID de Firebase (mutable)
+    @Nullable private String uid;
 
     // Constructor completo
     public User(String name,
@@ -70,8 +73,12 @@ public class User implements Parcelable, Serializable {
     @Nullable public String getPhone()   { return phone; }
     @Nullable public String getAddress() { return address; }
     @Nullable public String getPhotoUri(){ return photoUri; }
+    @Nullable public String getUid()     { return uid; }
+    
+    // Setter para uid (necesario para Firebase)
+    public void setUid(@Nullable String uid) { this.uid = uid; }
 
-    // Útil para el “circulito” inicial del avatar
+    // Útil para el "circulito" inicial del avatar
     public String getInitial() {
         String base = (name != null && !name.trim().isEmpty()) ? name.trim() :
                 (lastName != null ? lastName.trim() : "?");
@@ -96,6 +103,7 @@ public class User implements Parcelable, Serializable {
         this.phone = in.readString();
         this.address = in.readString();
         this.photoUri = in.readString();
+        this.uid = in.readString();
     }
 
     @Override
@@ -111,6 +119,7 @@ public class User implements Parcelable, Serializable {
         dest.writeString(this.phone);
         dest.writeString(this.address);
         dest.writeString(this.photoUri);
+        dest.writeString(this.uid);
     }
 
     @Override
