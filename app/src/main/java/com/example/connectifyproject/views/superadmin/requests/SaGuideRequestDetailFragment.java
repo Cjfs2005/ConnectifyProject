@@ -40,7 +40,7 @@ public class SaGuideRequestDetailFragment extends Fragment {
     private TextInputEditText etFullName, etDocType, etDocNumber,
             etBirth, etEmail, etPhone, etAddress, etLanguages;
 
-    private MaterialButton btnAccept, btnDeny;
+    private MaterialButton btnAccept;
     private ImageButton btnBack;
 
     @Nullable
@@ -67,7 +67,6 @@ public class SaGuideRequestDetailFragment extends Fragment {
         // Bind
         btnBack   = root.findViewById(R.id.btnBack);
         btnAccept = root.findViewById(R.id.btnAccept);
-        btnDeny   = root.findViewById(R.id.btnDeny);
 
         ivProfilePhoto = root.findViewById(R.id.ivProfilePhoto);
         
@@ -91,11 +90,8 @@ public class SaGuideRequestDetailFragment extends Fragment {
                 NavHostFragment.findNavController(this).navigateUp()
         );
 
-        // Aceptar con confirmación
+        // Habilitar guía con confirmación
         btnAccept.setOnClickListener(v -> showAcceptDialog());
-
-        // Rechazar con confirmación
-        btnDeny.setOnClickListener(v -> showRejectDialog());
     }
 
     private void setReadOnlyFields() {
@@ -191,19 +187,6 @@ public class SaGuideRequestDetailFragment extends Fragment {
                 .show();
     }
 
-    private void showRejectDialog() {
-        new MaterialAlertDialogBuilder(requireContext())
-                .setTitle("Rechazar solicitud")
-                .setMessage("¿Rechazar la solicitud? El usuario permanecerá sin habilitar.")
-                .setNegativeButton("Cancelar", null)
-                .setPositiveButton("Rechazar", (d, w) -> {
-                    // Solo cierra la pantalla, el usuario queda con habilitado=false
-                    Snackbar.make(requireView(), "Solicitud rechazada", Snackbar.LENGTH_SHORT).show();
-                    NavHostFragment.findNavController(this).navigateUp();
-                })
-                .show();
-    }
-
     private void enableGuide() {
         if (user == null || user.getUid() == null) {
             Snackbar.make(requireView(), "Error: usuario inválido", Snackbar.LENGTH_SHORT).show();
@@ -239,7 +222,6 @@ public class SaGuideRequestDetailFragment extends Fragment {
         etAddress = null;
         etLanguages = null;
         btnAccept = null;
-        btnDeny = null;
         btnBack = null;
         db = null;
         user = null;

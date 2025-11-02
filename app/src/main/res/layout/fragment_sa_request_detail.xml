@@ -199,30 +199,13 @@
         </com.google.android.material.textfield.TextInputLayout>
 
         <!-- ACCIONES (debajo de todos los datos) -->
-        <LinearLayout
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnAccept"
+            style="@style/Widget.Material3.Button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
-            android:orientation="horizontal"
-            android:gravity="center">
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnAccept"
-                style="@style/Widget.Material3.Button"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Aceptar" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnDeny"
-                style="@style/Widget.Material3.Button.TonalButton"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginStart="12dp"
-                android:text="Rechazar" />
-        </LinearLayout>
+            android:text="Habilitar" />
 
     </LinearLayout>
 </ScrollView>
