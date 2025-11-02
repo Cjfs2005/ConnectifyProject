@@ -356,6 +356,7 @@ public class GuiaRegisterActivity extends AppCompatActivity {
         guiaData.put(AuthConstants.FIELD_UID, currentUser.getUid());
         guiaData.put(AuthConstants.FIELD_HABILITADO, false); // Guía NO habilitado hasta aprobación del admin
         guiaData.put(AuthConstants.FIELD_IDIOMAS, idiomas);
+        guiaData.put(AuthConstants.FIELD_FECHA_CREACION, com.google.firebase.Timestamp.now()); // Timestamp de creación
         
         if (photoUrl != null) {
             guiaData.put(AuthConstants.FIELD_PHOTO_URL, photoUrl);

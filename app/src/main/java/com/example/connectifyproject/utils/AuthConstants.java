@@ -37,6 +37,7 @@ public class AuthConstants {
     public static final String FIELD_PHOTO_URL = "photoUrl";
     public static final String FIELD_HABILITADO = "habilitado";
     public static final String FIELD_UID = "uid";
+    public static final String FIELD_FECHA_CREACION = "fechaCreacion"; // Timestamp de creación del usuario
     
     // Campos específicos de Guía
     public static final String FIELD_IDIOMAS = "idiomas";
