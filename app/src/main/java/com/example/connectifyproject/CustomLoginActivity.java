@@ -1,6 +1,8 @@
 package com.example.connectifyproject;
 
 import android.content.Intent;
+import android.content.res.Configuration;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
@@ -20,6 +22,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Activity de login personalizada con diseño mejorado
@@ -42,6 +45,8 @@ public class CustomLoginActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // Configurar idioma español antes de super.onCreate()
+        setLocale("es");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.layout_firebase_ui_custom);
 
@@ -54,6 +59,23 @@ public class CustomLoginActivity extends AppCompatActivity {
 
         initViews();
         setupListeners();
+    }
+
+    /**
+     * Configurar el locale a español
+     */
+    private void setLocale(String languageCode) {
+        Locale locale = new Locale(languageCode);
+        Locale.setDefault(locale);
+        
+        Configuration config = getResources().getConfiguration();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            config.setLocale(locale);
+        } else {
+            config.locale = locale;
+        }
+        
+        getResources().updateConfiguration(config, getResources().getDisplayMetrics());
     }
 
     private void initViews() {

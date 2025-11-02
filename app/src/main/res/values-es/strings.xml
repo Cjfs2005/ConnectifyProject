@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Firebase UI Auth Strings en Español -->
+    
+    <!-- Títulos generales -->
+    <string name="fui_sign_in_default">Iniciar sesión</string>
+    <string name="fui_sign_in_with_email">Iniciar sesión con correo electrónico</string>
+    <string name="fui_sign_in_with_google">Iniciar sesión con Google</string>
+    <string name="fui_sign_in_with_facebook">Iniciar sesión con Facebook</string>
+    
+    <!-- Botones -->
+    <string name="fui_next_default">Siguiente</string>
+    <string name="fui_save">Guardar</string>
+    <string name="fui_cancel">Cancelar</string>
+    <string name="fui_continue">Continuar</string>
+    <string name="fui_sign_in">Iniciar sesión</string>
+    <string name="fui_sign_out">Cerrar sesión</string>
+    
+    <!-- Email/Password -->
+    <string name="fui_email_hint">Correo electrónico</string>
+    <string name="fui_password_hint">Contraseña</string>
+    <string name="fui_name_hint">Nombre completo</string>
+    <string name="fui_first_name_hint">Nombre</string>
+    <string name="fui_last_name_hint">Apellido</string>
+    
+    <!-- Registro -->
+    <string name="fui_create_account_preamble">Al tocar Guardar, aceptas nuestros</string>
+    <string name="fui_button_text_save">Guardar</string>
+    <string name="fui_button_text_sign_in">Iniciar sesión</string>
+    <string name="fui_progress_dialog_signing_in">Iniciando sesión…</string>
+    <string name="fui_progress_dialog_signing_up">Registrando…</string>
+    <string name="fui_progress_dialog_checking_accounts">Verificando cuentas existentes…</string>
+    
+    <!-- Errores comunes -->
+    <string name="fui_error_email_required">Se requiere un correo electrónico</string>
+    <string name="fui_error_invalid_email">Correo electrónico inválido</string>
+    <string name="fui_error_weak_password">La contraseña es muy débil</string>
+    <string name="fui_error_password_required">Se requiere una contraseña</string>
+    <string name="fui_error_user_collision">Esta cuenta ya existe</string>
+    <string name="fui_error_session_expired">Tu sesión ha expirado</string>
+    <string name="fui_error_unknown">Ha ocurrido un error desconocido</string>
+    
+    <!-- Recuperación de contraseña -->
+    <string name="fui_forgot_password">¿Olvidaste tu contraseña?</string>
+    <string name="fui_trouble_signing_in">¿Olvidaste tu contraseña?</string>
+    <string name="fui_password_recovery_title">Recuperar contraseña</string>
+    <string name="fui_password_recovery_body">Te enviaremos instrucciones para restablecer tu contraseña</string>
+    <string name="fui_send_email">Enviar correo</string>
+    <string name="fui_email_sent">Se ha enviado un correo de recuperación</string>
+    
+    <!-- Confirmación de email -->
+    <string name="fui_verify_email_title">Verificar correo electrónico</string>
+    <string name="fui_verify_email_body">Te hemos enviado un correo de verificación a %1$s</string>
+    
+    <!-- Nuevos usuarios -->
+    <string name="fui_new_user">¿Nuevo usuario?</string>
+    <string name="fui_sign_up_with_email">Registrarse con correo electrónico</string>
+    <string name="fui_provider_name_email">Correo</string>
+    <string name="fui_provider_name_google">Google</string>
+    
+    <!-- Términos y privacidad -->
+    <string name="fui_tos_and_pp">Al continuar, aceptas nuestros %1$s y %2$s</string>
+    <string name="fui_tos">Términos de servicio</string>
+    <string name="fui_pp">Política de privacidad</string>
+    
+    <!-- Cuenta existente -->
+    <string name="fui_idp_name_email">Correo electrónico</string>
+    <string name="fui_idp_name_google">Google</string>
+    <string name="fui_email_account_creation_error">Error al crear la cuenta de correo</string>
+    <string name="fui_no_internet">Sin conexión a internet</string>
+    
+    <!-- Welcome back -->
+    <string name="fui_welcome_back_email_header">¡Bienvenido de nuevo!</string>
+    <string name="fui_welcome_back_idp_header">Ya tienes una cuenta</string>
+    <string name="fui_welcome_back_password_prompt_body">Ya has usado %1$s para iniciar sesión. Ingresa tu contraseña para esa cuenta.</string>
+    
+    <!-- Verificación -->
+    <string name="fui_resend_code">Reenviar código</string>
+    <string name="fui_resend_code_in">Reenviar código en %1$d segundos</string>
+    <string name="fui_code_sent">Código enviado</string>
+    <string name="fui_verify_phone_number">Verificar número de teléfono</string>
+    <string name="fui_verify_phone_number_title">Ingresa tu número de teléfono</string>
+    <string name="fui_phone_hint">Número de teléfono</string>
+    
+    <!-- Carga -->
+    <string name="fui_verifying">Verificando…</string>
+    <string name="fui_retrieving_email">Obteniendo correo electrónico…</string>
+    
+    <!-- Mensajes de error específicos -->
+    <string name="fui_error_invalid_password">Contraseña incorrecta</string>
+    <string name="fui_error_too_many_attempts">Has intentado demasiadas veces. Intenta más tarde.</string>
+    <string name="fui_missing_email_error">Se requiere una dirección de correo electrónico para continuar</string>
+    
+    <!-- Títulos de diálogo -->
+    <string name="fui_title_register_email">Registrarse</string>
+    <string name="fui_title_confirm_recover_password">Revisa tu correo</string>
+    
+</resources>
