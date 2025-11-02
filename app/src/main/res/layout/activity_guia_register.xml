@@ -50,89 +50,289 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
 
-        <!-- Campo Nombre -->
+        <!-- Foto de Perfil -->
+        <ImageView
+            android:id="@+id/imgProfilePreviewGuia"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:layout_marginTop="24dp"
+            android:src="@mipmap/tourly_logo_img"
+            android:scaleType="centerCrop"
+            android:background="@android:drawable/dialog_holo_light_frame"
+            android:contentDescription="Foto de perfil"
+            app:layout_constraintTop_toBottomOf="@id/tvSubtitleGuiaRegister"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <Button
+            android:id="@+id/btnSelectPhotoGuia"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Seleccionar foto"
+            android:textAllCaps="false"
+            app:layout_constraintTop_toBottomOf="@id/imgProfilePreviewGuia"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <!-- Campo Nombres y Apellidos -->
         <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/tilNombreGuia"
+            android:id="@+id/tilNombreCompletoGuia"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="32dp"
-            android:hint="Nombre completo"
-            app:layout_constraintTop_toBottomOf="@id/tvSubtitleGuiaRegister"
+            android:layout_marginTop="24dp"
+            android:hint="Nombres y Apellidos"
+            app:layout_constraintTop_toBottomOf="@id/btnSelectPhotoGuia"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent">
 
             <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etNombreGuia"
+                android:id="@+id/etNombreCompletoGuia"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="textPersonName" />
         </com.google.android.material.textfield.TextInputLayout>
 
-        <!-- Campo Teléfono -->
+        <!-- Tipo de Documento -->
+        <TextView
+            android:id="@+id/tvTipoDocLabelGuia"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Tipo de Documento"
+            android:textSize="12sp"
+            android:textColor="@color/gray"
+            app:layout_constraintTop_toBottomOf="@id/tilNombreCompletoGuia"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <Spinner
+            android:id="@+id/spinnerTipoDocGuia"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:minHeight="48dp"
+            android:background="@android:drawable/editbox_background"
+            android:padding="12dp"
+            app:layout_constraintTop_toBottomOf="@id/tvTipoDocLabelGuia"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <!-- Número de Documento -->
         <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/tilTelefonoGuia"
+            android:id="@+id/tilNumeroDocGuia"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:hint="Teléfono"
-            app:layout_constraintTop_toBottomOf="@id/tilNombreGuia"
+            android:hint="Número de Documento"
+            app:layout_constraintTop_toBottomOf="@id/spinnerTipoDocGuia"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent">
 
             <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etNumeroDocGuia"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="text"
+                android:maxLength="20" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Fecha de Nacimiento -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilFechaNacimientoGuia"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:hint="Fecha de Nacimiento"
+            app:layout_constraintTop_toBottomOf="@id/tilNumeroDocGuia"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etFechaNacimientoGuia"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:focusable="false"
+                android:clickable="true"
+                android:inputType="none"
+                android:drawableEnd="@android:drawable/ic_menu_my_calendar" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Correo Electrónico (readonly) -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilEmailGuia"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:hint="Correo electrónico"
+            app:layout_constraintTop_toBottomOf="@id/tilFechaNacimientoGuia"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etEmailGuia"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:enabled="false"
+                android:inputType="textEmailAddress" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Teléfono con Country Code Picker -->
+        <TextView
+            android:id="@+id/tvTelefonoLabelGuia"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Teléfono"
+            android:textSize="12sp"
+            android:textColor="@color/gray"
+            app:layout_constraintTop_toBottomOf="@id/tilEmailGuia"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <LinearLayout
+            android:id="@+id/layoutTelefonoGuia"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:orientation="horizontal"
+            app:layout_constraintTop_toBottomOf="@id/tvTelefonoLabelGuia"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <com.hbb20.CountryCodePicker
+                android:id="@+id/ccpTelefonoGuia"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:ccp_autoDetectCountry="true"
+                app:ccp_showNameCode="false"
+                app:ccp_showFullName="false" />
+
+            <EditText
                 android:id="@+id/etTelefonoGuia"
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:inputType="phone" />
-        </com.google.android.material.textfield.TextInputLayout>
+                android:layout_weight="1"
+                android:hint="Número"
+                android:inputType="phone"
+                android:minHeight="48dp"
+                android:background="@android:drawable/editbox_background"
+                android:padding="12dp" />
+        </LinearLayout>
 
-        <!-- Campo Licencia -->
+        <!-- Domicilio -->
         <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/tilLicenciaGuia"
+            android:id="@+id/tilDomicilioGuia"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:hint="Número de licencia"
-            app:layout_constraintTop_toBottomOf="@id/tilTelefonoGuia"
+            android:hint="Domicilio (opcional)"
+            app:layout_constraintTop_toBottomOf="@id/layoutTelefonoGuia"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent">
 
             <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etLicenciaGuia"
+                android:id="@+id/etDomicilioGuia"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="text" />
+                android:inputType="textPostalAddress"
+                android:maxLines="2" />
         </com.google.android.material.textfield.TextInputLayout>
 
-        <!-- Campo Experiencia -->
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/tilExperienciaGuia"
+        <!-- Sección Idiomas -->
+        <TextView
+            android:id="@+id/tvIdiomasLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="Idiomas que hablas"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@color/black"
+            app:layout_constraintTop_toBottomOf="@id/tilDomicilioGuia"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <!-- Checkboxes de Idiomas -->
+        <CheckBox
+            android:id="@+id/cbEspanol"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:hint="Años de experiencia (opcional)"
-            app:layout_constraintTop_toBottomOf="@id/tilLicenciaGuia"
+            android:layout_marginTop="12dp"
+            android:text="Español"
+            android:checked="true"
+            android:enabled="false"
+            app:layout_constraintTop_toBottomOf="@id/tvIdiomasLabel"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent">
+            app:layout_constraintEnd_toEndOf="parent" />
 
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etExperienciaGuia"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:inputType="number" />
-        </com.google.android.material.textfield.TextInputLayout>
+        <CheckBox
+            android:id="@+id/cbIngles"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="Inglés"
+            app:layout_constraintTop_toBottomOf="@id/cbEspanol"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <CheckBox
+            android:id="@+id/cbFrances"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="Francés"
+            app:layout_constraintTop_toBottomOf="@id/cbIngles"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <CheckBox
+            android:id="@+id/cbAleman"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="Alemán"
+            app:layout_constraintTop_toBottomOf="@id/cbFrances"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <CheckBox
+            android:id="@+id/cbItaliano"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="Italiano"
+            app:layout_constraintTop_toBottomOf="@id/cbAleman"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <CheckBox
+            android:id="@+id/cbChino"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="Chino"
+            app:layout_constraintTop_toBottomOf="@id/cbItaliano"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <CheckBox
+            android:id="@+id/cbJapones"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="Japonés"
+            app:layout_constraintTop_toBottomOf="@id/cbChino"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
 
         <!-- Botón Guardar -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnGuardarGuia"
             android:layout_width="0dp"
-            android:layout_height="56dp"
+            android:layout_height="60dp"
             android:layout_marginTop="32dp"
             android:text="Completar Registro"
-            android:textAllCaps="false"
             android:textSize="16sp"
-            app:cornerRadius="8dp"
-            app:layout_constraintTop_toBottomOf="@id/tilExperienciaGuia"
+            android:textAllCaps="false"
+            app:layout_constraintTop_toBottomOf="@id/cbJapones"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
 
@@ -142,6 +342,7 @@
             android:layout_width="0dp"
             android:layout_height="56dp"
             android:layout_marginTop="16dp"
+            android:layout_marginBottom="24dp"
             android:text="Cerrar Sesión"
             android:textAllCaps="false"
             android:textSize="16sp"
@@ -150,8 +351,7 @@
             app:layout_constraintTop_toBottomOf="@id/btnGuardarGuia"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            android:layout_marginBottom="24dp" />
+            app:layout_constraintBottom_toBottomOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

@@ -80,8 +80,18 @@ dependencies {
     implementation("com.google.android.gms:play-services-location:21.3.0")
     implementation("androidx.viewpager2:viewpager2:1.0.0")
     implementation("androidx.localbroadcastmanager:localbroadcastmanager:1.1.0")
+    
+    // Firebase
     implementation(platform("com.google.firebase:firebase-bom:34.4.0"))
     implementation("com.google.firebase:firebase-firestore")
     implementation("com.google.firebase:firebase-auth")
+    implementation("com.google.firebase:firebase-storage")
     implementation("com.firebaseui:firebase-ui-auth:8.0.2")
+    
+    // Image loading and compression
+    implementation("com.github.bumptech.glide:glide:4.16.0")
+    annotationProcessor("com.github.bumptech.glide:compiler:4.16.0")
+    
+    // Country Code Picker for international phone numbers
+    implementation("com.hbb20:ccp:2.7.3")
 }

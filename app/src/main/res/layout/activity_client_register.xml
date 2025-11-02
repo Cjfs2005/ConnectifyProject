@@ -50,71 +50,203 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
 
-        <!-- Campo Nombre -->
+        <!-- Foto de Perfil -->
+        <ImageView
+            android:id="@+id/imgProfilePreview"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:layout_marginTop="24dp"
+            android:src="@mipmap/tourly_logo_img"
+            android:scaleType="centerCrop"
+            android:background="@android:drawable/dialog_holo_light_frame"
+            android:contentDescription="Foto de perfil"
+            app:layout_constraintTop_toBottomOf="@id/tvSubtitleClientRegister"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <Button
+            android:id="@+id/btnSelectPhoto"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Seleccionar foto"
+            android:textAllCaps="false"
+            app:layout_constraintTop_toBottomOf="@id/imgProfilePreview"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <!-- Campo Nombres y Apellidos -->
         <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/tilNombreCliente"
+            android:id="@+id/tilNombreCompleto"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="32dp"
-            android:hint="Nombre completo"
-            app:layout_constraintTop_toBottomOf="@id/tvSubtitleClientRegister"
+            android:layout_marginTop="24dp"
+            android:hint="Nombres y Apellidos"
+            app:layout_constraintTop_toBottomOf="@id/btnSelectPhoto"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent">
 
             <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etNombreCliente"
+                android:id="@+id/etNombreCompleto"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="textPersonName" />
         </com.google.android.material.textfield.TextInputLayout>
 
-        <!-- Campo Teléfono -->
+        <!-- Tipo de Documento -->
+        <TextView
+            android:id="@+id/tvTipoDocLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Tipo de Documento"
+            android:textSize="12sp"
+            android:textColor="@color/gray"
+            app:layout_constraintTop_toBottomOf="@id/tilNombreCompleto"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <Spinner
+            android:id="@+id/spinnerTipoDoc"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:minHeight="48dp"
+            android:background="@android:drawable/editbox_background"
+            android:padding="12dp"
+            app:layout_constraintTop_toBottomOf="@id/tvTipoDocLabel"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <!-- Número de Documento -->
         <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/tilTelefonoCliente"
+            android:id="@+id/tilNumeroDoc"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:hint="Teléfono"
-            app:layout_constraintTop_toBottomOf="@id/tilNombreCliente"
+            android:hint="Número de Documento"
+            app:layout_constraintTop_toBottomOf="@id/spinnerTipoDoc"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent">
 
             <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etTelefonoCliente"
+                android:id="@+id/etNumeroDoc"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="phone" />
+                android:inputType="text"
+                android:maxLength="20" />
         </com.google.android.material.textfield.TextInputLayout>
 
-        <!-- Campo Dirección -->
+        <!-- Fecha de Nacimiento -->
         <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/tilDireccionCliente"
+            android:id="@+id/tilFechaNacimiento"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:hint="Dirección (opcional)"
-            app:layout_constraintTop_toBottomOf="@id/tilTelefonoCliente"
+            android:hint="Fecha de Nacimiento"
+            app:layout_constraintTop_toBottomOf="@id/tilNumeroDoc"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent">
 
             <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etDireccionCliente"
+                android:id="@+id/etFechaNacimiento"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="textPostalAddress" />
+                android:focusable="false"
+                android:clickable="true"
+                android:inputType="none"
+                android:drawableEnd="@android:drawable/ic_menu_my_calendar" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Correo Electrónico (readonly) -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilEmailCliente"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:hint="Correo electrónico"
+            app:layout_constraintTop_toBottomOf="@id/tilFechaNacimiento"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etEmailCliente"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:enabled="false"
+                android:inputType="textEmailAddress" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Teléfono con Country Code Picker -->
+        <TextView
+            android:id="@+id/tvTelefonoLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Teléfono"
+            android:textSize="12sp"
+            android:textColor="@color/gray"
+            app:layout_constraintTop_toBottomOf="@id/tilEmailCliente"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <LinearLayout
+            android:id="@+id/layoutTelefono"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:orientation="horizontal"
+            app:layout_constraintTop_toBottomOf="@id/tvTelefonoLabel"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <com.hbb20.CountryCodePicker
+                android:id="@+id/ccpTelefono"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:ccp_autoDetectCountry="true"
+                app:ccp_showNameCode="false"
+                app:ccp_showFullName="false" />
+
+            <EditText
+                android:id="@+id/etTelefono"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="Número"
+                android:inputType="phone"
+                android:minHeight="48dp"
+                android:background="@android:drawable/editbox_background"
+                android:padding="12dp" />
+        </LinearLayout>
+
+        <!-- Domicilio -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilDomicilio"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:hint="Domicilio (opcional)"
+            app:layout_constraintTop_toBottomOf="@id/layoutTelefono"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etDomicilio"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textPostalAddress"
+                android:maxLines="2" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <!-- Botón Guardar -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnGuardarCliente"
             android:layout_width="0dp"
-            android:layout_height="56dp"
+            android:layout_height="60dp"
             android:layout_marginTop="32dp"
             android:text="Completar Registro"
-            android:textAllCaps="false"
             android:textSize="16sp"
-            app:cornerRadius="8dp"
-            app:layout_constraintTop_toBottomOf="@id/tilDireccionCliente"
+            android:textAllCaps="false"
+            app:layout_constraintTop_toBottomOf="@id/tilDomicilio"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
 
@@ -124,6 +256,7 @@
             android:layout_width="0dp"
             android:layout_height="56dp"
             android:layout_marginTop="16dp"
+            android:layout_marginBottom="24dp"
             android:text="Cerrar Sesión"
             android:textAllCaps="false"
             android:textSize="16sp"
@@ -132,8 +265,7 @@
             app:layout_constraintTop_toBottomOf="@id/btnGuardarCliente"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            android:layout_marginBottom="24dp" />
+            app:layout_constraintBottom_toBottomOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

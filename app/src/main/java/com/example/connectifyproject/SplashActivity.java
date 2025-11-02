@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -89,15 +90,41 @@ public class SplashActivity extends AppCompatActivity {
      */
     private void handleFirestoreDocument(DocumentSnapshot document) {
         if (document.exists()) {
-            // Usuario tiene documento → Leer rol y redirigir
+            // Usuario tiene documento → Leer rol y verificar si está habilitado
             String rol = document.getString(AuthConstants.FIELD_ROL);
-            Log.d(TAG, "Rol encontrado: " + rol);
+            Boolean habilitado = document.getBoolean(AuthConstants.FIELD_HABILITADO);
+            
+            Log.d(TAG, "Rol encontrado: " + rol + ", Habilitado: " + habilitado);
+            
+            // Verificar si el usuario está habilitado
+            if (habilitado != null && !habilitado) {
+                // Usuario NO habilitado (solo aplica para Guías)
+                Log.d(TAG, "Usuario no habilitado");
+                showNotEnabledMessage();
+                return;
+            }
+            
             redirectByRole(rol);
         } else {
             // Usuario autenticado pero sin documento → Ir a selección de rol
             Log.d(TAG, "Usuario sin rol asignado");
             redirectToRoleSelection();
         }
+    }
+
+    /**
+     * Mostrar mensaje de cuenta no habilitada y cerrar sesión
+     */
+    private void showNotEnabledMessage() {
+        Toast.makeText(this, 
+            "Tu cuenta está pendiente de aprobación por el administrador", 
+            Toast.LENGTH_LONG).show();
+        
+        // Cerrar sesión automáticamente
+        FirebaseAuth.getInstance().signOut();
+        
+        // Esperar un momento y redirigir al login
+        new Handler(Looper.getMainLooper()).postDelayed(() -> goToLogin(), 2000);
     }
 
     /**

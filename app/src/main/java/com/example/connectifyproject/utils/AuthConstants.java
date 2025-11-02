@@ -24,8 +24,42 @@ public class AuthConstants {
     // Colecciones de Firestore
     public static final String COLLECTION_USUARIOS = "usuarios";
     
-    // Campos de documentos
+    // Campos de documentos de usuario
     public static final String FIELD_EMAIL = "email";
     public static final String FIELD_ROL = "rol";
-    public static final String FIELD_NOMBRE = "nombre";
+    public static final String FIELD_NOMBRE_COMPLETO = "nombresApellidos";
+    public static final String FIELD_TIPO_DOCUMENTO = "tipoDocumento";
+    public static final String FIELD_NUMERO_DOCUMENTO = "numeroDocumento";
+    public static final String FIELD_FECHA_NACIMIENTO = "fechaNacimiento";
+    public static final String FIELD_TELEFONO = "telefono";
+    public static final String FIELD_CODIGO_PAIS = "codigoPais";
+    public static final String FIELD_DOMICILIO = "domicilio";
+    public static final String FIELD_PHOTO_URL = "photoUrl";
+    public static final String FIELD_HABILITADO = "habilitado";
+    public static final String FIELD_UID = "uid";
+    
+    // Campos específicos de Guía
+    public static final String FIELD_IDIOMAS = "idiomas";
+    
+    // Tipos de documento
+    public static final String[] TIPOS_DOCUMENTO = {
+        "DNI",
+        "Pasaporte",
+        "Carnet de Extranjería"
+    };
+    
+    // Idiomas disponibles para guías
+    public static final String[] IDIOMAS_DISPONIBLES = {
+        "Español",
+        "Inglés",
+        "Francés",
+        "Alemán",
+        "Italiano",
+        "Chino",
+        "Japonés"
+    };
+    
+    // URL de imagen por defecto en Firebase Storage
+    public static final String DEFAULT_PHOTO_URL = "gs://iot-proyecto-f817d.firebasestorage.app/default.png";
 }
+
