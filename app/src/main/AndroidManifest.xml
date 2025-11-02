@@ -74,6 +74,12 @@
             android:theme="@style/Theme.Material3.DayNight.NoActionBar"
             android:windowSoftInputMode="adjustResize" />
 
+        <!-- SuperAdmin Permissions Activity -->
+        <activity
+            android:name=".views.superadmin.profile.SaPermissionsActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Material3.DayNight.NoActionBar" />
+
         <!-- Pantallas que ya tenías -->
         <activity android:name=".admin_dashboard" android:exported="false" />
         <activity android:name=".admin_tours" android:exported="false" />
