@@ -36,7 +36,7 @@ public class SaUsersFragment extends Fragment {
     private String currentQuery = "";
 
     private TextInputEditText etSearch;
-    private MaterialButton btnAll, btnRoles;
+    private MaterialButton btnRoles;
     private FloatingActionButton fabAdd;
     private ImageButton btnNotifications;
 
@@ -68,7 +68,6 @@ public class SaUsersFragment extends Fragment {
 
         // --- Controles ---
         etSearch         = v.findViewById(R.id.etSearch);
-        btnAll           = v.findViewById(R.id.btnAll);
         btnRoles         = v.findViewById(R.id.btnRoles);
         fabAdd           = v.findViewById(R.id.fabAddAdmin);
         btnNotifications = v.findViewById(R.id.btnNotifications);
@@ -110,18 +109,8 @@ public class SaUsersFragment extends Fragment {
             });
         }
 
-        // --- Botón "Todos" ---
-        btnAll.setOnClickListener(view -> {
-            selectedRoles = EnumSet.of(Role.GUIDE, Role.ADMIN, Role.CLIENT);
-            adapter.setRoleFilter(selectedRoles);
-            updateFabVisibility();
-        });
-
         // --- Botón "Roles" ---
         btnRoles.setOnClickListener(this::showRolesPopup);
-
-        // Visibilidad inicial del FAB
-        updateFabVisibility();
     }
 
     private void showRolesPopup(View anchor) {
@@ -146,17 +135,10 @@ public class SaUsersFragment extends Fragment {
 
         if (selectedRoles.isEmpty()) selectedRoles = EnumSet.of(Role.GUIDE, Role.ADMIN, Role.CLIENT);
         adapter.setRoleFilter(selectedRoles);
-        updateFabVisibility();
         return true;
     }
 
     private void toggle(Role r, boolean add) { if (add) selectedRoles.add(r); else selectedRoles.remove(r); }
-
-    private void updateFabVisibility() {
-        if (fabAdd == null) return;
-        boolean onlyAdmin = selectedRoles.equals(EnumSet.of(Role.ADMIN));
-        fabAdd.setVisibility(onlyAdmin ? View.VISIBLE : View.GONE);
-    }
 
     private EnumSet<Role> decodeRoles(int mask) {
         EnumSet<Role> set = EnumSet.noneOf(Role.class);

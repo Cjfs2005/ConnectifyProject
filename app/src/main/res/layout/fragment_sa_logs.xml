@@ -10,7 +10,7 @@
         android:id="@+id/appBar"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:background="@color/brand_purple"
+        android:background="@color/brand_purple_dark"
         android:fitsSystemWindows="true"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -20,7 +20,7 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="@color/brand_purple"
+            android:background="@color/brand_purple_dark"
             android:theme="@style/ThemeOverlay.Material3.Dark.ActionBar">
 
             <TextView
@@ -47,34 +47,27 @@
         </com.google.android.material.appbar.MaterialToolbar>
     </com.google.android.material.appbar.AppBarLayout>
 
-    <!-- Controles -->
-    <LinearLayout
-        android:id="@+id/controlsRow"
-        android:layout_width="0dp"
+    <!-- Filtros -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnRole"
+        style="@style/Widget.Material3.Button.TonalButton"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:padding="12dp"
-        app:layout_constraintTop_toBottomOf="@id/appBar"
+        android:text="Roles"
+        android:layout_marginTop="12dp"
+        android:layout_marginStart="12dp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        app:layout_constraintTop_toBottomOf="@id/appBar"/>
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnSort"
-            style="?attr/materialButtonOutlinedStyle"
-            android:layout_width="wrap_content"
-            android:layout_height="40dp"
-            android:text="▾"
-            android:contentDescription="Ordenar"/>
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnRole"
-            style="@style/Widget.Material3.Button.TonalButton"
-            android:layout_marginStart="8dp"
-            android:layout_width="wrap_content"
-            android:layout_height="40dp"
-            android:text="Todos"/>
-    </LinearLayout>
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnSort"
+        style="@style/Widget.Material3.Button.TonalButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Orden"
+        android:layout_marginStart="8dp"
+        app:layout_constraintStart_toEndOf="@id/btnRole"
+        app:layout_constraintTop_toTopOf="@id/btnRole"/>
 
     <!-- Lista -->
     <androidx.recyclerview.widget.RecyclerView
@@ -82,7 +75,10 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:clipToPadding="false"
-        app:layout_constraintTop_toBottomOf="@id/controlsRow"
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        app:layout_constraintTop_toBottomOf="@id/btnRole"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>

@@ -49,25 +49,15 @@
 
     <!-- Filtros -->
     <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnAll"
-        style="@style/Widget.Material3.Button.TonalButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Todos"
-        android:layout_marginTop="12dp"
-        android:layout_marginStart="12dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/appBar"/>
-
-    <com.google.android.material.button.MaterialButton
         android:id="@+id/btnRoles"
         style="@style/Widget.Material3.Button.TonalButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Roles"
-        android:layout_marginStart="8dp"
-        app:layout_constraintStart_toEndOf="@id/btnAll"
-        app:layout_constraintTop_toTopOf="@id/btnAll"/>
+        android:layout_marginTop="12dp"
+        android:layout_marginStart="12dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/appBar"/>
 
     <!-- Buscador OUTLINED, blanco con borde -->
     <com.google.android.material.textfield.TextInputLayout
@@ -79,8 +69,8 @@
         android:layout_marginEnd="12dp"
         app:layout_constraintStart_toEndOf="@id/btnRoles"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@id/btnAll"
-        app:layout_constraintBottom_toBottomOf="@id/btnAll"
+        app:layout_constraintTop_toTopOf="@id/btnRoles"
+        app:layout_constraintBottom_toBottomOf="@id/btnRoles"
         app:startIconDrawable="@drawable/ic_search_18"
         app:startIconTint="@color/brand_purple_dark"
         app:boxBackgroundColor="@android:color/white"
@@ -114,7 +104,7 @@
         android:paddingTop="12dp"
         android:paddingBottom="12dp"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-        app:layout_constraintTop_toBottomOf="@id/btnAll"
+        app:layout_constraintTop_toBottomOf="@id/btnRoles"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
@@ -125,11 +115,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:contentDescription="Nuevo administrador"
-        android:visibility="gone"
         app:srcCompat="@drawable/ic_add_24"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         android:layout_marginEnd="16dp"
-        android:layout_marginBottom="84dp"/>
+        android:layout_marginBottom="16dp"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

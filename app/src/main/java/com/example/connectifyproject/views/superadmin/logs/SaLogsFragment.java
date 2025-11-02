@@ -145,7 +145,7 @@ public class SaLogsFragment extends Fragment {
 
     private void updateRoleButton() {
         if (selectedRoles.size() == 3) {
-            binding.btnRole.setText("Todos");
+            binding.btnRole.setText("Roles");
         } else if (selectedRoles.equals(EnumSet.of(Role.ADMIN))) {
             binding.btnRole.setText("Admin");
         } else if (selectedRoles.equals(EnumSet.of(Role.GUIDE))) {
