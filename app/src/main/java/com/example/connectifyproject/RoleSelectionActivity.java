@@ -88,6 +88,7 @@ public class RoleSelectionActivity extends AppCompatActivity {
         userData.put(AuthConstants.FIELD_EMAIL, currentUser.getEmail());
         userData.put(AuthConstants.FIELD_ROL, rol);
         userData.put("uid", currentUser.getUid());
+        userData.put(AuthConstants.FIELD_PERFIL_COMPLETO, false); // Perfil aún no completado
 
         db.collection(AuthConstants.COLLECTION_USUARIOS)
                 .document(currentUser.getUid())

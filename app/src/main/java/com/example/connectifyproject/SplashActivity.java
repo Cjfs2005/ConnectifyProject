@@ -93,8 +93,16 @@ public class SplashActivity extends AppCompatActivity {
             // Usuario tiene documento → Leer rol y verificar si está habilitado
             String rol = document.getString(AuthConstants.FIELD_ROL);
             Boolean habilitado = document.getBoolean(AuthConstants.FIELD_HABILITADO);
+            Boolean perfilCompleto = document.getBoolean(AuthConstants.FIELD_PERFIL_COMPLETO);
             
-            Log.d(TAG, "Rol encontrado: " + rol + ", Habilitado: " + habilitado);
+            Log.d(TAG, "Rol encontrado: " + rol + ", Habilitado: " + habilitado + ", Perfil completo: " + perfilCompleto);
+            
+            // Verificar si el perfil está completo
+            if (perfilCompleto == null || !perfilCompleto) {
+                Log.d(TAG, "Perfil incompleto, redirigiendo a completar registro");
+                redirectToCompleteProfile(rol);
+                return;
+            }
             
             // Verificar si el usuario está habilitado
             if (habilitado != null && !habilitado) {
@@ -153,6 +161,27 @@ public class SplashActivity extends AppCompatActivity {
      */
     private void redirectToRoleSelection() {
         Intent intent = new Intent(this, RoleSelectionActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
+    }
+
+    /**
+     * Redirigir a completar perfil según rol
+     */
+    private void redirectToCompleteProfile(String rol) {
+        Intent intent;
+        
+        if (AuthConstants.ROLE_CLIENTE.equals(rol)) {
+            intent = new Intent(this, ClientRegisterActivity.class);
+        } else if (AuthConstants.ROLE_GUIA.equals(rol)) {
+            intent = new Intent(this, GuiaRegisterActivity.class);
+        } else {
+            // Rol desconocido → Ir a selección de rol
+            redirectToRoleSelection();
+            return;
+        }
+        
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();

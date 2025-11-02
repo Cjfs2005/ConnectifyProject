@@ -348,6 +348,7 @@ public class ClientRegisterActivity extends AppCompatActivity {
         clienteData.put(AuthConstants.FIELD_UID, currentUser.getUid());
         clienteData.put(AuthConstants.FIELD_HABILITADO, true); // Cliente habilitado automáticamente
         clienteData.put(AuthConstants.FIELD_FECHA_CREACION, com.google.firebase.Timestamp.now()); // Timestamp de creación
+        clienteData.put(AuthConstants.FIELD_PERFIL_COMPLETO, true); // Perfil completado
         
         // Usar foto subida o la de Google Auth
         if (photoUrl != null) {
