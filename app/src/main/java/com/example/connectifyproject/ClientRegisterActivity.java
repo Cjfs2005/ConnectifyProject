@@ -114,7 +114,6 @@ public class ClientRegisterActivity extends AppCompatActivity {
         clienteData.put("telefono", telefono);
         clienteData.put("direccion", direccion);
         clienteData.put("uid", currentUser.getUid());
-        clienteData.put("emailVerificado", currentUser.isEmailVerified());
         clienteData.put("photoUrl", currentUser.getPhotoUrl() != null ? currentUser.getPhotoUrl().toString() : "");
 
         db.collection(AuthConstants.COLLECTION_USUARIOS)

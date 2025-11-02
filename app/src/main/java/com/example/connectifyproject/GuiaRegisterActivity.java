@@ -121,7 +121,6 @@ public class GuiaRegisterActivity extends AppCompatActivity {
         guiaData.put("licencia", licencia);
         guiaData.put("experiencia", experiencia);
         guiaData.put("uid", currentUser.getUid());
-        guiaData.put("emailVerificado", currentUser.isEmailVerified());
         guiaData.put("photoUrl", currentUser.getPhotoUrl() != null ? currentUser.getPhotoUrl().toString() : "");
 
         db.collection(AuthConstants.COLLECTION_USUARIOS)
