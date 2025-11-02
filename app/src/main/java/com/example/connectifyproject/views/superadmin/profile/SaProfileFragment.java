@@ -89,10 +89,36 @@ public class SaProfileFragment extends Fragment {
                         .placeholder(R.drawable.ic_person_24)
                         .error(R.drawable.ic_person_24)
                         .into(binding.ivProfilePhoto);
+            } else {
+                // Si no hay foto, cargar default.png desde Firebase Storage
+                loadDefaultImage();
             }
         } else {
             binding.tvUserName.setText("SuperAdmin");
+            loadDefaultImage();
         }
+    }
+
+    private void loadDefaultImage() {
+        // Cargar default.png desde Firebase Storage
+        com.google.firebase.storage.FirebaseStorage storage = com.google.firebase.storage.FirebaseStorage.getInstance();
+        storage.getReference().child("default.png")
+                .getDownloadUrl()
+                .addOnSuccessListener(uri -> {
+                    Glide.with(this)
+                            .load(uri.toString())
+                            .circleCrop()
+                            .placeholder(R.drawable.ic_person_24)
+                            .error(R.drawable.ic_person_24)
+                            .into(binding.ivProfilePhoto);
+                })
+                .addOnFailureListener(e -> {
+                    // Si falla, mostrar el icono por defecto
+                    Glide.with(this)
+                            .load(R.drawable.ic_person_24)
+                            .circleCrop()
+                            .into(binding.ivProfilePhoto);
+                });
     }
 
     @Override public void onDestroyView() { super.onDestroyView(); binding = null; }
