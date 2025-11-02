@@ -20,16 +20,13 @@
         android:paddingStart="12dp"
         android:paddingEnd="8dp">
 
-        <TextView
-            android:id="@+id/tvAvatar"
+        <ImageView
+            android:id="@+id/ivAvatar"
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:gravity="center"
-            android:text="G"
-            android:textStyle="bold"
-            android:textSize="16sp"
-            android:textColor="@android:color/white"
-            android:background="@drawable/bg_avatar_round" />
+            android:scaleType="centerCrop"
+            android:src="@drawable/ic_account_circle_24"
+            android:contentDescription="@string/profile_photo" />
 
         <LinearLayout
             android:layout_width="0dp"

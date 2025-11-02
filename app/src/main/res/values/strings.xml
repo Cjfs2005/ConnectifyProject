@@ -29,6 +29,7 @@
     <string name="clear_all">Borrar todo</string>
     <string name="all_marked_read">Todas marcadas como leídas</string>
     <string name="cleared_all">Se eliminaron todas</string>
+    <string name="profile_photo">Foto de perfil</string>
 
     <!-- Bottom nav -->
     <string name="nav_dashboard">Dashboard</string>
