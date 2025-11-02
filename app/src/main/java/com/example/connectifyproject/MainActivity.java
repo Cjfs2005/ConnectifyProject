@@ -1,6 +1,7 @@
 package com.example.connectifyproject;
 
 import android.os.Bundle;
+import android.view.View;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -12,6 +13,8 @@ import androidx.navigation.ui.NavigationUI;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 public class MainActivity extends AppCompatActivity {
+
+    private BottomNavigationView bottom;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -25,7 +28,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         NavController navController = host.getNavController();
-        BottomNavigationView bottom = findViewById(R.id.bottom_nav_sa);
+        bottom = findViewById(R.id.bottom_nav_sa);
         if (bottom == null) {
             throw new IllegalStateException("Falta bottom_nav_sa en activity_main.xml");
         }
@@ -40,6 +43,19 @@ public class MainActivity extends AppCompatActivity {
                 ContextCompat.getColorStateList(this, R.color.sa_bottom_nav_tint));
         bottom.setItemTextColor(
                 ContextCompat.getColorStateList(this, R.color.sa_bottom_nav_tint));
+
+        // Ocultar el navbar en fragments de detalle
+        navController.addOnDestinationChangedListener((controller, destination, arguments) -> {
+            int destId = destination.getId();
+            // Ocultar en fragments de detalle
+            if (destId == R.id.saGuideRequestDetailFragment ||
+                destId == R.id.saUserDetailFragment ||
+                destId == R.id.saLogDetailFragment) {
+                bottom.setVisibility(View.GONE);
+            } else {
+                bottom.setVisibility(View.VISIBLE);
+            }
+        });
 
         // (Opcional) Si no quieres indicador "pill" activo de M3, puedes desactivarlo:
         // bottom.setItemActiveIndicatorEnabled(false);
