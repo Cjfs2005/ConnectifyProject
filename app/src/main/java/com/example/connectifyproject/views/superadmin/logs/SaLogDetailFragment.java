@@ -114,6 +114,26 @@ public class SaLogDetailFragment extends Fragment {
                 etDocType, etDocNumber, etBirth, etEmail, etPhone, etAddress);
     }
 
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        // Limpiar referencias para evitar memory leaks
+        btnBack = null;
+        etAction = null;
+        etDate = null;
+        etTime = null;
+        etFirstName = null;
+        etLastName = null;
+        etUserRole = null;
+        etDocType = null;
+        etDocNumber = null;
+        etBirth = null;
+        etEmail = null;
+        etPhone = null;
+        etAddress = null;
+        user = null;
+    }
+
     private static String roleToHuman(Role r) {
         switch (r) {
             case ADMIN: return "Administrador";

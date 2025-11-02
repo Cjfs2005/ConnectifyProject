@@ -122,6 +122,24 @@ public class SaUserDetailFragment extends Fragment {
         etAddress.setText(nvl(user.getAddress()));
     }
 
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        // Limpiar referencias para evitar memory leaks
+        etFirstName = null;
+        etLastName = null;
+        etDocType = null;
+        etDocNumber = null;
+        etBirth = null;
+        etEmail = null;
+        etPhone = null;
+        etAddress = null;
+        btnActivate = null;
+        btnDeactivate = null;
+        btnBack = null;
+        user = null;
+    }
+
     private void updateButtons() {
         btnActivate.setEnabled(!isActive);
         btnDeactivate.setEnabled(isActive);

@@ -274,4 +274,14 @@ public class SaRequestsFragment extends Fragment {
                     });
         }
     }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        // Limpiar referencias para evitar memory leaks
+        fabEnable = null;
+        etSearch = null;
+        adapter = null;
+        db = null;
+    }
 }

@@ -159,6 +159,13 @@ public class SaReportsFragment extends Fragment {
         return s.substring(0,1).toUpperCase(new Locale("es")) + s.substring(1);
     }
 
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        // Limpiar referencias para evitar memory leaks
+        binding = null;
+    }
+
     private int daysInMonth(int monthIndex) {
         Calendar c = Calendar.getInstance();
         c.set(Calendar.MONTH, monthIndex);

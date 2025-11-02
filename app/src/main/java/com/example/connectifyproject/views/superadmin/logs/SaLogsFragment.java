@@ -178,7 +178,12 @@ public class SaLogsFragment extends Fragment {
     }
 
     @Override
-    public void onDestroyView() { super.onDestroyView(); binding = null; }
+    public void onDestroyView() {
+        super.onDestroyView();
+        // Limpiar referencias para evitar memory leaks
+        binding = null;
+        adapter = null;
+    }
 
     private List<SaLogsAdapter.LogItem> mockLogs() {
         List<SaLogsAdapter.LogItem> list = new ArrayList<>();

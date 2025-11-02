@@ -102,6 +102,15 @@ public class SaNotificationsFragment extends Fragment {
         nav.navigateUp();
     }
 
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        // Limpiar referencias para evitar memory leaks
+        b = null;
+        adapter = null;
+        vm = null;
+    }
+
     private boolean onMenuClick(MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.action_clear_all) {

@@ -150,6 +150,17 @@ public class SaUsersFragment extends Fragment {
     }
 
     @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        // Limpiar referencias para evitar memory leaks
+        etSearch = null;
+        btnRoles = null;
+        fabAdd = null;
+        btnNotifications = null;
+        adapter = null;
+    }
+
+    @Override
     public void onSaveInstanceState(@NonNull Bundle out) {
         super.onSaveInstanceState(out);
         int mask = 0;

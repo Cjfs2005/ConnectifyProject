@@ -223,6 +223,28 @@ public class SaGuideRequestDetailFragment extends Fragment {
                 });
     }
 
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        // Limpiar referencias para evitar memory leaks
+        ivProfilePhoto = null;
+        etReqDate = null;
+        etReqTime = null;
+        etFullName = null;
+        etDocType = null;
+        etDocNumber = null;
+        etBirth = null;
+        etEmail = null;
+        etPhone = null;
+        etAddress = null;
+        etLanguages = null;
+        btnAccept = null;
+        btnDeny = null;
+        btnBack = null;
+        db = null;
+        user = null;
+    }
+
     private static String nvl(String s) { return s == null ? "" : s; }
 
     private void setReadOnly(TextInputEditText... edits) {
