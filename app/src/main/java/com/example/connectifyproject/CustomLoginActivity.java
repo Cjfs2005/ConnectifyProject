@@ -170,12 +170,55 @@ public class CustomLoginActivity extends AppCompatActivity {
     private void handleFirestoreDocument(DocumentSnapshot document) {
         if (document.exists()) {
             String rol = document.getString(AuthConstants.FIELD_ROL);
-            Log.d(TAG, "Rol encontrado: " + rol);
+            String nombreCompleto = document.getString(AuthConstants.FIELD_NOMBRE_COMPLETO);
+            Boolean habilitado = document.getBoolean(AuthConstants.FIELD_HABILITADO);
+            
+            Log.d(TAG, "Rol: " + rol + ", NombreCompleto: " + nombreCompleto + ", Habilitado: " + habilitado);
+            
+            // VALIDACIÓN 1: Verificar si el registro está completo
+            if (nombreCompleto == null || nombreCompleto.isEmpty()) {
+                Log.d(TAG, "Registro incompleto, redirigiendo a completar registro");
+                redirectToCompleteRegistration(rol);
+                return;
+            }
+            
+            // VALIDACIÓN 2: Verificar si el usuario está habilitado (importante para Guías)
+            if (habilitado != null && !habilitado) {
+                Log.d(TAG, "Usuario NO habilitado");
+                Toast.makeText(this, 
+                    "Tu cuenta está pendiente de aprobación por el administrador", 
+                    Toast.LENGTH_LONG).show();
+                // Cerrar sesión
+                mAuth.signOut();
+                return;
+            }
+            
+            // Usuario completo y habilitado → Redirigir al dashboard
             redirectByRole(rol);
         } else {
             Log.d(TAG, "Usuario nuevo sin rol asignado");
             redirectToRoleSelection();
         }
+    }
+    
+    /**
+     * Redirigir a completar registro según rol
+     */
+    private void redirectToCompleteRegistration(String rol) {
+        Intent intent;
+        
+        if (AuthConstants.ROLE_CLIENTE.equals(rol)) {
+            intent = new Intent(this, ClientRegisterActivity.class);
+        } else if (AuthConstants.ROLE_GUIA.equals(rol)) {
+            intent = new Intent(this, GuiaRegisterActivity.class);
+        } else {
+            redirectToRoleSelection();
+            return;
+        }
+        
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
     }
 
     private void redirectByRole(String rol) {

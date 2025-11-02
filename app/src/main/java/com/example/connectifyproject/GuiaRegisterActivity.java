@@ -177,7 +177,36 @@ public class GuiaRegisterActivity extends AppCompatActivity {
                     .load(photoUrl)
                     .centerCrop()
                     .into(imgProfilePreview);
+        } else {
+            // Cargar imagen por defecto desde Firebase Storage
+            loadDefaultImage();
         }
+    }
+    
+    /**
+     * Cargar imagen por defecto desde Firebase Storage
+     */
+    private void loadDefaultImage() {
+        storageHelper.getDefaultPhotoUrl(new StorageHelper.UploadCallback() {
+            @Override
+            public void onSuccess(String downloadUrl) {
+                Glide.with(GuiaRegisterActivity.this)
+                        .load(downloadUrl)
+                        .centerCrop()
+                        .into(imgProfilePreview);
+            }
+
+            @Override
+            public void onFailure(Exception e) {
+                Log.e(TAG, "Error al cargar imagen por defecto", e);
+                // Mantener el logo de la app como fallback
+            }
+
+            @Override
+            public void onProgress(double progress) {
+                // No necesario para lectura
+            }
+        });
     }
 
     private void checkPermissionAndPickImage() {
