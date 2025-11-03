@@ -314,12 +314,15 @@ public class AdminRegisterActivity extends AppCompatActivity implements Promotio
         AtomicInteger uploadCount = new AtomicInteger(0);
         List<Uri> promotionalPhotos = promotionalPhotosAdapter.getPhotos();
         int totalPhotos = promotionalPhotos.size() + (profilePhotoUri != null ? 1 : 0);
+        
+        // Variable para guardar la URL de la foto de perfil
+        final String[] profilePhotoUrl = new String[1];
 
         // Callback para cuando todas las fotos estén subidas
         Runnable onAllPhotosUploaded = () -> {
             if (uploadCount.get() == totalPhotos) {
                 saveToFirestore(nombreCompleto, tipoDoc, numeroDoc, descripcion, ubicacion,
-                        correoEmpresa, telefonoEmpresa, promotionalPhotoUrls);
+                        correoEmpresa, telefonoEmpresa, promotionalPhotoUrls, profilePhotoUrl[0]);
             }
         };
 
@@ -358,6 +361,7 @@ public class AdminRegisterActivity extends AppCompatActivity implements Promotio
             storageHelper.uploadProfilePhoto(this, profilePhotoUri, uid, new StorageHelper.UploadCallback() {
                 @Override
                 public void onSuccess(String downloadUrl) {
+                    profilePhotoUrl[0] = downloadUrl;
                     uploadCount.incrementAndGet();
                     onAllPhotosUploaded.run();
                 }
@@ -365,6 +369,10 @@ public class AdminRegisterActivity extends AppCompatActivity implements Promotio
                 @Override
                 public void onFailure(Exception e) {
                     Log.e(TAG, "Error al subir foto de perfil, usando default", e);
+                    // Usar foto de Google Auth o default
+                    if (currentUser.getPhotoUrl() != null) {
+                        profilePhotoUrl[0] = currentUser.getPhotoUrl().toString();
+                    }
                     uploadCount.incrementAndGet();
                     onAllPhotosUploaded.run();
                 }
@@ -377,6 +385,7 @@ public class AdminRegisterActivity extends AppCompatActivity implements Promotio
         } else {
             // Usar foto de Google Auth o default
             if (currentUser.getPhotoUrl() != null) {
+                profilePhotoUrl[0] = currentUser.getPhotoUrl().toString();
                 uploadCount.incrementAndGet();
                 onAllPhotosUploaded.run();
             } else {
@@ -384,6 +393,7 @@ public class AdminRegisterActivity extends AppCompatActivity implements Promotio
                 storageHelper.getDefaultPhotoUrl(new StorageHelper.UploadCallback() {
                     @Override
                     public void onSuccess(String downloadUrl) {
+                        profilePhotoUrl[0] = downloadUrl;
                         uploadCount.incrementAndGet();
                         onAllPhotosUploaded.run();
                     }
@@ -404,19 +414,8 @@ public class AdminRegisterActivity extends AppCompatActivity implements Promotio
 
     private void saveToFirestore(String nombreCompleto, String tipoDoc, String numeroDoc,
                                  String descripcion, String ubicacion, String correoEmpresa,
-                                 String telefonoEmpresa, List<String> fotosEmpresa) {
+                                 String telefonoEmpresa, List<String> fotosEmpresa, String photoUrl) {
         String uid = currentUser.getUid();
-        
-        // Determinar URL de foto de perfil
-        String photoUrl;
-        if (profilePhotoUri != null) {
-            // Se subió una foto nueva, la URL ya está en Firebase Storage
-            photoUrl = null; // Se obtendrá del storage
-        } else if (currentUser.getPhotoUrl() != null) {
-            photoUrl = currentUser.getPhotoUrl().toString();
-        } else {
-            photoUrl = null; // Se usará la default que ya se obtuvo
-        }
 
         Map<String, Object> adminData = new HashMap<>();
         adminData.put(AuthConstants.FIELD_EMAIL, currentUser.getEmail());
@@ -429,6 +428,9 @@ public class AdminRegisterActivity extends AppCompatActivity implements Promotio
         adminData.put(AuthConstants.FIELD_PERFIL_COMPLETO, true);
         adminData.put(AuthConstants.FIELD_FECHA_CREACION, com.google.firebase.Timestamp.now());
         
+        // Foto de perfil
+        adminData.put(AuthConstants.FIELD_PHOTO_URL, photoUrl);
+        
         // Campos de empresa
         adminData.put(AuthConstants.FIELD_DESCRIPCION_EMPRESA, descripcion);
         adminData.put(AuthConstants.FIELD_UBICACION_EMPRESA, ubicacion);
@@ -440,42 +442,7 @@ public class AdminRegisterActivity extends AppCompatActivity implements Promotio
         adminData.put(AuthConstants.FIELD_SUMA_RESENIAS, 0);
         adminData.put(AuthConstants.FIELD_NUMERO_RESENIAS, 0);
 
-        // Obtener la foto de perfil final si se subió una
-        if (profilePhotoUri != null) {
-            // La foto ya fue subida, obtener la URL del documento actual o construirla
-            db.collection(AuthConstants.COLLECTION_USUARIOS)
-                    .document(uid)
-                    .get()
-                    .addOnSuccessListener(doc -> {
-                        String finalPhotoUrl = doc.getString(AuthConstants.FIELD_PHOTO_URL);
-                        if (finalPhotoUrl == null) {
-                            // Construir URL o usar Google Auth
-                            finalPhotoUrl = currentUser.getPhotoUrl() != null ? 
-                                    currentUser.getPhotoUrl().toString() : 
-                                    AuthConstants.DEFAULT_PHOTO_URL;
-                        }
-                        adminData.put(AuthConstants.FIELD_PHOTO_URL, finalPhotoUrl);
-                        saveFinalData(adminData);
-                    })
-                    .addOnFailureListener(e -> {
-                        // En caso de error, usar Google Auth o default
-                        String fallbackUrl = currentUser.getPhotoUrl() != null ? 
-                                currentUser.getPhotoUrl().toString() : 
-                                AuthConstants.DEFAULT_PHOTO_URL;
-                        adminData.put(AuthConstants.FIELD_PHOTO_URL, fallbackUrl);
-                        saveFinalData(adminData);
-                    });
-        } else {
-            // No se subió foto, usar la que ya determinamos
-            String finalPhotoUrl = photoUrl != null ? photoUrl : AuthConstants.DEFAULT_PHOTO_URL;
-            adminData.put(AuthConstants.FIELD_PHOTO_URL, finalPhotoUrl);
-            saveFinalData(adminData);
-        }
-    }
-
-    private void saveFinalData(Map<String, Object> adminData) {
-        String uid = currentUser.getUid();
-        
+        // Guardar en Firestore
         db.collection(AuthConstants.COLLECTION_USUARIOS)
                 .document(uid)
                 .set(adminData)
@@ -509,8 +476,7 @@ public class AdminRegisterActivity extends AppCompatActivity implements Promotio
     }
 
     private void redirectToAdminDashboard() {
-        // Por ahora redirigir a cliente_inicio, más adelante crear dashboard de admin
-        Intent intent = new Intent(this, cliente_inicio.class);
+        Intent intent = new Intent(this, admin_dashboard.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();

@@ -15,6 +15,8 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.util.Map;
+
 /**
  * Activity inicial - Verifica autenticación de Firebase y redirige
  */
@@ -131,26 +133,37 @@ public class SplashActivity extends AppCompatActivity {
      * Migrar documento de admin pre-registrado al UID correcto
      */
     private void migratePreRegisteredAdmin(DocumentSnapshot oldDoc, FirebaseUser user) {
-        // Copiar datos al nuevo documento con UID
-        db.collection(AuthConstants.COLLECTION_USUARIOS)
-                .document(user.getUid())
-                .set(oldDoc.getData())
-                .addOnSuccessListener(aVoid -> {
-                    // Actualizar con UID
-                    db.collection(AuthConstants.COLLECTION_USUARIOS)
-                            .document(user.getUid())
-                            .update(AuthConstants.FIELD_UID, user.getUid())
-                            .addOnSuccessListener(aVoid2 -> {
-                                // Eliminar documento antiguo
-                                oldDoc.getReference().delete();
-                                // Redirigir a completar perfil de admin
-                                redirectToCompleteAdminProfile();
-                            });
-                })
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "Error al migrar documento", e);
-                    goToLogin();
-                });
+        Map<String, Object> data = oldDoc.getData();
+        if (data != null) {
+            // Copiar datos al nuevo documento con UID
+            data.put(AuthConstants.FIELD_UID, user.getUid());
+            
+            db.collection(AuthConstants.COLLECTION_USUARIOS)
+                    .document(user.getUid())
+                    .set(data)
+                    .addOnSuccessListener(aVoid -> {
+                        Log.d(TAG, "Documento migrado exitosamente");
+                        // Eliminar documento antiguo
+                        oldDoc.getReference().delete()
+                                .addOnSuccessListener(aVoid2 -> {
+                                    Log.d(TAG, "Documento antiguo eliminado");
+                                    // Redirigir a completar perfil de admin
+                                    redirectToCompleteAdminProfile();
+                                })
+                                .addOnFailureListener(e -> {
+                                    Log.e(TAG, "Error al eliminar documento antiguo", e);
+                                    // Aún así continuar
+                                    redirectToCompleteAdminProfile();
+                                });
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.e(TAG, "Error al migrar documento", e);
+                        goToLogin();
+                    });
+        } else {
+            Log.e(TAG, "No hay datos en el documento antiguo");
+            goToLogin();
+        }
     }
 
     /**
@@ -214,8 +227,7 @@ public class SplashActivity extends AppCompatActivity {
         } else if (AuthConstants.ROLE_GUIA.equals(rol)) {
             intent = new Intent(this, guia_tours_ofertas.class);
         } else if (AuthConstants.ROLE_ADMIN.equals(rol)) {
-            // Por ahora redirigir a cliente_inicio, más adelante crear dashboard de admin
-            intent = new Intent(this, cliente_inicio.class);
+            intent = new Intent(this, admin_dashboard.class);
         } else {
             // Rol desconocido → Ir a selección de rol
             redirectToRoleSelection();
