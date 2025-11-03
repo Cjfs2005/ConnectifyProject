@@ -193,71 +193,110 @@ public class SaUsersFragment extends Fragment {
     }
 
     private void loadUsersFromFirebase() {
+        // Primero cargar usuarios con perfil completo
         db.collection(AuthConstants.COLLECTION_USUARIOS)
                 .whereEqualTo(AuthConstants.FIELD_PERFIL_COMPLETO, true)
                 .get()
                 .addOnSuccessListener(querySnapshot -> {
                     List<User> users = new ArrayList<>();
                     for (DocumentSnapshot doc : querySnapshot.getDocuments()) {
-                        try {
-                            String uid = doc.getId();
-                            String nombreCompleto = doc.getString(AuthConstants.FIELD_NOMBRE_COMPLETO);
-                            String dni = doc.getString(AuthConstants.FIELD_NUMERO_DOCUMENTO);
-                            String tipoDocumento = doc.getString(AuthConstants.FIELD_TIPO_DOCUMENTO);
-                            String rolStr = doc.getString(AuthConstants.FIELD_ROL);
-                            String email = doc.getString(AuthConstants.FIELD_EMAIL);
-                            String telefono = doc.getString(AuthConstants.FIELD_TELEFONO);
-                            String direccion = doc.getString(AuthConstants.FIELD_DOMICILIO);
-                            String fechaNacimiento = doc.getString(AuthConstants.FIELD_FECHA_NACIMIENTO);
-                            Boolean habilitado = doc.getBoolean(AuthConstants.FIELD_HABILITADO);
-                            String photoUrl = doc.getString(AuthConstants.FIELD_PHOTO_URL);
-                            
-                            // Separar nombre y apellidos (si están juntos)
-                            String nombre = "";
-                            String apellidos = "";
-                            if (nombreCompleto != null && !nombreCompleto.isEmpty()) {
-                                String[] partes = nombreCompleto.split(" ", 2);
-                                nombre = partes[0];
-                                if (partes.length > 1) {
-                                    apellidos = partes[1];
-                                }
-                            }
-                            
-                            // Variables finales para usar en lambda
-                            final String finalNombre = nombre;
-                            final String finalApellidos = apellidos;
-                            
-                            // Convertir rol
-                            Role role = convertRole(rolStr);
-                            
-                            // Crear objeto User
-                            User user = new User(
-                                    finalNombre,
-                                    finalApellidos,
-                                    dni != null ? dni : "",
-                                    "", // company no se usa
-                                    role,
-                                    tipoDocumento,
-                                    fechaNacimiento,
-                                    email,
-                                    telefono,
-                                    direccion,
-                                    photoUrl
-                            );
-                            
-                            user.setUid(uid);
-                            user.setEnabled(habilitado != null ? habilitado : true);
-                            
+                        User user = parseUserDocument(doc, true);
+                        if (user != null) {
                             users.add(user);
-                        } catch (Exception e) {
-                            Log.e(TAG, "Error parsing user document", e);
                         }
                     }
-                    adapter.replaceAll(users);
+                    
+                    // Luego cargar administradores con perfil incompleto
+                    db.collection(AuthConstants.COLLECTION_USUARIOS)
+                            .whereEqualTo(AuthConstants.FIELD_PERFIL_COMPLETO, false)
+                            .whereEqualTo(AuthConstants.FIELD_ROL, AuthConstants.ROLE_ADMIN)
+                            .get()
+                            .addOnSuccessListener(incompleteSnapshot -> {
+                                for (DocumentSnapshot doc : incompleteSnapshot.getDocuments()) {
+                                    User user = parseUserDocument(doc, false);
+                                    if (user != null) {
+                                        users.add(user);
+                                    }
+                                }
+                                adapter.replaceAll(users);
+                            })
+                            .addOnFailureListener(e -> {
+                                Log.e(TAG, "Error loading incomplete admins", e);
+                                // Mostrar al menos los usuarios completos
+                                adapter.replaceAll(users);
+                            });
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Error loading users", e);
                 });
+    }
+    
+    private User parseUserDocument(DocumentSnapshot doc, boolean profileComplete) {
+        try {
+            String uid = doc.getId();
+            String nombreCompleto = doc.getString(AuthConstants.FIELD_NOMBRE_COMPLETO);
+            String dni = doc.getString(AuthConstants.FIELD_NUMERO_DOCUMENTO);
+            String tipoDocumento = doc.getString(AuthConstants.FIELD_TIPO_DOCUMENTO);
+            String rolStr = doc.getString(AuthConstants.FIELD_ROL);
+            String email = doc.getString(AuthConstants.FIELD_EMAIL);
+            String telefono = doc.getString(AuthConstants.FIELD_TELEFONO);
+            String direccion = doc.getString(AuthConstants.FIELD_DOMICILIO);
+            String fechaNacimiento = doc.getString(AuthConstants.FIELD_FECHA_NACIMIENTO);
+            Boolean habilitado = doc.getBoolean(AuthConstants.FIELD_HABILITADO);
+            String photoUrl = doc.getString(AuthConstants.FIELD_PHOTO_URL);
+            String nombreEmpresa = doc.getString(AuthConstants.FIELD_NOMBRE_EMPRESA);
+            
+            // Si no hay foto, usar la foto por defecto de Firebase Storage
+            if (photoUrl == null || photoUrl.isEmpty()) {
+                photoUrl = AuthConstants.DEFAULT_PHOTO_HTTP_URL;
+            }
+            
+            // Para admins con perfil incompleto, usar nombre especial
+            String nombre = "";
+            String apellidos = "";
+            
+            if (!profileComplete && rolStr != null && rolStr.equals(AuthConstants.ROLE_ADMIN)) {
+                // Admin con perfil incompleto: "Administrador de <nombre empresa>"
+                nombre = "Administrador de " + (nombreEmpresa != null ? nombreEmpresa : "Empresa");
+                apellidos = "";
+            } else {
+                // Usuario normal: separar nombre y apellidos
+                if (nombreCompleto != null && !nombreCompleto.isEmpty()) {
+                    String[] partes = nombreCompleto.split(" ", 2);
+                    nombre = partes[0];
+                    if (partes.length > 1) {
+                        apellidos = partes[1];
+                    }
+                }
+            }
+            
+            // Convertir rol
+            Role role = convertRole(rolStr);
+            
+            // Crear objeto User
+            User user = new User(
+                    nombre,
+                    apellidos,
+                    dni != null ? dni : "",
+                    nombreEmpresa != null ? nombreEmpresa : "", // company
+                    role,
+                    tipoDocumento,
+                    fechaNacimiento,
+                    email,
+                    telefono,
+                    direccion,
+                    photoUrl
+            );
+            
+            user.setUid(uid);
+            user.setEnabled(habilitado != null ? habilitado : true);
+            user.setProfileComplete(profileComplete);
+            
+            return user;
+        } catch (Exception e) {
+            Log.e(TAG, "Error parsing user document", e);
+            return null;
+        }
     }
     
     private Role convertRole(String rolStr) {

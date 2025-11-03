@@ -74,5 +74,8 @@ public class AuthConstants {
     
     // URL de imagen por defecto en Firebase Storage
     public static final String DEFAULT_PHOTO_URL = "gs://iot-proyecto-f817d.firebasestorage.app/default.png";
+    
+    // URL HTTP de imagen por defecto (para Glide)
+    public static final String DEFAULT_PHOTO_HTTP_URL = "https://firebasestorage.googleapis.com/v0/b/iot-proyecto-f817d.firebasestorage.app/o/default.png?alt=media";
 }
 

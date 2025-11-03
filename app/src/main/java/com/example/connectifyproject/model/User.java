@@ -31,6 +31,9 @@ public class User implements Parcelable, Serializable {
     
     // Estado de habilitación (mutable)
     private boolean enabled;
+    
+    // Estado de perfil completo (mutable)
+    private boolean profileComplete;
 
     // Constructor completo
     public User(String name,
@@ -57,6 +60,7 @@ public class User implements Parcelable, Serializable {
         this.address = address;
         this.photoUri = photoUri;
         this.enabled = true; // Por defecto habilitado
+        this.profileComplete = true; // Por defecto completo
     }
 
     // Constructor antiguo (compatibilidad): asume docType = "DNI" y sin extras
@@ -79,12 +83,16 @@ public class User implements Parcelable, Serializable {
     @Nullable public String getPhotoUri(){ return photoUri; }
     @Nullable public String getUid()     { return uid; }
     public boolean isEnabled()           { return enabled; }
+    public boolean isProfileComplete()   { return profileComplete; }
     
     // Setter para uid (necesario para Firebase)
     public void setUid(@Nullable String uid) { this.uid = uid; }
     
     // Setter para enabled (necesario para Firebase)
     public void setEnabled(boolean enabled) { this.enabled = enabled; }
+    
+    // Setter para profileComplete (necesario para Firebase)
+    public void setProfileComplete(boolean profileComplete) { this.profileComplete = profileComplete; }
 
     // Útil para el "circulito" inicial del avatar
     public String getInitial() {
@@ -113,6 +121,7 @@ public class User implements Parcelable, Serializable {
         this.photoUri = in.readString();
         this.uid = in.readString();
         this.enabled = in.readByte() != 0;
+        this.profileComplete = in.readByte() != 0;
     }
 
     @Override
@@ -130,6 +139,7 @@ public class User implements Parcelable, Serializable {
         dest.writeString(this.photoUri);
         dest.writeString(this.uid);
         dest.writeByte((byte) (this.enabled ? 1 : 0));
+        dest.writeByte((byte) (this.profileComplete ? 1 : 0));
     }
 
     @Override

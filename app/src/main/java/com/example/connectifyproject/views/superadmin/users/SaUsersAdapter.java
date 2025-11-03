@@ -65,7 +65,7 @@ public class SaUsersAdapter extends RecyclerView.Adapter<SaUsersAdapter.VH> {
 
             if (!query.isEmpty()) {
                 String haystack = (s(u.getName()) + " " + s(u.getLastName()) + " "
-                        + s(u.getDni()) + " " + roleToString(u.getRole())).toLowerCase();
+                        + s(u.getDni()) + " " + s(u.getEmail()) + " " + roleToString(u.getRole())).toLowerCase();
                 if (!haystack.contains(query)) continue;
             }
             items.add(u);
@@ -114,6 +114,9 @@ public class SaUsersAdapter extends RecyclerView.Adapter<SaUsersAdapter.VH> {
         }
 
         void bind(User u, OnUserClickListener listener) {
+            // Determinar si el perfil está incompleto
+            boolean isIncomplete = !u.isProfileComplete();
+            
             // Cargar foto de perfil con Glide
             Glide.with(itemView.getContext())
                     .load(u.getPhotoUri())
@@ -129,9 +132,16 @@ public class SaUsersAdapter extends RecyclerView.Adapter<SaUsersAdapter.VH> {
             }
             tvName.setText(fullName.trim());
 
-            // Subtítulo: DOC + DNI • Rol
-            String doc = u.getDocType() != null ? u.getDocType() : "DNI";
-            String sub = doc + " " + (u.getDni() == null ? "" : u.getDni());
+            // Subtítulo: Para admins incompletos mostrar correo, para otros mostrar DOC + DNI • Rol
+            String sub;
+            if (isIncomplete && u.getRole() == Role.ADMIN) {
+                // Admin incompleto: mostrar correo
+                sub = u.getEmail() != null ? u.getEmail() : "";
+            } else {
+                // Usuario normal: DOC + DNI • Rol
+                String doc = u.getDocType() != null ? u.getDocType() : "DNI";
+                sub = doc + " " + (u.getDni() == null ? "" : u.getDni());
+            }
             String rol = roleToString(u.getRole());
             if (!rol.isEmpty()) {
                 sub += " • " + rol;
@@ -147,8 +157,17 @@ public class SaUsersAdapter extends RecyclerView.Adapter<SaUsersAdapter.VH> {
             }
             vStatusIndicator.setBackgroundTintList(ColorStateList.valueOf(statusColor));
 
-            View.OnClickListener open = v -> { if (listener != null) listener.onView(u); };
-            itemView.setOnClickListener(open);
+            // Si el perfil está incompleto, aplicar sombreado y deshabilitar click
+            if (isIncomplete) {
+                itemView.setAlpha(0.5f); // Sombreado
+                itemView.setOnClickListener(null); // No clickeable
+                itemView.setClickable(false);
+            } else {
+                itemView.setAlpha(1.0f); // Sin sombreado
+                View.OnClickListener open = v -> { if (listener != null) listener.onView(u); };
+                itemView.setOnClickListener(open);
+                itemView.setClickable(true);
+            }
         }
 
         private static String roleToString(Role r) {
