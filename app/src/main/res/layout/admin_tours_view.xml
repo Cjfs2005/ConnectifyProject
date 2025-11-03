@@ -53,7 +53,7 @@
             android:orientation="vertical"
             android:paddingHorizontal="20dp"
             android:paddingTop="24dp"
-            android:paddingBottom="100dp">
+            android:paddingBottom="80dp">
 
             <!-- Barra de búsqueda -->
             <com.google.android.material.textfield.TextInputLayout

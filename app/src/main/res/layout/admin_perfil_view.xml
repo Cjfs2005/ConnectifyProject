@@ -54,7 +54,7 @@
             android:paddingStart="24dp"
             android:paddingEnd="24dp"
             android:paddingTop="24dp"
-            android:paddingBottom="100dp">
+            android:paddingBottom="80dp">
 
             <!-- Logo de la empresa con mejor posicionamiento -->
             <LinearLayout
