@@ -185,6 +185,20 @@
                 app:backgroundTint="@color/brand_purple_dark"
                 app:cornerRadius="20dp" />
 
+            <!-- Botón Cerrar Sesión -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnLogout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="80dp"
+                android:text="Cerrar sesión"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                app:cornerRadius="20dp"
+                app:strokeColor="@color/brand_purple_dark"
+                app:icon="@drawable/ic_logout"
+                app:iconTint="@color/brand_purple_dark"
+                android:textColor="@color/brand_purple_dark" />
+
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 

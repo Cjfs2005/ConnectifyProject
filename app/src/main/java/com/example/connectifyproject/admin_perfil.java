@@ -11,6 +11,7 @@ import androidx.fragment.app.FragmentTransaction;
 import com.example.connectifyproject.databinding.AdminPerfilViewBinding;
 import com.example.connectifyproject.ui.admin.AdminBottomNavFragment;
 import com.example.connectifyproject.utils.GoogleMapsHelper;
+import com.firebase.ui.auth.AuthUI;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -80,6 +81,11 @@ public class admin_perfil extends AppCompatActivity implements OnMapReadyCallbac
         // Botón guardar
         binding.btnSave.setOnClickListener(v -> {
             saveProfileData();
+        });
+
+        // Botón cerrar sesión
+        binding.btnLogout.setOnClickListener(v -> {
+            logout();
         });
     }
 
@@ -211,6 +217,19 @@ public class admin_perfil extends AppCompatActivity implements OnMapReadyCallbac
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         startActivity(intent);
         finish();
+    }
+
+    private void logout() {
+        // Cerrar sesión de Firebase Auth
+        AuthUI.getInstance()
+                .signOut(this)
+                .addOnCompleteListener(task -> {
+                    // Ir al SplashActivity que redirigirá al login
+                    Intent intent = new Intent(this, SplashActivity.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    startActivity(intent);
+                    finish();
+                });
     }
 
     @Override
