@@ -31,12 +31,16 @@
     
     <!-- Grises para texto -->
     <color name="gray">#6D6D6D</color>
+    <color name="gray_dark">#424242</color>
     <color name="gray_600">#666666</color>
     <color name="gray_400">#999999</color>
     <color name="gray_300">#CCCCCC</color>
     
     <!-- Transparente -->
     <color name="transparent">#00000000</color>
+    
+    <!-- Colores básicos adicionales -->
+    <color name="red">#F44336</color>
     
     <!-- Cliente colors -->
     <color name="cliente_progress_active">#7C4DFF</color>

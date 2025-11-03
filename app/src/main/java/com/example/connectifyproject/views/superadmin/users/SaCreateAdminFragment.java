@@ -1,97 +1,120 @@
 package com.example.connectifyproject.views.superadmin.users;
 
-import android.app.DatePickerDialog;
-import android.net.Uri;
 import android.os.Bundle;
+import android.text.TextUtils;
+import android.util.Log;
+import android.util.Patterns;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
-import android.widget.DatePicker;
 import android.widget.Toast;
 
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 
 import com.example.connectifyproject.R;
-import com.example.connectifyproject.databinding.FragmentSaCreateAdminBinding;
+import com.example.connectifyproject.utils.AuthConstants;
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.textfield.TextInputEditText;
+import com.google.firebase.firestore.FirebaseFirestore;
 
-import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Map;
 
 public class SaCreateAdminFragment extends Fragment {
 
-    private FragmentSaCreateAdminBinding binding;
-    private ActivityResultLauncher<String> pickImage;
+    private static final String TAG = "SaCreateAdminFragment";
+
+    private TextInputEditText etEmail, etNombreEmpresa;
+    private MaterialButton btnGuardar;
+    private FirebaseFirestore db;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        binding = FragmentSaCreateAdminBinding.inflate(inflater, container, false);
-        return binding.getRoot();
+        return inflater.inflate(R.layout.fragment_sa_create_admin, container, false);
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        db = FirebaseFirestore.getInstance();
+
+        // Views
+        etEmail = view.findViewById(R.id.etEmail);
+        etNombreEmpresa = view.findViewById(R.id.etNombreEmpresa);
+        btnGuardar = view.findViewById(R.id.btnGuardar);
+
         // Botón atrás
-        binding.btnBack.setOnClickListener(v ->
+        view.findViewById(R.id.btnBack).setOnClickListener(v ->
                 NavHostFragment.findNavController(this).popBackStack()
         );
 
-        // Dropdown Tipo de documento
-        String[] docTypes = getResources().getStringArray(R.array.sa_doc_types);
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(),
-                android.R.layout.simple_list_item_1, docTypes);
-        binding.actvDocType.setAdapter(adapter);
-        binding.actvDocType.setOnItemClickListener((parent, v, position, id) -> {
-            binding.tilDocNumber.setVisibility(View.VISIBLE);
-        });
-
-        // DatePicker
-        View.OnClickListener openPicker = v -> showDatePicker();
-        binding.etBirth.setOnClickListener(openPicker);
-        binding.tilBirth.setEndIconOnClickListener(openPicker);
-
-        // Picker de imagen (galería) + mostrar preview SOLO cuando se elige
-        pickImage = registerForActivityResult(new ActivityResultContracts.GetContent(), (Uri uri) -> {
-            if (uri != null) {
-                binding.imgPreview.setImageURI(uri);
-                binding.imgPreview.setVisibility(View.VISIBLE);
-            }
-        });
-        binding.btnPickPhoto.setOnClickListener(v ->
-                pickImage.launch("image/*")
-        );
-
-        // Guardar: aquí validarías/enviarías; por ahora solo feedback y VOLVER a la lista
-        binding.btnSave.setOnClickListener(v -> {
-            Toast.makeText(requireContext(), "Administrador guardado", Toast.LENGTH_SHORT).show();
-            NavHostFragment.findNavController(this).popBackStack(); // regresar a Gestión (lista)
-        });
+        // Botón guardar
+        btnGuardar.setOnClickListener(v -> createAdmin());
     }
 
-    private void showDatePicker() {
-        final Calendar c = Calendar.getInstance();
-        DatePickerDialog dlg = new DatePickerDialog(requireContext(),
-                (DatePicker datePicker, int y, int m, int d) -> {
-                    String mm = String.format("%02d", m + 1);
-                    String dd = String.format("%02d", d);
-                    binding.etBirth.setText(mm + "/" + dd + "/" + y);
-                },
-                c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH));
-        dlg.show();
+    private void createAdmin() {
+        String email = etEmail.getText() != null ? etEmail.getText().toString().trim() : "";
+        String nombreEmpresa = etNombreEmpresa.getText() != null ? etNombreEmpresa.getText().toString().trim() : "";
+
+        // Validar email
+        if (TextUtils.isEmpty(email) || !Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            Toast.makeText(requireContext(), "Ingresa un correo electrónico válido", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Validar nombre empresa
+        if (TextUtils.isEmpty(nombreEmpresa)) {
+            Toast.makeText(requireContext(), "Ingresa el nombre de la empresa", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        btnGuardar.setEnabled(false);
+        btnGuardar.setText("Creando...");
+
+        // Crear documento pre-registro en Firestore
+        // Usamos el email como ID del documento (pero será reemplazado con UID cuando se autentique)
+        // Por ahora guardamos en una subcolección o con un flag especial
+        String preRegistroId = email.replace(".", "_").replace("@", "_at_");
+        
+        Map<String, Object> adminData = new HashMap<>();
+        adminData.put(AuthConstants.FIELD_EMAIL, email);
+        adminData.put(AuthConstants.FIELD_NOMBRE_EMPRESA, nombreEmpresa);
+        adminData.put(AuthConstants.FIELD_ROL, AuthConstants.ROLE_ADMIN);
+        adminData.put(AuthConstants.FIELD_PERFIL_COMPLETO, false);
+        adminData.put(AuthConstants.FIELD_HABILITADO, false); // Se habilitará al completar registro
+        adminData.put(AuthConstants.FIELD_FECHA_CREACION, com.google.firebase.Timestamp.now());
+        adminData.put(AuthConstants.FIELD_SUMA_RESENIAS, 0);
+        adminData.put(AuthConstants.FIELD_NUMERO_RESENIAS, 0);
+
+        db.collection(AuthConstants.COLLECTION_USUARIOS)
+                .document(preRegistroId)
+                .set(adminData)
+                .addOnSuccessListener(aVoid -> {
+                    Log.d(TAG, "Pre-registro de admin creado exitosamente");
+                    Toast.makeText(requireContext(), "Administrador pre-registrado. Debe iniciar sesión con: " + email, Toast.LENGTH_LONG).show();
+                    NavHostFragment.findNavController(this).popBackStack();
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error al crear pre-registro", e);
+                    Toast.makeText(requireContext(), "Error al crear administrador", Toast.LENGTH_SHORT).show();
+                    btnGuardar.setEnabled(true);
+                    btnGuardar.setText("Crear Administrador");
+                });
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        binding = null;
+        etEmail = null;
+        etNombreEmpresa = null;
+        btnGuardar = null;
+        db = null;
     }
 }

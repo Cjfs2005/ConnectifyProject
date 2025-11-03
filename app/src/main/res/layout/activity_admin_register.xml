@@ -1,0 +1,272 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:background="@color/white">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <!-- Header -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Completa tu Perfil de Administrador"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:textColor="@color/black"
+            android:gravity="center"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Completa la información de tu empresa de turismo"
+            android:textSize="14sp"
+            android:textColor="@color/gray_dark"
+            android:gravity="center"
+            android:layout_marginBottom="24dp" />
+
+        <!-- Foto de perfil -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="16dp">
+
+            <ImageView
+                android:id="@+id/ivProfilePhoto"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:src="@drawable/ic_account_circle_24"
+                android:scaleType="centerCrop"
+                android:background="@drawable/bg_avatar_round"
+                android:contentDescription="Foto de perfil" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSelectPhoto"
+                style="@style/Widget.Material3.Button.TonalButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:text="Seleccionar foto"
+                app:icon="@drawable/ic_image_24" />
+        </LinearLayout>
+
+        <!-- Nombres -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilNombres"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etNombres"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Nombres"
+                android:inputType="textCapWords" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Apellidos -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilApellidos"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etApellidos"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Apellidos"
+                android:inputType="textCapWords" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Tipo de Documento -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilTipoDoc"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            app:endIconMode="dropdown_menu">
+
+            <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                android:id="@+id/actvTipoDoc"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Tipo de documento"
+                android:inputType="none" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Número de Documento -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilNumeroDoc"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etNumeroDoc"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Número de documento"
+                android:inputType="number" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Correo (solo lectura) -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilEmail"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            app:startIconDrawable="@drawable/ic_email_24">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etEmail"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Correo electrónico"
+                android:inputType="textEmailAddress"
+                android:enabled="false" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Nombre de Empresa (solo lectura) -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilNombreEmpresa"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            app:startIconDrawable="@drawable/ic_business_24">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etNombreEmpresa"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Nombre de la empresa"
+                android:inputType="textCapWords"
+                android:enabled="false" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Descripción de la Empresa -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilDescripcionEmpresa"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etDescripcionEmpresa"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Descripción de la empresa"
+                android:inputType="textMultiLine"
+                android:minLines="3"
+                android:maxLines="5"
+                android:gravity="top" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Ubicación de la Empresa -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilUbicacionEmpresa"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            app:startIconDrawable="@drawable/ic_location_24">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etUbicacionEmpresa"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Ubicación de la empresa"
+                android:inputType="textPostalAddress" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Correo de la Empresa -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilCorreoEmpresa"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            app:startIconDrawable="@drawable/ic_email_24">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etCorreoEmpresa"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Correo de contacto de la empresa"
+                android:inputType="textEmailAddress" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Teléfono de la Empresa -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilTelefonoEmpresa"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            app:startIconDrawable="@drawable/ic_phone_24">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etTelefonoEmpresa"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Teléfono de la empresa"
+                android:inputType="phone" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Fotos Promocionales -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Fotos Promocionales (mínimo 2)"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@color/black"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSelectPromotionalPhotos"
+            style="@style/Widget.Material3.Button.TonalButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Seleccionar fotos promocionales"
+            app:icon="@drawable/ic_image_24"
+            android:layout_marginBottom="8dp" />
+
+        <!-- RecyclerView para mostrar las fotos seleccionadas -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvPromotionalPhotos"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/tvPhotoCount"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="0 fotos seleccionadas (mínimo 2)"
+            android:textSize="12sp"
+            android:textColor="@color/gray_dark"
+            android:layout_marginBottom="24dp" />
+
+        <!-- Botón Completar Registro -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnGuardar"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:text="Completar Registro"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:cornerRadius="8dp" />
+
+    </LinearLayout>
+
+</ScrollView>

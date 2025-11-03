@@ -157,6 +157,79 @@ public class StorageHelper {
     }
     
     /**
+     * Sube una foto promocional de empresa
+     * 
+     * @param context Contexto de la aplicación
+     * @param imageUri URI de la imagen seleccionada
+     * @param userId ID del usuario (uid de Firebase Auth)
+     * @param photoIndex Índice de la foto (0, 1, 2, etc.)
+     * @param callback Callback para el resultado
+     */
+    public void uploadCompanyPhoto(Context context, Uri imageUri, String userId, int photoIndex, UploadCallback callback) {
+        try {
+            // Leer y comprimir la imagen
+            InputStream inputStream = context.getContentResolver().openInputStream(imageUri);
+            if (inputStream == null) {
+                callback.onFailure(new Exception("No se pudo leer la imagen"));
+                return;
+            }
+            
+            Bitmap originalBitmap = BitmapFactory.decodeStream(inputStream);
+            inputStream.close();
+            
+            if (originalBitmap == null) {
+                callback.onFailure(new Exception("Imagen inválida"));
+                return;
+            }
+            
+            // Comprimir y redimensionar
+            Bitmap compressedBitmap = compressImage(originalBitmap);
+            byte[] imageData = bitmapToByteArray(compressedBitmap);
+            
+            Log.d(TAG, "Imagen empresarial comprimida: " + imageData.length + " bytes");
+            
+            // Subir a Firebase Storage en carpeta empresas
+            StorageReference photoRef = storage.getReference()
+                    .child("empresas")
+                    .child(userId)
+                    .child("promo_" + photoIndex + ".jpg");
+            
+            UploadTask uploadTask = photoRef.putBytes(imageData);
+            
+            // Monitorear progreso
+            uploadTask.addOnProgressListener(taskSnapshot -> {
+                double progress = (100.0 * taskSnapshot.getBytesTransferred()) / taskSnapshot.getTotalByteCount();
+                callback.onProgress(progress);
+            });
+            
+            // Resultado final
+            uploadTask.addOnSuccessListener(taskSnapshot -> {
+                // Obtener URL de descarga
+                photoRef.getDownloadUrl().addOnSuccessListener(uri -> {
+                    String downloadUrl = uri.toString();
+                    Log.d(TAG, "Foto empresarial subida exitosamente: " + downloadUrl);
+                    callback.onSuccess(downloadUrl);
+                }).addOnFailureListener(callback::onFailure);
+            }).addOnFailureListener(e -> {
+                Log.e(TAG, "Error al subir foto empresarial", e);
+                callback.onFailure(e);
+            });
+            
+            // Liberar memoria
+            if (!originalBitmap.isRecycled()) {
+                originalBitmap.recycle();
+            }
+            if (!compressedBitmap.isRecycled()) {
+                compressedBitmap.recycle();
+            }
+            
+        } catch (Exception e) {
+            Log.e(TAG, "Error procesando imagen empresarial", e);
+            callback.onFailure(e);
+        }
+    }
+    
+    /**
      * Elimina la foto de perfil de un usuario
      */
     public void deleteProfilePhoto(String userId, UploadCallback callback) {

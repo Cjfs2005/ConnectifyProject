@@ -54,6 +54,7 @@
         <activity android:name=".RoleSelectionActivity" android:exported="false" />
         <activity android:name=".ClientRegisterActivity" android:exported="false" />
         <activity android:name=".GuiaRegisterActivity" android:exported="false" />
+        <activity android:name=".AdminRegisterActivity" android:exported="false" />
 
         <!-- Register Activities (OLD - to be removed) -->
         <activity android:name=".RegisterTypeSelectionActivity" android:exported="false" />

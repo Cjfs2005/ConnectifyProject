@@ -44,6 +44,16 @@ public class AuthConstants {
     // Campos específicos de Guía
     public static final String FIELD_IDIOMAS = "idiomas";
     
+    // Campos específicos de Administrador
+    public static final String FIELD_NOMBRE_EMPRESA = "nombreEmpresa";
+    public static final String FIELD_DESCRIPCION_EMPRESA = "descripcionEmpresa";
+    public static final String FIELD_UBICACION_EMPRESA = "ubicacionEmpresa";
+    public static final String FIELD_CORREO_EMPRESA = "correoEmpresa";
+    public static final String FIELD_TELEFONO_EMPRESA = "telefonoEmpresa";
+    public static final String FIELD_FOTOS_EMPRESA = "fotosEmpresa"; // Array de URLs
+    public static final String FIELD_SUMA_RESENIAS = "sumaResenias"; // Suma total de puntuaciones
+    public static final String FIELD_NUMERO_RESENIAS = "numeroResenias"; // Cantidad de reseñas
+    
     // Tipos de documento
     public static final String[] TIPOS_DOCUMENTO = {
         "DNI",
