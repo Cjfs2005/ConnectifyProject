@@ -307,10 +307,12 @@ public class AdminRegisterActivity extends AppCompatActivity implements Promotio
     private void uploadPhotos(String nombreCompleto, String tipoDoc, String numeroDoc, String nombreEmpresa,
                               String descripcion, String ubicacion, String correoEmpresa, String telefonoEmpresa) {
         String uid = currentUser.getUid();
-        List<String> promotionalPhotoUrls = new ArrayList<>();
-        AtomicInteger uploadCount = new AtomicInteger(0);
         List<Uri> promotionalPhotos = promotionalPhotosAdapter.getPhotos();
         int totalPhotos = promotionalPhotos.size() + (profilePhotoUri != null ? 1 : 0);
+        
+        // Usar array para mantener el orden de las fotos promocionales
+        final String[] promotionalPhotoUrls = new String[promotionalPhotos.size()];
+        AtomicInteger uploadCount = new AtomicInteger(0);
         
         // Variable para guardar la URL de la foto de perfil
         final String[] profilePhotoUrl = new String[1];
@@ -318,20 +320,28 @@ public class AdminRegisterActivity extends AppCompatActivity implements Promotio
         // Callback para cuando todas las fotos estén subidas
         Runnable onAllPhotosUploaded = () -> {
             if (uploadCount.get() == totalPhotos) {
+                // Convertir array a lista, filtrando nulls por si acaso
+                List<String> photosList = new ArrayList<>();
+                for (String url : promotionalPhotoUrls) {
+                    if (url != null && !url.isEmpty()) {
+                        photosList.add(url);
+                    }
+                }
                 saveToFirestore(nombreCompleto, tipoDoc, numeroDoc, nombreEmpresa, descripcion, ubicacion,
-                        correoEmpresa, telefonoEmpresa, promotionalPhotoUrls, profilePhotoUrl[0]);
+                        correoEmpresa, telefonoEmpresa, photosList, profilePhotoUrl[0]);
             }
         };
 
         // Subir fotos promocionales
         for (int i = 0; i < promotionalPhotos.size(); i++) {
             Uri photoUri = promotionalPhotos.get(i);
-            int photoIndex = i;
+            final int photoIndex = i; // Importante: final para usar en lambda
             
             storageHelper.uploadCompanyPhoto(this, photoUri, uid, photoIndex, new StorageHelper.UploadCallback() {
                 @Override
                 public void onSuccess(String downloadUrl) {
-                    promotionalPhotoUrls.add(downloadUrl);
+                    // Guardar en la posición correcta del array
+                    promotionalPhotoUrls[photoIndex] = downloadUrl;
                     uploadCount.incrementAndGet();
                     onAllPhotosUploaded.run();
                 }
