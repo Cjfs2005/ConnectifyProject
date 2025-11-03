@@ -310,11 +310,6 @@ public class AdminRegisterActivity extends AppCompatActivity implements Promotio
         List<Uri> promotionalPhotos = promotionalPhotosAdapter.getPhotos();
         int totalPhotos = promotionalPhotos.size() + (profilePhotoUri != null ? 1 : 0);
         
-        Log.d(TAG, "=== INICIO UPLOAD PHOTOS ===");
-        Log.d(TAG, "Total fotos promocionales: " + promotionalPhotos.size());
-        Log.d(TAG, "Tiene foto de perfil: " + (profilePhotoUri != null));
-        Log.d(TAG, "Total fotos a subir: " + totalPhotos);
-        
         // Usar array para mantener el orden de las fotos promocionales
         final String[] promotionalPhotoUrls = new String[promotionalPhotos.size()];
         AtomicInteger uploadCount = new AtomicInteger(0);
@@ -328,53 +323,42 @@ public class AdminRegisterActivity extends AppCompatActivity implements Promotio
             synchronized (promotionalPhotoUrls) {
                 // Verificar que no se haya llamado ya
                 if (saveToFirestoreCalled[0]) {
-                    Log.d(TAG, "saveToFirestore ya fue llamado, ignorando callback adicional");
                     return;
                 }
                 
-                int currentCount = uploadCount.get();
-                Log.d(TAG, "onAllPhotosUploaded ejecutado - Count actual: " + currentCount + " / Total esperado: " + totalPhotos);
-                
-                if (currentCount == totalPhotos) {
-                    // Verificar que todas las URLs promocionales estén presentes
-                    boolean allUrlsPresent = true;
-                    for (int idx = 0; idx < promotionalPhotoUrls.length; idx++) {
-                        if (promotionalPhotoUrls[idx] == null || promotionalPhotoUrls[idx].isEmpty()) {
-                            Log.w(TAG, "⚠️ URL de foto promocional [" + idx + "] aún no está disponible");
-                            allUrlsPresent = false;
-                            break;
-                        }
+                // Verificar que todas las URLs promocionales estén presentes
+                boolean allPromotionalUrlsPresent = true;
+                for (int idx = 0; idx < promotionalPhotoUrls.length; idx++) {
+                    if (promotionalPhotoUrls[idx] == null || promotionalPhotoUrls[idx].isEmpty()) {
+                        allPromotionalUrlsPresent = false;
+                        break;
                     }
-                    
-                    // Si la foto de perfil es requerida, verificar que también esté presente
-                    if (allUrlsPresent && profilePhotoUri != null && profilePhotoUrl[0] == null) {
-                        Log.w(TAG, "⚠️ URL de foto de perfil aún no está disponible");
-                        allUrlsPresent = false;
-                    }
-                    
-                    if (!allUrlsPresent) {
-                        Log.d(TAG, "Esperando que todas las URLs estén disponibles...");
-                        return; // Salir y esperar el siguiente callback
-                    }
-                    
-                    // Marcar como llamado
-                    saveToFirestoreCalled[0] = true;
-                    
-                    // Convertir array a lista, filtrando nulls por si acaso
-                    List<String> photosList = new ArrayList<>();
-                    for (int idx = 0; idx < promotionalPhotoUrls.length; idx++) {
-                        String url = promotionalPhotoUrls[idx];
-                        Log.d(TAG, "Foto promocional [" + idx + "]: " + (url != null ? url : "NULL"));
-                        if (url != null && !url.isEmpty()) {
-                            photosList.add(url);
-                        }
-                    }
-                    Log.d(TAG, "Total URLs en photosList: " + photosList.size());
-                    Log.d(TAG, "=== FIN UPLOAD - Llamando saveToFirestore ===");
-                    
-                    saveToFirestore(nombreCompleto, tipoDoc, numeroDoc, nombreEmpresa, descripcion, ubicacion,
-                            correoEmpresa, telefonoEmpresa, photosList, profilePhotoUrl[0]);
                 }
+                
+                // Solo verificar foto de perfil si es requerida
+                boolean profilePhotoReady = true;
+                if (profilePhotoUri != null && (profilePhotoUrl[0] == null || profilePhotoUrl[0].isEmpty())) {
+                    profilePhotoReady = false;
+                } else if (profilePhotoUri == null && (profilePhotoUrl[0] == null || profilePhotoUrl[0].isEmpty())) {
+                    profilePhotoReady = false;
+                }
+                
+                // Solo proceder si TODAS las fotos están listas
+                if (!allPromotionalUrlsPresent || !profilePhotoReady) {
+                    return; // Salir y esperar el siguiente callback
+                }
+                
+                // Marcar como llamado ANTES de procesar
+                saveToFirestoreCalled[0] = true;
+                
+                // Convertir array a lista
+                List<String> photosList = new ArrayList<>();
+                for (int idx = 0; idx < promotionalPhotoUrls.length; idx++) {
+                    photosList.add(promotionalPhotoUrls[idx]);
+                }
+                
+                saveToFirestore(nombreCompleto, tipoDoc, numeroDoc, nombreEmpresa, descripcion, ubicacion,
+                        correoEmpresa, telefonoEmpresa, photosList, profilePhotoUrl[0]);
             }
         };
 
@@ -382,24 +366,21 @@ public class AdminRegisterActivity extends AppCompatActivity implements Promotio
         for (int i = 0; i < promotionalPhotos.size(); i++) {
             Uri photoUri = promotionalPhotos.get(i);
             final int photoIndex = i; // Importante: final para usar en lambda
-            Log.d(TAG, "Iniciando subida de foto promocional [" + photoIndex + "]");
             
             storageHelper.uploadCompanyPhoto(this, photoUri, uid, photoIndex, new StorageHelper.UploadCallback() {
                 @Override
                 public void onSuccess(String downloadUrl) {
-                    Log.d(TAG, "✓ Foto promocional [" + photoIndex + "] subida exitosamente: " + downloadUrl);
                     // Usar synchronized para garantizar atomicidad
                     synchronized (promotionalPhotoUrls) {
                         promotionalPhotoUrls[photoIndex] = downloadUrl;
-                        int count = uploadCount.incrementAndGet();
-                        Log.d(TAG, "Upload count incrementado a: " + count);
+                        uploadCount.incrementAndGet();
                     }
                     onAllPhotosUploaded.run();
                 }
 
                 @Override
                 public void onFailure(Exception e) {
-                    Log.e(TAG, "✗ Error al subir foto promocional [" + photoIndex + "]", e);
+                    Log.e(TAG, "Error al subir foto promocional [" + photoIndex + "]", e);
                     runOnUiThread(() -> {
                         Toast.makeText(AdminRegisterActivity.this, "Error al subir fotos", Toast.LENGTH_SHORT).show();
                         btnGuardar.setEnabled(true);
@@ -485,16 +466,6 @@ public class AdminRegisterActivity extends AppCompatActivity implements Promotio
                                  String telefonoEmpresa, List<String> fotosEmpresa, String photoUrl) {
         String uid = currentUser.getUid();
 
-        Log.d(TAG, "=== GUARDANDO EN FIRESTORE ===");
-        Log.d(TAG, "UID: " + uid);
-        Log.d(TAG, "Nombre Empresa: " + nombreEmpresa);
-        Log.d(TAG, "Fotos empresa recibidas: " + (fotosEmpresa != null ? fotosEmpresa.size() : "NULL"));
-        if (fotosEmpresa != null) {
-            for (int i = 0; i < fotosEmpresa.size(); i++) {
-                Log.d(TAG, "  Foto [" + i + "]: " + fotosEmpresa.get(i));
-            }
-        }
-
         Map<String, Object> adminData = new HashMap<>();
         adminData.put(AuthConstants.FIELD_EMAIL, currentUser.getEmail());
         adminData.put(AuthConstants.FIELD_ROL, AuthConstants.ROLE_ADMIN);
@@ -517,8 +488,6 @@ public class AdminRegisterActivity extends AppCompatActivity implements Promotio
         adminData.put(AuthConstants.FIELD_TELEFONO_EMPRESA, telefonoEmpresa);
         adminData.put(AuthConstants.FIELD_FOTOS_EMPRESA, fotosEmpresa);
         
-        Log.d(TAG, "Fotos empresa en adminData: " + adminData.get(AuthConstants.FIELD_FOTOS_EMPRESA));
-        
         // Campos de reseñas
         adminData.put(AuthConstants.FIELD_SUMA_RESENIAS, 0);
         adminData.put(AuthConstants.FIELD_NUMERO_RESENIAS, 0);
@@ -528,14 +497,12 @@ public class AdminRegisterActivity extends AppCompatActivity implements Promotio
                 .document(uid)
                 .set(adminData)
                 .addOnSuccessListener(aVoid -> {
-                    Log.d(TAG, "✓ Administrador guardado exitosamente en Firestore");
-                    Log.d(TAG, "=== PROCESO COMPLETADO ===");
+                    Log.d(TAG, "Administrador guardado exitosamente");
                     Toast.makeText(this, "¡Registro completado exitosamente!", Toast.LENGTH_SHORT).show();
-                    // Redirigir al dashboard de admin (por ahora a cliente_inicio)
                     redirectToAdminDashboard();
                 })
                 .addOnFailureListener(e -> {
-                    Log.e(TAG, "✗ Error al guardar administrador en Firestore", e);
+                    Log.e(TAG, "Error al guardar administrador", e);
                     Toast.makeText(this, "Error al guardar los datos", Toast.LENGTH_SHORT).show();
                     btnGuardar.setEnabled(true);
                     btnGuardar.setText("Completar Registro");
