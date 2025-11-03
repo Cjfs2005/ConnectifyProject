@@ -14,9 +14,12 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.example.connectifyproject.R;
+import com.example.connectifyproject.adapters.CompanyPhotosAdapter;
 import com.example.connectifyproject.model.Role;
 import com.example.connectifyproject.model.User;
 import com.example.connectifyproject.utils.AuthConstants;
@@ -40,10 +43,16 @@ public class SaUserDetailFragment extends Fragment {
 
     private ImageView ivProfilePhoto;
     private TextView tvTitle;
-    private LinearLayout layoutAdminMessage, layoutUserFields;
+    private LinearLayout layoutAdminMessage, layoutUserFields, layoutAdminFields;
     
     private TextInputEditText etRegDate, etRegTime, etFullName, etDocType, etDocNumber,
             etBirth, etEmail, etPhone, etAddress, etLanguages;
+    
+    // Campos de administrador
+    private TextInputEditText etCompanyName, etCompanyDescription, etCompanyLocation,
+            etCompanyEmail, etCompanyPhone, etRating;
+    private RecyclerView rvCompanyPhotos;
+    private CompanyPhotosAdapter companyPhotosAdapter;
     
     private MaterialButton btnToggleStatus;
     private ImageButton btnBack;
@@ -75,6 +84,7 @@ public class SaUserDetailFragment extends Fragment {
         
         layoutAdminMessage = root.findViewById(R.id.layoutAdminMessage);
         layoutUserFields = root.findViewById(R.id.layoutUserFields);
+        layoutAdminFields = root.findViewById(R.id.layoutAdminFields);
         
         etRegDate = root.findViewById(R.id.etRegDate);
         etRegTime = root.findViewById(R.id.etRegTime);
@@ -86,6 +96,20 @@ public class SaUserDetailFragment extends Fragment {
         etPhone = root.findViewById(R.id.etPhone);
         etAddress = root.findViewById(R.id.etAddress);
         etLanguages = root.findViewById(R.id.etLanguages);
+        
+        // Campos de administrador
+        etCompanyName = root.findViewById(R.id.etCompanyName);
+        etCompanyDescription = root.findViewById(R.id.etCompanyDescription);
+        etCompanyLocation = root.findViewById(R.id.etCompanyLocation);
+        etCompanyEmail = root.findViewById(R.id.etCompanyEmail);
+        etCompanyPhone = root.findViewById(R.id.etCompanyPhone);
+        etRating = root.findViewById(R.id.etRating);
+        rvCompanyPhotos = root.findViewById(R.id.rvCompanyPhotos);
+        
+        // Setup adapter para fotos
+        companyPhotosAdapter = new CompanyPhotosAdapter();
+        rvCompanyPhotos.setLayoutManager(new GridLayoutManager(requireContext(), 2));
+        rvCompanyPhotos.setAdapter(companyPhotosAdapter);
         
         btnToggleStatus = root.findViewById(R.id.btnToggleStatus);
 
@@ -119,14 +143,22 @@ public class SaUserDetailFragment extends Fragment {
 
     private void setupByRole() {
         if (user.getRole() == Role.ADMIN) {
-            // Mostrar mensaje de "próximamente" para administradores
+            // Mostrar campos completos para administradores
             tvTitle.setText("PERFIL DE ADMINISTRADOR");
-            layoutAdminMessage.setVisibility(View.VISIBLE);
-            layoutUserFields.setVisibility(View.GONE);
+            layoutAdminMessage.setVisibility(View.GONE);
+            layoutUserFields.setVisibility(View.VISIBLE);
+            layoutAdminFields.setVisibility(View.VISIBLE);
+            
+            // Ocultar idiomas para admin
+            findViewById(R.id.tilLanguages).setVisibility(View.GONE);
+            
+            // Mostrar datos básicos del administrador
+            renderBasicData();
         } else {
             // Mostrar campos completos para guías y clientes
             layoutAdminMessage.setVisibility(View.GONE);
             layoutUserFields.setVisibility(View.VISIBLE);
+            layoutAdminFields.setVisibility(View.GONE);
             
             if (user.getRole() == Role.GUIDE) {
                 tvTitle.setText("PERFIL DE GUÍA");
@@ -176,7 +208,7 @@ public class SaUserDetailFragment extends Fragment {
     }
 
     private void loadAdditionalData() {
-        if (user.getUid() == null || user.getRole() == Role.ADMIN) return;
+        if (user.getUid() == null) return;
         
         db.collection(AuthConstants.COLLECTION_USUARIOS)
                 .document(user.getUid())
@@ -194,18 +226,72 @@ public class SaUserDetailFragment extends Fragment {
                             etRegTime.setText(timeFormat.format(date));
                         }
                         
-                        // Idiomas (solo para guías)
+                        // Datos específicos según rol
                         if (user.getRole() == Role.GUIDE) {
+                            // Idiomas (solo para guías)
                             List<String> idiomas = (List<String>) doc.get(AuthConstants.FIELD_IDIOMAS);
                             if (idiomas != null && !idiomas.isEmpty()) {
                                 etLanguages.setText(String.join(", ", idiomas));
                             }
+                        } else if (user.getRole() == Role.ADMIN) {
+                            // Datos de empresa (solo para administradores)
+                            loadAdminData(doc);
                         }
                     }
                 })
                 .addOnFailureListener(e -> 
                     Log.e(TAG, "Error loading additional data", e)
                 );
+    }
+
+    private void loadAdminData(DocumentSnapshot doc) {
+        // Nombre de empresa
+        String nombreEmpresa = doc.getString(AuthConstants.FIELD_NOMBRE_EMPRESA);
+        if (nombreEmpresa != null) {
+            etCompanyName.setText(nombreEmpresa);
+        }
+        
+        // Descripción de empresa
+        String descripcion = doc.getString(AuthConstants.FIELD_DESCRIPCION_EMPRESA);
+        if (descripcion != null) {
+            etCompanyDescription.setText(descripcion);
+        }
+        
+        // Ubicación de empresa
+        String ubicacion = doc.getString(AuthConstants.FIELD_UBICACION_EMPRESA);
+        if (ubicacion != null) {
+            etCompanyLocation.setText(ubicacion);
+        }
+        
+        // Correo de empresa
+        String correoEmpresa = doc.getString(AuthConstants.FIELD_CORREO_EMPRESA);
+        if (correoEmpresa != null) {
+            etCompanyEmail.setText(correoEmpresa);
+        }
+        
+        // Teléfono de empresa
+        String telefonoEmpresa = doc.getString(AuthConstants.FIELD_TELEFONO_EMPRESA);
+        if (telefonoEmpresa != null) {
+            etCompanyPhone.setText(telefonoEmpresa);
+        }
+        
+        // Calcular y mostrar calificación promedio
+        Long sumaResenias = doc.getLong(AuthConstants.FIELD_SUMA_RESENIAS);
+        Long numeroResenias = doc.getLong(AuthConstants.FIELD_NUMERO_RESENIAS);
+        
+        if (numeroResenias != null && numeroResenias > 0 && sumaResenias != null) {
+            double promedio = (double) sumaResenias / numeroResenias;
+            String ratingText = String.format(Locale.getDefault(), "%.1f ⭐ (%d reseñas)", promedio, numeroResenias);
+            etRating.setText(ratingText);
+        } else {
+            etRating.setText("Sin reseñas");
+        }
+        
+        // Fotos de empresa
+        List<String> fotosEmpresa = (List<String>) doc.get(AuthConstants.FIELD_FOTOS_EMPRESA);
+        if (fotosEmpresa != null && !fotosEmpresa.isEmpty()) {
+            companyPhotosAdapter.setPhotos(fotosEmpresa);
+        }
     }
 
     private void loadProfilePhoto() {
@@ -254,6 +340,7 @@ public class SaUserDetailFragment extends Fragment {
         tvTitle = null;
         layoutAdminMessage = null;
         layoutUserFields = null;
+        layoutAdminFields = null;
         etRegDate = null;
         etRegTime = null;
         etFullName = null;
@@ -264,6 +351,14 @@ public class SaUserDetailFragment extends Fragment {
         etPhone = null;
         etAddress = null;
         etLanguages = null;
+        etCompanyName = null;
+        etCompanyDescription = null;
+        etCompanyLocation = null;
+        etCompanyEmail = null;
+        etCompanyPhone = null;
+        etRating = null;
+        rvCompanyPhotos = null;
+        companyPhotosAdapter = null;
         btnToggleStatus = null;
         btnBack = null;
         user = null;
