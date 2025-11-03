@@ -156,15 +156,106 @@ public class CustomLoginActivity extends AppCompatActivity {
             return;
         }
 
-        // Buscar documento en Firestore
+        // Buscar documento en Firestore por UID primero
         db.collection(AuthConstants.COLLECTION_USUARIOS)
                 .document(user.getUid())
                 .get()
-                .addOnSuccessListener(this::handleFirestoreDocument)
+                .addOnSuccessListener(document -> {
+                    if (document.exists()) {
+                        handleFirestoreDocument(document);
+                    } else {
+                        // No existe por UID, buscar por email (admins pre-registrados)
+                        Log.d(TAG, "No se encontró por UID, buscando por email: " + email);
+                        searchUserByEmail(user);
+                    }
+                })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Error al consultar Firestore", e);
                     Toast.makeText(this, "Error al verificar usuario", Toast.LENGTH_SHORT).show();
                 });
+    }
+
+    /**
+     * Buscar usuario por email (para admins pre-registrados)
+     */
+    private void searchUserByEmail(FirebaseUser user) {
+        String email = user.getEmail();
+        
+        db.collection(AuthConstants.COLLECTION_USUARIOS)
+                .whereEqualTo(AuthConstants.FIELD_EMAIL, email)
+                .limit(1)
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    if (!querySnapshot.isEmpty()) {
+                        DocumentSnapshot doc = querySnapshot.getDocuments().get(0);
+                        String rol = doc.getString(AuthConstants.FIELD_ROL);
+                        Boolean perfilCompleto = doc.getBoolean(AuthConstants.FIELD_PERFIL_COMPLETO);
+                        
+                        // Si es admin pre-registrado, migrar documento a UID
+                        if (AuthConstants.ROLE_ADMIN.equals(rol) && (perfilCompleto == null || !perfilCompleto)) {
+                            Log.d(TAG, "Admin pre-registrado encontrado, migrando a UID");
+                            migratePreRegisteredAdmin(doc, user);
+                        } else {
+                            // Otro caso, redirigir normalmente
+                            handleFirestoreDocument(doc);
+                        }
+                    } else {
+                        // No existe en Firestore → Ir a selección de rol
+                        Log.d(TAG, "Usuario sin rol asignado");
+                        redirectToRoleSelection();
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error al buscar por email", e);
+                    Toast.makeText(this, "Error al verificar usuario", Toast.LENGTH_SHORT).show();
+                });
+    }
+
+    /**
+     * Migrar documento de admin pre-registrado al UID correcto
+     */
+    private void migratePreRegisteredAdmin(DocumentSnapshot oldDoc, FirebaseUser user) {
+        java.util.Map<String, Object> data = oldDoc.getData();
+        if (data != null) {
+            // Copiar datos al nuevo documento con UID
+            data.put(AuthConstants.FIELD_UID, user.getUid());
+            
+            db.collection(AuthConstants.COLLECTION_USUARIOS)
+                    .document(user.getUid())
+                    .set(data)
+                    .addOnSuccessListener(aVoid -> {
+                        Log.d(TAG, "Documento migrado exitosamente");
+                        // Eliminar documento antiguo
+                        oldDoc.getReference().delete()
+                                .addOnSuccessListener(aVoid2 -> {
+                                    Log.d(TAG, "Documento antiguo eliminado");
+                                    // Redirigir a completar perfil de admin
+                                    redirectToCompleteAdminProfile();
+                                })
+                                .addOnFailureListener(e -> {
+                                    Log.e(TAG, "Error al eliminar documento antiguo", e);
+                                    // Aún así continuar
+                                    redirectToCompleteAdminProfile();
+                                });
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.e(TAG, "Error al migrar documento", e);
+                        Toast.makeText(this, "Error al procesar usuario", Toast.LENGTH_SHORT).show();
+                    });
+        } else {
+            Log.e(TAG, "No hay datos en el documento antiguo");
+            redirectToRoleSelection();
+        }
+    }
+
+    /**
+     * Redirigir a completar perfil de admin
+     */
+    private void redirectToCompleteAdminProfile() {
+        Intent intent = new Intent(this, AdminRegisterActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
     }
 
     private void handleFirestoreDocument(DocumentSnapshot document) {
@@ -211,6 +302,8 @@ public class CustomLoginActivity extends AppCompatActivity {
             intent = new Intent(this, ClientRegisterActivity.class);
         } else if (AuthConstants.ROLE_GUIA.equals(rol)) {
             intent = new Intent(this, GuiaRegisterActivity.class);
+        } else if (AuthConstants.ROLE_ADMIN.equals(rol)) {
+            intent = new Intent(this, AdminRegisterActivity.class);
         } else {
             redirectToRoleSelection();
             return;
@@ -228,6 +321,8 @@ public class CustomLoginActivity extends AppCompatActivity {
             intent = new Intent(this, cliente_inicio.class);
         } else if (AuthConstants.ROLE_GUIA.equals(rol)) {
             intent = new Intent(this, guia_tours_ofertas.class);
+        } else if (AuthConstants.ROLE_ADMIN.equals(rol)) {
+            intent = new Intent(this, admin_dashboard.class);
         } else {
             redirectToRoleSelection();
             return;
