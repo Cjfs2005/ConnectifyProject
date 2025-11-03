@@ -210,6 +210,7 @@ public class SaUsersFragment extends Fragment {
                             String direccion = doc.getString(AuthConstants.FIELD_DOMICILIO);
                             String fechaNacimiento = doc.getString(AuthConstants.FIELD_FECHA_NACIMIENTO);
                             Boolean habilitado = doc.getBoolean(AuthConstants.FIELD_HABILITADO);
+                            String photoUrl = doc.getString(AuthConstants.FIELD_PHOTO_URL);
                             
                             // Separar nombre y apellidos (si están juntos)
                             String nombre = "";
@@ -226,10 +227,6 @@ public class SaUsersFragment extends Fragment {
                             final String finalNombre = nombre;
                             final String finalApellidos = apellidos;
                             
-                            // Construir URI de foto de perfil
-                            String photoPath = "usuarios/" + uid + "/perfil.jpg";
-                            StorageReference photoRef = storage.getReference(photoPath);
-                            
                             // Convertir rol
                             Role role = convertRole(rolStr);
                             
@@ -245,43 +242,11 @@ public class SaUsersFragment extends Fragment {
                                     email,
                                     telefono,
                                     direccion,
-                                    null // photoUri se establece después
+                                    photoUrl
                             );
                             
                             user.setUid(uid);
                             user.setEnabled(habilitado != null ? habilitado : true);
-                            
-                            // Obtener URL de la foto
-                            photoRef.getDownloadUrl()
-                                    .addOnSuccessListener(uri -> {
-                                        // Recrear el objeto con la URI
-                                        User updatedUser = new User(
-                                                finalNombre,
-                                                finalApellidos,
-                                                dni != null ? dni : "",
-                                                "",
-                                                role,
-                                                tipoDocumento,
-                                                fechaNacimiento,
-                                                email,
-                                                telefono,
-                                                direccion,
-                                                uri.toString()
-                                        );
-                                        updatedUser.setUid(uid);
-                                        updatedUser.setEnabled(habilitado != null ? habilitado : true);
-                                        
-                                        // Actualizar en la lista
-                                        int index = users.indexOf(user);
-                                        if (index >= 0) {
-                                            users.set(index, updatedUser);
-                                            adapter.replaceAll(new ArrayList<>(users));
-                                        }
-                                    })
-                                    .addOnFailureListener(e -> {
-                                        Log.w(TAG, "Error loading photo for user " + uid, e);
-                                        // Mantener el usuario sin foto
-                                    });
                             
                             users.add(user);
                         } catch (Exception e) {

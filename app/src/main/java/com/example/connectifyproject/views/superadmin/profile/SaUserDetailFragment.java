@@ -209,24 +209,13 @@ public class SaUserDetailFragment extends Fragment {
     }
 
     private void loadProfilePhoto() {
-        if (user.getUid() == null) return;
-        
-        String photoPath = "usuarios/" + user.getUid() + "/perfil.jpg";
-        StorageReference photoRef = storage.getReference(photoPath);
-        
-        photoRef.getDownloadUrl()
-                .addOnSuccessListener(uri -> 
-                    Glide.with(this)
-                            .load(uri)
-                            .circleCrop()
-                            .placeholder(R.drawable.ic_account_circle_24)
-                            .error(R.drawable.ic_account_circle_24)
-                            .into(ivProfilePhoto)
-                )
-                .addOnFailureListener(e -> {
-                    Log.w(TAG, "Error loading profile photo", e);
-                    // Mantener la imagen por defecto
-                });
+        // Cargar foto usando la URI del usuario (puede ser gs:// o http://)
+        Glide.with(this)
+                .load(user.getPhotoUri())
+                .circleCrop()
+                .placeholder(R.drawable.ic_account_circle_24)
+                .error(R.drawable.ic_account_circle_24)
+                .into(ivProfilePhoto);
     }
 
     private void toggleUserStatus() {
