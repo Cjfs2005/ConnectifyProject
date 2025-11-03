@@ -44,7 +44,7 @@
                 android:id="@+id/ivProfilePhoto"
                 android:layout_width="80dp"
                 android:layout_height="80dp"
-                android:src="@drawable/ic_account_circle_24"
+                android:src="@mipmap/tourly_logo_img"
                 android:scaleType="centerCrop"
                 android:background="@drawable/bg_avatar_round"
                 android:contentDescription="Foto de perfil" />
@@ -90,20 +90,23 @@
         </com.google.android.material.textfield.TextInputLayout>
 
         <!-- Tipo de Documento -->
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/tilTipoDoc"
+        <TextView
+            android:id="@+id/tvTipoDocLabel"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="12dp"
-            app:endIconMode="dropdown_menu">
+            android:text="Tipo de documento"
+            android:textSize="12sp"
+            android:textColor="@color/gray"
+            android:layout_marginBottom="4dp" />
 
-            <com.google.android.material.textfield.MaterialAutoCompleteTextView
-                android:id="@+id/actvTipoDoc"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="Tipo de documento"
-                android:inputType="none" />
-        </com.google.android.material.textfield.TextInputLayout>
+        <Spinner
+            android:id="@+id/spinnerTipoDoc"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="48dp"
+            android:background="@android:drawable/editbox_background"
+            android:padding="12dp"
+            android:layout_marginBottom="12dp" />
 
         <!-- Número de Documento -->
         <com.google.android.material.textfield.TextInputLayout
@@ -265,7 +268,21 @@
             android:text="Completar Registro"
             android:textSize="16sp"
             android:textStyle="bold"
-            app:cornerRadius="8dp" />
+            android:textAllCaps="false"
+            app:cornerRadius="8dp"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Botón Cerrar Sesión -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnLogout"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:text="Cerrar Sesión"
+            android:textAllCaps="false"
+            android:textSize="16sp"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            app:cornerRadius="8dp"
+            android:layout_marginBottom="24dp" />
 
     </LinearLayout>
 

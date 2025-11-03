@@ -99,38 +99,18 @@ public class SplashActivity extends AppCompatActivity {
     private void searchUserByEmail(FirebaseUser user) {
         String email = user.getEmail();
         
-        Log.d(TAG, "========================================");
-        Log.d(TAG, "Buscando usuario por email");
-        Log.d(TAG, "Email a buscar: " + email);
-        Log.d(TAG, "UID del usuario: " + user.getUid());
-        Log.d(TAG, "========================================");
-        
         db.collection(AuthConstants.COLLECTION_USUARIOS)
                 .whereEqualTo(AuthConstants.FIELD_EMAIL, email)
                 .limit(1)
                 .get()
                 .addOnSuccessListener(querySnapshot -> {
-                    Log.d(TAG, "========================================");
-                    Log.d(TAG, "Resultado de búsqueda por email");
-                    Log.d(TAG, "Documentos encontrados: " + querySnapshot.size());
-                    Log.d(TAG, "¿Está vacío?: " + querySnapshot.isEmpty());
-                    Log.d(TAG, "========================================");
-                    
                     if (!querySnapshot.isEmpty()) {
                         DocumentSnapshot doc = querySnapshot.getDocuments().get(0);
                         String rol = doc.getString(AuthConstants.FIELD_ROL);
                         Boolean perfilCompleto = doc.getBoolean(AuthConstants.FIELD_PERFIL_COMPLETO);
                         
-                        Log.d(TAG, "========================================");
-                        Log.d(TAG, "Documento encontrado");
-                        Log.d(TAG, "Document ID: " + doc.getId());
-                        Log.d(TAG, "Rol: " + rol);
-                        Log.d(TAG, "Perfil completo: " + perfilCompleto);
-                        Log.d(TAG, "========================================");
-                        
                         // Si es admin pre-registrado, migrar documento a UID
                         if (AuthConstants.ROLE_ADMIN.equals(rol) && (perfilCompleto == null || !perfilCompleto)) {
-                            Log.d(TAG, "Admin pre-registrado encontrado, migrando a UID: " + user.getUid());
                             migratePreRegisteredAdmin(doc, user);
                         } else {
                             // Otro caso, redirigir normalmente
@@ -138,7 +118,6 @@ public class SplashActivity extends AppCompatActivity {
                         }
                     } else {
                         // No existe en Firestore → Ir a selección de rol
-                        Log.d(TAG, "Usuario sin rol asignado - Redirigiendo a selección de rol");
                         redirectToRoleSelection();
                     }
                 })
@@ -152,40 +131,19 @@ public class SplashActivity extends AppCompatActivity {
      * Migrar documento de admin pre-registrado al UID correcto
      */
     private void migratePreRegisteredAdmin(DocumentSnapshot oldDoc, FirebaseUser user) {
-        Log.d(TAG, "========================================");
-        Log.d(TAG, "Iniciando migración de admin");
-        Log.d(TAG, "Document ID antiguo: " + oldDoc.getId());
-        Log.d(TAG, "UID nuevo: " + user.getUid());
-        Log.d(TAG, "========================================");
-        
         // Copiar datos al nuevo documento con UID
         db.collection(AuthConstants.COLLECTION_USUARIOS)
                 .document(user.getUid())
                 .set(oldDoc.getData())
                 .addOnSuccessListener(aVoid -> {
-                    Log.d(TAG, "Documento migrado exitosamente a UID: " + user.getUid());
                     // Actualizar con UID
                     db.collection(AuthConstants.COLLECTION_USUARIOS)
                             .document(user.getUid())
                             .update(AuthConstants.FIELD_UID, user.getUid())
                             .addOnSuccessListener(aVoid2 -> {
-                                Log.d(TAG, "UID actualizado en documento");
                                 // Eliminar documento antiguo
-                                oldDoc.getReference().delete()
-                                        .addOnSuccessListener(aVoid3 -> {
-                                            Log.d(TAG, "Documento antiguo eliminado: " + oldDoc.getId());
-                                            // Redirigir a completar perfil de admin
-                                            Log.d(TAG, "Redirigiendo a completar perfil de admin");
-                                            redirectToCompleteAdminProfile();
-                                        })
-                                        .addOnFailureListener(e -> {
-                                            Log.e(TAG, "Error al eliminar documento antiguo", e);
-                                            // Aún así redirigir
-                                            redirectToCompleteAdminProfile();
-                                        });
-                            })
-                            .addOnFailureListener(e -> {
-                                Log.e(TAG, "Error al actualizar UID", e);
+                                oldDoc.getReference().delete();
+                                // Redirigir a completar perfil de admin
                                 redirectToCompleteAdminProfile();
                             });
                 })
@@ -255,6 +213,9 @@ public class SplashActivity extends AppCompatActivity {
             intent = new Intent(this, cliente_inicio.class);
         } else if (AuthConstants.ROLE_GUIA.equals(rol)) {
             intent = new Intent(this, guia_tours_ofertas.class);
+        } else if (AuthConstants.ROLE_ADMIN.equals(rol)) {
+            // Por ahora redirigir a cliente_inicio, más adelante crear dashboard de admin
+            intent = new Intent(this, cliente_inicio.class);
         } else {
             // Rol desconocido → Ir a selección de rol
             redirectToRoleSelection();

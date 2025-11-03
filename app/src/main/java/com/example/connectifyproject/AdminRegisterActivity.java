@@ -9,6 +9,7 @@ import android.util.Patterns;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -22,8 +23,8 @@ import com.bumptech.glide.Glide;
 import com.example.connectifyproject.adapters.PromotionalPhotosAdapter;
 import com.example.connectifyproject.utils.AuthConstants;
 import com.example.connectifyproject.utils.StorageHelper;
+import com.firebase.ui.auth.AuthUI;
 import com.google.android.material.button.MaterialButton;
-import com.google.android.material.textfield.MaterialAutoCompleteTextView;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -45,8 +46,8 @@ public class AdminRegisterActivity extends AppCompatActivity implements Promotio
     private ImageView ivProfilePhoto;
     private TextInputEditText etNombres, etApellidos, etNumeroDoc, etEmail, etNombreEmpresa;
     private TextInputEditText etDescripcionEmpresa, etUbicacionEmpresa, etCorreoEmpresa, etTelefonoEmpresa;
-    private MaterialAutoCompleteTextView actvTipoDoc;
-    private MaterialButton btnSelectPhoto, btnSelectPromotionalPhotos, btnGuardar;
+    private Spinner spinnerTipoDoc;
+    private MaterialButton btnSelectPhoto, btnSelectPromotionalPhotos, btnGuardar, btnLogout;
     private RecyclerView rvPromotionalPhotos;
     private TextView tvPhotoCount;
 
@@ -102,6 +103,9 @@ public class AdminRegisterActivity extends AppCompatActivity implements Promotio
         
         // Configurar botón guardar
         btnGuardar.setOnClickListener(v -> validateAndSave());
+        
+        // Configurar botón logout
+        btnLogout.setOnClickListener(v -> logout());
     }
 
     private void initViews() {
@@ -109,7 +113,7 @@ public class AdminRegisterActivity extends AppCompatActivity implements Promotio
         btnSelectPhoto = findViewById(R.id.btnSelectPhoto);
         etNombres = findViewById(R.id.etNombres);
         etApellidos = findViewById(R.id.etApellidos);
-        actvTipoDoc = findViewById(R.id.actvTipoDoc);
+        spinnerTipoDoc = findViewById(R.id.spinnerTipoDoc);
         etNumeroDoc = findViewById(R.id.etNumeroDoc);
         etEmail = findViewById(R.id.etEmail);
         etNombreEmpresa = findViewById(R.id.etNombreEmpresa);
@@ -121,6 +125,7 @@ public class AdminRegisterActivity extends AppCompatActivity implements Promotio
         rvPromotionalPhotos = findViewById(R.id.rvPromotionalPhotos);
         tvPhotoCount = findViewById(R.id.tvPhotoCount);
         btnGuardar = findViewById(R.id.btnGuardar);
+        btnLogout = findViewById(R.id.btnLogout);
     }
 
     private void setupPhotoPickers() {
@@ -166,10 +171,11 @@ public class AdminRegisterActivity extends AppCompatActivity implements Promotio
     private void setupDocTypeDropdown() {
         ArrayAdapter<String> adapter = new ArrayAdapter<>(
                 this,
-                android.R.layout.simple_dropdown_item_1line,
+                android.R.layout.simple_spinner_item,
                 AuthConstants.TIPOS_DOCUMENTO
         );
-        actvTipoDoc.setAdapter(adapter);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerTipoDoc.setAdapter(adapter);
     }
 
     private void loadPreRegisteredData() {
@@ -190,13 +196,16 @@ public class AdminRegisterActivity extends AppCompatActivity implements Promotio
                             etNombreEmpresa.setText(nombreEmpresa);
                         }
 
-                        // Cargar foto de Google Auth si existe
-                        Uri googlePhotoUrl = currentUser.getPhotoUrl();
-                        if (googlePhotoUrl != null) {
+                        // Cargar foto de perfil si existe, sino mostrar default.png
+                        Uri photoUrl = currentUser.getPhotoUrl();
+                        if (photoUrl != null) {
                             Glide.with(this)
-                                    .load(googlePhotoUrl)
+                                    .load(photoUrl)
                                     .circleCrop()
                                     .into(ivProfilePhoto);
+                        } else {
+                            // Cargar imagen por defecto desde Firebase Storage
+                            loadDefaultImage();
                         }
                     }
                 })
@@ -206,10 +215,36 @@ public class AdminRegisterActivity extends AppCompatActivity implements Promotio
                 });
     }
 
+    /**
+     * Cargar imagen por defecto desde Firebase Storage
+     */
+    private void loadDefaultImage() {
+        storageHelper.getDefaultPhotoUrl(new StorageHelper.UploadCallback() {
+            @Override
+            public void onSuccess(String downloadUrl) {
+                Glide.with(AdminRegisterActivity.this)
+                        .load(downloadUrl)
+                        .circleCrop()
+                        .into(ivProfilePhoto);
+            }
+
+            @Override
+            public void onFailure(Exception e) {
+                Log.e(TAG, "Error al cargar imagen por defecto", e);
+                // Mantener el logo de la app como fallback
+            }
+
+            @Override
+            public void onProgress(double progress) {
+                // No es necesario mostrar progreso para imagen por defecto
+            }
+        });
+    }
+
     private void validateAndSave() {
         String nombres = etNombres.getText() != null ? etNombres.getText().toString().trim() : "";
         String apellidos = etApellidos.getText() != null ? etApellidos.getText().toString().trim() : "";
-        String tipoDoc = actvTipoDoc.getText() != null ? actvTipoDoc.getText().toString().trim() : "";
+        String tipoDoc = spinnerTipoDoc.getSelectedItem() != null ? spinnerTipoDoc.getSelectedItem().toString() : "";
         String numeroDoc = etNumeroDoc.getText() != null ? etNumeroDoc.getText().toString().trim() : "";
         String descripcion = etDescripcionEmpresa.getText() != null ? etDescripcionEmpresa.getText().toString().trim() : "";
         String ubicacion = etUbicacionEmpresa.getText() != null ? etUbicacionEmpresa.getText().toString().trim() : "";
@@ -482,9 +517,15 @@ public class AdminRegisterActivity extends AppCompatActivity implements Promotio
     }
 
     private void redirectToLogin() {
-        Intent intent = new Intent(this, CustomLoginActivity.class);
+        Intent intent = new Intent(this, SplashActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();
+    }
+
+    private void logout() {
+        AuthUI.getInstance()
+                .signOut(this)
+                .addOnCompleteListener(task -> redirectToLogin());
     }
 }
