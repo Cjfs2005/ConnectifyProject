@@ -97,7 +97,12 @@ public class SaCreateAdminFragment extends Fragment {
                 .document(preRegistroId)
                 .set(adminData)
                 .addOnSuccessListener(aVoid -> {
+                    Log.d(TAG, "========================================");
                     Log.d(TAG, "Pre-registro de admin creado exitosamente");
+                    Log.d(TAG, "Document ID: " + preRegistroId);
+                    Log.d(TAG, "Email guardado: " + email);
+                    Log.d(TAG, "Nombre empresa: " + nombreEmpresa);
+                    Log.d(TAG, "========================================");
                     Toast.makeText(requireContext(), "Administrador pre-registrado. Debe iniciar sesión con: " + email, Toast.LENGTH_LONG).show();
                     NavHostFragment.findNavController(this).popBackStack();
                 })
