@@ -44,7 +44,7 @@ public class AdminRegisterActivity extends AppCompatActivity implements Promotio
 
     // Views
     private ImageView ivProfilePhoto;
-    private TextInputEditText etNombres, etApellidos, etNumeroDoc, etEmail, etNombreEmpresa;
+    private TextInputEditText etNombreCompleto, etNumeroDoc, etEmail, etNombreEmpresa;
     private TextInputEditText etDescripcionEmpresa, etUbicacionEmpresa, etCorreoEmpresa, etTelefonoEmpresa;
     private Spinner spinnerTipoDoc;
     private MaterialButton btnSelectPhoto, btnSelectPromotionalPhotos, btnGuardar, btnLogout;
@@ -111,8 +111,7 @@ public class AdminRegisterActivity extends AppCompatActivity implements Promotio
     private void initViews() {
         ivProfilePhoto = findViewById(R.id.ivProfilePhoto);
         btnSelectPhoto = findViewById(R.id.btnSelectPhoto);
-        etNombres = findViewById(R.id.etNombres);
-        etApellidos = findViewById(R.id.etApellidos);
+        etNombreCompleto = findViewById(R.id.etNombreCompleto);
         spinnerTipoDoc = findViewById(R.id.spinnerTipoDoc);
         etNumeroDoc = findViewById(R.id.etNumeroDoc);
         etEmail = findViewById(R.id.etEmail);
@@ -242,8 +241,7 @@ public class AdminRegisterActivity extends AppCompatActivity implements Promotio
     }
 
     private void validateAndSave() {
-        String nombres = etNombres.getText() != null ? etNombres.getText().toString().trim() : "";
-        String apellidos = etApellidos.getText() != null ? etApellidos.getText().toString().trim() : "";
+        String nombreCompleto = etNombreCompleto.getText() != null ? etNombreCompleto.getText().toString().trim() : "";
         String tipoDoc = spinnerTipoDoc.getSelectedItem() != null ? spinnerTipoDoc.getSelectedItem().toString() : "";
         String numeroDoc = etNumeroDoc.getText() != null ? etNumeroDoc.getText().toString().trim() : "";
         String descripcion = etDescripcionEmpresa.getText() != null ? etDescripcionEmpresa.getText().toString().trim() : "";
@@ -252,13 +250,8 @@ public class AdminRegisterActivity extends AppCompatActivity implements Promotio
         String telefonoEmpresa = etTelefonoEmpresa.getText() != null ? etTelefonoEmpresa.getText().toString().trim() : "";
 
         // Validaciones
-        if (TextUtils.isEmpty(nombres)) {
-            Toast.makeText(this, "Ingresa tus nombres", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        if (TextUtils.isEmpty(apellidos)) {
-            Toast.makeText(this, "Ingresa tus apellidos", Toast.LENGTH_SHORT).show();
+        if (TextUtils.isEmpty(nombreCompleto)) {
+            Toast.makeText(this, "Ingresa tu nombre completo", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -300,8 +293,6 @@ public class AdminRegisterActivity extends AppCompatActivity implements Promotio
         // Deshabilitar botón durante el proceso
         btnGuardar.setEnabled(false);
         btnGuardar.setText("Guardando...");
-
-        String nombreCompleto = nombres + " " + apellidos;
 
         // Subir fotos primero
         uploadPhotos(nombreCompleto, tipoDoc, numeroDoc, descripcion, ubicacion, correoEmpresa, telefonoEmpresa);

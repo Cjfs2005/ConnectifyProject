@@ -59,33 +59,18 @@
                 app:icon="@drawable/ic_image_24" />
         </LinearLayout>
 
-        <!-- Nombres -->
+        <!-- Nombres y Apellidos -->
         <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/tilNombres"
+            android:id="@+id/tilNombreCompleto"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="12dp">
 
             <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etNombres"
+                android:id="@+id/etNombreCompleto"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Nombres"
-                android:inputType="textCapWords" />
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <!-- Apellidos -->
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/tilApellidos"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="12dp">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etApellidos"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="Apellidos"
+                android:hint="Nombres y Apellidos"
                 android:inputType="textCapWords" />
         </com.google.android.material.textfield.TextInputLayout>
 
