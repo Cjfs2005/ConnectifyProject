@@ -188,12 +188,44 @@ public class SaLogsFragment extends Fragment {
     private List<SaLogsAdapter.LogItem> mockLogs() {
         List<SaLogsAdapter.LogItem> list = new ArrayList<>();
         long now = System.currentTimeMillis();
+        
+        // Logs recientes (últimas 24 horas)
         list.add(new SaLogsAdapter.LogItem("Creó un tour", Role.ADMIN, new User("Alejandro","Mora A.","70456789","Perú Travel",Role.ADMIN,"DNI","08/17/1996","alejandro@perutravel.com","999888777","Av. Perú 123",null), now - hours(3)));
+        list.add(new SaLogsAdapter.LogItem("Modificó un tour", Role.ADMIN, new User("Alejandro","Mora A.","70456789","Perú Travel",Role.ADMIN,"DNI","08/17/1996","alejandro@perutravel.com","999888777","Av. Perú 123",null), now - hours(5)));
+        list.add(new SaLogsAdapter.LogItem("Reservó un tour", Role.CLIENT, new User("Luis","Torres M.","70334455","Cusco Tours",Role.CLIENT,"DNI","03/14/1995","luis.torres@correo.com","944556677","Av. Los Nogales 89",null), now - hours(8)));
+        list.add(new SaLogsAdapter.LogItem("Canceló reserva", Role.CLIENT, new User("Patricia","Mendoza R.","70667788","Inca Tours",Role.CLIENT,"DNI","12/20/1992","patricia.m@correo.com","933445566","Jr. Las Rosas 45",null), now - hours(12)));
+        list.add(new SaLogsAdapter.LogItem("Inició sesión", Role.GUIDE, new User("Jorge","Quispe T.","72334455","Peru Adventures",Role.GUIDE,"DNI","04/25/1988","jorge.quispe@peruadv.com","977889900","Psj. San Martín 12",null), now - hours(15)));
+        list.add(new SaLogsAdapter.LogItem("Registró nuevo guía", Role.ADMIN, new User("Carlos","Antama C.","70124567","Inca Tours",Role.ADMIN,"DNI","09/21/1990","carlos@incatours.com","988776655","Av. Inca 101",null), now - hours(18)));
+        
+        // Logs de ayer
         list.add(new SaLogsAdapter.LogItem("Creó un tour", Role.ADMIN, new User("Carlos","Antama C.","70124567","Inca Tours",Role.ADMIN,"DNI","09/21/1990","carlos@incatours.com","988776655","Av. Inca 101",null), now - days(1) - hours(5)));
+        list.add(new SaLogsAdapter.LogItem("Finalizó el tour", Role.GUIDE, new User("Rosa","Flores C.","73112233","Peru Adventures",Role.GUIDE,"DNI","08/30/1989","rosa.flores@peruadv.com","966778899","Av. Cultural 234",null), now - days(1) - hours(10)));
+        list.add(new SaLogsAdapter.LogItem("Reservó un tour", Role.CLIENT, new User("Diego","Ramírez P.","70556677","Perú Travel",Role.CLIENT,"DNI","01/15/1998","diego.ram@correo.com","922334455","Jr. Ollantay 67",null), now - days(1) - hours(14)));
+        list.add(new SaLogsAdapter.LogItem("Eliminó un tour", Role.ADMIN, new User("Alejandro","Mora A.","70456789","Perú Travel",Role.ADMIN,"DNI","08/17/1996","alejandro@perutravel.com","999888777","Av. Perú 123",null), now - days(1) - hours(20)));
+        
+        // Logs de hace 3 días
+        list.add(new SaLogsAdapter.LogItem("Actualizó perfil", Role.GUIDE, new User("Pedro","Huamán S.","74556677","Cusco Guide",Role.GUIDE,"DNI","10/05/1987","pedro.huaman@cuscoguide.pe","955443322","Av. Sol 890",null), now - days(3) - hours(6)));
+        list.add(new SaLogsAdapter.LogItem("Reservó un tour", Role.CLIENT, new User("Ana","López V.","70778899","Inca Tours",Role.CLIENT,"DNI","06/22/1994","ana.lopez@correo.com","911223344","Psj. Wiracocha 33",null), now - days(3) - hours(11)));
+        list.add(new SaLogsAdapter.LogItem("Creó un tour", Role.ADMIN, new User("Carlos","Antama C.","70124567","Inca Tours",Role.ADMIN,"DNI","09/21/1990","carlos@incatours.com","988776655","Av. Inca 101",null), now - days(3) - hours(16)));
+        
+        // Logs de hace una semana
+        list.add(new SaLogsAdapter.LogItem("Inició sesión", Role.ADMIN, new User("Alejandro","Mora A.","70456789","Perú Travel",Role.ADMIN,"DNI","08/17/1996","alejandro@perutravel.com","999888777","Av. Perú 123",null), now - days(7) - hours(4)));
+        list.add(new SaLogsAdapter.LogItem("Finalizó el tour", Role.GUIDE, new User("Carmen","Vargas L.","73445566","Peru Adventures",Role.GUIDE,"DNI","02/18/1990","carmen.vargas@peruadv.com","988990011","Jr. Pachacutec 55",null), now - days(7) - hours(9)));
+        list.add(new SaLogsAdapter.LogItem("Reservó un tour", Role.CLIENT, new User("Roberto","Castillo F.","70889900","Cusco Tours",Role.CLIENT,"DNI","09/03/1996","roberto.cast@correo.com","900112233","Av. Grau 78",null), now - days(7) - hours(13)));
+        list.add(new SaLogsAdapter.LogItem("Modificó un tour", Role.ADMIN, new User("Carlos","Antama C.","70124567","Inca Tours",Role.ADMIN,"DNI","09/21/1990","carlos@incatours.com","988776655","Av. Inca 101",null), now - days(7) - hours(17)));
+        
+        // Logs de hace 2 semanas
+        list.add(new SaLogsAdapter.LogItem("Registró nuevo cliente", Role.ADMIN, new User("Alejandro","Mora A.","70456789","Perú Travel",Role.ADMIN,"DNI","08/17/1996","alejandro@perutravel.com","999888777","Av. Perú 123",null), now - days(14) - hours(7)));
+        list.add(new SaLogsAdapter.LogItem("Finalizó el tour", Role.GUIDE, new User("Miguel","Prado N.","74667788","Cusco Guide",Role.GUIDE,"DNI","11/12/1986","miguel.prado@cuscoguide.pe","977665544","Psj. Manco Cápac 90",null), now - days(14) - hours(12)));
+        list.add(new SaLogsAdapter.LogItem("Canceló reserva", Role.CLIENT, new User("Elena","Paredes H.","70998877","Perú Travel",Role.CLIENT,"DNI","04/08/1993","elena.paredes@correo.com","933221100","Jr. Saphy 44",null), now - days(14) - hours(18)));
+        
+        // Logs antiguos (hace 26 días)
         list.add(new SaLogsAdapter.LogItem("Finalizó el tour", Role.GUIDE, new User("Alessandro","Mazz I.","74444444","Cusco Guide",Role.GUIDE,"DNI","06/19/1991","alessandro@cuscoguide.pe","999111222","Av. Cultura 555",null), now - days(26)));
         list.add(new SaLogsAdapter.LogItem("Finalizó el tour", Role.GUIDE, new User("María","Chávez P.","71230011","Cusco Guide",Role.GUIDE,"DNI","05/02/1993","maria.chavez@cuscoguide.pe","987654321","Jr. Mapi 456",null), now - days(26) - hours(2)));
         list.add(new SaLogsAdapter.LogItem("Reservó un tour", Role.CLIENT, new User("Mateo","Rentería S.","70456799","Perú Travel",Role.CLIENT,"DNI","07/10/1997","mateo@correo.com","955667788","Psj. Lima 22",null), now - days(26) - hours(3)));
         list.add(new SaLogsAdapter.LogItem("Reservó un tour", Role.CLIENT, new User("Sandra","Vera F.","70991122","Inca Tours",Role.CLIENT,"DNI","11/08/1999","sandra@correo.com","912345678","Jr. Tres Cruces 77",null), now - days(26) - hours(7)));
+        list.add(new SaLogsAdapter.LogItem("Creó un tour", Role.ADMIN, new User("Carlos","Antama C.","70124567","Inca Tours",Role.ADMIN,"DNI","09/21/1990","carlos@incatours.com","988776655","Av. Inca 101",null), now - days(26) - hours(10)));
+        
         return list;
     }
     private long days(int d) { return d * 24L * 60 * 60 * 1000; }
