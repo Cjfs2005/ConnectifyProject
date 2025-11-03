@@ -70,8 +70,8 @@ public class admin_tour_details extends AppCompatActivity implements OnMapReadyC
         // Configurar mapa
         initializeMap();
 
-        // Configurar bottom navigation
-        setupBottomNavigation();
+        // No mostrar bottom navigation en pantallas secundarias
+        // setupBottomNavigation();
     }
 
     private void initializeMap() {

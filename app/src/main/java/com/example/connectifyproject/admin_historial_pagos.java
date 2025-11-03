@@ -48,8 +48,8 @@ public class admin_historial_pagos extends AppCompatActivity {
         // Configurar datos de prueba
         setupTestData();
 
-        // Configurar bottom navigation
-        setupBottomNavigation();
+        // No mostrar bottom navigation en pantallas secundarias
+        // setupBottomNavigation();
 
         // Configurar botón exportar
         binding.btnExportar.setOnClickListener(v -> {

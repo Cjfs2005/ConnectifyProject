@@ -32,7 +32,8 @@ public class admin_payment_proposal extends AppCompatActivity {
 
         setupUI();
         setupButtons();
-        setupBottomNavigation();
+        // No mostrar bottom navigation en pantallas secundarias
+        // setupBottomNavigation();
     }
 
     private void setupUI() {

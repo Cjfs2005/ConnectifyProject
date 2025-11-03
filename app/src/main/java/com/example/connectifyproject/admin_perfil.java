@@ -33,7 +33,12 @@ public class admin_perfil extends AppCompatActivity implements OnMapReadyCallbac
         setContentView(binding.getRoot());
 
         // Configurar la barra superior
-        binding.topAppBar.setNavigationOnClickListener(v -> finish());
+        setSupportActionBar(binding.topAppBar);
+
+        // Configurar botón de notificaciones
+        binding.btnNotifications.setOnClickListener(v -> {
+            // TODO: Implementar navegación a notificaciones
+        });
 
         // Inicializar helper de ubicación
         mapsHelper = new GoogleMapsHelper(this);

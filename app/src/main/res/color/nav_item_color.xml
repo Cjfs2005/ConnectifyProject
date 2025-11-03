@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Item seleccionado: morado de marca -->
-    <item android:state_checked="true" android:color="@color/brand_purple" />
+    <!-- Item seleccionado: color primario (igual que cliente) -->
+    <item android:state_checked="true" android:color="?attr/colorPrimary" />
     <!-- Resto: gris medio -->
-    <item android:color="@color/kpi_subtext" />
+    <item android:color="?attr/colorOnSurfaceVariant" />
 </selector>

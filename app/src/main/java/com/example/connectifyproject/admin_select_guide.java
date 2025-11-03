@@ -60,7 +60,8 @@ public class admin_select_guide extends AppCompatActivity {
         setupRecyclerView();
         setupSearch();
         setupLanguageFilters();
-        setupBottomNavigation();
+        // No mostrar bottom navigation en pantallas secundarias
+        // setupBottomNavigation();
     }
 
     private void initializeGuides() {

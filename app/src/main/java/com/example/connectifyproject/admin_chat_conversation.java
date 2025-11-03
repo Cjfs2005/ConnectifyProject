@@ -58,7 +58,8 @@ public class admin_chat_conversation extends AppCompatActivity {
             setupRecyclerView();
             setupSendButton();
             loadMessagesForClient();
-            setupBottomNavigation();
+            // No mostrar bottom navigation en pantallas secundarias
+            // setupBottomNavigation();
             
         } catch (Exception e) {
             e.printStackTrace();

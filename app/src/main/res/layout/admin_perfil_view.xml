@@ -12,7 +12,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@color/brand_purple_dark"
-        android:fitsSystemWindows="true"
         app:elevation="0dp">
 
         <com.google.android.material.appbar.MaterialToolbar
@@ -21,11 +20,23 @@
             android:layout_height="?attr/actionBarSize"
             android:background="@color/brand_purple_dark"
             android:theme="@style/ThemeOverlay.Material3.Dark.ActionBar"
-            app:title="@string/profile_edit_title"
+            app:title="Perfil"
             app:titleTextColor="@android:color/white"
-            app:navigationIcon="@drawable/ic_arrow_back_24"
-            app:navigationIconTint="@android:color/white"
-            app:titleCentered="false" />
+            app:titleCentered="false">
+
+            <!-- Botón de notificaciones -->
+            <ImageButton
+                android:id="@+id/btnNotifications"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_gravity="end"
+                android:layout_marginEnd="8dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Notificaciones"
+                android:src="@drawable/ic_notifications"
+                app:tint="@android:color/white" />
+
+        </com.google.android.material.appbar.MaterialToolbar>
 
     </com.google.android.material.appbar.AppBarLayout>
 
@@ -40,7 +51,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="24dp">
+            android:paddingStart="24dp"
+            android:paddingEnd="24dp"
+            android:paddingTop="24dp"
+            android:paddingBottom="100dp">
 
             <!-- Logo de la empresa con mejor posicionamiento -->
             <LinearLayout

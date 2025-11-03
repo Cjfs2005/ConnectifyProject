@@ -34,7 +34,12 @@ public class admin_tours extends AppCompatActivity {
         setContentView(binding.getRoot());
 
         // Configurar toolbar
-        binding.topAppBar.setNavigationOnClickListener(v -> finish());
+        setSupportActionBar(binding.topAppBar);
+
+        // Configurar botón de notificaciones
+        binding.btnNotifications.setOnClickListener(v -> {
+            // TODO: Implementar navegación a notificaciones
+        });
 
         // Configurar RecyclerView
         setupRecyclerView();
