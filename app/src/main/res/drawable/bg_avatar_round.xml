@@ -2,5 +2,5 @@
 <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval">
     <size android:width="40dp" android:height="40dp"/>
     <!-- color por defecto; luego lo tintamos desde el adapter -->
-    <solid android:color="@color/brand_purple"/>
+    <solid android:color="@color/light_gray"/>
 </shape>
