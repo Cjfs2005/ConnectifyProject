@@ -149,8 +149,11 @@ public class SaUserDetailFragment extends Fragment {
             layoutUserFields.setVisibility(View.VISIBLE);
             layoutAdminFields.setVisibility(View.VISIBLE);
             
-            // Ocultar idiomas para admin
+            // Ocultar campos que no aplican para admin
             findViewById(R.id.tilLanguages).setVisibility(View.GONE);
+            findViewById(R.id.tilBirth).setVisibility(View.GONE);
+            findViewById(R.id.tilPhone).setVisibility(View.GONE);
+            findViewById(R.id.tilAddress).setVisibility(View.GONE);
             
             // Mostrar datos básicos del administrador
             renderBasicData();

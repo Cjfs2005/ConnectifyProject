@@ -244,6 +244,7 @@ public class AdminRegisterActivity extends AppCompatActivity implements Promotio
         String nombreCompleto = etNombreCompleto.getText() != null ? etNombreCompleto.getText().toString().trim() : "";
         String tipoDoc = spinnerTipoDoc.getSelectedItem() != null ? spinnerTipoDoc.getSelectedItem().toString() : "";
         String numeroDoc = etNumeroDoc.getText() != null ? etNumeroDoc.getText().toString().trim() : "";
+        String nombreEmpresa = etNombreEmpresa.getText() != null ? etNombreEmpresa.getText().toString().trim() : "";
         String descripcion = etDescripcionEmpresa.getText() != null ? etDescripcionEmpresa.getText().toString().trim() : "";
         String ubicacion = etUbicacionEmpresa.getText() != null ? etUbicacionEmpresa.getText().toString().trim() : "";
         String correoEmpresa = etCorreoEmpresa.getText() != null ? etCorreoEmpresa.getText().toString().trim() : "";
@@ -262,6 +263,11 @@ public class AdminRegisterActivity extends AppCompatActivity implements Promotio
 
         if (TextUtils.isEmpty(numeroDoc)) {
             Toast.makeText(this, "Ingresa el número de documento", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (TextUtils.isEmpty(nombreEmpresa)) {
+            Toast.makeText(this, "Ingresa el nombre de la empresa", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -295,10 +301,10 @@ public class AdminRegisterActivity extends AppCompatActivity implements Promotio
         btnGuardar.setText("Guardando...");
 
         // Subir fotos primero
-        uploadPhotos(nombreCompleto, tipoDoc, numeroDoc, descripcion, ubicacion, correoEmpresa, telefonoEmpresa);
+        uploadPhotos(nombreCompleto, tipoDoc, numeroDoc, nombreEmpresa, descripcion, ubicacion, correoEmpresa, telefonoEmpresa);
     }
 
-    private void uploadPhotos(String nombreCompleto, String tipoDoc, String numeroDoc,
+    private void uploadPhotos(String nombreCompleto, String tipoDoc, String numeroDoc, String nombreEmpresa,
                               String descripcion, String ubicacion, String correoEmpresa, String telefonoEmpresa) {
         String uid = currentUser.getUid();
         List<String> promotionalPhotoUrls = new ArrayList<>();
@@ -312,7 +318,7 @@ public class AdminRegisterActivity extends AppCompatActivity implements Promotio
         // Callback para cuando todas las fotos estén subidas
         Runnable onAllPhotosUploaded = () -> {
             if (uploadCount.get() == totalPhotos) {
-                saveToFirestore(nombreCompleto, tipoDoc, numeroDoc, descripcion, ubicacion,
+                saveToFirestore(nombreCompleto, tipoDoc, numeroDoc, nombreEmpresa, descripcion, ubicacion,
                         correoEmpresa, telefonoEmpresa, promotionalPhotoUrls, profilePhotoUrl[0]);
             }
         };
@@ -403,7 +409,7 @@ public class AdminRegisterActivity extends AppCompatActivity implements Promotio
         }
     }
 
-    private void saveToFirestore(String nombreCompleto, String tipoDoc, String numeroDoc,
+    private void saveToFirestore(String nombreCompleto, String tipoDoc, String numeroDoc, String nombreEmpresa,
                                  String descripcion, String ubicacion, String correoEmpresa,
                                  String telefonoEmpresa, List<String> fotosEmpresa, String photoUrl) {
         String uid = currentUser.getUid();
@@ -423,6 +429,7 @@ public class AdminRegisterActivity extends AppCompatActivity implements Promotio
         adminData.put(AuthConstants.FIELD_PHOTO_URL, photoUrl);
         
         // Campos de empresa
+        adminData.put(AuthConstants.FIELD_NOMBRE_EMPRESA, nombreEmpresa);
         adminData.put(AuthConstants.FIELD_DESCRIPCION_EMPRESA, descripcion);
         adminData.put(AuthConstants.FIELD_UBICACION_EMPRESA, ubicacion);
         adminData.put(AuthConstants.FIELD_CORREO_EMPRESA, correoEmpresa);
