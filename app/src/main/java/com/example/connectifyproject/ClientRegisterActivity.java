@@ -335,6 +335,41 @@ public class ClientRegisterActivity extends AppCompatActivity {
      */
     private void saveDataToFirestore(String nombreCompleto, String tipoDoc, String numeroDoc, 
                                      String fecha, String telefono, String codigoPais, String domicilio, String photoUrl) {
+        // Usar foto subida, de Google Auth o default
+        if (photoUrl != null) {
+            // Foto subida por el usuario
+            saveFinalDataToFirestore(nombreCompleto, tipoDoc, numeroDoc, fecha, telefono, codigoPais, domicilio, photoUrl);
+        } else if (currentUser.getPhotoUrl() != null) {
+            // Foto de Google Auth
+            saveFinalDataToFirestore(nombreCompleto, tipoDoc, numeroDoc, fecha, telefono, codigoPais, domicilio, currentUser.getPhotoUrl().toString());
+        } else {
+            // Obtener URL de foto por defecto desde Firebase Storage
+            storageHelper.getDefaultPhotoUrl(new StorageHelper.UploadCallback() {
+                @Override
+                public void onSuccess(String downloadUrl) {
+                    saveFinalDataToFirestore(nombreCompleto, tipoDoc, numeroDoc, fecha, telefono, codigoPais, domicilio, downloadUrl);
+                }
+
+                @Override
+                public void onFailure(Exception e) {
+                    Log.e(TAG, "Error al obtener foto por defecto, usando gs:// URI", e);
+                    // Fallback: usar el gs:// URI directamente
+                    saveFinalDataToFirestore(nombreCompleto, tipoDoc, numeroDoc, fecha, telefono, codigoPais, domicilio, AuthConstants.DEFAULT_PHOTO_URL);
+                }
+
+                @Override
+                public void onProgress(double progress) {
+                    // No aplica para obtener URL
+                }
+            });
+        }
+    }
+    
+    /**
+     * Guarda los datos finales en Firestore con la URL de foto resuelta
+     */
+    private void saveFinalDataToFirestore(String nombreCompleto, String tipoDoc, String numeroDoc, 
+                                          String fecha, String telefono, String codigoPais, String domicilio, String resolvedPhotoUrl) {
         Map<String, Object> clienteData = new HashMap<>();
         clienteData.put(AuthConstants.FIELD_EMAIL, currentUser.getEmail());
         clienteData.put(AuthConstants.FIELD_ROL, AuthConstants.ROLE_CLIENTE);
@@ -349,21 +384,13 @@ public class ClientRegisterActivity extends AppCompatActivity {
         clienteData.put(AuthConstants.FIELD_HABILITADO, true); // Cliente habilitado automáticamente
         clienteData.put(AuthConstants.FIELD_FECHA_CREACION, com.google.firebase.Timestamp.now()); // Timestamp de creación
         clienteData.put(AuthConstants.FIELD_PERFIL_COMPLETO, true); // Perfil completado
-        
-        // Usar foto subida o la de Google Auth
-        if (photoUrl != null) {
-            clienteData.put(AuthConstants.FIELD_PHOTO_URL, photoUrl);
-        } else if (currentUser.getPhotoUrl() != null) {
-            clienteData.put(AuthConstants.FIELD_PHOTO_URL, currentUser.getPhotoUrl().toString());
-        } else {
-            clienteData.put(AuthConstants.FIELD_PHOTO_URL, ""); // Firebase Storage añadirá default.png
-        }
+        clienteData.put(AuthConstants.FIELD_PHOTO_URL, resolvedPhotoUrl); // Foto resuelta
 
         db.collection(AuthConstants.COLLECTION_USUARIOS)
                 .document(currentUser.getUid())
                 .set(clienteData)
                 .addOnSuccessListener(aVoid -> {
-                    Log.d(TAG, "Cliente guardado exitosamente");
+                    Log.d(TAG, "Cliente guardado exitosamente con foto: " + resolvedPhotoUrl);
                     Toast.makeText(this, "¡Registro completado exitosamente!", Toast.LENGTH_SHORT).show();
                     redirectToClientDashboard();
                 })
