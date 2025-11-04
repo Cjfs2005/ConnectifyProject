@@ -89,6 +89,8 @@ public class guia_assigned_tour_detail extends AppCompatActivity {
         binding.checkInButton.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#4CAF50")));
         binding.checkOutButton.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#F44336")));
 
+        // Navbar eliminado - pantalla secundaria
+        /*
         BottomNavigationView bottomNav = binding.bottomNav;
         bottomNav.setSelectedItemId(R.id.nav_tours);
         bottomNav.setOnItemSelectedListener(item -> {
@@ -107,6 +109,7 @@ public class guia_assigned_tour_detail extends AppCompatActivity {
             }
             return false;
         });
+        */
     }
 
     @Override

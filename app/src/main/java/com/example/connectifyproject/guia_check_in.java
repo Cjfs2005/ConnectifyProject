@@ -55,7 +55,8 @@ public class guia_check_in extends AppCompatActivity {
             // Logic to start tour (e.g., update tour status)
         });
 
-        // Nuevo Bottom Navigation con Toast
+        // Navbar eliminado - pantalla secundaria
+        /*
         BottomNavigationView bottomNav = binding.bottomNav;
         bottomNav.setSelectedItemId(R.id.nav_tours);
         bottomNav.setOnItemSelectedListener(item -> {
@@ -74,6 +75,7 @@ public class guia_check_in extends AppCompatActivity {
             }
             return false;
         });
+        */
     }
 
     @Override

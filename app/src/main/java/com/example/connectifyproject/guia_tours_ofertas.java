@@ -50,10 +50,9 @@ public class guia_tours_ofertas extends AppCompatActivity implements GuiaFilterD
         notificationService = new GuiaNotificationService(this);
         preferencesManager = new GuiaPreferencesManager(this);
 
-        // PRUEBA FÁCIL: Configurar toolbar con test de ubicación
+        // Configurar toolbar sin botón de retroceso (pantalla principal)
         setSupportActionBar(binding.toolbar);
         if (getSupportActionBar() != null) {
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             getSupportActionBar().setTitle("Ofertas de Tours");
         }
         

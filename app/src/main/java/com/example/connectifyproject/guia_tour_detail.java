@@ -70,6 +70,8 @@ public class guia_tour_detail extends AppCompatActivity implements OnMapReadyCal
             finish();
         });
 
+        // Navbar eliminado - pantalla secundaria
+        /*
         BottomNavigationView bottomNav = binding.bottomNav;
         bottomNav.setSelectedItemId(R.id.nav_ofertas);
         bottomNav.setOnItemSelectedListener(item -> {
@@ -88,6 +90,7 @@ public class guia_tour_detail extends AppCompatActivity implements OnMapReadyCal
             }
             return false;
         });
+        */
     }
 
     @Override

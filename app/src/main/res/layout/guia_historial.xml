@@ -50,6 +50,11 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
-        app:menu="@menu/guia_bottom_nav_menu" />
+        android:background="?attr/colorSurface"
+        app:menu="@menu/guia_bottom_nav_menu"
+        app:labelVisibilityMode="labeled"
+        app:itemIconTint="@color/guia_bottom_nav_tint"
+        app:itemTextColor="@color/guia_bottom_nav_tint"
+        style="@style/Widget.Material3.BottomNavigationView" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

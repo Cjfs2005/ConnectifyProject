@@ -104,10 +104,9 @@ public class guia_assigned_tours extends AppCompatActivity implements GuiaDateFi
             startActivity(intent);
         });
 
-        // PRUEBA FÁCIL: Mantener presionado toolbar por 3 segundos para probar recordatorios de tours
+        // Configurar toolbar sin botón de retroceso (pantalla principal)
         setSupportActionBar(binding.toolbar);
         if (getSupportActionBar() != null) {
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             getSupportActionBar().setTitle("Tours Asignados");
         }
         

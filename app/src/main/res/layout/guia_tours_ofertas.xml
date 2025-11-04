@@ -89,6 +89,11 @@
         android:id="@+id/bottom_nav"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="?attr/colorSurface"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:menu="@menu/guia_bottom_nav_menu" />
+        app:menu="@menu/guia_bottom_nav_menu"
+        app:labelVisibilityMode="labeled"
+        app:itemIconTint="@color/guia_bottom_nav_tint"
+        app:itemTextColor="@color/guia_bottom_nav_tint"
+        style="@style/Widget.Material3.BottomNavigationView" />
 </androidx.constraintlayout.widget.ConstraintLayout>
