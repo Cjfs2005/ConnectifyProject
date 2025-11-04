@@ -197,11 +197,30 @@ public class admin_chat_conversation extends AppCompatActivity {
     
     private void listenToMessages() {
         chatService.listenToMessages(chatId, new ChatService.OnMessagesLoadedListener() {
+            private int previousMessageCount = 0;
+            
             @Override
             public void onMessagesLoaded(List<ChatMessage> messagesList) {
                 List<ChatItem> chatItems = processMessagesWithDateSeparators(messagesList);
                 messageAdapter.setChatItems(chatItems);
                 scrollToBottom();
+                
+                // Detectar nuevo mensaje recibido (no enviado por este usuario)
+                if (messagesList.size() > previousMessageCount && previousMessageCount > 0) {
+                    ChatMessage lastMessage = messagesList.get(messagesList.size() - 1);
+                    // Solo notificar si el mensaje NO fue enviado por el admin actual
+                    if (!lastMessage.getSenderId().equals(adminId)) {
+                        notificationService.sendMessageNotification(
+                            clientName,
+                            lastMessage.getMessageText(),
+                            chatId,
+                            "CLIENT",
+                            adminId,
+                            "ADMIN"
+                        );
+                    }
+                }
+                previousMessageCount = messagesList.size();
             }
 
             @Override
@@ -278,7 +297,6 @@ public class admin_chat_conversation extends AppCompatActivity {
                     public void onMessageSent(ChatMessage sentMessage) {
                         editTextMessage.setText("");
                         scrollToBottom();
-                        notificationService.sendMessageNotification(adminName, messageText, chatId, "ADMIN", clientId, "CLIENT");
                         Log.d(TAG, "Mensaje enviado exitosamente");
                     }
 

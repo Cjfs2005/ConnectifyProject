@@ -11,8 +11,8 @@ import android.util.Log;
 import androidx.core.app.NotificationCompat;
 
 import com.example.connectifyproject.R;
-import com.example.connectifyproject.admin_chat_conversation;
-import com.example.connectifyproject.cliente_chat_conversation;
+import com.example.connectifyproject.admin_chat;
+import com.example.connectifyproject.cliente_chat_list;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 
@@ -70,18 +70,14 @@ public class ChatNotificationService {
             // Por ahora, siempre enviamos la notificación
         }
         
-        // Crear intent para abrir la conversación
+        // Crear intent para abrir la LISTA de chats (no la conversación específica)
         Intent intent;
         if ("CLIENT".equals(receiverRole)) {
-            intent = new Intent(context, cliente_chat_conversation.class);
-            intent.putExtra("chatId", chatId);
-            intent.putExtra("companyName", senderName);
-            intent.putExtra("companyId", receiverId);
+            // Cliente recibe mensaje -> abrir lista de chats del cliente
+            intent = new Intent(context, cliente_chat_list.class);
         } else {
-            intent = new Intent(context, admin_chat_conversation.class);
-            intent.putExtra("chatId", chatId);
-            intent.putExtra("clientName", senderName);
-            intent.putExtra("clientId", receiverId);
+            // Admin recibe mensaje -> abrir lista de chats del admin
+            intent = new Intent(context, admin_chat.class);
         }
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
         

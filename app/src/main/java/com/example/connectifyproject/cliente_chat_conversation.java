@@ -216,11 +216,30 @@ public class cliente_chat_conversation extends AppCompatActivity {
     
     private void listenToMessages() {
         chatService.listenToMessages(chatId, new ChatService.OnMessagesLoadedListener() {
+            private int previousMessageCount = 0;
+            
             @Override
             public void onMessagesLoaded(List<ChatMessage> messagesList) {
                 List<ChatItem> chatItems = processMessagesWithDateSeparators(messagesList);
                 messageAdapter.setChatItems(chatItems);
                 scrollToBottom();
+                
+                // Detectar nuevo mensaje recibido (no enviado por este usuario)
+                if (messagesList.size() > previousMessageCount && previousMessageCount > 0) {
+                    ChatMessage lastMessage = messagesList.get(messagesList.size() - 1);
+                    // Solo notificar si el mensaje NO fue enviado por el cliente actual
+                    if (!lastMessage.getSenderId().equals(clientId)) {
+                        notificationService.sendMessageNotification(
+                            adminName,
+                            lastMessage.getMessageText(),
+                            chatId,
+                            "ADMIN",
+                            clientId,
+                            "CLIENT"
+                        );
+                    }
+                }
+                previousMessageCount = messagesList.size();
             }
 
             @Override
@@ -303,17 +322,6 @@ public class cliente_chat_conversation extends AppCompatActivity {
                     public void onMessageSent(ChatMessage sentMessage) {
                         editTextMessage.setText("");
                         scrollToBottom();
-                        
-                        // Enviar notificación al admin
-                        notificationService.sendMessageNotification(
-                            clientName,
-                            messageText,
-                            chatId,
-                            "CLIENT",
-                            adminId,
-                            "ADMIN"
-                        );
-                        
                         Log.d(TAG, "Mensaje enviado exitosamente");
                     }
 
