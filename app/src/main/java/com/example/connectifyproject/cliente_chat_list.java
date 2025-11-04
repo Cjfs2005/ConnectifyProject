@@ -111,16 +111,12 @@ public class cliente_chat_list extends AppCompatActivity {
     }
 
     private void loadAdminsFromFirebase() {
-        Log.d(TAG, "loadAdminsFromFirebase - TEST_MODE: " + ChatService.TEST_MODE);
-        
         if (ChatService.TEST_MODE) {
             // MODO TEST: Cargar todos los usuarios con rol "Administrador"
-            Log.d(TAG, "Consultando usuarios con rol='Administrador'");
             db.collection("usuarios")
                 .whereEqualTo("rol", "Administrador")
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
-                    Log.d(TAG, "Query exitosa. Documentos encontrados: " + queryDocumentSnapshots.size());
                     companies.clear();
                     
                     for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
@@ -128,10 +124,6 @@ public class cliente_chat_list extends AppCompatActivity {
                         String adminName = document.getString("nombresApellidos");
                         String adminPhotoUrl = document.getString("photoUrl");
                         String empresaName = document.getString("nombreEmpresa");
-                        
-                        Log.d(TAG, "Admin encontrado - ID: " + adminId + 
-                                   ", Nombres: " + adminName + 
-                                   ", Empresa: " + empresaName);
                         
                         // Usar nombre de empresa si existe, sino usar nombres y apellidos
                         String displayName = (empresaName != null && !empresaName.isEmpty()) 
@@ -150,14 +142,12 @@ public class cliente_chat_list extends AppCompatActivity {
                         companies.add(company);
                     }
                     adapter.updateData(companies);
-                    Log.d(TAG, "Total cargados en lista: " + companies.size() + " admins en modo TEST");
                     
                     if (companies.size() == 0) {
                         Toast.makeText(this, "No se encontraron empresas registradas", Toast.LENGTH_LONG).show();
                     }
                 })
                 .addOnFailureListener(e -> {
-                    Log.e(TAG, "Error al cargar admins: " + e.getMessage(), e);
                     Toast.makeText(this, "Error al cargar empresas: " + e.getMessage(), Toast.LENGTH_LONG).show();
                 });
         } else {
@@ -188,10 +178,8 @@ public class cliente_chat_list extends AppCompatActivity {
                         companies.add(company);
                     }
                     adapter.updateData(companies);
-                    Log.d(TAG, "Cargados " + companies.size() + " chats activos");
                 })
                 .addOnFailureListener(e -> {
-                    Log.e(TAG, "Error al cargar chats", e);
                     Toast.makeText(this, "Error al cargar conversaciones", Toast.LENGTH_SHORT).show();
                 });
         }

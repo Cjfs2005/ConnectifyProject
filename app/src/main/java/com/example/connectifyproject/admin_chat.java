@@ -97,25 +97,18 @@ public class admin_chat extends AppCompatActivity {
     }
 
     private void loadClientsFromFirebase() {
-        Log.d(TAG, "loadClientsFromFirebase - TEST_MODE: " + ChatService.TEST_MODE);
-        
         if (ChatService.TEST_MODE) {
             // Modo de prueba: cargar todos los clientes
-            Log.d(TAG, "Consultando usuarios con rol='Cliente'");
             db.collection("usuarios")
                     .whereEqualTo("rol", "Cliente")
                     .get()
                     .addOnSuccessListener(queryDocumentSnapshots -> {
-                        Log.d(TAG, "Query exitosa. Documentos encontrados: " + queryDocumentSnapshots.size());
                         clients.clear();
                         
                         for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
                             String clientId = document.getId();
                             String clientName = document.getString("nombresApellidos");
                             String clientPhotoUrl = document.getString("photoUrl");
-
-                            Log.d(TAG, "Cliente encontrado - ID: " + clientId + 
-                                       ", Nombre: " + clientName);
 
                             if (clientName == null) clientName = "Cliente";
 
@@ -130,7 +123,6 @@ public class admin_chat extends AppCompatActivity {
                             clients.add(client);
                         }
                         
-                        Log.d(TAG, "Total cargados en lista: " + clients.size() + " clientes");
                         chatAdapter.updateData(clients);
                         
                         if (clients.size() == 0) {
@@ -138,7 +130,6 @@ public class admin_chat extends AppCompatActivity {
                         }
                     })
                     .addOnFailureListener(e -> {
-                        Log.e(TAG, "Error al cargar clientes: " + e.getMessage(), e);
                         Toast.makeText(this, "Error al cargar clientes: " + e.getMessage(), Toast.LENGTH_LONG).show();
                     });
         } else {
@@ -168,10 +159,8 @@ public class admin_chat extends AppCompatActivity {
                             clients.add(client);
                         }
                         chatAdapter.updateData(clients);
-                        Log.d(TAG, "Chats activos cargados: " + clients.size());
                     })
                     .addOnFailureListener(e -> {
-                        Log.e(TAG, "Error al cargar chats", e);
                         Toast.makeText(this, "Error al cargar chats", Toast.LENGTH_SHORT).show();
                     });
         }
