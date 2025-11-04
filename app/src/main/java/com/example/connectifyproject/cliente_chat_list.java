@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.connectifyproject.adapters.Cliente_ChatCompanyAdapter;
 import com.example.connectifyproject.models.Cliente_ChatCompany;
+import com.example.connectifyproject.services.ChatNotificationService;
 import com.example.connectifyproject.services.ChatService;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.Timestamp;
@@ -25,7 +26,9 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class cliente_chat_list extends AppCompatActivity {
 
@@ -37,6 +40,10 @@ public class cliente_chat_list extends AppCompatActivity {
     private ImageButton btnNotifications;
     private BottomNavigationView bottomNavigation;
     private List<Cliente_ChatCompany> companies;
+    private ChatNotificationService notificationService;
+    
+    // Map para trackear el último mensaje de cada chat y detectar cambios
+    private Map<String, String> previousLastMessages = new HashMap<>();
     
     private FirebaseFirestore db;
     private FirebaseUser currentUser;
@@ -49,6 +56,7 @@ public class cliente_chat_list extends AppCompatActivity {
         // Inicializar Firebase
         db = FirebaseFirestore.getInstance();
         currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        notificationService = new ChatNotificationService(this);
         
         if (currentUser == null) {
             Toast.makeText(this, "Error: Usuario no autenticado", Toast.LENGTH_SHORT).show();
@@ -226,11 +234,38 @@ public class cliente_chat_list extends AppCompatActivity {
                     
                     companies.clear();
                     for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
+                        String chatId = document.getId();
                         String adminName = document.getString("adminName");
                         String lastMessage = document.getString("lastMessage");
                         String lastSenderId = document.getString("lastSenderId");
                         String adminPhotoUrl = document.getString("adminPhotoUrl");
                         com.google.firebase.Timestamp lastMessageTime = document.getTimestamp("lastMessageTime");
+                        
+                        // Detectar nuevo mensaje y enviar notificación
+                        if (lastMessage != null && lastSenderId != null) {
+                            String previousMessage = previousLastMessages.get(chatId);
+                            
+                            // Si es un mensaje nuevo, no fue enviado por mí, y no estoy viendo ese chat
+                            if (previousMessage != null && 
+                                !lastMessage.equals(previousMessage) && 
+                                !lastSenderId.equals(currentUser.getUid()) &&
+                                !chatId.equals(cliente_chat_conversation.currentOpenChatId)) {
+                                
+                                // Enviar notificación
+                                notificationService.sendMessageNotification(
+                                    adminName,
+                                    lastMessage,
+                                    chatId,
+                                    "ADMIN",
+                                    currentUser.getUid(),
+                                    "CLIENT"
+                                );
+                                Log.d(TAG, "Notificación enviada para chat: " + chatId);
+                            }
+                            
+                            // Actualizar el último mensaje conocido
+                            previousLastMessages.put(chatId, lastMessage);
+                        }
                         
                         // Formatear mensaje con "Tú:" si fue enviado por el cliente
                         String displayMessage = lastMessage != null ? lastMessage : "";

@@ -35,6 +35,9 @@ public class cliente_chat_conversation extends AppCompatActivity {
 
     private static final String TAG = "ClienteChatConv";
     
+    // Variable estática para trackear qué chat está abierto
+    public static String currentOpenChatId = null;
+    
     private RecyclerView recyclerViewMessages;
     private ClienteMessageAdapter messageAdapter;
     private EditText editTextMessage;
@@ -195,6 +198,7 @@ public class cliente_chat_conversation extends AppCompatActivity {
                 @Override
                 public void onChatReady(Chat chat) {
                     chatId = chat.getChatId();
+                    currentOpenChatId = chatId; // Marcar este chat como abierto
                     Log.d(TAG, "Chat inicializado: " + chatId);
                     
                     // Marcar mensajes como leídos
@@ -214,32 +218,28 @@ public class cliente_chat_conversation extends AppCompatActivity {
         );
     }
     
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (chatId != null) {
+            currentOpenChatId = chatId;
+            chatService.markMessagesAsRead(chatId, "CLIENT");
+        }
+    }
+    
+    @Override
+    protected void onPause() {
+        super.onPause();
+        currentOpenChatId = null; // Limpiar al salir
+    }
+    
     private void listenToMessages() {
         chatService.listenToMessages(chatId, new ChatService.OnMessagesLoadedListener() {
-            private int previousMessageCount = 0;
-            
             @Override
             public void onMessagesLoaded(List<ChatMessage> messagesList) {
                 List<ChatItem> chatItems = processMessagesWithDateSeparators(messagesList);
                 messageAdapter.setChatItems(chatItems);
                 scrollToBottom();
-                
-                // Detectar nuevo mensaje recibido (no enviado por este usuario)
-                if (messagesList.size() > previousMessageCount && previousMessageCount > 0) {
-                    ChatMessage lastMessage = messagesList.get(messagesList.size() - 1);
-                    // Solo notificar si el mensaje NO fue enviado por el cliente actual
-                    if (!lastMessage.getSenderId().equals(clientId)) {
-                        notificationService.sendMessageNotification(
-                            adminName,
-                            lastMessage.getMessageText(),
-                            chatId,
-                            "ADMIN",
-                            clientId,
-                            "CLIENT"
-                        );
-                    }
-                }
-                previousMessageCount = messagesList.size();
             }
 
             @Override
@@ -338,15 +338,6 @@ public class cliente_chat_conversation extends AppCompatActivity {
     private void scrollToBottom() {
         if (messageAdapter.getItemCount() > 0) {
             recyclerViewMessages.smoothScrollToPosition(messageAdapter.getItemCount() - 1);
-        }
-    }
-    
-    @Override
-    protected void onResume() {
-        super.onResume();
-        // Marcar mensajes como leídos cuando se abre la conversación
-        if (chatId != null) {
-            chatService.markMessagesAsRead(chatId, "CLIENT");
         }
     }
 }

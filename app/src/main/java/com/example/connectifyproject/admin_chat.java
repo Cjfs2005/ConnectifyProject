@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import com.example.connectifyproject.adapters.AdminChatAdapter;
 import com.example.connectifyproject.databinding.AdminChatViewBinding;
 import com.example.connectifyproject.models.AdminChatClient;
+import com.example.connectifyproject.services.ChatNotificationService;
 import com.example.connectifyproject.services.ChatService;
 import com.example.connectifyproject.ui.admin.AdminBottomNavFragment;
 import com.google.firebase.Timestamp;
@@ -24,7 +25,9 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class admin_chat extends AppCompatActivity {
     private static final String TAG = "AdminChat";
@@ -33,6 +36,10 @@ public class admin_chat extends AppCompatActivity {
     private FirebaseFirestore db;
     private FirebaseUser currentUser;
     private List<AdminChatClient> clients;
+    private ChatNotificationService notificationService;
+    
+    // Map para trackear el último mensaje de cada chat y detectar cambios
+    private Map<String, String> previousLastMessages = new HashMap<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,6 +52,7 @@ public class admin_chat extends AppCompatActivity {
         // Inicializar Firebase
         db = FirebaseFirestore.getInstance();
         currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        notificationService = new ChatNotificationService(this);
 
         if (currentUser == null) {
             Toast.makeText(this, "Error: Usuario no autenticado", Toast.LENGTH_SHORT).show();
@@ -204,12 +212,39 @@ public class admin_chat extends AppCompatActivity {
                         
                         clients.clear();
                         for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
+                            String chatId = document.getId();
                             String clientId = document.getString("clientId");
                             String clientName = document.getString("clientName");
                             String clientPhotoUrl = document.getString("clientPhotoUrl");
                             String lastMessage = document.getString("lastMessage");
                             String lastSenderId = document.getString("lastSenderId");
                             Timestamp lastMessageTime = document.getTimestamp("lastMessageTime");
+                            
+                            // Detectar nuevo mensaje y enviar notificación
+                            if (lastMessage != null && lastSenderId != null) {
+                                String previousMessage = previousLastMessages.get(chatId);
+                                
+                                // Si es un mensaje nuevo, no fue enviado por mí, y no estoy viendo ese chat
+                                if (previousMessage != null && 
+                                    !lastMessage.equals(previousMessage) && 
+                                    !lastSenderId.equals(currentUser.getUid()) &&
+                                    !chatId.equals(admin_chat_conversation.currentOpenChatId)) {
+                                    
+                                    // Enviar notificación
+                                    notificationService.sendMessageNotification(
+                                        clientName,
+                                        lastMessage,
+                                        chatId,
+                                        "CLIENT",
+                                        currentUser.getUid(),
+                                        "ADMIN"
+                                    );
+                                    Log.d(TAG, "Notificación enviada para chat: " + chatId);
+                                }
+                                
+                                // Actualizar el último mensaje conocido
+                                previousLastMessages.put(chatId, lastMessage);
+                            }
 
                             // Formatear mensaje con "Tú:" si fue enviado por el admin
                             String displayMessage = lastMessage != null ? lastMessage : "";

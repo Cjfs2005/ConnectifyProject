@@ -35,6 +35,9 @@ public class admin_chat_conversation extends AppCompatActivity {
 
     private static final String TAG = "AdminChatConv";
     
+    // Variable estática para trackear qué chat está abierto
+    public static String currentOpenChatId = null;
+    
     private RecyclerView recyclerViewMessages;
     private AdminMessageAdapter messageAdapter;
     private EditText editTextMessage;
@@ -181,6 +184,7 @@ public class admin_chat_conversation extends AppCompatActivity {
                 @Override
                 public void onChatReady(Chat chat) {
                     chatId = chat.getChatId();
+                    currentOpenChatId = chatId; // Marcar este chat como abierto
                     Log.d(TAG, "Chat inicializado: " + chatId);
                     chatService.markMessagesAsRead(chatId, "ADMIN");
                     listenToMessages();
@@ -195,32 +199,28 @@ public class admin_chat_conversation extends AppCompatActivity {
         );
     }
     
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (chatId != null) {
+            currentOpenChatId = chatId;
+            chatService.markMessagesAsRead(chatId, "ADMIN");
+        }
+    }
+    
+    @Override
+    protected void onPause() {
+        super.onPause();
+        currentOpenChatId = null; // Limpiar al salir
+    }
+    
     private void listenToMessages() {
         chatService.listenToMessages(chatId, new ChatService.OnMessagesLoadedListener() {
-            private int previousMessageCount = 0;
-            
             @Override
             public void onMessagesLoaded(List<ChatMessage> messagesList) {
                 List<ChatItem> chatItems = processMessagesWithDateSeparators(messagesList);
                 messageAdapter.setChatItems(chatItems);
                 scrollToBottom();
-                
-                // Detectar nuevo mensaje recibido (no enviado por este usuario)
-                if (messagesList.size() > previousMessageCount && previousMessageCount > 0) {
-                    ChatMessage lastMessage = messagesList.get(messagesList.size() - 1);
-                    // Solo notificar si el mensaje NO fue enviado por el admin actual
-                    if (!lastMessage.getSenderId().equals(adminId)) {
-                        notificationService.sendMessageNotification(
-                            clientName,
-                            lastMessage.getMessageText(),
-                            chatId,
-                            "CLIENT",
-                            adminId,
-                            "ADMIN"
-                        );
-                    }
-                }
-                previousMessageCount = messagesList.size();
             }
 
             @Override
@@ -312,14 +312,6 @@ public class admin_chat_conversation extends AppCompatActivity {
     private void scrollToBottom() {
         if (messageAdapter.getItemCount() > 0) {
             recyclerViewMessages.smoothScrollToPosition(messageAdapter.getItemCount() - 1);
-        }
-    }
-    
-    @Override
-    protected void onResume() {
-        super.onResume();
-        if (chatId != null) {
-            chatService.markMessagesAsRead(chatId, "ADMIN");
         }
     }
 }
