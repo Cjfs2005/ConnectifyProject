@@ -80,14 +80,33 @@
             app:layout_constraintTop_toTopOf="@id/tvClientName"
             tools:text="9:20" />
 
-        <!-- Indicador de mensaje nuevo -->
+        <!-- Contador de mensajes no leídos -->
+        <TextView
+            android:id="@+id/tvUnreadCount"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:background="@drawable/bg_circle"
+            android:backgroundTint="@color/brand_purple_dark"
+            android:gravity="center"
+            android:text="3"
+            android:textAppearance="@style/TextAppearance.Material3.LabelSmall"
+            android:textColor="@android:color/white"
+            android:textStyle="bold"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="@id/tvLastMessage"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@id/tvLastMessage"
+            tools:text="3"
+            tools:visibility="visible" />
+
+        <!-- Indicador de mensaje nuevo (punto) -->
         <View
             android:id="@+id/vNewMessageIndicator"
             android:layout_width="8dp"
             android:layout_height="8dp"
             android:background="@drawable/bg_circle"
             android:backgroundTint="@color/brand_purple_dark"
-            android:visibility="visible"
+            android:visibility="gone"
             app:layout_constraintBottom_toBottomOf="@id/tvLastMessage"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="@id/tvLastMessage" />

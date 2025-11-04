@@ -80,6 +80,25 @@
             app:layout_constraintTop_toTopOf="@id/tv_company_name"
             tools:text="10 min" />
 
+        <!-- Contador de mensajes no leídos -->
+        <TextView
+            android:id="@+id/tv_unread_count"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:background="@drawable/bg_circle"
+            android:backgroundTint="?attr/colorPrimary"
+            android:gravity="center"
+            android:text="5"
+            android:textAppearance="@style/TextAppearance.Material3.LabelSmall"
+            android:textColor="@android:color/white"
+            android:textStyle="bold"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="@id/tv_last_message"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@id/tv_last_message"
+            tools:text="5"
+            tools:visibility="visible" />
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </com.google.android.material.card.MaterialCardView>

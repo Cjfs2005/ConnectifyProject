@@ -62,6 +62,15 @@ public class Cliente_ChatCompanyAdapter extends RecyclerView.Adapter<Cliente_Cha
         } else {
             holder.ivCompanyLogo.setImageResource(company.getLogoResource());
         }
+        
+        // Mostrar contador de mensajes no leídos
+        int unreadCount = company.getUnreadCount();
+        if (unreadCount > 0) {
+            holder.tvUnreadCount.setVisibility(View.VISIBLE);
+            holder.tvUnreadCount.setText(String.valueOf(unreadCount));
+        } else {
+            holder.tvUnreadCount.setVisibility(View.GONE);
+        }
 
         // Click listener para navegar a la conversación
         holder.itemView.setOnClickListener(v -> {
@@ -107,7 +116,7 @@ public class Cliente_ChatCompanyAdapter extends RecyclerView.Adapter<Cliente_Cha
     }
 
     public static class ChatViewHolder extends RecyclerView.ViewHolder {
-        TextView tvCompanyName, tvLastMessage, tvTime;
+        TextView tvCompanyName, tvLastMessage, tvTime, tvUnreadCount;
         ImageView ivCompanyLogo;
 
         public ChatViewHolder(@NonNull View itemView) {
@@ -115,6 +124,7 @@ public class Cliente_ChatCompanyAdapter extends RecyclerView.Adapter<Cliente_Cha
             tvCompanyName = itemView.findViewById(R.id.tv_company_name);
             tvLastMessage = itemView.findViewById(R.id.tv_last_message);
             tvTime = itemView.findViewById(R.id.tv_time);
+            tvUnreadCount = itemView.findViewById(R.id.tv_unread_count);
             ivCompanyLogo = itemView.findViewById(R.id.iv_company_logo);
         }
     }

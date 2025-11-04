@@ -59,8 +59,16 @@ public class AdminChatAdapter extends RecyclerView.Adapter<AdminChatAdapter.Chat
             holder.ivClientAvatar.setImageResource(client.getPhotoResource());
         }
         
-        // Ocultar indicador de mensajes nuevos por ahora (puede implementarse después)
-        holder.newMessageIndicator.setVisibility(View.GONE);
+        // Mostrar contador de mensajes no leídos
+        int unreadCount = client.getUnreadCount();
+        if (unreadCount > 0) {
+            holder.tvUnreadCount.setVisibility(View.VISIBLE);
+            holder.tvUnreadCount.setText(String.valueOf(unreadCount));
+            holder.newMessageIndicator.setVisibility(View.GONE); // Ocultar el punto si hay contador
+        } else {
+            holder.tvUnreadCount.setVisibility(View.GONE);
+            holder.newMessageIndicator.setVisibility(View.GONE);
+        }
 
         // Click listener para navegar a la conversación
         holder.itemView.setOnClickListener(v -> {
@@ -106,7 +114,7 @@ public class AdminChatAdapter extends RecyclerView.Adapter<AdminChatAdapter.Chat
     }
 
     public static class ChatViewHolder extends RecyclerView.ViewHolder {
-        TextView tvClientName, tvLastMessage, tvTime;
+        TextView tvClientName, tvLastMessage, tvTime, tvUnreadCount;
         ImageView ivClientAvatar;
         View newMessageIndicator;
 
@@ -115,6 +123,7 @@ public class AdminChatAdapter extends RecyclerView.Adapter<AdminChatAdapter.Chat
             tvClientName = itemView.findViewById(R.id.tvClientName);
             tvLastMessage = itemView.findViewById(R.id.tvLastMessage);
             tvTime = itemView.findViewById(R.id.tvTime);
+            tvUnreadCount = itemView.findViewById(R.id.tvUnreadCount);
             ivClientAvatar = itemView.findViewById(R.id.ivClientAvatar);
             newMessageIndicator = itemView.findViewById(R.id.vNewMessageIndicator);
         }

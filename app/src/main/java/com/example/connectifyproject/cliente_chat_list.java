@@ -240,6 +240,8 @@ public class cliente_chat_list extends AppCompatActivity {
                         String lastSenderId = document.getString("lastSenderId");
                         String adminPhotoUrl = document.getString("adminPhotoUrl");
                         com.google.firebase.Timestamp lastMessageTime = document.getTimestamp("lastMessageTime");
+                        Integer unreadCountClient = document.getLong("unreadCountClient") != null ? 
+                            document.getLong("unreadCountClient").intValue() : 0;
                         
                         // Detectar nuevo mensaje y enviar notificación
                         if (lastMessage != null && lastSenderId != null) {
@@ -282,6 +284,7 @@ public class cliente_chat_list extends AppCompatActivity {
                         company.setAdminId(document.getString("adminId"));
                         company.setAdminPhotoUrl(adminPhotoUrl);
                         company.setLastMessageTime(lastMessageTime);
+                        company.setUnreadCount(unreadCountClient);
                         companies.add(company);
                     }
                     

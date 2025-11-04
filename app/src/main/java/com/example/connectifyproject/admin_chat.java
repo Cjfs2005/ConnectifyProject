@@ -219,6 +219,8 @@ public class admin_chat extends AppCompatActivity {
                             String lastMessage = document.getString("lastMessage");
                             String lastSenderId = document.getString("lastSenderId");
                             Timestamp lastMessageTime = document.getTimestamp("lastMessageTime");
+                            Integer unreadCountAdmin = document.getLong("unreadCountAdmin") != null ? 
+                                document.getLong("unreadCountAdmin").intValue() : 0;
                             
                             // Detectar nuevo mensaje y enviar notificación
                             if (lastMessage != null && lastSenderId != null) {
@@ -261,6 +263,7 @@ public class admin_chat extends AppCompatActivity {
                             client.setClientId(clientId);
                             client.setClientPhotoUrl(clientPhotoUrl);
                             client.setLastMessageTime(lastMessageTime);
+                            client.setUnreadCount(unreadCountAdmin);
                             clients.add(client);
                         }
                         

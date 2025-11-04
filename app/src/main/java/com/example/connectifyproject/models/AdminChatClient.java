@@ -14,6 +14,7 @@ public class AdminChatClient implements Serializable {
     private String clientId;
     private String clientPhotoUrl;
     private Timestamp lastMessageTime; // Para ordenar
+    private int unreadCount; // Mensajes no leídos por el admin
 
     public AdminChatClient(String name, String lastMessage, String timeAgo, int photoResource) {
         this.id = "";
@@ -43,6 +44,7 @@ public class AdminChatClient implements Serializable {
     public String getClientId() { return clientId; }
     public String getClientPhotoUrl() { return clientPhotoUrl; }
     public Timestamp getLastMessageTime() { return lastMessageTime; }
+    public int getUnreadCount() { return unreadCount; }
 
     // Setters
     public void setId(String id) { this.id = id; }
@@ -54,4 +56,5 @@ public class AdminChatClient implements Serializable {
     public void setClientId(String clientId) { this.clientId = clientId; }
     public void setClientPhotoUrl(String clientPhotoUrl) { this.clientPhotoUrl = clientPhotoUrl; }
     public void setLastMessageTime(Timestamp lastMessageTime) { this.lastMessageTime = lastMessageTime; }
+    public void setUnreadCount(int unreadCount) { this.unreadCount = unreadCount; }
 }
