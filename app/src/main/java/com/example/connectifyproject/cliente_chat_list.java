@@ -41,6 +41,7 @@ public class cliente_chat_list extends AppCompatActivity {
     private BottomNavigationView bottomNavigation;
     private List<Cliente_ChatCompany> companies;
     private ChatNotificationService notificationService;
+    private ChatService chatService;
     
     // Map para trackear el último mensaje de cada chat y detectar cambios
     private Map<String, String> previousLastMessages = new HashMap<>();
@@ -57,6 +58,7 @@ public class cliente_chat_list extends AppCompatActivity {
         db = FirebaseFirestore.getInstance();
         currentUser = FirebaseAuth.getInstance().getCurrentUser();
         notificationService = new ChatNotificationService(this);
+        chatService = new ChatService();
         
         if (currentUser == null) {
             Toast.makeText(this, "Error: Usuario no autenticado", Toast.LENGTH_SHORT).show();
@@ -263,6 +265,12 @@ public class cliente_chat_list extends AppCompatActivity {
                                     "CLIENT"
                                 );
                                 Log.d(TAG, "Notificación enviada para chat: " + chatId);
+                            }
+                            
+                            // Si el chat está abierto y hay mensajes no leídos, resetear el contador en Firebase
+                            if (chatId.equals(cliente_chat_conversation.currentOpenChatId) && unreadCountClient > 0) {
+                                chatService.markMessagesAsRead(chatId, "CLIENT");
+                                Log.d(TAG, "Contador reseteado automáticamente para chat abierto: " + chatId);
                             }
                             
                             // Actualizar el último mensaje conocido

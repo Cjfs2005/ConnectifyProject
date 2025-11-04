@@ -37,6 +37,7 @@ public class admin_chat extends AppCompatActivity {
     private FirebaseUser currentUser;
     private List<AdminChatClient> clients;
     private ChatNotificationService notificationService;
+    private ChatService chatService;
     
     // Map para trackear el último mensaje de cada chat y detectar cambios
     private Map<String, String> previousLastMessages = new HashMap<>();
@@ -53,6 +54,7 @@ public class admin_chat extends AppCompatActivity {
         db = FirebaseFirestore.getInstance();
         currentUser = FirebaseAuth.getInstance().getCurrentUser();
         notificationService = new ChatNotificationService(this);
+        chatService = new ChatService();
 
         if (currentUser == null) {
             Toast.makeText(this, "Error: Usuario no autenticado", Toast.LENGTH_SHORT).show();
@@ -242,6 +244,12 @@ public class admin_chat extends AppCompatActivity {
                                         "ADMIN"
                                     );
                                     Log.d(TAG, "Notificación enviada para chat: " + chatId);
+                                }
+                                
+                                // Si el chat está abierto y hay mensajes no leídos, resetear el contador en Firebase
+                                if (chatId.equals(admin_chat_conversation.currentOpenChatId) && unreadCountAdmin > 0) {
+                                    chatService.markMessagesAsRead(chatId, "ADMIN");
+                                    Log.d(TAG, "Contador reseteado automáticamente para chat abierto: " + chatId);
                                 }
                                 
                                 // Actualizar el último mensaje conocido
