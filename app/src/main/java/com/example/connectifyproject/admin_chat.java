@@ -101,16 +101,21 @@ public class admin_chat extends AppCompatActivity {
             // Modo de prueba: cargar todos los clientes
             db.collection("usuarios")
                     .whereEqualTo("rol", "Cliente")
-                    .get()
-                    .addOnSuccessListener(queryDocumentSnapshots -> {
-                        clients.clear();
-                        int totalClients = queryDocumentSnapshots.size();
-                        final int[] processedClients = {0};
+                    .addSnapshotListener((queryDocumentSnapshots, error) -> {
+                        if (error != null) {
+                            Toast.makeText(this, "Error al cargar clientes: " + error.getMessage(), Toast.LENGTH_LONG).show();
+                            return;
+                        }
                         
-                        if (totalClients == 0) {
+                        if (queryDocumentSnapshots == null || queryDocumentSnapshots.isEmpty()) {
                             Toast.makeText(this, "No se encontraron clientes registrados", Toast.LENGTH_LONG).show();
                             return;
                         }
+                        
+                        clients.clear();
+                        int totalClients = queryDocumentSnapshots.size();
+                        final int[] processedClients = {0};
+                        final java.util.List<AdminChatClient> tempClients = new java.util.ArrayList<>();
                         
                         for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
                             String clientId = document.getId();
@@ -128,6 +133,8 @@ public class admin_chat extends AppCompatActivity {
                                 .limit(1)
                                 .get()
                                 .addOnSuccessListener(chatSnapshots -> {
+                                    AdminChatClient client;
+                                    
                                     if (!chatSnapshots.isEmpty()) {
                                         // Hay chat existente, obtener el último mensaje
                                         String chatId = chatSnapshots.getDocuments().get(0).getId();
@@ -141,7 +148,7 @@ public class admin_chat extends AppCompatActivity {
                                             displayMessage = "Tú: " + displayMessage;
                                         }
                                         
-                                        AdminChatClient client = new AdminChatClient(
+                                        client = new AdminChatClient(
                                                 finalClientName,
                                                 displayMessage,
                                                 formatTimestamp(lastMessageTime),
@@ -149,10 +156,10 @@ public class admin_chat extends AppCompatActivity {
                                         );
                                         client.setClientId(clientId);
                                         client.setClientPhotoUrl(clientPhotoUrl);
-                                        clients.add(client);
+                                        client.setLastMessageTime(lastMessageTime);
                                     } else {
                                         // No hay chat, mostrar mensaje por defecto
-                                        AdminChatClient client = new AdminChatClient(
+                                        client = new AdminChatClient(
                                                 finalClientName,
                                                 "Toca para iniciar conversación",
                                                 "",
@@ -160,11 +167,26 @@ public class admin_chat extends AppCompatActivity {
                                         );
                                         client.setClientId(clientId);
                                         client.setClientPhotoUrl(clientPhotoUrl);
-                                        clients.add(client);
+                                        client.setLastMessageTime(null);
                                     }
                                     
+                                    tempClients.add(client);
                                     processedClients[0]++;
+                                    
                                     if (processedClients[0] == totalClients) {
+                                        // Ordenar por último mensaje (más reciente primero)
+                                        java.util.Collections.sort(tempClients, (c1, c2) -> {
+                                            Timestamp t1 = c1.getLastMessageTime();
+                                            Timestamp t2 = c2.getLastMessageTime();
+                                            
+                                            if (t1 == null && t2 == null) return 0;
+                                            if (t1 == null) return 1;
+                                            if (t2 == null) return -1;
+                                            
+                                            return t2.compareTo(t1); // Descendente (más reciente primero)
+                                        });
+                                        
+                                        clients.addAll(tempClients);
                                         chatAdapter.updateData(clients);
                                     }
                                 })
@@ -178,26 +200,44 @@ public class admin_chat extends AppCompatActivity {
                                     );
                                     client.setClientId(clientId);
                                     client.setClientPhotoUrl(clientPhotoUrl);
-                                    clients.add(client);
+                                    client.setLastMessageTime(null);
                                     
+                                    tempClients.add(client);
                                     processedClients[0]++;
+                                    
                                     if (processedClients[0] == totalClients) {
+                                        // Ordenar por último mensaje (más reciente primero)
+                                        java.util.Collections.sort(tempClients, (c1, c2) -> {
+                                            Timestamp t1 = c1.getLastMessageTime();
+                                            Timestamp t2 = c2.getLastMessageTime();
+                                            
+                                            if (t1 == null && t2 == null) return 0;
+                                            if (t1 == null) return 1;
+                                            if (t2 == null) return -1;
+                                            
+                                            return t2.compareTo(t1); // Descendente
+                                        });
+                                        
+                                        clients.addAll(tempClients);
                                         chatAdapter.updateData(clients);
                                     }
                                 });
                         }
-                    })
-                    .addOnFailureListener(e -> {
-                        Toast.makeText(this, "Error al cargar clientes: " + e.getMessage(), Toast.LENGTH_LONG).show();
                     });
         } else {
-            // Modo producción: cargar solo chats activos
+            // Modo producción: cargar solo chats activos con listener en tiempo real
             db.collection("chats")
                     .whereEqualTo("adminId", currentUser.getUid())
                     .whereEqualTo("active", true)
                     .orderBy("lastMessageTime", Query.Direction.DESCENDING)
-                    .get()
-                    .addOnSuccessListener(queryDocumentSnapshots -> {
+                    .addSnapshotListener((queryDocumentSnapshots, error) -> {
+                        if (error != null) {
+                            Toast.makeText(this, "Error al cargar chats: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+                        
+                        if (queryDocumentSnapshots == null) return;
+                        
                         clients.clear();
                         for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
                             String clientId = document.getString("clientId");
@@ -221,12 +261,10 @@ public class admin_chat extends AppCompatActivity {
                             );
                             client.setClientId(clientId);
                             client.setClientPhotoUrl(clientPhotoUrl);
+                            client.setLastMessageTime(lastMessageTime);
                             clients.add(client);
                         }
                         chatAdapter.updateData(clients);
-                    })
-                    .addOnFailureListener(e -> {
-                        Toast.makeText(this, "Error al cargar chats", Toast.LENGTH_SHORT).show();
                     });
         }
     }

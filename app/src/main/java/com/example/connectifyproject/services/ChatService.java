@@ -27,7 +27,7 @@ public class ChatService {
     }
     
     /**
-     * Crea o obtiene un chat entre un cliente y una empresa
+     * Obtiene un chat existente (sin crear uno nuevo)
      */
     public void getOrCreateChat(String clientId, String clientName, String clientPhotoUrl,
                                String adminId, String adminName, String adminPhotoUrl,
@@ -42,21 +42,10 @@ public class ChatService {
                     Chat chat = documentSnapshot.toObject(Chat.class);
                     listener.onChatReady(chat);
                 } else {
-                    // Crear nuevo chat
-                    Chat newChat = new Chat(clientId, clientName, clientPhotoUrl,
+                    // Retornar un chat temporal (no guardado en BD hasta que se envíe el primer mensaje)
+                    Chat tempChat = new Chat(clientId, clientName, clientPhotoUrl,
                                           adminId, adminName, adminPhotoUrl);
-                    
-                    db.collection(COLLECTION_CHATS)
-                        .document(chatId)
-                        .set(newChat)
-                        .addOnSuccessListener(aVoid -> {
-                            Log.d(TAG, "Chat creado exitosamente: " + chatId);
-                            listener.onChatReady(newChat);
-                        })
-                        .addOnFailureListener(e -> {
-                            Log.e(TAG, "Error al crear chat", e);
-                            listener.onError(e);
-                        });
+                    listener.onChatReady(tempChat);
                 }
             })
             .addOnFailureListener(e -> {
@@ -66,9 +55,65 @@ public class ChatService {
     }
     
     /**
-     * Envía un mensaje en un chat
+     * Envía un mensaje en un chat (crea el chat si es el primer mensaje)
      */
     public void sendMessage(ChatMessage message, OnMessageSentListener listener) {
+        String chatId = message.getChatId();
+        
+        // Primero verificar si el chat existe, si no, crearlo
+        db.collection(COLLECTION_CHATS)
+            .document(chatId)
+            .get()
+            .addOnSuccessListener(documentSnapshot -> {
+                if (!documentSnapshot.exists()) {
+                    // Crear el chat primero (es el primer mensaje)
+                    createChatFromMessage(message, listener);
+                } else {
+                    // El chat ya existe, solo enviar el mensaje
+                    saveMessage(message, listener);
+                }
+            })
+            .addOnFailureListener(e -> {
+                Log.e(TAG, "Error al verificar chat", e);
+                listener.onError(e);
+            });
+    }
+    
+    /**
+     * Crea el chat en la base de datos a partir del primer mensaje
+     */
+    private void createChatFromMessage(ChatMessage message, OnMessageSentListener listener) {
+        // Extraer IDs del chatId (formato: clientId_adminId)
+        String[] ids = message.getChatId().split("_");
+        
+        // Crear el chat con información básica
+        Chat newChat = new Chat();
+        newChat.setChatId(message.getChatId());
+        newChat.setClientId(ids[0]);
+        newChat.setAdminId(ids[1]);
+        newChat.setClientName(""); // Se actualizará con el mensaje
+        newChat.setAdminName(""); // Se actualizará con el mensaje
+        newChat.setLastMessage(message.getMessageText());
+        newChat.setLastMessageTime(message.getTimestamp());
+        newChat.setActive(true);
+        
+        db.collection(COLLECTION_CHATS)
+            .document(message.getChatId())
+            .set(newChat)
+            .addOnSuccessListener(aVoid -> {
+                Log.d(TAG, "Chat creado con primer mensaje: " + message.getChatId());
+                saveMessage(message, listener);
+            })
+            .addOnFailureListener(e -> {
+                Log.e(TAG, "Error al crear chat", e);
+                listener.onError(e);
+            });
+    }
+    
+    /**
+     * Guarda el mensaje en la colección de mensajes
+     */
+    private void saveMessage(ChatMessage message, OnMessageSentListener listener) {
         // Generar ID único para el mensaje
         String messageId = db.collection(COLLECTION_CHATS)
             .document(message.getChatId())

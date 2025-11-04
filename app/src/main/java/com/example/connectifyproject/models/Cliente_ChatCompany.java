@@ -1,5 +1,7 @@
 package com.example.connectifyproject.models;
 
+import com.google.firebase.Timestamp;
+
 import java.io.Serializable;
 
 public class Cliente_ChatCompany implements Serializable {
@@ -11,6 +13,7 @@ public class Cliente_ChatCompany implements Serializable {
     private boolean isOnline;
     private String adminId;
     private String adminPhotoUrl;
+    private Timestamp lastMessageTime; // Para ordenar
 
     public Cliente_ChatCompany(String name, String lastMessage, String timeAgo, int logoResource) {
         this.id = "";
@@ -39,6 +42,7 @@ public class Cliente_ChatCompany implements Serializable {
     public boolean isOnline() { return isOnline; }
     public String getAdminId() { return adminId; }
     public String getAdminPhotoUrl() { return adminPhotoUrl; }
+    public Timestamp getLastMessageTime() { return lastMessageTime; }
 
     // Setters
     public void setId(String id) { this.id = id; }
@@ -49,4 +53,5 @@ public class Cliente_ChatCompany implements Serializable {
     public void setOnline(boolean online) { isOnline = online; }
     public void setAdminId(String adminId) { this.adminId = adminId; }
     public void setAdminPhotoUrl(String adminPhotoUrl) { this.adminPhotoUrl = adminPhotoUrl; }
+    public void setLastMessageTime(Timestamp lastMessageTime) { this.lastMessageTime = lastMessageTime; }
 }
