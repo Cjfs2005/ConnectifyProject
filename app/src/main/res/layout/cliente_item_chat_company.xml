@@ -63,7 +63,7 @@
             android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
             android:textColor="?attr/colorOnSurfaceVariant"
             app:layout_constraintBottom_toBottomOf="@id/iv_company_logo"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/tv_unread_count"
             app:layout_constraintStart_toEndOf="@id/iv_company_logo"
             app:layout_constraintTop_toBottomOf="@id/tv_company_name"
             tools:text="Quedo atento para cualquier..." />

@@ -284,7 +284,14 @@ public class cliente_chat_list extends AppCompatActivity {
                         company.setAdminId(document.getString("adminId"));
                         company.setAdminPhotoUrl(adminPhotoUrl);
                         company.setLastMessageTime(lastMessageTime);
-                        company.setUnreadCount(unreadCountClient);
+                        
+                        // Si el chat está abierto, mostrar contador como 0
+                        if (chatId.equals(cliente_chat_conversation.currentOpenChatId)) {
+                            company.setUnreadCount(0);
+                        } else {
+                            company.setUnreadCount(unreadCountClient);
+                        }
+                        
                         companies.add(company);
                     }
                     

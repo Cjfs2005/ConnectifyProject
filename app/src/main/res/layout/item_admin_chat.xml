@@ -63,7 +63,7 @@
             android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
             android:textColor="?attr/colorOnSurfaceVariant"
             app:layout_constraintBottom_toBottomOf="@id/ivClientAvatar"
-            app:layout_constraintEnd_toStartOf="@id/vNewMessageIndicator"
+            app:layout_constraintEnd_toStartOf="@id/tvUnreadCount"
             app:layout_constraintStart_toEndOf="@id/ivClientAvatar"
             app:layout_constraintTop_toBottomOf="@id/tvClientName"
             tools:text="Perfecto, me interesa el de 3 días" />

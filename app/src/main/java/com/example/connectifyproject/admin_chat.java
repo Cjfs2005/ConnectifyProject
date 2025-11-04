@@ -263,7 +263,14 @@ public class admin_chat extends AppCompatActivity {
                             client.setClientId(clientId);
                             client.setClientPhotoUrl(clientPhotoUrl);
                             client.setLastMessageTime(lastMessageTime);
-                            client.setUnreadCount(unreadCountAdmin);
+                            
+                            // Si el chat está abierto, mostrar contador como 0
+                            if (chatId.equals(admin_chat_conversation.currentOpenChatId)) {
+                                client.setUnreadCount(0);
+                            } else {
+                                client.setUnreadCount(unreadCountAdmin);
+                            }
+                            
                             clients.add(client);
                         }
                         
