@@ -194,7 +194,6 @@ public class admin_chat extends AppCompatActivity {
             db.collection("chats")
                     .whereEqualTo("adminId", currentUser.getUid())
                     .whereEqualTo("active", true)
-                    .orderBy("lastMessageTime", Query.Direction.DESCENDING)
                     .addSnapshotListener((queryDocumentSnapshots, error) -> {
                         if (error != null) {
                             Toast.makeText(this, "Error al cargar chats: " + error.getMessage(), Toast.LENGTH_SHORT).show();
@@ -229,6 +228,19 @@ public class admin_chat extends AppCompatActivity {
                             client.setLastMessageTime(lastMessageTime);
                             clients.add(client);
                         }
+                        
+                        // Ordenar manualmente por último mensaje (más reciente primero)
+                        java.util.Collections.sort(clients, (c1, c2) -> {
+                            Timestamp t1 = c1.getLastMessageTime();
+                            Timestamp t2 = c2.getLastMessageTime();
+                            
+                            if (t1 == null && t2 == null) return 0;
+                            if (t1 == null) return 1;
+                            if (t2 == null) return -1;
+                            
+                            return t2.compareTo(t1); // Descendente (más reciente primero)
+                        });
+                        
                         chatAdapter.updateData(clients);
                     });
         }

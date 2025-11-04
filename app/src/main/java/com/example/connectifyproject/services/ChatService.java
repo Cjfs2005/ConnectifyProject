@@ -18,7 +18,7 @@ public class ChatService {
     private static final String COLLECTION_MESSAGES = "messages";
     
     // CONFIGURACIÓN: Cambiar a false para implementación real
-    public static final boolean TEST_MODE = true;
+    public static final boolean TEST_MODE = false;
     
     private final FirebaseFirestore db;
     

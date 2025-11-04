@@ -216,7 +216,6 @@ public class cliente_chat_list extends AppCompatActivity {
             db.collection("chats")
                 .whereEqualTo("clientId", currentUser.getUid())
                 .whereEqualTo("active", true)
-                .orderBy("lastMessageTime", com.google.firebase.firestore.Query.Direction.DESCENDING)
                 .addSnapshotListener((queryDocumentSnapshots, error) -> {
                     if (error != null) {
                         Toast.makeText(this, "Error al cargar conversaciones: " + error.getMessage(), Toast.LENGTH_SHORT).show();
@@ -250,6 +249,19 @@ public class cliente_chat_list extends AppCompatActivity {
                         company.setLastMessageTime(lastMessageTime);
                         companies.add(company);
                     }
+                    
+                    // Ordenar manualmente por último mensaje (más reciente primero)
+                    java.util.Collections.sort(companies, (c1, c2) -> {
+                        Timestamp t1 = c1.getLastMessageTime();
+                        Timestamp t2 = c2.getLastMessageTime();
+                        
+                        if (t1 == null && t2 == null) return 0;
+                        if (t1 == null) return 1;
+                        if (t2 == null) return -1;
+                        
+                        return t2.compareTo(t1); // Descendente (más reciente primero)
+                    });
+                    
                     adapter.updateData(companies);
                 });
         }
