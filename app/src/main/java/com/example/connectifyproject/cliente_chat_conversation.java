@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.connectifyproject.adapters.ClienteMessageAdapter;
 import com.example.connectifyproject.model.Chat;
+import com.example.connectifyproject.model.ChatItem;
 import com.example.connectifyproject.model.ChatMessage;
 import com.example.connectifyproject.services.ChatNotificationService;
 import com.example.connectifyproject.services.ChatService;
@@ -23,7 +24,12 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public class cliente_chat_conversation extends AppCompatActivity {
 
@@ -117,7 +123,11 @@ public class cliente_chat_conversation extends AppCompatActivity {
         
         // Mostrar datos de la empresa/admin
         tvCompanyNameToolbar.setText(adminName);
-        tvStatus.setText("En línea");
+        
+        // Ocultar estado "En línea"
+        if (tvStatus != null) {
+            tvStatus.setVisibility(android.view.View.GONE);
+        }
         
         // Cargar imagen con Glide
         if (adminPhotoUrl != null && !adminPhotoUrl.isEmpty()) {
@@ -173,7 +183,8 @@ public class cliente_chat_conversation extends AppCompatActivity {
         chatService.listenToMessages(chatId, new ChatService.OnMessagesLoadedListener() {
             @Override
             public void onMessagesLoaded(List<ChatMessage> messagesList) {
-                messageAdapter.setMessages(messagesList);
+                List<ChatItem> chatItems = processMessagesWithDateSeparators(messagesList);
+                messageAdapter.setChatItems(chatItems);
                 scrollToBottom();
             }
 
@@ -182,6 +193,61 @@ public class cliente_chat_conversation extends AppCompatActivity {
                 Log.e(TAG, "Error al escuchar mensajes", e);
             }
         });
+    }
+    
+    private List<ChatItem> processMessagesWithDateSeparators(List<ChatMessage> messages) {
+        List<ChatItem> chatItems = new ArrayList<>();
+        
+        if (messages.isEmpty()) {
+            return chatItems;
+        }
+        
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yy", Locale.getDefault());
+        String lastDateString = null;
+        
+        for (ChatMessage message : messages) {
+            if (message.getTimestamp() != null) {
+                Date messageDate = message.getTimestamp().toDate();
+                String currentDateString = getDateSeparatorText(messageDate, dateFormat);
+                
+                // Si la fecha cambió, agregar separador
+                if (!currentDateString.equals(lastDateString)) {
+                    chatItems.add(new ChatItem(currentDateString));
+                    lastDateString = currentDateString;
+                }
+            }
+            
+            // Agregar el mensaje
+            chatItems.add(new ChatItem(message));
+        }
+        
+        return chatItems;
+    }
+    
+    private String getDateSeparatorText(Date messageDate, SimpleDateFormat dateFormat) {
+        Calendar messageCalendar = Calendar.getInstance();
+        messageCalendar.setTime(messageDate);
+        
+        Calendar today = Calendar.getInstance();
+        Calendar yesterday = Calendar.getInstance();
+        yesterday.add(Calendar.DAY_OF_YEAR, -1);
+        
+        // Comparar solo fecha (sin hora)
+        boolean isToday = isSameDay(messageCalendar, today);
+        boolean isYesterday = isSameDay(messageCalendar, yesterday);
+        
+        if (isToday) {
+            return "Hoy";
+        } else if (isYesterday) {
+            return "Ayer";
+        } else {
+            return dateFormat.format(messageDate);
+        }
+    }
+    
+    private boolean isSameDay(Calendar cal1, Calendar cal2) {
+        return cal1.get(Calendar.YEAR) == cal2.get(Calendar.YEAR) &&
+               cal1.get(Calendar.DAY_OF_YEAR) == cal2.get(Calendar.DAY_OF_YEAR);
     }
 
     private void sendMessage() {

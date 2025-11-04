@@ -13,9 +13,9 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="64dp"
         android:visibility="gone"
-        app:cardBackgroundColor="?attr/colorPrimary"
+        app:cardBackgroundColor="@color/brand_purple"
         app:cardCornerRadius="16dp"
-        app:cardElevation="2dp"
+        app:cardElevation="0dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
@@ -33,7 +33,7 @@
                 android:layout_height="wrap_content"
                 android:text="Hola, me interesa el tour a Machu Picchu"
                 android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
-                android:textColor="?attr/colorOnPrimary"
+                android:textColor="@android:color/white"
                 tools:text="Hola, me interesa el tour a Machu Picchu" />
 
             <TextView
@@ -44,7 +44,7 @@
                 android:layout_marginTop="4dp"
                 android:text="14:30"
                 android:textAppearance="@style/TextAppearance.Material3.LabelSmall"
-                android:textColor="?attr/colorOnPrimary"
+                android:textColor="@android:color/white"
                 android:alpha="0.7"
                 tools:text="14:30" />
 
@@ -59,9 +59,9 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="64dp"
         android:visibility="gone"
-        app:cardBackgroundColor="?attr/colorSurfaceVariant"
+        app:cardBackgroundColor="@android:color/white"
         app:cardCornerRadius="16dp"
-        app:cardElevation="2dp"
+        app:cardElevation="0dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"

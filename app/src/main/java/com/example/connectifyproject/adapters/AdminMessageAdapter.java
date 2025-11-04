@@ -9,6 +9,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.connectifyproject.R;
+import com.example.connectifyproject.model.ChatItem;
 import com.example.connectifyproject.model.ChatMessage;
 import com.google.android.material.card.MaterialCardView;
 
@@ -18,61 +19,82 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-public class AdminMessageAdapter extends RecyclerView.Adapter<AdminMessageAdapter.MessageViewHolder> {
+public class AdminMessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     
-    private List<ChatMessage> messages;
+    private static final int VIEW_TYPE_MESSAGE = 0;
+    private static final int VIEW_TYPE_DATE_SEPARATOR = 1;
+    
+    private List<ChatItem> chatItems;
     private String currentUserId;
     private SimpleDateFormat timeFormat;
     
     public AdminMessageAdapter(String currentUserId) {
-        this.messages = new ArrayList<>();
+        this.chatItems = new ArrayList<>();
         this.currentUserId = currentUserId;
         this.timeFormat = new SimpleDateFormat("HH:mm", Locale.getDefault());
     }
     
+    @Override
+    public int getItemViewType(int position) {
+        return chatItems.get(position).getType();
+    }
+    
     @NonNull
     @Override
-    public MessageViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.admin_item_message, parent, false);
-        return new MessageViewHolder(view);
+    public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        if (viewType == VIEW_TYPE_DATE_SEPARATOR) {
+            View view = LayoutInflater.from(parent.getContext())
+                    .inflate(R.layout.item_date_separator, parent, false);
+            return new DateSeparatorViewHolder(view);
+        } else {
+            View view = LayoutInflater.from(parent.getContext())
+                    .inflate(R.layout.admin_item_message, parent, false);
+            return new MessageViewHolder(view);
+        }
     }
     
     @Override
-    public void onBindViewHolder(@NonNull MessageViewHolder holder, int position) {
-        ChatMessage message = messages.get(position);
+    public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
+        ChatItem chatItem = chatItems.get(position);
         
-        // Verificar si el mensaje es del administrador actual
-        boolean isAdminMessage = message.getSenderId().equals(currentUserId);
-        
-        if (isAdminMessage) {
-            // Mostrar como mensaje del admin (derecha)
-            holder.cardMessageAdmin.setVisibility(View.VISIBLE);
-            holder.cardMessageClient.setVisibility(View.GONE);
-            holder.tvMessageAdmin.setText(message.getMessageText());
-            holder.tvTimeAdmin.setText(formatTime(message.getTimestamp()));
-        } else {
-            // Mostrar como mensaje del cliente (izquierda)
-            holder.cardMessageAdmin.setVisibility(View.GONE);
-            holder.cardMessageClient.setVisibility(View.VISIBLE);
-            holder.tvMessageClient.setText(message.getMessageText());
-            holder.tvTimeClient.setText(formatTime(message.getTimestamp()));
+        if (holder instanceof DateSeparatorViewHolder) {
+            ((DateSeparatorViewHolder) holder).bind(chatItem.getDateText());
+        } else if (holder instanceof MessageViewHolder) {
+            MessageViewHolder messageHolder = (MessageViewHolder) holder;
+            ChatMessage message = chatItem.getMessage();
+            
+            // Verificar si el mensaje es del administrador actual
+            boolean isAdminMessage = message.getSenderId().equals(currentUserId);
+            
+            if (isAdminMessage) {
+                // Mostrar como mensaje del admin (derecha)
+                messageHolder.cardMessageAdmin.setVisibility(View.VISIBLE);
+                messageHolder.cardMessageClient.setVisibility(View.GONE);
+                messageHolder.tvMessageAdmin.setText(message.getMessageText());
+                messageHolder.tvTimeAdmin.setText(formatTime(message.getTimestamp()));
+            } else {
+                // Mostrar como mensaje del cliente (izquierda)
+                messageHolder.cardMessageAdmin.setVisibility(View.GONE);
+                messageHolder.cardMessageClient.setVisibility(View.VISIBLE);
+                messageHolder.tvMessageClient.setText(message.getMessageText());
+                messageHolder.tvTimeClient.setText(formatTime(message.getTimestamp()));
+            }
         }
     }
     
     @Override
     public int getItemCount() {
-        return messages.size();
+        return chatItems.size();
     }
     
-    public void setMessages(List<ChatMessage> messages) {
-        this.messages = messages;
+    public void setChatItems(List<ChatItem> chatItems) {
+        this.chatItems = chatItems;
         notifyDataSetChanged();
     }
     
     public void addMessage(ChatMessage message) {
-        this.messages.add(message);
-        notifyItemInserted(messages.size() - 1);
+        this.chatItems.add(new ChatItem(message));
+        notifyItemInserted(chatItems.size() - 1);
     }
     
     private String formatTime(com.google.firebase.Timestamp timestamp) {
@@ -81,6 +103,19 @@ public class AdminMessageAdapter extends RecyclerView.Adapter<AdminMessageAdapte
             return timeFormat.format(date);
         }
         return "";
+    }
+    
+    static class DateSeparatorViewHolder extends RecyclerView.ViewHolder {
+        TextView tvDateSeparator;
+        
+        DateSeparatorViewHolder(@NonNull View itemView) {
+            super(itemView);
+            tvDateSeparator = itemView.findViewById(R.id.tv_date_separator);
+        }
+        
+        void bind(String dateText) {
+            tvDateSeparator.setText(dateText);
+        }
     }
     
     static class MessageViewHolder extends RecyclerView.ViewHolder {
