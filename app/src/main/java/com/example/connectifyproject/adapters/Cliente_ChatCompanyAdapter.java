@@ -11,6 +11,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.example.connectifyproject.R;
 import com.example.connectifyproject.cliente_chat_conversation;
 import com.example.connectifyproject.models.Cliente_ChatCompany;
@@ -49,7 +50,18 @@ public class Cliente_ChatCompanyAdapter extends RecyclerView.Adapter<Cliente_Cha
         holder.tvCompanyName.setText(company.getName());
         holder.tvLastMessage.setText(company.getLastMessage());
         holder.tvTime.setText(company.getTimeAgo());
-        holder.ivCompanyLogo.setImageResource(company.getLogoResource());
+        
+        // Cargar foto de perfil real desde Firebase
+        if (company.getAdminPhotoUrl() != null && !company.getAdminPhotoUrl().isEmpty()) {
+            Glide.with(context)
+                .load(company.getAdminPhotoUrl())
+                .placeholder(company.getLogoResource())
+                .error(company.getLogoResource())
+                .circleCrop()
+                .into(holder.ivCompanyLogo);
+        } else {
+            holder.ivCompanyLogo.setImageResource(company.getLogoResource());
+        }
 
         // Click listener para navegar a la conversación
         holder.itemView.setOnClickListener(v -> {

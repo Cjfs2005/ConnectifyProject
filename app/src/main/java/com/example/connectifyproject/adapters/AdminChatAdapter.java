@@ -11,6 +11,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.example.connectifyproject.R;
 import com.example.connectifyproject.admin_chat_conversation;
 import com.example.connectifyproject.models.AdminChatClient;
@@ -45,7 +46,18 @@ public class AdminChatAdapter extends RecyclerView.Adapter<AdminChatAdapter.Chat
         holder.tvClientName.setText(client.getName());
         holder.tvLastMessage.setText(client.getLastMessage());
         holder.tvTime.setText(client.getTimeAgo());
-        holder.ivClientAvatar.setImageResource(client.getPhotoResource());
+        
+        // Cargar foto de perfil real desde Firebase
+        if (client.getClientPhotoUrl() != null && !client.getClientPhotoUrl().isEmpty()) {
+            Glide.with(context)
+                .load(client.getClientPhotoUrl())
+                .placeholder(client.getPhotoResource())
+                .error(client.getPhotoResource())
+                .circleCrop()
+                .into(holder.ivClientAvatar);
+        } else {
+            holder.ivClientAvatar.setImageResource(client.getPhotoResource());
+        }
         
         // Ocultar indicador de mensajes nuevos por ahora (puede implementarse después)
         holder.newMessageIndicator.setVisibility(View.GONE);

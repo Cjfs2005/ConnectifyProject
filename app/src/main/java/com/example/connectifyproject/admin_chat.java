@@ -104,6 +104,13 @@ public class admin_chat extends AppCompatActivity {
                     .get()
                     .addOnSuccessListener(queryDocumentSnapshots -> {
                         clients.clear();
+                        int totalClients = queryDocumentSnapshots.size();
+                        final int[] processedClients = {0};
+                        
+                        if (totalClients == 0) {
+                            Toast.makeText(this, "No se encontraron clientes registrados", Toast.LENGTH_LONG).show();
+                            return;
+                        }
                         
                         for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
                             String clientId = document.getId();
@@ -111,22 +118,73 @@ public class admin_chat extends AppCompatActivity {
                             String clientPhotoUrl = document.getString("photoUrl");
 
                             if (clientName == null) clientName = "Cliente";
-
-                            AdminChatClient client = new AdminChatClient(
-                                    clientName,
-                                    "Toca para iniciar conversación",
-                                    "",
-                                    R.drawable.ic_avatar_male_1
-                            );
-                            client.setClientId(clientId);
-                            client.setClientPhotoUrl(clientPhotoUrl);
-                            clients.add(client);
-                        }
-                        
-                        chatAdapter.updateData(clients);
-                        
-                        if (clients.size() == 0) {
-                            Toast.makeText(this, "No se encontraron clientes registrados", Toast.LENGTH_LONG).show();
+                            
+                            final String finalClientName = clientName;
+                            
+                            // Buscar si existe un chat con este cliente
+                            db.collection("chats")
+                                .whereEqualTo("adminId", currentUser.getUid())
+                                .whereEqualTo("clientId", clientId)
+                                .limit(1)
+                                .get()
+                                .addOnSuccessListener(chatSnapshots -> {
+                                    if (!chatSnapshots.isEmpty()) {
+                                        // Hay chat existente, obtener el último mensaje
+                                        String chatId = chatSnapshots.getDocuments().get(0).getId();
+                                        String lastMessage = chatSnapshots.getDocuments().get(0).getString("lastMessage");
+                                        String lastSenderId = chatSnapshots.getDocuments().get(0).getString("lastSenderId");
+                                        Timestamp lastMessageTime = chatSnapshots.getDocuments().get(0).getTimestamp("lastMessageTime");
+                                        
+                                        // Formatear mensaje con "Tú:" si fue enviado por el admin
+                                        String displayMessage = lastMessage != null ? lastMessage : "Toca para iniciar conversación";
+                                        if (lastSenderId != null && lastSenderId.equals(currentUser.getUid())) {
+                                            displayMessage = "Tú: " + displayMessage;
+                                        }
+                                        
+                                        AdminChatClient client = new AdminChatClient(
+                                                finalClientName,
+                                                displayMessage,
+                                                formatTimestamp(lastMessageTime),
+                                                R.drawable.ic_avatar_male_1
+                                        );
+                                        client.setClientId(clientId);
+                                        client.setClientPhotoUrl(clientPhotoUrl);
+                                        clients.add(client);
+                                    } else {
+                                        // No hay chat, mostrar mensaje por defecto
+                                        AdminChatClient client = new AdminChatClient(
+                                                finalClientName,
+                                                "Toca para iniciar conversación",
+                                                "",
+                                                R.drawable.ic_avatar_male_1
+                                        );
+                                        client.setClientId(clientId);
+                                        client.setClientPhotoUrl(clientPhotoUrl);
+                                        clients.add(client);
+                                    }
+                                    
+                                    processedClients[0]++;
+                                    if (processedClients[0] == totalClients) {
+                                        chatAdapter.updateData(clients);
+                                    }
+                                })
+                                .addOnFailureListener(e -> {
+                                    // En caso de error, agregar sin mensaje
+                                    AdminChatClient client = new AdminChatClient(
+                                            finalClientName,
+                                            "Toca para iniciar conversación",
+                                            "",
+                                            R.drawable.ic_avatar_male_1
+                                    );
+                                    client.setClientId(clientId);
+                                    client.setClientPhotoUrl(clientPhotoUrl);
+                                    clients.add(client);
+                                    
+                                    processedClients[0]++;
+                                    if (processedClients[0] == totalClients) {
+                                        chatAdapter.updateData(clients);
+                                    }
+                                });
                         }
                     })
                     .addOnFailureListener(e -> {
@@ -146,12 +204,19 @@ public class admin_chat extends AppCompatActivity {
                             String clientName = document.getString("clientName");
                             String clientPhotoUrl = document.getString("clientPhotoUrl");
                             String lastMessage = document.getString("lastMessage");
+                            String lastSenderId = document.getString("lastSenderId");
                             Timestamp lastMessageTime = document.getTimestamp("lastMessageTime");
+
+                            // Formatear mensaje con "Tú:" si fue enviado por el admin
+                            String displayMessage = lastMessage != null ? lastMessage : "";
+                            if (lastSenderId != null && lastSenderId.equals(currentUser.getUid())) {
+                                displayMessage = "Tú: " + displayMessage;
+                            }
 
                             AdminChatClient client = new AdminChatClient(
                                     clientName,
-                                    lastMessage,
-                                    getTimeAgo(lastMessageTime),
+                                    displayMessage,
+                                    formatTimestamp(lastMessageTime),
                                     R.drawable.ic_avatar_male_1
                             );
                             client.setClientId(clientId);
@@ -164,6 +229,38 @@ public class admin_chat extends AppCompatActivity {
                         Toast.makeText(this, "Error al cargar chats", Toast.LENGTH_SHORT).show();
                     });
         }
+    }
+
+    private String formatTimestamp(Timestamp timestamp) {
+        if (timestamp == null) return "";
+        
+        Date messageDate = timestamp.toDate();
+        Date now = new Date();
+        
+        // Obtener calendarios para comparar fechas
+        java.util.Calendar messageCal = java.util.Calendar.getInstance();
+        messageCal.setTime(messageDate);
+        
+        java.util.Calendar nowCal = java.util.Calendar.getInstance();
+        nowCal.setTime(now);
+        
+        // Mismo día - mostrar hora
+        if (messageCal.get(java.util.Calendar.YEAR) == nowCal.get(java.util.Calendar.YEAR) &&
+            messageCal.get(java.util.Calendar.DAY_OF_YEAR) == nowCal.get(java.util.Calendar.DAY_OF_YEAR)) {
+            java.text.SimpleDateFormat timeFormat = new java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault());
+            return timeFormat.format(messageDate);
+        }
+        
+        // Ayer
+        nowCal.add(java.util.Calendar.DAY_OF_YEAR, -1);
+        if (messageCal.get(java.util.Calendar.YEAR) == nowCal.get(java.util.Calendar.YEAR) &&
+            messageCal.get(java.util.Calendar.DAY_OF_YEAR) == nowCal.get(java.util.Calendar.DAY_OF_YEAR)) {
+            return "Ayer";
+        }
+        
+        // Fecha completa dd/MM/yy
+        java.text.SimpleDateFormat dateFormat = new java.text.SimpleDateFormat("dd/MM/yy", java.util.Locale.getDefault());
+        return dateFormat.format(messageDate);
     }
 
     private String getTimeAgo(Timestamp timestamp) {

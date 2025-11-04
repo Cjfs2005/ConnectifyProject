@@ -17,12 +17,14 @@ import com.example.connectifyproject.adapters.Cliente_ChatCompanyAdapter;
 import com.example.connectifyproject.models.Cliente_ChatCompany;
 import com.example.connectifyproject.services.ChatService;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class cliente_chat_list extends AppCompatActivity {
@@ -118,6 +120,13 @@ public class cliente_chat_list extends AppCompatActivity {
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     companies.clear();
+                    int totalAdmins = queryDocumentSnapshots.size();
+                    final int[] processedAdmins = {0};
+                    
+                    if (totalAdmins == 0) {
+                        Toast.makeText(this, "No se encontraron empresas registradas", Toast.LENGTH_LONG).show();
+                        return;
+                    }
                     
                     for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
                         String adminId = document.getId();
@@ -130,21 +139,71 @@ public class cliente_chat_list extends AppCompatActivity {
                             ? empresaName 
                             : (adminName != null ? adminName : "Empresa");
                         
-                        // Crear objeto para mostrar en la lista (sin último mensaje en modo test)
-                        Cliente_ChatCompany company = new Cliente_ChatCompany(
-                            displayName, 
-                            "Toca para iniciar conversación", 
-                            "", 
-                            R.drawable.cliente_tour_lima
-                        );
-                        company.setAdminId(adminId);
-                        company.setAdminPhotoUrl(adminPhotoUrl);
-                        companies.add(company);
-                    }
-                    adapter.updateData(companies);
-                    
-                    if (companies.size() == 0) {
-                        Toast.makeText(this, "No se encontraron empresas registradas", Toast.LENGTH_LONG).show();
+                        final String finalDisplayName = displayName;
+                        
+                        // Buscar si existe un chat con esta empresa
+                        db.collection("chats")
+                            .whereEqualTo("clientId", currentUser.getUid())
+                            .whereEqualTo("adminId", adminId)
+                            .limit(1)
+                            .get()
+                            .addOnSuccessListener(chatSnapshots -> {
+                                if (!chatSnapshots.isEmpty()) {
+                                    // Hay chat existente, obtener el último mensaje
+                                    String lastMessage = chatSnapshots.getDocuments().get(0).getString("lastMessage");
+                                    String lastSenderId = chatSnapshots.getDocuments().get(0).getString("lastSenderId");
+                                    Timestamp lastMessageTime = chatSnapshots.getDocuments().get(0).getTimestamp("lastMessageTime");
+                                    
+                                    // Formatear mensaje con "Tú:" si fue enviado por el cliente
+                                    String displayMessage = lastMessage != null ? lastMessage : "Toca para iniciar conversación";
+                                    if (lastSenderId != null && lastSenderId.equals(currentUser.getUid())) {
+                                        displayMessage = "Tú: " + displayMessage;
+                                    }
+                                    
+                                    Cliente_ChatCompany company = new Cliente_ChatCompany(
+                                        finalDisplayName, 
+                                        displayMessage, 
+                                        formatTimestamp(lastMessageTime), 
+                                        R.drawable.cliente_tour_lima
+                                    );
+                                    company.setAdminId(adminId);
+                                    company.setAdminPhotoUrl(adminPhotoUrl);
+                                    companies.add(company);
+                                } else {
+                                    // No hay chat, mostrar mensaje por defecto
+                                    Cliente_ChatCompany company = new Cliente_ChatCompany(
+                                        finalDisplayName, 
+                                        "Toca para iniciar conversación", 
+                                        "", 
+                                        R.drawable.cliente_tour_lima
+                                    );
+                                    company.setAdminId(adminId);
+                                    company.setAdminPhotoUrl(adminPhotoUrl);
+                                    companies.add(company);
+                                }
+                                
+                                processedAdmins[0]++;
+                                if (processedAdmins[0] == totalAdmins) {
+                                    adapter.updateData(companies);
+                                }
+                            })
+                            .addOnFailureListener(e -> {
+                                // En caso de error, agregar sin mensaje
+                                Cliente_ChatCompany company = new Cliente_ChatCompany(
+                                    finalDisplayName, 
+                                    "Toca para iniciar conversación", 
+                                    "", 
+                                    R.drawable.cliente_tour_lima
+                                );
+                                company.setAdminId(adminId);
+                                company.setAdminPhotoUrl(adminPhotoUrl);
+                                companies.add(company);
+                                
+                                processedAdmins[0]++;
+                                if (processedAdmins[0] == totalAdmins) {
+                                    adapter.updateData(companies);
+                                }
+                            });
                     }
                 })
                 .addOnFailureListener(e -> {
@@ -162,15 +221,20 @@ public class cliente_chat_list extends AppCompatActivity {
                     for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
                         String adminName = document.getString("adminName");
                         String lastMessage = document.getString("lastMessage");
+                        String lastSenderId = document.getString("lastSenderId");
                         String adminPhotoUrl = document.getString("adminPhotoUrl");
                         com.google.firebase.Timestamp lastMessageTime = document.getTimestamp("lastMessageTime");
                         
-                        String timeAgo = getTimeAgo(lastMessageTime);
+                        // Formatear mensaje con "Tú:" si fue enviado por el cliente
+                        String displayMessage = lastMessage != null ? lastMessage : "";
+                        if (lastSenderId != null && lastSenderId.equals(currentUser.getUid())) {
+                            displayMessage = "Tú: " + displayMessage;
+                        }
                         
                         Cliente_ChatCompany company = new Cliente_ChatCompany(
                             adminName, 
-                            lastMessage != null ? lastMessage : "", 
-                            timeAgo, 
+                            displayMessage, 
+                            formatTimestamp(lastMessageTime), 
                             R.drawable.cliente_tour_lima
                         );
                         company.setAdminId(document.getString("adminId"));
@@ -183,6 +247,38 @@ public class cliente_chat_list extends AppCompatActivity {
                     Toast.makeText(this, "Error al cargar conversaciones", Toast.LENGTH_SHORT).show();
                 });
         }
+    }
+    
+    private String formatTimestamp(com.google.firebase.Timestamp timestamp) {
+        if (timestamp == null) return "";
+        
+        Date messageDate = timestamp.toDate();
+        Date now = new Date();
+        
+        // Obtener calendarios para comparar fechas
+        java.util.Calendar messageCal = java.util.Calendar.getInstance();
+        messageCal.setTime(messageDate);
+        
+        java.util.Calendar nowCal = java.util.Calendar.getInstance();
+        nowCal.setTime(now);
+        
+        // Mismo día - mostrar hora
+        if (messageCal.get(java.util.Calendar.YEAR) == nowCal.get(java.util.Calendar.YEAR) &&
+            messageCal.get(java.util.Calendar.DAY_OF_YEAR) == nowCal.get(java.util.Calendar.DAY_OF_YEAR)) {
+            java.text.SimpleDateFormat timeFormat = new java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault());
+            return timeFormat.format(messageDate);
+        }
+        
+        // Ayer
+        nowCal.add(java.util.Calendar.DAY_OF_YEAR, -1);
+        if (messageCal.get(java.util.Calendar.YEAR) == nowCal.get(java.util.Calendar.YEAR) &&
+            messageCal.get(java.util.Calendar.DAY_OF_YEAR) == nowCal.get(java.util.Calendar.DAY_OF_YEAR)) {
+            return "Ayer";
+        }
+        
+        // Fecha completa dd/MM/yy
+        java.text.SimpleDateFormat dateFormat = new java.text.SimpleDateFormat("dd/MM/yy", java.util.Locale.getDefault());
+        return dateFormat.format(messageDate);
     }
     
     private String getTimeAgo(com.google.firebase.Timestamp timestamp) {
