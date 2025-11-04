@@ -90,8 +90,9 @@ public class admin_chat_conversation extends AppCompatActivity {
             adminName = currentUser.getDisplayName() != null ? currentUser.getDisplayName() : "Empresa";
         }
         
-        // Obtener photoUrl del usuario actual desde Firebase en lugar de currentUser.getPhotoUrl()
+        // Cargar datos desde Firebase para asegurar consistencia
         loadAdminPhotoUrl();
+        loadAdminCompanyName();
         
         if (clientId == null || clientName == null) {
             Toast.makeText(this, "Error: Datos del cliente no disponibles", Toast.LENGTH_SHORT).show();
@@ -110,6 +111,24 @@ public class admin_chat_conversation extends AppCompatActivity {
             public void onFailure(Exception e) {
                 Log.e(TAG, "Error al cargar photoUrl del admin: " + e.getMessage());
                 adminPhotoUrl = "";
+            }
+        });
+    }
+    
+    private void loadAdminCompanyName() {
+        chatService.getCompanyName(adminId, new ChatService.OnCompanyNameLoadedListener() {
+            @Override
+            public void onSuccess(String companyName) {
+                // Si hay nombreEmpresa, usarlo; sino mantener el nombre actual
+                if (companyName != null && !companyName.isEmpty()) {
+                    adminName = companyName;
+                }
+            }
+
+            @Override
+            public void onFailure(Exception e) {
+                Log.e(TAG, "Error al cargar nombreEmpresa: " + e.getMessage());
+                // Mantener el adminName que vino del intent o del displayName
             }
         });
     }

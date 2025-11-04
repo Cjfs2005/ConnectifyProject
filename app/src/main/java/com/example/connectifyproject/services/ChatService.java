@@ -283,6 +283,28 @@ public class ChatService {
             .addOnFailureListener(listener::onFailure);
     }
     
+    /**
+     * Obtiene el nombre de empresa de un administrador desde Firebase
+     */
+    public void getCompanyName(String adminId, OnCompanyNameLoadedListener listener) {
+        db.collection("usuarios")
+            .document(adminId)
+            .get()
+            .addOnSuccessListener(documentSnapshot -> {
+                if (documentSnapshot.exists()) {
+                    String nombreEmpresa = documentSnapshot.getString("nombreEmpresa");
+                    // Si no hay nombreEmpresa, usar nombresApellidos como fallback
+                    if (nombreEmpresa == null || nombreEmpresa.isEmpty()) {
+                        nombreEmpresa = documentSnapshot.getString("nombresApellidos");
+                    }
+                    listener.onSuccess(nombreEmpresa);
+                } else {
+                    listener.onSuccess(null);
+                }
+            })
+            .addOnFailureListener(listener::onFailure);
+    }
+    
     // Interfaces de callbacks
     public interface OnChatReadyListener {
         void onChatReady(Chat chat);
@@ -306,6 +328,11 @@ public class ChatService {
     
     public interface OnPhotoUrlLoadedListener {
         void onSuccess(String photoUrl);
+        void onFailure(Exception e);
+    }
+    
+    public interface OnCompanyNameLoadedListener {
+        void onSuccess(String companyName);
         void onFailure(Exception e);
     }
 }
