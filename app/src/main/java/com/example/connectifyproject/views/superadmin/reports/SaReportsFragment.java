@@ -1,5 +1,6 @@
 package com.example.connectifyproject.views.superadmin.reports;
 
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -29,14 +30,10 @@ import java.util.Map;
 
 /**
  * Reportes de Reservas – SuperAdmin
- * - Mantiene filtros de Mes y Empresa.
- * - KPIs (Total mes, Empresas activas, Promedio/día) SIEMPRE calculados sobre TODAS las empresas.
- * - Si Empresa = "Todas": muestra Top-5 (barras) ordenado desc + lista completa de empresas.
- * - Si se filtra por una empresa específica: oculta Top-5 y muestra solo esa empresa en la lista.
- *
- * Este fragmento usa layouts propios del rol SA para evitar ambigüedad de IDs:
- *  - sa_item_company_bar.xml   (Top-5)
- *  - sa_item_company_row.xml   (lista completa)
+ * - Filtros Mes/Empresa
+ * - KPIs (Total mes, Activas, Promedio/día) SIEMPRE sobre TODAS las empresas
+ * - Si Empresa="Todas": Top-5 (barras) + lista completa
+ * - Si Empresa específica: oculta Top-5 y muestra solo esa empresa
  */
 public class SaReportsFragment extends Fragment {
 
@@ -47,6 +44,15 @@ public class SaReportsFragment extends Fragment {
 
     private int selectedMonth;
     private String selectedCompany = "Todas";
+
+    // Paleta para Top-5 (del mayor al menor)
+    private static final int[] TOP5_COLORS = new int[]{
+            Color.parseColor("#FF9B8F"),
+            Color.parseColor("#EF7689"),
+            Color.parseColor("#9E6A90"),
+            Color.parseColor("#766788"),
+            Color.parseColor("#71556B")
+    };
 
     @Nullable
     @Override
@@ -74,7 +80,7 @@ public class SaReportsFragment extends Fragment {
             });
         }
 
-        // Datos demo (cámbialos cuando conectes a Firestore/Repo real)
+        // Datos demo
         seedMock();
 
         Calendar cal = Calendar.getInstance();
@@ -106,7 +112,7 @@ public class SaReportsFragment extends Fragment {
 
     /** Reconstruye KPIs + Top-5 (si aplica) + lista completa. */
     private void rebuildDashboard() {
-        // 1) KPIs SIEMPRE con TODAS las empresas (sin importar filtro de empresa)
+        // KPIs SIEMPRE con TODAS las empresas
         int totalMes = 0;
         int activas = 0;
         for (Map.Entry<String, int[]> e : data.entrySet()) {
@@ -121,7 +127,7 @@ public class SaReportsFragment extends Fragment {
         binding.tvActiveCompanies.setText(String.valueOf(activas));
         binding.tvAvgPerDay.setText(String.valueOf(promedio));
 
-        // 2) Limpiar contenedor visual
+        // Reset contenedor
         binding.listContainer.removeAllViews();
 
         boolean hayDatos = totalMes > 0;
@@ -130,10 +136,8 @@ public class SaReportsFragment extends Fragment {
 
         LayoutInflater inf = LayoutInflater.from(requireContext());
 
-        // 3) Si empresa = "Todas" → Top-5 + Lista completa
         if ("Todas".equals(selectedCompany)) {
-
-            // --- Top-5 (orden descendente) ---
+            // ---------- Top-5 (orden desc) ----------
             List<ItemVal> vals = new ArrayList<>();
             for (Map.Entry<String, int[]> e : data.entrySet()) {
                 vals.add(new ItemVal(e.getKey(), e.getValue()[selectedMonth]));
@@ -144,12 +148,13 @@ public class SaReportsFragment extends Fragment {
             int maxTop = 0;
             for (ItemVal it : top5) if (it.value > maxTop) maxTop = it.value;
 
-            // Título Top-5
+            // Título grande
             binding.listContainer.addView(makeSectionTitle(inf,
-                    "Top 5 empresas — " + monthLabel(selectedMonth)));
+                    "Top 5 empresas — " + monthLabel(selectedMonth), 25f));
 
-            // Filas barra (usa sa_item_company_bar.xml)
-            for (ItemVal it : top5) {
+            // Barra por empresa (usa sa_item_company_bar.xml)
+            for (int i = 0; i < top5.size(); i++) {
+                ItemVal it = top5.get(i);
                 View row = inf.inflate(R.layout.sa_item_company_bar, binding.listContainer, false);
 
                 TextView tvCompany = row.findViewById(R.id.tvCompany);
@@ -160,14 +165,20 @@ public class SaReportsFragment extends Fragment {
                 chip.setText(String.valueOf(it.value));
 
                 int percent = maxTop == 0 ? 0 : Math.round(it.value * 100f / maxTop);
-                if (percent < 2 && it.value > 0) percent = 2; // mínima visibilidad
+                if (percent < 2 && it.value > 0) percent = 2;
                 prog.setProgress(percent);
+
+                // Color por ranking (0 = mayor → primer color)
+                int color = TOP5_COLORS[Math.min(i, TOP5_COLORS.length - 1)];
+                prog.setIndicatorColor(color);
+                // color del track para contraste (suave)
+                prog.setTrackColor(Color.parseColor("#E6E6E6"));
 
                 binding.listContainer.addView(row);
             }
 
-            // --- Lista completa (todas las empresas) ---
-            binding.listContainer.addView(makeSectionTitle(inf, "Empresas (todas)"));
+            // ---------- Lista completa ----------
+            binding.listContainer.addView(makeSectionTitle(inf, "Empresas (todas)", 25f));
 
             for (Map.Entry<String, int[]> e : data.entrySet()) {
                 String company = e.getKey();
@@ -184,11 +195,11 @@ public class SaReportsFragment extends Fragment {
             }
 
         } else {
-            // 4) Empresa específica → SIN Top-5, solo la empresa seleccionada en la lista
+            // Empresa específica → solo esa
             int[] vector = data.get(selectedCompany);
             int valor = vector == null ? 0 : vector[selectedMonth];
 
-            binding.listContainer.addView(makeSectionTitle(inf, selectedCompany));
+            binding.listContainer.addView(makeSectionTitle(inf, selectedCompany, 25f));
 
             View row = inf.inflate(R.layout.sa_item_company_row, binding.listContainer, false);
             ((TextView) row.findViewById(R.id.tvName)).setText(selectedCompany);
@@ -198,14 +209,15 @@ public class SaReportsFragment extends Fragment {
     }
 
     // ---------- helpers UI ----------
-    private TextView makeSectionTitle(LayoutInflater inf, String text) {
+    private TextView makeSectionTitle(LayoutInflater inf, String text, float sizeSp) {
         TextView tv = new TextView(requireContext());
         tv.setLayoutParams(new ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-        int pad = Math.round(12 * getResources().getDisplayMetrics().density);
-        tv.setPadding(0, pad, 0, pad / 2);
+        int padTop = Math.round(12 * getResources().getDisplayMetrics().density);
+        int padBottom = Math.round(8 * getResources().getDisplayMetrics().density);
+        tv.setPadding(0, padTop, 0, padBottom);
         tv.setText(text);
-        tv.setTextSize(16);
+        tv.setTextSize(sizeSp); // tamaño grande pedido
         tv.setTypeface(tv.getTypeface(), android.graphics.Typeface.BOLD);
         return tv;
     }
