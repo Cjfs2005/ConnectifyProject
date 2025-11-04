@@ -2,6 +2,7 @@ package com.example.connectifyproject.adapters;
 
 import android.content.Context;
 import android.content.Intent;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Cliente_ChatCompanyAdapter extends RecyclerView.Adapter<Cliente_ChatCompanyAdapter.ChatViewHolder> {
+    private static final String TAG = "ClienteChatAdapter";
 
     private Context context;
     private List<Cliente_ChatCompany> companies;
@@ -30,6 +32,7 @@ public class Cliente_ChatCompanyAdapter extends RecyclerView.Adapter<Cliente_Cha
         this.context = context;
         this.companies = companies;
         this.filteredCompanies = new ArrayList<>(companies);
+        Log.d(TAG, "Cliente_ChatCompanyAdapter creado con " + companies.size() + " empresas");
     }
 
 
@@ -39,12 +42,15 @@ public class Cliente_ChatCompanyAdapter extends RecyclerView.Adapter<Cliente_Cha
     public ChatViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.cliente_item_chat_company, parent, false);
+        Log.d(TAG, "onCreateViewHolder llamado");
         return new ChatViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull ChatViewHolder holder, int position) {
         Cliente_ChatCompany company = filteredCompanies.get(position);
+        
+        Log.d(TAG, "onBindViewHolder - Position: " + position + ", Empresa: " + company.getName());
         
         holder.tvCompanyName.setText(company.getName());
         holder.tvLastMessage.setText(company.getLastMessage());
@@ -64,7 +70,23 @@ public class Cliente_ChatCompanyAdapter extends RecyclerView.Adapter<Cliente_Cha
 
     @Override
     public int getItemCount() {
-        return filteredCompanies.size();
+        int count = filteredCompanies.size();
+        Log.d(TAG, "getItemCount: " + count);
+        return count;
+    }
+
+    public void updateData(List<Cliente_ChatCompany> newCompanies) {
+        Log.d(TAG, "updateData llamado con " + newCompanies.size() + " empresas");
+        
+        // Crear una copia temporal para evitar problemas de referencia
+        List<Cliente_ChatCompany> tempList = new ArrayList<>(newCompanies);
+        
+        this.companies.clear();
+        this.companies.addAll(tempList);
+        this.filteredCompanies.clear();
+        this.filteredCompanies.addAll(tempList);
+        notifyDataSetChanged();
+        Log.d(TAG, "Después de updateData - filteredCompanies size: " + filteredCompanies.size());
     }
 
     public void filter(String query) {

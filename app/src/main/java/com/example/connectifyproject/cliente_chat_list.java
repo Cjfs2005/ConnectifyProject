@@ -111,23 +111,36 @@ public class cliente_chat_list extends AppCompatActivity {
     }
 
     private void loadAdminsFromFirebase() {
+        Log.d(TAG, "loadAdminsFromFirebase - TEST_MODE: " + ChatService.TEST_MODE);
+        
         if (ChatService.TEST_MODE) {
-            // MODO TEST: Cargar todos los usuarios con rol "admin" o "empresa"
+            // MODO TEST: Cargar todos los usuarios con rol "Administrador"
+            Log.d(TAG, "Consultando usuarios con rol='Administrador'");
             db.collection("usuarios")
-                .whereEqualTo("role", "admin")
+                .whereEqualTo("rol", "Administrador")
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
+                    Log.d(TAG, "Query exitosa. Documentos encontrados: " + queryDocumentSnapshots.size());
                     companies.clear();
+                    
                     for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
                         String adminId = document.getId();
-                        String adminName = document.getString("nombre");
+                        String adminName = document.getString("nombresApellidos");
                         String adminPhotoUrl = document.getString("photoUrl");
+                        String empresaName = document.getString("nombreEmpresa");
                         
-                        if (adminName == null) adminName = "Empresa";
+                        Log.d(TAG, "Admin encontrado - ID: " + adminId + 
+                                   ", Nombres: " + adminName + 
+                                   ", Empresa: " + empresaName);
+                        
+                        // Usar nombre de empresa si existe, sino usar nombres y apellidos
+                        String displayName = (empresaName != null && !empresaName.isEmpty()) 
+                            ? empresaName 
+                            : (adminName != null ? adminName : "Empresa");
                         
                         // Crear objeto para mostrar en la lista (sin último mensaje en modo test)
                         Cliente_ChatCompany company = new Cliente_ChatCompany(
-                            adminName, 
+                            displayName, 
                             "Toca para iniciar conversación", 
                             "", 
                             R.drawable.cliente_tour_lima
@@ -136,12 +149,16 @@ public class cliente_chat_list extends AppCompatActivity {
                         company.setAdminPhotoUrl(adminPhotoUrl);
                         companies.add(company);
                     }
-                    adapter.notifyDataSetChanged();
-                    Log.d(TAG, "Cargados " + companies.size() + " admins en modo TEST");
+                    adapter.updateData(companies);
+                    Log.d(TAG, "Total cargados en lista: " + companies.size() + " admins en modo TEST");
+                    
+                    if (companies.size() == 0) {
+                        Toast.makeText(this, "No se encontraron empresas registradas", Toast.LENGTH_LONG).show();
+                    }
                 })
                 .addOnFailureListener(e -> {
-                    Log.e(TAG, "Error al cargar admins", e);
-                    Toast.makeText(this, "Error al cargar empresas", Toast.LENGTH_SHORT).show();
+                    Log.e(TAG, "Error al cargar admins: " + e.getMessage(), e);
+                    Toast.makeText(this, "Error al cargar empresas: " + e.getMessage(), Toast.LENGTH_LONG).show();
                 });
         } else {
             // MODO PRODUCCIÓN: Cargar solo chats existentes del usuario
@@ -170,7 +187,7 @@ public class cliente_chat_list extends AppCompatActivity {
                         company.setAdminPhotoUrl(adminPhotoUrl);
                         companies.add(company);
                     }
-                    adapter.notifyDataSetChanged();
+                    adapter.updateData(companies);
                     Log.d(TAG, "Cargados " + companies.size() + " chats activos");
                 })
                 .addOnFailureListener(e -> {
