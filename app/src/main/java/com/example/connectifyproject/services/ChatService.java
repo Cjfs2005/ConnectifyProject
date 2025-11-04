@@ -265,6 +265,24 @@ public class ChatService {
         }
     }
     
+    /**
+     * Obtiene la URL de la foto de perfil de un usuario desde Firebase
+     */
+    public void getUserPhotoUrl(String userId, OnPhotoUrlLoadedListener listener) {
+        db.collection("usuarios")
+            .document(userId)
+            .get()
+            .addOnSuccessListener(documentSnapshot -> {
+                if (documentSnapshot.exists()) {
+                    String photoUrl = documentSnapshot.getString("photoUrl");
+                    listener.onSuccess(photoUrl);
+                } else {
+                    listener.onSuccess(null);
+                }
+            })
+            .addOnFailureListener(listener::onFailure);
+    }
+    
     // Interfaces de callbacks
     public interface OnChatReadyListener {
         void onChatReady(Chat chat);
@@ -284,5 +302,10 @@ public class ChatService {
     public interface OnMessagesLoadedListener {
         void onMessagesLoaded(java.util.List<ChatMessage> messages);
         void onError(Exception e);
+    }
+    
+    public interface OnPhotoUrlLoadedListener {
+        void onSuccess(String photoUrl);
+        void onFailure(Exception e);
     }
 }

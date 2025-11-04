@@ -93,13 +93,29 @@ public class cliente_chat_conversation extends AppCompatActivity {
             clientName = currentUser.getDisplayName() != null ? 
                         currentUser.getDisplayName() : "Usuario";
         }
-        clientPhotoUrl = currentUser.getPhotoUrl() != null ? 
-                        currentUser.getPhotoUrl().toString() : "";
+        
+        // Obtener photoUrl del usuario actual desde Firebase en lugar de currentUser.getPhotoUrl()
+        loadClientPhotoUrl();
         
         if (adminId == null || adminName == null) {
             Toast.makeText(this, "Error: Datos de la empresa no disponibles", Toast.LENGTH_SHORT).show();
             finish();
         }
+    }
+    
+    private void loadClientPhotoUrl() {
+        chatService.getUserPhotoUrl(clientId, new ChatService.OnPhotoUrlLoadedListener() {
+            @Override
+            public void onSuccess(String photoUrl) {
+                clientPhotoUrl = photoUrl != null ? photoUrl : "";
+            }
+
+            @Override
+            public void onFailure(Exception e) {
+                Log.e(TAG, "Error al cargar photoUrl del cliente: " + e.getMessage());
+                clientPhotoUrl = "";
+            }
+        });
     }
 
     private void initViews() {

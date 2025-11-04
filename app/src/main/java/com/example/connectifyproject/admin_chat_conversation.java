@@ -89,12 +89,29 @@ public class admin_chat_conversation extends AppCompatActivity {
         if (adminName == null) {
             adminName = currentUser.getDisplayName() != null ? currentUser.getDisplayName() : "Empresa";
         }
-        adminPhotoUrl = currentUser.getPhotoUrl() != null ? currentUser.getPhotoUrl().toString() : "";
+        
+        // Obtener photoUrl del usuario actual desde Firebase en lugar de currentUser.getPhotoUrl()
+        loadAdminPhotoUrl();
         
         if (clientId == null || clientName == null) {
             Toast.makeText(this, "Error: Datos del cliente no disponibles", Toast.LENGTH_SHORT).show();
             finish();
         }
+    }
+    
+    private void loadAdminPhotoUrl() {
+        chatService.getUserPhotoUrl(adminId, new ChatService.OnPhotoUrlLoadedListener() {
+            @Override
+            public void onSuccess(String photoUrl) {
+                adminPhotoUrl = photoUrl != null ? photoUrl : "";
+            }
+
+            @Override
+            public void onFailure(Exception e) {
+                Log.e(TAG, "Error al cargar photoUrl del admin: " + e.getMessage());
+                adminPhotoUrl = "";
+            }
+        });
     }
 
     private void initViews() {
