@@ -1,43 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:paddingVertical="10dp">
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:padding="8dp"
+    android:layout_width="match_parent" android:layout_height="wrap_content">
 
-    <LinearLayout
+    <TextView
+        android:id="@+id/textEmpresa"
+        android:textStyle="bold"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical">
+        android:text="Empresa"/>
 
-        <TextView
-            android:id="@+id/tvCompany"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Empresa"
-            android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
-            android:textStyle="bold"/>
-
-        <com.google.android.material.chip.Chip
-            android:id="@+id/chipCount"
-            style="@style/Widget.Material3.Chip.Assist.Elevated"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="0"/>
-    </LinearLayout>
-
-    <com.google.android.material.progressindicator.LinearProgressIndicator
+    <ProgressBar
         android:id="@+id/progress"
+        style="@android:style/Widget.ProgressBar.Horizontal"
         android:layout_width="match_parent"
-        android:layout_height="8dp"
-        android:layout_marginTop="8dp"
-        app:trackCornerRadius="4dp"
-        app:indicatorColor="@color/brand_purple_dark"
-        app:trackColor="?attr/colorOutlineVariant"
+        android:layout_height="12dp"
+        android:max="100"
         android:progress="0"/>
-    <!-- Nota: removido app:indeterminate -->
+
+    <TextView
+        android:id="@+id/textValor"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="0"/>
 </LinearLayout>
