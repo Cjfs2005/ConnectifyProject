@@ -2,31 +2,31 @@ package com.example.connectifyproject.models;
 
 import java.io.Serializable;
 
-public class Cliente_ChatCompany implements Serializable {
+public class AdminChatClient implements Serializable {
     private String id;
     private String name;
     private String lastMessage;
     private String timeAgo;
-    private int logoResource;
+    private int photoResource;
     private boolean isOnline;
-    private String adminId;
-    private String adminPhotoUrl;
+    private String clientId;
+    private String clientPhotoUrl;
 
-    public Cliente_ChatCompany(String name, String lastMessage, String timeAgo, int logoResource) {
+    public AdminChatClient(String name, String lastMessage, String timeAgo, int photoResource) {
         this.id = "";
         this.name = name;
         this.lastMessage = lastMessage;
         this.timeAgo = timeAgo;
-        this.logoResource = logoResource;
+        this.photoResource = photoResource;
         this.isOnline = false;
     }
 
-    public Cliente_ChatCompany(String id, String name, String lastMessage, String timeAgo, int logoResource, boolean isOnline) {
+    public AdminChatClient(String id, String name, String lastMessage, String timeAgo, int photoResource, boolean isOnline) {
         this.id = id;
         this.name = name;
         this.lastMessage = lastMessage;
         this.timeAgo = timeAgo;
-        this.logoResource = logoResource;
+        this.photoResource = photoResource;
         this.isOnline = isOnline;
     }
 
@@ -35,18 +35,18 @@ public class Cliente_ChatCompany implements Serializable {
     public String getName() { return name; }
     public String getLastMessage() { return lastMessage; }
     public String getTimeAgo() { return timeAgo; }
-    public int getLogoResource() { return logoResource; }
+    public int getPhotoResource() { return photoResource; }
     public boolean isOnline() { return isOnline; }
-    public String getAdminId() { return adminId; }
-    public String getAdminPhotoUrl() { return adminPhotoUrl; }
+    public String getClientId() { return clientId; }
+    public String getClientPhotoUrl() { return clientPhotoUrl; }
 
     // Setters
     public void setId(String id) { this.id = id; }
     public void setName(String name) { this.name = name; }
     public void setLastMessage(String lastMessage) { this.lastMessage = lastMessage; }
     public void setTimeAgo(String timeAgo) { this.timeAgo = timeAgo; }
-    public void setLogoResource(int logoResource) { this.logoResource = logoResource; }
+    public void setPhotoResource(int photoResource) { this.photoResource = photoResource; }
     public void setOnline(boolean online) { isOnline = online; }
-    public void setAdminId(String adminId) { this.adminId = adminId; }
-    public void setAdminPhotoUrl(String adminPhotoUrl) { this.adminPhotoUrl = adminPhotoUrl; }
+    public void setClientId(String clientId) { this.clientId = clientId; }
+    public void setClientPhotoUrl(String clientPhotoUrl) { this.clientPhotoUrl = clientPhotoUrl; }
 }

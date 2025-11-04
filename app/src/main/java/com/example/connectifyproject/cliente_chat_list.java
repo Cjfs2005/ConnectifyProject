@@ -4,8 +4,10 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -13,30 +15,53 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.connectifyproject.adapters.Cliente_ChatCompanyAdapter;
 import com.example.connectifyproject.models.Cliente_ChatCompany;
+import com.example.connectifyproject.services.ChatService;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class cliente_chat_list extends AppCompatActivity {
 
+    private static final String TAG = "ClienteChatList";
+    
     private RecyclerView recyclerView;
     private Cliente_ChatCompanyAdapter adapter;
     private EditText searchEditText;
     private ImageButton btnNotifications;
     private BottomNavigationView bottomNavigation;
     private List<Cliente_ChatCompany> companies;
+    
+    private FirebaseFirestore db;
+    private FirebaseUser currentUser;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.cliente_chat_list);
 
+        // Inicializar Firebase
+        db = FirebaseFirestore.getInstance();
+        currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        
+        if (currentUser == null) {
+            Toast.makeText(this, "Error: Usuario no autenticado", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+
         initViews();
         setupRecyclerView();
         setupSearch();
         setupBottomNavigation();
         setupClickListeners();
+        
+        // Cargar empresas/admins desde Firebase
+        loadAdminsFromFirebase();
     }
 
     @Override
@@ -56,8 +81,8 @@ public class cliente_chat_list extends AppCompatActivity {
     }
 
     private void setupRecyclerView() {
+        companies = new ArrayList<>();
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        loadCompaniesData();
         adapter = new Cliente_ChatCompanyAdapter(this, companies);
         recyclerView.setAdapter(adapter);
     }
@@ -85,16 +110,91 @@ public class cliente_chat_list extends AppCompatActivity {
         });
     }
 
+    private void loadAdminsFromFirebase() {
+        if (ChatService.TEST_MODE) {
+            // MODO TEST: Cargar todos los usuarios con rol "admin" o "empresa"
+            db.collection("usuarios")
+                .whereEqualTo("role", "admin")
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    companies.clear();
+                    for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
+                        String adminId = document.getId();
+                        String adminName = document.getString("nombre");
+                        String adminPhotoUrl = document.getString("photoUrl");
+                        
+                        if (adminName == null) adminName = "Empresa";
+                        
+                        // Crear objeto para mostrar en la lista (sin último mensaje en modo test)
+                        Cliente_ChatCompany company = new Cliente_ChatCompany(
+                            adminName, 
+                            "Toca para iniciar conversación", 
+                            "", 
+                            R.drawable.cliente_tour_lima
+                        );
+                        company.setAdminId(adminId);
+                        company.setAdminPhotoUrl(adminPhotoUrl);
+                        companies.add(company);
+                    }
+                    adapter.notifyDataSetChanged();
+                    Log.d(TAG, "Cargados " + companies.size() + " admins en modo TEST");
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error al cargar admins", e);
+                    Toast.makeText(this, "Error al cargar empresas", Toast.LENGTH_SHORT).show();
+                });
+        } else {
+            // MODO PRODUCCIÓN: Cargar solo chats existentes del usuario
+            db.collection("chats")
+                .whereEqualTo("clientId", currentUser.getUid())
+                .whereEqualTo("active", true)
+                .orderBy("lastMessageTime", com.google.firebase.firestore.Query.Direction.DESCENDING)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    companies.clear();
+                    for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
+                        String adminName = document.getString("adminName");
+                        String lastMessage = document.getString("lastMessage");
+                        String adminPhotoUrl = document.getString("adminPhotoUrl");
+                        com.google.firebase.Timestamp lastMessageTime = document.getTimestamp("lastMessageTime");
+                        
+                        String timeAgo = getTimeAgo(lastMessageTime);
+                        
+                        Cliente_ChatCompany company = new Cliente_ChatCompany(
+                            adminName, 
+                            lastMessage != null ? lastMessage : "", 
+                            timeAgo, 
+                            R.drawable.cliente_tour_lima
+                        );
+                        company.setAdminId(document.getString("adminId"));
+                        company.setAdminPhotoUrl(adminPhotoUrl);
+                        companies.add(company);
+                    }
+                    adapter.notifyDataSetChanged();
+                    Log.d(TAG, "Cargados " + companies.size() + " chats activos");
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error al cargar chats", e);
+                    Toast.makeText(this, "Error al cargar conversaciones", Toast.LENGTH_SHORT).show();
+                });
+        }
+    }
+    
+    private String getTimeAgo(com.google.firebase.Timestamp timestamp) {
+        if (timestamp == null) return "";
+        
+        long diff = System.currentTimeMillis() - timestamp.toDate().getTime();
+        long minutes = diff / (60 * 1000);
+        long hours = diff / (60 * 60 * 1000);
+        long days = diff / (24 * 60 * 60 * 1000);
+        
+        if (minutes < 60) return minutes + " min";
+        if (hours < 24) return hours + " h";
+        return days + " días";
+    }
+
     private void loadCompaniesData() {
-        companies = new ArrayList<>();
-        // Todos con la imagen de Lima Tours como solicitado
-        companies.add(new Cliente_ChatCompany("Lima Tours", "Quedo atento para cualquier consulta", "10 min", R.drawable.cliente_tour_lima));
-        companies.add(new Cliente_ChatCompany("Arequipa Adventures", "El tour de mañana está confirmado", "25 min", R.drawable.cliente_tour_lima));
-        companies.add(new Cliente_ChatCompany("Cusco Explorer", "Gracias por contactarnos", "1 h", R.drawable.cliente_tour_lima));
-        companies.add(new Cliente_ChatCompany("Trujillo Expeditions", "¿En qué horario prefiere el tour?", "2 h", R.drawable.cliente_tour_lima));
-        companies.add(new Cliente_ChatCompany("Iquitos Nature", "Perfecto, nos vemos en el punto de encuentro", "1 día", R.drawable.cliente_tour_lima));
-        companies.add(new Cliente_ChatCompany("Paracas Ocean", "El tour incluye almuerzo típico", "2 días", R.drawable.cliente_tour_lima));
-        companies.add(new Cliente_ChatCompany("Huacachina Desert", "¿Cuántas personas serán para el tour?", "3 días", R.drawable.cliente_tour_lima));
+        // Método obsoleto - ahora se usa loadAdminsFromFirebase()
     }
 
     private void setupBottomNavigation() {

@@ -54,7 +54,9 @@ public class Cliente_ChatCompanyAdapter extends RecyclerView.Adapter<Cliente_Cha
         // Click listener para navegar a la conversación
         holder.itemView.setOnClickListener(v -> {
             Intent intent = new Intent(context, cliente_chat_conversation.class);
-            intent.putExtra("company_name", company.getName());
+            intent.putExtra("admin_id", company.getAdminId());
+            intent.putExtra("admin_name", company.getName());
+            intent.putExtra("admin_photo_url", company.getAdminPhotoUrl());
             intent.putExtra("company_logo", company.getLogoResource());
             context.startActivity(intent);
         });

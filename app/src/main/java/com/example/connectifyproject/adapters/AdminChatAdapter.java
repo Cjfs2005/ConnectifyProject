@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.connectifyproject.R;
 import com.example.connectifyproject.admin_chat_conversation;
+import com.example.connectifyproject.models.AdminChatClient;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,45 +21,13 @@ import java.util.List;
 public class AdminChatAdapter extends RecyclerView.Adapter<AdminChatAdapter.ChatViewHolder> {
 
     private Context context;
-    private List<ClientData> clients;
-    private List<ClientData> filteredClients;
+    private List<AdminChatClient> clients;
+    private List<AdminChatClient> filteredClients;
 
-    // Clase interna para datos de cliente
-    public static class ClientData {
-        public String name;
-        public String lastMessage;
-        public String timeAgo;
-        public int avatarResource;
-        public boolean hasNewMessages;
-
-        public ClientData(String name, String lastMessage, String timeAgo, int avatarResource, boolean hasNewMessages) {
-            this.name = name;
-            this.lastMessage = lastMessage;
-            this.timeAgo = timeAgo;
-            this.avatarResource = avatarResource;
-            this.hasNewMessages = hasNewMessages;
-        }
-    }
-
-    public AdminChatAdapter(Context context) {
+    public AdminChatAdapter(Context context, List<AdminChatClient> clients) {
         this.context = context;
-        this.clients = new ArrayList<>();
-        this.filteredClients = new ArrayList<>();
-        loadClientsData();
-    }
-
-    private void loadClientsData() {
-        // Datos de ejemplo basados en las conversaciones del cliente
-        clients.add(new ClientData("Alex Rodríguez", "Perfecto, me interesa el de 3 días", "9:20", R.drawable.ic_avatar_male_1, true));
-        clients.add(new ClientData("María García", "¿Tienen tours al Cañón del Colca?", "9:18", R.drawable.ic_avatar_female_1, true));
-        clients.add(new ClientData("Carlos Mendoza", "Excelente elección. El tour de 3 días cuesta S/. 280 por persona", "9:22", R.drawable.ic_avatar_male_2, false));
-        clients.add(new ClientData("Ana López", "Buenos días, ¿tienen tours al Colca?", "9:15", R.drawable.ic_avatar_female_2, true));
-        clients.add(new ClientData("José Pérez", "Gracias por la información", "8:45", R.drawable.ic_avatar_male_3, false));
-        clients.add(new ClientData("Carmen Silva", "¿Cuál es el precio del tour completo?", "8:30", R.drawable.ic_avatar_female_3, true));
-        clients.add(new ClientData("Luis Torres", "Me gustaría reservar para mañana", "8:15", R.drawable.ic_avatar_male_1, false));
-        clients.add(new ClientData("Rosa Vargas", "¿Incluye el almuerzo?", "7:50", R.drawable.ic_avatar_female_1, true));
-        
-        filteredClients.addAll(clients);
+        this.clients = clients;
+        this.filteredClients = new ArrayList<>(clients);
     }
 
     @NonNull
@@ -71,21 +40,23 @@ public class AdminChatAdapter extends RecyclerView.Adapter<AdminChatAdapter.Chat
 
     @Override
     public void onBindViewHolder(@NonNull ChatViewHolder holder, int position) {
-        ClientData client = filteredClients.get(position);
+        AdminChatClient client = filteredClients.get(position);
         
-        holder.tvClientName.setText(client.name);
-        holder.tvLastMessage.setText(client.lastMessage);
-        holder.tvTime.setText(client.timeAgo);
-        holder.ivClientAvatar.setImageResource(client.avatarResource);
+        holder.tvClientName.setText(client.getName());
+        holder.tvLastMessage.setText(client.getLastMessage());
+        holder.tvTime.setText(client.getTimeAgo());
+        holder.ivClientAvatar.setImageResource(client.getPhotoResource());
         
-        // Mostrar u ocultar indicador de mensajes nuevos
-        holder.newMessageIndicator.setVisibility(client.hasNewMessages ? View.VISIBLE : View.GONE);
+        // Ocultar indicador de mensajes nuevos por ahora (puede implementarse después)
+        holder.newMessageIndicator.setVisibility(View.GONE);
 
         // Click listener para navegar a la conversación
         holder.itemView.setOnClickListener(v -> {
             Intent intent = new Intent(context, admin_chat_conversation.class);
-            intent.putExtra("client_name", client.name);
-            intent.putExtra("client_avatar", client.avatarResource);
+            intent.putExtra("client_id", client.getClientId());
+            intent.putExtra("client_name", client.getName());
+            intent.putExtra("client_photo_url", client.getClientPhotoUrl());
+            intent.putExtra("client_avatar", client.getPhotoResource());
             context.startActivity(intent);
         });
     }
@@ -101,9 +72,9 @@ public class AdminChatAdapter extends RecyclerView.Adapter<AdminChatAdapter.Chat
             filteredClients.addAll(clients);
         } else {
             String lowerCaseQuery = query.toLowerCase();
-            for (ClientData client : clients) {
-                if (client.name.toLowerCase().contains(lowerCaseQuery) ||
-                    client.lastMessage.toLowerCase().contains(lowerCaseQuery)) {
+            for (AdminChatClient client : clients) {
+                if (client.getName().toLowerCase().contains(lowerCaseQuery) ||
+                    client.getLastMessage().toLowerCase().contains(lowerCaseQuery)) {
                     filteredClients.add(client);
                 }
             }

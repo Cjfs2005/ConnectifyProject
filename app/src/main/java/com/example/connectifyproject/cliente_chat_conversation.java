@@ -2,29 +2,35 @@ package com.example.connectifyproject;
 
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.connectifyproject.adapters.Cliente_ChatMessageAdapter;
-import com.example.connectifyproject.models.Cliente_ChatMessage;
+import com.bumptech.glide.Glide;
+import com.example.connectifyproject.adapters.ClienteMessageAdapter;
+import com.example.connectifyproject.model.Chat;
+import com.example.connectifyproject.model.ChatMessage;
+import com.example.connectifyproject.services.ChatNotificationService;
+import com.example.connectifyproject.services.ChatService;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 
 public class cliente_chat_conversation extends AppCompatActivity {
 
+    private static final String TAG = "ClienteChatConv";
+    
     private RecyclerView recyclerViewMessages;
-    private Cliente_ChatMessageAdapter messageAdapter;
+    private ClienteMessageAdapter messageAdapter;
     private EditText editTextMessage;
     private FloatingActionButton fabSend;
     private MaterialToolbar toolbar;
@@ -32,29 +38,61 @@ public class cliente_chat_conversation extends AppCompatActivity {
     private TextView tvCompanyNameToolbar;
     private TextView tvStatus;
 
-    private List<Cliente_ChatMessage> messages;
-    private String companyName;
-    private int companyLogo;
+    private ChatService chatService;
+    private ChatNotificationService notificationService;
+    private FirebaseUser currentUser;
+    
+    private String chatId;
+    private String adminId;
+    private String adminName;
+    private String adminPhotoUrl;
+    private String clientId;
+    private String clientName;
+    private String clientPhotoUrl;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.cliente_chat_conversation);
 
+        // Inicializar servicios
+        chatService = new ChatService();
+        notificationService = new ChatNotificationService(this);
+        currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        
+        if (currentUser == null) {
+            Toast.makeText(this, "Error: Usuario no autenticado", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+
         getIntentData();
         initViews();
         setupToolbar();
         setupRecyclerView();
         setupSendButton();
-        loadMessagesForCompany();
+        initializeChat();
     }
 
     private void getIntentData() {
-        companyName = getIntent().getStringExtra("company_name");
-        companyLogo = getIntent().getIntExtra("company_logo", R.drawable.cliente_tour_lima);
+        // Obtener datos de la empresa/admin del intent
+        adminId = getIntent().getStringExtra("admin_id");
+        adminName = getIntent().getStringExtra("admin_name");
+        adminPhotoUrl = getIntent().getStringExtra("admin_photo_url");
         
-        if (companyName == null) {
-            companyName = "Lima Tours";
+        // Obtener datos del cliente actual
+        clientId = currentUser.getUid();
+        clientName = getIntent().getStringExtra("client_name");
+        if (clientName == null) {
+            clientName = currentUser.getDisplayName() != null ? 
+                        currentUser.getDisplayName() : "Usuario";
+        }
+        clientPhotoUrl = currentUser.getPhotoUrl() != null ? 
+                        currentUser.getPhotoUrl().toString() : "";
+        
+        if (adminId == null || adminName == null) {
+            Toast.makeText(this, "Error: Datos de la empresa no disponibles", Toast.LENGTH_SHORT).show();
+            finish();
         }
     }
 
@@ -77,15 +115,21 @@ public class cliente_chat_conversation extends AppCompatActivity {
         
         toolbar.setNavigationOnClickListener(v -> onBackPressed());
         
-        // Datos dinámicos según la empresa seleccionada
-        tvCompanyNameToolbar.setText(companyName);
-        ivCompanyLogoToolbar.setImageResource(companyLogo);
+        // Mostrar datos de la empresa/admin
+        tvCompanyNameToolbar.setText(adminName);
         tvStatus.setText("En línea");
+        
+        // Cargar imagen con Glide
+        if (adminPhotoUrl != null && !adminPhotoUrl.isEmpty()) {
+            Glide.with(this)
+                .load(adminPhotoUrl)
+                .placeholder(R.drawable.cliente_tour_lima)
+                .into(ivCompanyLogoToolbar);
+        }
     }
 
     private void setupRecyclerView() {
-        messages = new ArrayList<>();
-        messageAdapter = new Cliente_ChatMessageAdapter(messages);
+        messageAdapter = new ClienteMessageAdapter(clientId);
         
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         layoutManager.setStackFromEnd(true);
@@ -96,142 +140,103 @@ public class cliente_chat_conversation extends AppCompatActivity {
     private void setupSendButton() {
         fabSend.setOnClickListener(v -> sendMessage());
     }
+    
+    private void initializeChat() {
+        // Crear o obtener el chat existente
+        chatService.getOrCreateChat(
+            clientId, clientName, clientPhotoUrl,
+            adminId, adminName, adminPhotoUrl,
+            new ChatService.OnChatReadyListener() {
+                @Override
+                public void onChatReady(Chat chat) {
+                    chatId = chat.getChatId();
+                    Log.d(TAG, "Chat inicializado: " + chatId);
+                    
+                    // Marcar mensajes como leídos
+                    chatService.markMessagesAsRead(chatId, "CLIENT");
+                    
+                    // Escuchar mensajes en tiempo real
+                    listenToMessages();
+                }
+
+                @Override
+                public void onError(Exception e) {
+                    Log.e(TAG, "Error al inicializar chat", e);
+                    Toast.makeText(cliente_chat_conversation.this, 
+                        "Error al cargar el chat", Toast.LENGTH_SHORT).show();
+                }
+            }
+        );
+    }
+    
+    private void listenToMessages() {
+        chatService.listenToMessages(chatId, new ChatService.OnMessagesLoadedListener() {
+            @Override
+            public void onMessagesLoaded(List<ChatMessage> messagesList) {
+                messageAdapter.setMessages(messagesList);
+                scrollToBottom();
+            }
+
+            @Override
+            public void onError(Exception e) {
+                Log.e(TAG, "Error al escuchar mensajes", e);
+            }
+        });
+    }
 
     private void sendMessage() {
         String messageText = editTextMessage.getText().toString().trim();
         
         if (!TextUtils.isEmpty(messageText)) {
-            String currentTime = getCurrentTime();
+            ChatMessage message = new ChatMessage(
+                chatId,
+                clientId,
+                clientName,
+                "CLIENT",
+                messageText
+            );
             
-            // Agregar mensaje del usuario
-            Cliente_ChatMessage userMessage = new Cliente_ChatMessage(messageText, currentTime, true);
-            messageAdapter.addMessage(userMessage);
-            editTextMessage.setText("");
-            
-            // Scroll to the bottom
-            recyclerViewMessages.scrollToPosition(messages.size() - 1);
-            
-            // Simular que el backend procesa el mensaje y devuelve una respuesta
-            // En un backend real, aquí harías una llamada HTTP y recibirías la respuesta
-            simulateBackendResponse(messageText);
+            chatService.sendMessage(message, new ChatService.OnMessageSentListener() {
+                @Override
+                public void onMessageSent(ChatMessage sentMessage) {
+                    editTextMessage.setText("");
+                    scrollToBottom();
+                    
+                    // Enviar notificación al admin
+                    notificationService.sendMessageNotification(
+                        clientName,
+                        messageText,
+                        chatId,
+                        "CLIENT",
+                        adminId,
+                        "ADMIN"
+                    );
+                    
+                    Log.d(TAG, "Mensaje enviado exitosamente");
+                }
+
+                @Override
+                public void onError(Exception e) {
+                    Log.e(TAG, "Error al enviar mensaje", e);
+                    Toast.makeText(cliente_chat_conversation.this, 
+                        "Error al enviar mensaje", Toast.LENGTH_SHORT).show();
+                }
+            });
         }
     }
-
-    private void simulateBackendResponse(String userMessage) {
-        // Simular respuesta del backend después de 2 segundos
-        recyclerViewMessages.postDelayed(() -> {
-            // En un backend real, esto vendría de la API
-            String backendResponse = getBackendResponseForMessage(userMessage, companyName);
-            String currentTime = getCurrentTime();
-            
-            Cliente_ChatMessage companyMessage = new Cliente_ChatMessage(backendResponse, currentTime, false);
-            messageAdapter.addMessage(companyMessage);
-            
-            // Scroll to the bottom
-            recyclerViewMessages.scrollToPosition(messages.size() - 1);
-        }, 2000);
-    }
-
-    private String getBackendResponseForMessage(String userMessage, String company) {
-        // Simular lógica del backend que determina la respuesta según el mensaje y empresa
-        // En un backend real, esto sería una llamada a la API que procesa el mensaje
-        
-        String lowerMessage = userMessage.toLowerCase();
-        
-        // Respuestas específicas por empresa y contenido del mensaje
-        if (company.equals("Lima Tours")) {
-            if (lowerMessage.contains("precio") || lowerMessage.contains("costo")) {
-                return "Para Machu Picchu el precio es S/. 450 por persona. Incluye todo lo mencionado.";
-            } else if (lowerMessage.contains("horario") || lowerMessage.contains("hora")) {
-                return "Salimos a las 5:00 AM desde el hotel. El retorno es aproximadamente a las 8:00 PM.";
-            } else if (lowerMessage.contains("incluye") || lowerMessage.contains("include")) {
-                return "Incluye: transporte, guía, entradas, almuerzo típico y seguro de viaje.";
-            }
-        } else if (company.equals("Arequipa Adventures")) {
-            if (lowerMessage.contains("precio") || lowerMessage.contains("costo")) {
-                return "El tour al Colca de 3 días cuesta S/. 280 por persona.";
-            } else if (lowerMessage.contains("incluye")) {
-                return "Incluye: transporte, hospedaje 2 noches, todas las comidas y guía especializado.";
-            }
-        }
-        
-        // Respuestas genéricas cuando no hay coincidencia específica
-        String[] genericResponses = {
-            "¡Perfecto! Te ayudo con esa información.",
-            "Claro, déjame verificar la disponibilidad para ti.",
-            "Excelente pregunta, permíteme darte los detalles.",
-            "Por supuesto, estoy aquí para ayudarte con tu consulta.",
-            "¡Gracias por tu interés! Te proporciono la información."
-        };
-        
-        int randomIndex = (int) (Math.random() * genericResponses.length);
-        return genericResponses[randomIndex];
-    }
-
-    private String getCurrentTime() {
-        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm", Locale.getDefault());
-        return sdf.format(new Date());
-    }
-
-    private void loadMessagesForCompany() {
-        // Simular datos del backend - En una app real, estos vendrían de una API
-        // que retornaría un JSON con los mensajes de la conversación específica
-        List<String[]> backendMessages = getBackendMessagesForCompany(companyName);
-        
-        // Procesar mensajes del "backend" y agregarlos a la lista
-        for (String[] messageData : backendMessages) {
-            String messageText = messageData[0];
-            String time = messageData[1];
-            boolean isFromUser = Boolean.parseBoolean(messageData[2]);
-            
-            messages.add(new Cliente_ChatMessage(messageText, time, isFromUser));
-        }
-        
-        messageAdapter.notifyDataSetChanged();
-        
-        // Scroll to the bottom
-        if (messages.size() > 0) {
-            recyclerViewMessages.scrollToPosition(messages.size() - 1);
+    
+    private void scrollToBottom() {
+        if (messageAdapter.getItemCount() > 0) {
+            recyclerViewMessages.smoothScrollToPosition(messageAdapter.getItemCount() - 1);
         }
     }
-
-    private List<String[]> getBackendMessagesForCompany(String companyName) {
-        // Simular respuesta del backend - En una app real, esto sería una llamada HTTP
-        // que retornaría algo como: GET /api/chats/{companyId}/messages
-        List<String[]> backendData = new ArrayList<>();
-        
-        // Cada array contiene: [mensaje, hora, esDelUsuario]
-        if (companyName.equals("Lima Tours")) {
-            backendData.add(new String[]{"Hola, me interesa el tour a Machu Picchu", "14:30", "true"});
-            backendData.add(new String[]{"¡Hola! Por supuesto, tenemos disponibilidad para este fin de semana", "14:32", "false"});
-            backendData.add(new String[]{"¿Qué incluye el paquete?", "14:35", "true"});
-            backendData.add(new String[]{"El paquete incluye transporte, guía especializado, entradas y almuerzo típico", "14:37", "false"});
-            backendData.add(new String[]{"Perfecto, ¿cuál es el precio?", "14:40", "true"});
-            backendData.add(new String[]{"Para 2 personas el costo es de S/. 450 por persona. ¿Te parece bien?", "14:42", "false"});
-            
-        } else if (companyName.equals("Arequipa Adventures")) {
-            backendData.add(new String[]{"Buenos días, ¿tienen tours al Colca?", "09:15", "true"});
-            backendData.add(new String[]{"¡Buenos días! Sí, tenemos tours de 2 y 3 días al Cañón del Colca", "09:18", "false"});
-            backendData.add(new String[]{"Perfecto, me interesa el de 3 días", "09:20", "true"});
-            backendData.add(new String[]{"Excelente elección. El tour de 3 días cuesta S/. 280 por persona", "09:22", "false"});
-            
-        } else if (companyName.equals("Cusco Explorer")) {
-            backendData.add(new String[]{"Hola, quería consultar sobre el tour al Valle Sagrado", "16:45", "true"});
-            backendData.add(new String[]{"¡Hola! Claro, tenemos salidas diarias al Valle Sagrado", "16:47", "false"});
-            backendData.add(new String[]{"¿Qué lugares visitamos?", "16:50", "true"});
-            backendData.add(new String[]{"Visitamos Pisaq, Ollantaytambo y Chinchero. Incluye almuerzo buffet", "16:52", "false"});
-            
-        } else if (companyName.equals("Trujillo Expeditions")) {
-            backendData.add(new String[]{"¿Tienen tours a Huacas del Sol y de la Luna?", "11:30", "true"});
-            backendData.add(new String[]{"Sí, tenemos tours arqueológicos que incluyen ambas huacas", "11:32", "false"});
-            backendData.add(new String[]{"¿Cuánto dura el recorrido?", "11:35", "true"});
-            backendData.add(new String[]{"El tour completo dura aproximadamente 4 horas", "11:37", "false"});
-            
-        } else {
-            // Mensajes genéricos para empresas sin conversación específica
-            backendData.add(new String[]{"Hola, ¿en qué puedo ayudarte?", "10:00", "false"});
+    
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Marcar mensajes como leídos cuando se abre la conversación
+        if (chatId != null) {
+            chatService.markMessagesAsRead(chatId, "CLIENT");
         }
-        
-        return backendData;
     }
 }
