@@ -262,27 +262,28 @@ public class cliente_chat_conversation extends AppCompatActivity {
                 messageText
             );
             
-            chatService.sendMessage(message, new ChatService.OnMessageSentListener() {
-                @Override
-                public void onMessageSent(ChatMessage sentMessage) {
-                    editTextMessage.setText("");
-                    scrollToBottom();
-                    
-                    // Enviar notificación al admin
-                    notificationService.sendMessageNotification(
-                        clientName,
-                        messageText,
-                        chatId,
-                        "CLIENT",
-                        adminId,
-                        "ADMIN"
-                    );
-                    
-                    Log.d(TAG, "Mensaje enviado exitosamente");
-                }
+            chatService.sendMessage(message, clientName, clientPhotoUrl, adminName, adminPhotoUrl,
+                new ChatService.OnMessageSentListener() {
+                    @Override
+                    public void onMessageSent(ChatMessage sentMessage) {
+                        editTextMessage.setText("");
+                        scrollToBottom();
+                        
+                        // Enviar notificación al admin
+                        notificationService.sendMessageNotification(
+                            clientName,
+                            messageText,
+                            chatId,
+                            "CLIENT",
+                            adminId,
+                            "ADMIN"
+                        );
+                        
+                        Log.d(TAG, "Mensaje enviado exitosamente");
+                    }
 
-                @Override
-                public void onError(Exception e) {
+                    @Override
+                    public void onError(Exception e) {
                     Log.e(TAG, "Error al enviar mensaje", e);
                     Toast.makeText(cliente_chat_conversation.this, 
                         "Error al enviar mensaje", Toast.LENGTH_SHORT).show();

@@ -98,131 +98,96 @@ public class admin_chat extends AppCompatActivity {
 
     private void loadClientsFromFirebase() {
         if (ChatService.TEST_MODE) {
-            // Modo de prueba: cargar todos los clientes
-            db.collection("usuarios")
-                    .whereEqualTo("rol", "Cliente")
-                    .addSnapshotListener((queryDocumentSnapshots, error) -> {
-                        if (error != null) {
-                            Toast.makeText(this, "Error al cargar clientes: " + error.getMessage(), Toast.LENGTH_LONG).show();
+            // Modo de prueba: Primero escuchar chats existentes, luego completar con clientes sin chat
+            db.collection("chats")
+                    .whereEqualTo("adminId", currentUser.getUid())
+                    .addSnapshotListener((chatSnapshots, chatError) -> {
+                        if (chatError != null) {
+                            Toast.makeText(this, "Error al cargar chats: " + chatError.getMessage(), Toast.LENGTH_SHORT).show();
                             return;
                         }
                         
-                        if (queryDocumentSnapshots == null || queryDocumentSnapshots.isEmpty()) {
-                            Toast.makeText(this, "No se encontraron clientes registrados", Toast.LENGTH_LONG).show();
-                            return;
+                        // Mapa de clientId -> AdminChatClient para chats existentes
+                        final java.util.Map<String, AdminChatClient> chatClientsMap = new java.util.HashMap<>();
+                        
+                        if (chatSnapshots != null) {
+                            for (QueryDocumentSnapshot chatDoc : chatSnapshots) {
+                                String clientId = chatDoc.getString("clientId");
+                                String clientName = chatDoc.getString("clientName");
+                                String clientPhotoUrl = chatDoc.getString("clientPhotoUrl");
+                                String lastMessage = chatDoc.getString("lastMessage");
+                                String lastSenderId = chatDoc.getString("lastSenderId");
+                                Timestamp lastMessageTime = chatDoc.getTimestamp("lastMessageTime");
+                                
+                                // Formatear mensaje con "Tú:" si fue enviado por el admin
+                                String displayMessage = lastMessage != null ? lastMessage : "Toca para iniciar conversación";
+                                if (lastSenderId != null && lastSenderId.equals(currentUser.getUid())) {
+                                    displayMessage = "Tú: " + displayMessage;
+                                }
+                                
+                                AdminChatClient client = new AdminChatClient(
+                                        clientName != null ? clientName : "Cliente",
+                                        displayMessage,
+                                        formatTimestamp(lastMessageTime),
+                                        R.drawable.ic_avatar_male_1
+                                );
+                                client.setClientId(clientId);
+                                client.setClientPhotoUrl(clientPhotoUrl);
+                                client.setLastMessageTime(lastMessageTime);
+                                
+                                chatClientsMap.put(clientId, client);
+                            }
                         }
                         
-                        clients.clear();
-                        int totalClients = queryDocumentSnapshots.size();
-                        final int[] processedClients = {0};
-                        final java.util.List<AdminChatClient> tempClients = new java.util.ArrayList<>();
-                        
-                        for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
-                            String clientId = document.getId();
-                            String clientName = document.getString("nombresApellidos");
-                            String clientPhotoUrl = document.getString("photoUrl");
-
-                            if (clientName == null) clientName = "Cliente";
-                            
-                            final String finalClientName = clientName;
-                            
-                            // Buscar si existe un chat con este cliente
-                            db.collection("chats")
-                                .whereEqualTo("adminId", currentUser.getUid())
-                                .whereEqualTo("clientId", clientId)
-                                .limit(1)
+                        // Ahora cargar TODOS los clientes y combinar
+                        db.collection("usuarios")
+                                .whereEqualTo("rol", "Cliente")
                                 .get()
-                                .addOnSuccessListener(chatSnapshots -> {
-                                    AdminChatClient client;
+                                .addOnSuccessListener(userSnapshots -> {
+                                    clients.clear();
                                     
-                                    if (!chatSnapshots.isEmpty()) {
-                                        // Hay chat existente, obtener el último mensaje
-                                        String chatId = chatSnapshots.getDocuments().get(0).getId();
-                                        String lastMessage = chatSnapshots.getDocuments().get(0).getString("lastMessage");
-                                        String lastSenderId = chatSnapshots.getDocuments().get(0).getString("lastSenderId");
-                                        Timestamp lastMessageTime = chatSnapshots.getDocuments().get(0).getTimestamp("lastMessageTime");
+                                    for (QueryDocumentSnapshot userDoc : userSnapshots) {
+                                        String clientId = userDoc.getId();
                                         
-                                        // Formatear mensaje con "Tú:" si fue enviado por el admin
-                                        String displayMessage = lastMessage != null ? lastMessage : "Toca para iniciar conversación";
-                                        if (lastSenderId != null && lastSenderId.equals(currentUser.getUid())) {
-                                            displayMessage = "Tú: " + displayMessage;
+                                        if (chatClientsMap.containsKey(clientId)) {
+                                            // Ya existe chat, usar datos del chat
+                                            clients.add(chatClientsMap.get(clientId));
+                                        } else {
+                                            // No hay chat, crear entrada sin mensajes
+                                            String clientName = userDoc.getString("nombresApellidos");
+                                            String clientPhotoUrl = userDoc.getString("photoUrl");
+                                            
+                                            AdminChatClient client = new AdminChatClient(
+                                                    clientName != null ? clientName : "Cliente",
+                                                    "Toca para iniciar conversación",
+                                                    "",
+                                                    R.drawable.ic_avatar_male_1
+                                            );
+                                            client.setClientId(clientId);
+                                            client.setClientPhotoUrl(clientPhotoUrl);
+                                            client.setLastMessageTime(null);
+                                            
+                                            clients.add(client);
                                         }
-                                        
-                                        client = new AdminChatClient(
-                                                finalClientName,
-                                                displayMessage,
-                                                formatTimestamp(lastMessageTime),
-                                                R.drawable.ic_avatar_male_1
-                                        );
-                                        client.setClientId(clientId);
-                                        client.setClientPhotoUrl(clientPhotoUrl);
-                                        client.setLastMessageTime(lastMessageTime);
-                                    } else {
-                                        // No hay chat, mostrar mensaje por defecto
-                                        client = new AdminChatClient(
-                                                finalClientName,
-                                                "Toca para iniciar conversación",
-                                                "",
-                                                R.drawable.ic_avatar_male_1
-                                        );
-                                        client.setClientId(clientId);
-                                        client.setClientPhotoUrl(clientPhotoUrl);
-                                        client.setLastMessageTime(null);
                                     }
                                     
-                                    tempClients.add(client);
-                                    processedClients[0]++;
-                                    
-                                    if (processedClients[0] == totalClients) {
-                                        // Ordenar por último mensaje (más reciente primero)
-                                        java.util.Collections.sort(tempClients, (c1, c2) -> {
-                                            Timestamp t1 = c1.getLastMessageTime();
-                                            Timestamp t2 = c2.getLastMessageTime();
-                                            
-                                            if (t1 == null && t2 == null) return 0;
-                                            if (t1 == null) return 1;
-                                            if (t2 == null) return -1;
-                                            
-                                            return t2.compareTo(t1); // Descendente (más reciente primero)
-                                        });
+                                    // Ordenar por último mensaje (más reciente primero)
+                                    java.util.Collections.sort(clients, (c1, c2) -> {
+                                        Timestamp t1 = c1.getLastMessageTime();
+                                        Timestamp t2 = c2.getLastMessageTime();
                                         
-                                        clients.addAll(tempClients);
-                                        chatAdapter.updateData(clients);
-                                    }
+                                        if (t1 == null && t2 == null) return 0;
+                                        if (t1 == null) return 1;
+                                        if (t2 == null) return -1;
+                                        
+                                        return t2.compareTo(t1); // Descendente (más reciente primero)
+                                    });
+                                    
+                                    chatAdapter.updateData(clients);
                                 })
                                 .addOnFailureListener(e -> {
-                                    // En caso de error, agregar sin mensaje
-                                    AdminChatClient client = new AdminChatClient(
-                                            finalClientName,
-                                            "Toca para iniciar conversación",
-                                            "",
-                                            R.drawable.ic_avatar_male_1
-                                    );
-                                    client.setClientId(clientId);
-                                    client.setClientPhotoUrl(clientPhotoUrl);
-                                    client.setLastMessageTime(null);
-                                    
-                                    tempClients.add(client);
-                                    processedClients[0]++;
-                                    
-                                    if (processedClients[0] == totalClients) {
-                                        // Ordenar por último mensaje (más reciente primero)
-                                        java.util.Collections.sort(tempClients, (c1, c2) -> {
-                                            Timestamp t1 = c1.getLastMessageTime();
-                                            Timestamp t2 = c2.getLastMessageTime();
-                                            
-                                            if (t1 == null && t2 == null) return 0;
-                                            if (t1 == null) return 1;
-                                            if (t2 == null) return -1;
-                                            
-                                            return t2.compareTo(t1); // Descendente
-                                        });
-                                        
-                                        clients.addAll(tempClients);
-                                        chatAdapter.updateData(clients);
-                                    }
+                                    Toast.makeText(this, "Error al cargar clientes: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                                 });
-                        }
                     });
         } else {
             // Modo producción: cargar solo chats activos con listener en tiempo real

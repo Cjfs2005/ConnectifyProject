@@ -114,87 +114,87 @@ public class cliente_chat_list extends AppCompatActivity {
 
     private void loadAdminsFromFirebase() {
         if (ChatService.TEST_MODE) {
-            // MODO TEST: Cargar todos los usuarios con rol "Administrador" con listener en tiempo real
-            db.collection("usuarios")
-                .whereEqualTo("rol", "Administrador")
-                .addSnapshotListener((queryDocumentSnapshots, error) -> {
-                    if (error != null) {
-                        Toast.makeText(this, "Error al cargar empresas: " + error.getMessage(), Toast.LENGTH_LONG).show();
-                        return;
-                    }
-                    
-                    if (queryDocumentSnapshots == null || queryDocumentSnapshots.isEmpty()) {
-                        Toast.makeText(this, "No se encontraron empresas registradas", Toast.LENGTH_LONG).show();
-                        return;
-                    }
-                    
-                    companies.clear();
-                    int totalAdmins = queryDocumentSnapshots.size();
-                    final int[] processedAdmins = {0};
-                    final java.util.List<Cliente_ChatCompany> tempCompanies = new java.util.ArrayList<>();
-                    
-                    for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
-                        String adminId = document.getId();
-                        String adminName = document.getString("nombresApellidos");
-                        String adminPhotoUrl = document.getString("photoUrl");
-                        String empresaName = document.getString("nombreEmpresa");
+            // MODO TEST: Primero escuchar chats existentes, luego completar con admins sin chat
+            db.collection("chats")
+                    .whereEqualTo("clientId", currentUser.getUid())
+                    .addSnapshotListener((chatSnapshots, chatError) -> {
+                        if (chatError != null) {
+                            Toast.makeText(this, "Error al cargar chats: " + chatError.getMessage(), Toast.LENGTH_SHORT).show();
+                            return;
+                        }
                         
-                        // Usar nombre de empresa si existe, sino usar nombres y apellidos
-                        String displayName = (empresaName != null && !empresaName.isEmpty()) 
-                            ? empresaName 
-                            : (adminName != null ? adminName : "Empresa");
+                        // Mapa de adminId -> Cliente_ChatCompany para chats existentes
+                        final java.util.Map<String, Cliente_ChatCompany> chatCompaniesMap = new java.util.HashMap<>();
                         
-                        final String finalDisplayName = displayName;
-                        
-                        // Buscar si existe un chat con esta empresa
-                        db.collection("chats")
-                            .whereEqualTo("clientId", currentUser.getUid())
-                            .whereEqualTo("adminId", adminId)
-                            .limit(1)
-                            .get()
-                            .addOnSuccessListener(chatSnapshots -> {
-                                Cliente_ChatCompany company;
+                        if (chatSnapshots != null) {
+                            for (QueryDocumentSnapshot chatDoc : chatSnapshots) {
+                                String adminId = chatDoc.getString("adminId");
+                                String adminName = chatDoc.getString("adminName");
+                                String adminPhotoUrl = chatDoc.getString("adminPhotoUrl");
+                                String lastMessage = chatDoc.getString("lastMessage");
+                                String lastSenderId = chatDoc.getString("lastSenderId");
+                                Timestamp lastMessageTime = chatDoc.getTimestamp("lastMessageTime");
                                 
-                                if (!chatSnapshots.isEmpty()) {
-                                    // Hay chat existente, obtener el último mensaje
-                                    String lastMessage = chatSnapshots.getDocuments().get(0).getString("lastMessage");
-                                    String lastSenderId = chatSnapshots.getDocuments().get(0).getString("lastSenderId");
-                                    Timestamp lastMessageTime = chatSnapshots.getDocuments().get(0).getTimestamp("lastMessageTime");
-                                    
-                                    // Formatear mensaje con "Tú:" si fue enviado por el cliente
-                                    String displayMessage = lastMessage != null ? lastMessage : "Toca para iniciar conversación";
-                                    if (lastSenderId != null && lastSenderId.equals(currentUser.getUid())) {
-                                        displayMessage = "Tú: " + displayMessage;
-                                    }
-                                    
-                                    company = new Cliente_ChatCompany(
-                                        finalDisplayName, 
-                                        displayMessage, 
-                                        formatTimestamp(lastMessageTime), 
-                                        R.drawable.cliente_tour_lima
-                                    );
-                                    company.setAdminId(adminId);
-                                    company.setAdminPhotoUrl(adminPhotoUrl);
-                                    company.setLastMessageTime(lastMessageTime);
-                                } else {
-                                    // No hay chat, mostrar mensaje por defecto
-                                    company = new Cliente_ChatCompany(
-                                        finalDisplayName, 
-                                        "Toca para iniciar conversación", 
-                                        "", 
-                                        R.drawable.cliente_tour_lima
-                                    );
-                                    company.setAdminId(adminId);
-                                    company.setAdminPhotoUrl(adminPhotoUrl);
-                                    company.setLastMessageTime(null);
+                                // Formatear mensaje con "Tú:" si fue enviado por el cliente
+                                String displayMessage = lastMessage != null ? lastMessage : "Toca para iniciar conversación";
+                                if (lastSenderId != null && lastSenderId.equals(currentUser.getUid())) {
+                                    displayMessage = "Tú: " + displayMessage;
                                 }
                                 
-                                tempCompanies.add(company);
-                                processedAdmins[0]++;
+                                Cliente_ChatCompany company = new Cliente_ChatCompany(
+                                        adminName != null ? adminName : "Empresa",
+                                        displayMessage,
+                                        formatTimestamp(lastMessageTime),
+                                        R.drawable.cliente_tour_lima
+                                );
+                                company.setAdminId(adminId);
+                                company.setAdminPhotoUrl(adminPhotoUrl);
+                                company.setLastMessageTime(lastMessageTime);
                                 
-                                if (processedAdmins[0] == totalAdmins) {
+                                chatCompaniesMap.put(adminId, company);
+                            }
+                        }
+                        
+                        // Ahora cargar TODOS los admins y combinar
+                        db.collection("usuarios")
+                                .whereEqualTo("rol", "Administrador")
+                                .get()
+                                .addOnSuccessListener(userSnapshots -> {
+                                    companies.clear();
+                                    
+                                    for (QueryDocumentSnapshot userDoc : userSnapshots) {
+                                        String adminId = userDoc.getId();
+                                        
+                                        if (chatCompaniesMap.containsKey(adminId)) {
+                                            // Ya existe chat, usar datos del chat
+                                            companies.add(chatCompaniesMap.get(adminId));
+                                        } else {
+                                            // No hay chat, crear entrada sin mensajes
+                                            String adminName = userDoc.getString("nombresApellidos");
+                                            String adminPhotoUrl = userDoc.getString("photoUrl");
+                                            String empresaName = userDoc.getString("nombreEmpresa");
+                                            
+                                            // Usar nombre de empresa si existe, sino usar nombres y apellidos
+                                            String displayName = (empresaName != null && !empresaName.isEmpty()) 
+                                                ? empresaName 
+                                                : (adminName != null ? adminName : "Empresa");
+                                            
+                                            Cliente_ChatCompany company = new Cliente_ChatCompany(
+                                                    displayName,
+                                                    "Toca para iniciar conversación",
+                                                    "",
+                                                    R.drawable.cliente_tour_lima
+                                            );
+                                            company.setAdminId(adminId);
+                                            company.setAdminPhotoUrl(adminPhotoUrl);
+                                            company.setLastMessageTime(null);
+                                            
+                                            companies.add(company);
+                                        }
+                                    }
+                                    
                                     // Ordenar por último mensaje (más reciente primero)
-                                    java.util.Collections.sort(tempCompanies, (c1, c2) -> {
+                                    java.util.Collections.sort(companies, (c1, c2) -> {
                                         Timestamp t1 = c1.getLastMessageTime();
                                         Timestamp t2 = c2.getLastMessageTime();
                                         
@@ -205,44 +205,12 @@ public class cliente_chat_list extends AppCompatActivity {
                                         return t2.compareTo(t1); // Descendente (más reciente primero)
                                     });
                                     
-                                    companies.addAll(tempCompanies);
                                     adapter.updateData(companies);
-                                }
-                            })
-                            .addOnFailureListener(e -> {
-                                // En caso de error, agregar sin mensaje
-                                Cliente_ChatCompany company = new Cliente_ChatCompany(
-                                    finalDisplayName, 
-                                    "Toca para iniciar conversación", 
-                                    "", 
-                                    R.drawable.cliente_tour_lima
-                                );
-                                company.setAdminId(adminId);
-                                company.setAdminPhotoUrl(adminPhotoUrl);
-                                company.setLastMessageTime(null);
-                                
-                                tempCompanies.add(company);
-                                processedAdmins[0]++;
-                                
-                                if (processedAdmins[0] == totalAdmins) {
-                                    // Ordenar por último mensaje (más reciente primero)
-                                    java.util.Collections.sort(tempCompanies, (c1, c2) -> {
-                                        Timestamp t1 = c1.getLastMessageTime();
-                                        Timestamp t2 = c2.getLastMessageTime();
-                                        
-                                        if (t1 == null && t2 == null) return 0;
-                                        if (t1 == null) return 1;
-                                        if (t2 == null) return -1;
-                                        
-                                        return t2.compareTo(t1); // Descendente
-                                    });
-                                    
-                                    companies.addAll(tempCompanies);
-                                    adapter.updateData(companies);
-                                }
-                            });
-                    }
-                });
+                                })
+                                .addOnFailureListener(e -> {
+                                    Toast.makeText(this, "Error al cargar empresas: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                });
+                    });
         } else {
             // MODO PRODUCCIÓN: Cargar solo chats existentes del usuario con listener en tiempo real
             db.collection("chats")

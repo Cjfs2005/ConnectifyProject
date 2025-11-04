@@ -58,6 +58,14 @@ public class ChatService {
      * Envía un mensaje en un chat (crea el chat si es el primer mensaje)
      */
     public void sendMessage(ChatMessage message, OnMessageSentListener listener) {
+        sendMessage(message, null, null, null, null, listener);
+    }
+    
+    /**
+     * Envía un mensaje en un chat con información completa para crear el chat si es necesario
+     */
+    public void sendMessage(ChatMessage message, String clientName, String clientPhotoUrl, 
+                          String adminName, String adminPhotoUrl, OnMessageSentListener listener) {
         String chatId = message.getChatId();
         
         // Primero verificar si el chat existe, si no, crearlo
@@ -67,7 +75,8 @@ public class ChatService {
             .addOnSuccessListener(documentSnapshot -> {
                 if (!documentSnapshot.exists()) {
                     // Crear el chat primero (es el primer mensaje)
-                    createChatFromMessage(message, listener);
+                    createChatFromMessage(message, clientName, clientPhotoUrl, 
+                                        adminName, adminPhotoUrl, listener);
                 } else {
                     // El chat ya existe, solo enviar el mensaje
                     saveMessage(message, listener);
@@ -82,17 +91,23 @@ public class ChatService {
     /**
      * Crea el chat en la base de datos a partir del primer mensaje
      */
-    private void createChatFromMessage(ChatMessage message, OnMessageSentListener listener) {
-        // Extraer IDs del chatId (formato: clientId_adminId)
+    private void createChatFromMessage(ChatMessage message, String clientName, String clientPhotoUrl,
+                                      String adminName, String adminPhotoUrl, 
+                                      OnMessageSentListener listener) {
+        // Extraer IDs del chatId (formato: clientId_adminId o adminId_clientId)
         String[] ids = message.getChatId().split("_");
+        String clientId = ids[0].compareTo(ids[1]) < 0 ? ids[0] : ids[1];
+        String adminId = ids[0].compareTo(ids[1]) < 0 ? ids[1] : ids[0];
         
-        // Crear el chat con información básica
+        // Crear el chat con información completa
         Chat newChat = new Chat();
         newChat.setChatId(message.getChatId());
-        newChat.setClientId(ids[0]);
-        newChat.setAdminId(ids[1]);
-        newChat.setClientName(""); // Se actualizará con el mensaje
-        newChat.setAdminName(""); // Se actualizará con el mensaje
+        newChat.setClientId(clientId);
+        newChat.setAdminId(adminId);
+        newChat.setClientName(clientName != null ? clientName : "Cliente");
+        newChat.setClientPhotoUrl(clientPhotoUrl);
+        newChat.setAdminName(adminName != null ? adminName : "Empresa");
+        newChat.setAdminPhotoUrl(adminPhotoUrl);
         newChat.setLastMessage(message.getMessageText());
         newChat.setLastMessageTime(message.getTimestamp());
         newChat.setActive(true);
@@ -148,6 +163,7 @@ public class ChatService {
         Map<String, Object> updates = new HashMap<>();
         updates.put("lastMessage", message.getMessageText());
         updates.put("lastMessageTime", message.getTimestamp());
+        updates.put("lastSenderId", message.getSenderId()); // Guardar quién envió el último mensaje
         
         // Incrementar contador de no leídos del receptor
         String unreadField = "CLIENT".equals(message.getSenderRole()) ? 

@@ -11,6 +11,7 @@ public class Chat {
     private String adminName; // Nombre de la empresa
     private String adminPhotoUrl;
     private String lastMessage;
+    private String lastSenderId; // ID del usuario que envió el último mensaje
     private Timestamp lastMessageTime;
     private int unreadCountClient; // Mensajes no leídos por el cliente
     private int unreadCountAdmin; // Mensajes no leídos por el admin
@@ -30,6 +31,7 @@ public class Chat {
         this.adminName = adminName;
         this.adminPhotoUrl = adminPhotoUrl;
         this.lastMessage = "";
+        this.lastSenderId = "";
         this.lastMessageTime = Timestamp.now();
         this.unreadCountClient = 0;
         this.unreadCountAdmin = 0;
@@ -109,6 +111,14 @@ public class Chat {
 
     public void setLastMessage(String lastMessage) {
         this.lastMessage = lastMessage;
+    }
+
+    public String getLastSenderId() {
+        return lastSenderId;
+    }
+
+    public void setLastSenderId(String lastSenderId) {
+        this.lastSenderId = lastSenderId;
     }
 
     public Timestamp getLastMessageTime() {
