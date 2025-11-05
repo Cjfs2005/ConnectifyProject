@@ -23,10 +23,8 @@ public class Cliente_PaymentMethod implements Serializable {
     private Timestamp createdAt;      // Fecha de creación
     private Timestamp lastUsedAt;     // Última vez usada
     
-    // Campos antiguos para retrocompatibilidad
+    // Campo antiguo para retrocompatibilidad
     private String expiryDate;        // Formato antiguo
-    private String cardHolderName;    // Formato antiguo
-    private String lastFourDigits;    // Formato antiguo
     
     // Constructor vacío requerido por Firestore
     public Cliente_PaymentMethod() {
@@ -53,10 +51,8 @@ public class Cliente_PaymentMethod implements Serializable {
         this.createdAt = createdAt;
         this.lastUsedAt = lastUsedAt;
         
-        // Campos de retrocompatibilidad
+        // Campo de retrocompatibilidad
         this.expiryDate = expiryMonth + "/" + expiryYear;
-        this.cardHolderName = cardholderName;
-        this.lastFourDigits = last4Digits;
     }
     
     // Constructor antiguo para retrocompatibilidad
@@ -65,12 +61,10 @@ public class Cliente_PaymentMethod implements Serializable {
         this.id = id;
         this.cardNumber = cardNumber;
         this.expiryDate = expiryDate;
-        this.cardHolderName = cardHolderName;
         this.cardholderName = cardHolderName;
         this.cardType = cardType;
         this.isDefault = isDefault;
-        this.lastFourDigits = extractLastFourDigits(cardNumber);
-        this.last4Digits = this.lastFourDigits;
+        this.last4Digits = extractLastFourDigits(cardNumber);
         this.isSimulated = true;
         
         // Parsear expiryDate (MM/YYYY)
@@ -105,8 +99,6 @@ public class Cliente_PaymentMethod implements Serializable {
     
     // Getters antiguos para retrocompatibilidad
     public String getExpiryDate() { return expiryMonth + "/" + expiryYear; }
-    public String getCardHolderName() { return cardholderName; }
-    public String getLastFourDigits() { return last4Digits; }
 
     // Método para obtener número de tarjeta enmascarado
     public String getMaskedCardNumber() {
@@ -141,6 +133,8 @@ public class Cliente_PaymentMethod implements Serializable {
     public void setExpiryMonth(String expiryMonth) { this.expiryMonth = expiryMonth; }
     public void setExpiryYear(String expiryYear) { this.expiryYear = expiryYear; }
     public void setSimulated(boolean isSimulated) { this.isSimulated = isSimulated; }
+    public void setIsSimulated(boolean isSimulated) { this.isSimulated = isSimulated; }
+    public void setIsDefault(boolean isDefault) { this.isDefault = isDefault; }
     public void setNickname(String nickname) { this.nickname = nickname; }
     public void setCreatedAt(Timestamp createdAt) { this.createdAt = createdAt; }
     public void setLastUsedAt(Timestamp lastUsedAt) { this.lastUsedAt = lastUsedAt; }
@@ -148,10 +142,9 @@ public class Cliente_PaymentMethod implements Serializable {
     public void setId(String id) { this.id = id; }
     public void setCardNumber(String cardNumber) { 
         this.cardNumber = cardNumber;
-        this.lastFourDigits = extractLastFourDigits(cardNumber);
+        this.last4Digits = extractLastFourDigits(cardNumber);
     }
     public void setExpiryDate(String expiryDate) { this.expiryDate = expiryDate; }
-    public void setCardHolderName(String cardHolderName) { this.cardHolderName = cardHolderName; }
     public void setCardType(String cardType) { this.cardType = cardType; }
     public void setDefault(boolean isDefault) { this.isDefault = isDefault; }
     
@@ -160,13 +153,18 @@ public class Cliente_PaymentMethod implements Serializable {
      * Ej: "Visa •••• 4242" o "Mi Visa •••• 4242"
      */
     public String getDisplayName() {
+        String lastDigits = (last4Digits != null) ? last4Digits : "****";
+        
         if (nickname != null && !nickname.isEmpty()) {
-            return nickname + " •••• " + last4Digits;
+            return nickname + " •••• " + lastDigits;
         }
-        if (cardBrand != null) {
-            return cardBrand + " •••• " + last4Digits;
+        if (cardBrand != null && !cardBrand.isEmpty()) {
+            return cardBrand + " •••• " + lastDigits;
         }
-        return cardType + " •••• " + last4Digits;
+        if (cardType != null && !cardType.isEmpty()) {
+            return cardType + " •••• " + lastDigits;
+        }
+        return "Tarjeta •••• " + lastDigits;
     }
     
     /**
@@ -177,7 +175,10 @@ public class Cliente_PaymentMethod implements Serializable {
         if (expiryMonth != null && expiryYear != null) {
             return expiryMonth + "/" + expiryYear;
         }
-        return expiryDate;
+        if (expiryDate != null && !expiryDate.isEmpty()) {
+            return expiryDate;
+        }
+        return "**/**";
     }
     
     /**

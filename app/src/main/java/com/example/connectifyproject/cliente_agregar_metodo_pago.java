@@ -257,7 +257,7 @@ public class cliente_agregar_metodo_pago extends AppCompatActivity {
         String expiryYear = spinnerExpiryYear.getText().toString();
         String cvv = etCvv.getText().toString();
         String nickname = etNickname.getText().toString().trim();
-        boolean setAsDefault = cbSetDefault.isChecked();
+        boolean setAsDefault = true; // Siempre establecer como predeterminada
 
         // Validate
         boolean isValid = true;

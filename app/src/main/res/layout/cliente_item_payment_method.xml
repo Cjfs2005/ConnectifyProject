@@ -69,16 +69,36 @@
 
     </LinearLayout>
 
-    <!-- Delete Button -->
-    <ImageView
-        android:id="@+id/iv_delete"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
-        android:layout_marginStart="8dp"
-        android:background="?attr/selectableItemBackgroundBorderless"
-        android:clickable="true"
-        android:focusable="true"
-        android:src="@drawable/ic_delete"
-        android:tint="@color/kpi_subtext" />
+    <!-- Actions -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <!-- Set Default Button -->
+        <ImageView
+            android:id="@+id/iv_set_default"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginStart="8dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:focusable="true"
+            android:src="@drawable/ic_star_border"
+            android:tint="@color/kpi_subtext" />
+
+        <!-- Delete Button -->
+        <ImageView
+            android:id="@+id/iv_delete"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginStart="8dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:focusable="true"
+            android:src="@drawable/ic_delete"
+            android:tint="@color/kpi_subtext" />
+
+    </LinearLayout>
 
 </LinearLayout>

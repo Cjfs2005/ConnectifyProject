@@ -104,41 +104,67 @@ public class cliente_metodos_pago extends AppCompatActivity {
     }
 
     private void loadPaymentMethods() {
+        android.util.Log.d("PaymentMethods", "Iniciando carga de métodos de pago para usuario: " + currentUser.getUid());
+        
         // Listener en tiempo real para la subcolección payment_methods
         paymentMethodsListener = db.collection("usuarios")
                 .document(currentUser.getUid())
                 .collection("payment_methods")
                 .addSnapshotListener((queryDocumentSnapshots, error) -> {
                     if (error != null) {
+                        android.util.Log.e("PaymentMethods", "Error en listener: " + error.getMessage(), error);
                         Toast.makeText(this, "Error al cargar métodos de pago: " + error.getMessage(),
                                 Toast.LENGTH_SHORT).show();
                         return;
                     }
 
                     if (queryDocumentSnapshots != null) {
+                        android.util.Log.d("PaymentMethods", "Documentos encontrados: " + queryDocumentSnapshots.size());
                         paymentMethods.clear();
                         
-                        // Solo mostrar la tarjeta default (si hay alguna)
-                        Cliente_PaymentMethod defaultCard = null;
+                        // Mostrar todas las tarjetas
                         for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
-                            Cliente_PaymentMethod paymentMethod = document.toObject(Cliente_PaymentMethod.class);
-                            paymentMethod.setId(document.getId());
+                            android.util.Log.d("PaymentMethods", "Procesando documento: " + document.getId());
+                            android.util.Log.d("PaymentMethods", "Datos del documento: " + document.getData());
                             
-                            // Solo agregar si es la tarjeta default
-                            if (paymentMethod.isDefault()) {
-                                defaultCard = paymentMethod;
-                                break; // Solo puede haber una default
+                            try {
+                                Cliente_PaymentMethod paymentMethod = document.toObject(Cliente_PaymentMethod.class);
+                                if (paymentMethod != null) {
+                                    paymentMethod.setId(document.getId());
+                                    paymentMethods.add(paymentMethod);
+                                    android.util.Log.d("PaymentMethods", "Método agregado - Card Brand: " + paymentMethod.getCardBrand() + 
+                                                      ", Last 4: " + paymentMethod.getLast4Digits() + ", Default: " + paymentMethod.isDefault());
+                                } else {
+                                    android.util.Log.w("PaymentMethods", "El documento no se pudo convertir a PaymentMethod");
+                                }
+                            } catch (Exception e) {
+                                // Si hay error parseando un documento, continuar con los siguientes
+                                android.util.Log.e("PaymentMethods", "Error parsing document: " + document.getId(), e);
+                                continue;
                             }
                         }
                         
-                        if (defaultCard != null) {
-                            paymentMethods.add(defaultCard);
-                            hideEmptyState();
-                        } else {
+                        try {
+                            if (!paymentMethods.isEmpty()) {
+                                android.util.Log.d("PaymentMethods", "Mostrando " + paymentMethods.size() + " tarjetas");
+                                hideEmptyState();
+                            } else {
+                                android.util.Log.w("PaymentMethods", "No hay tarjetas para mostrar");
+                                showEmptyState();
+                            }
+                            
+                            if (adapter != null) {
+                                android.util.Log.d("PaymentMethods", "Actualizando adapter con " + paymentMethods.size() + " elementos");
+                                adapter.updateData(paymentMethods);
+                            } else {
+                                android.util.Log.e("PaymentMethods", "Adapter es null");
+                            }
+                        } catch (Exception e) {
+                            android.util.Log.e("PaymentMethods", "Error updating UI", e);
                             showEmptyState();
                         }
-                        
-                        adapter.updateData(paymentMethods);
+                    } else {
+                        android.util.Log.d("PaymentMethods", "queryDocumentSnapshots es null");
                     }
                 });
     }

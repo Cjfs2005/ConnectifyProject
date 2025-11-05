@@ -36,30 +36,60 @@ public class Cliente_PaymentMethodAdapter extends RecyclerView.Adapter<Cliente_P
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        Cliente_PaymentMethod paymentMethod = paymentMethods.get(position);
+        Cliente_PaymentMethod paymentMethod = null;
         
-        // Mostrar nombre de la tarjeta o número enmascarado
-        holder.tvCardName.setText(paymentMethod.getDisplayName());
-        holder.tvExpiryDate.setText(paymentMethod.getExpiryFormatted());
-        
-        // Mostrar badge de default
-        if (paymentMethod.isDefault()) {
-            holder.tvDefaultBadge.setVisibility(View.VISIBLE);
-        } else {
+        try {
+            paymentMethod = paymentMethods.get(position);
+            
+            if (paymentMethod == null) {
+                return;
+            }
+            
+            // Mostrar nombre de la tarjeta o número enmascarado
+            String displayName = paymentMethod.getDisplayName();
+            holder.tvCardName.setText(displayName != null ? displayName : "Tarjeta");
+            
+            String expiryFormatted = paymentMethod.getExpiryFormatted();
+            holder.tvExpiryDate.setText(expiryFormatted != null ? expiryFormatted : "");
+            
+            // Mostrar badge de default
+            if (paymentMethod.isDefault()) {
+                holder.tvDefaultBadge.setVisibility(View.VISIBLE);
+            } else {
+                holder.tvDefaultBadge.setVisibility(View.GONE);
+            }
+        } catch (Exception e) {
+            // En caso de error, mostrar valores por defecto
+            holder.tvCardName.setText("Tarjeta");
+            holder.tvExpiryDate.setText("");
             holder.tvDefaultBadge.setVisibility(View.GONE);
         }
         
-        // Click en eliminar
-        holder.ivDelete.setOnClickListener(v -> {
-            if (itemClickListener != null) {
-                itemClickListener.onDeleteClick(position, paymentMethod);
+        // Capturar paymentMethod en variable final para los listeners
+        final Cliente_PaymentMethod finalPaymentMethod = paymentMethod;
+        
+        // Configurar botón de establecer como predeterminado
+        if (paymentMethod != null && paymentMethod.isDefault()) {
+            holder.ivSetDefault.setImageResource(R.drawable.ic_star);
+            holder.ivSetDefault.setEnabled(false);
+            holder.ivSetDefault.setAlpha(0.5f);
+        } else {
+            holder.ivSetDefault.setImageResource(R.drawable.ic_star_border);
+            holder.ivSetDefault.setEnabled(true);
+            holder.ivSetDefault.setAlpha(1.0f);
+        }
+        
+        // Click en establecer como predeterminado
+        holder.ivSetDefault.setOnClickListener(v -> {
+            if (itemClickListener != null && finalPaymentMethod != null && !finalPaymentMethod.isDefault()) {
+                itemClickListener.onSetDefaultClick(position, finalPaymentMethod);
             }
         });
         
-        // Click en el item completo para marcar como default
-        holder.itemView.setOnClickListener(v -> {
-            if (itemClickListener != null && !paymentMethod.isDefault()) {
-                itemClickListener.onSetDefaultClick(position, paymentMethod);
+        // Click en eliminar
+        holder.ivDelete.setOnClickListener(v -> {
+            if (itemClickListener != null && finalPaymentMethod != null) {
+                itemClickListener.onDeleteClick(position, finalPaymentMethod);
             }
         });
     }
@@ -70,8 +100,15 @@ public class Cliente_PaymentMethodAdapter extends RecyclerView.Adapter<Cliente_P
     }
     
     public void updateData(List<Cliente_PaymentMethod> newPaymentMethods) {
-        this.paymentMethods = newPaymentMethods;
-        notifyDataSetChanged();
+        try {
+            this.paymentMethods = newPaymentMethods != null ? newPaymentMethods : new java.util.ArrayList<>();
+            notifyDataSetChanged();
+        } catch (Exception e) {
+            // En caso de error, mantener la lista actual o crear una vacía
+            if (this.paymentMethods == null) {
+                this.paymentMethods = new java.util.ArrayList<>();
+            }
+        }
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
@@ -80,6 +117,7 @@ public class Cliente_PaymentMethodAdapter extends RecyclerView.Adapter<Cliente_P
         TextView tvDefaultBadge;
         ImageView ivCardLogo;
         ImageView ivDelete;
+        ImageView ivSetDefault;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -88,6 +126,7 @@ public class Cliente_PaymentMethodAdapter extends RecyclerView.Adapter<Cliente_P
             tvDefaultBadge = itemView.findViewById(R.id.tv_default_badge);
             ivCardLogo = itemView.findViewById(R.id.iv_card_logo);
             ivDelete = itemView.findViewById(R.id.iv_delete);
+            ivSetDefault = itemView.findViewById(R.id.iv_set_default);
         }
     }
 }
