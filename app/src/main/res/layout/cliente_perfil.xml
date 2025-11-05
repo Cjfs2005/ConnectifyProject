@@ -69,11 +69,11 @@
                         android:id="@+id/iv_profile_photo"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:background="?attr/colorPrimary"
+                        android:background="@color/light_gray"
                         android:padding="16dp"
                         android:scaleType="centerCrop"
                         android:src="@drawable/ic_person_24"
-                        android:tint="@color/white" />
+                        android:tint="@color/text_color_secondary" />
 
                 </androidx.cardview.widget.CardView>
 

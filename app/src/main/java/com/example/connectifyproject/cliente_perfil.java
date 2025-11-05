@@ -239,42 +239,24 @@ public class cliente_perfil extends AppCompatActivity {
         String photoUrlToLoad = null;
         
         // Prioridad 1: URL de Firestore
-        if (firestorePhotoUrl != null && !firestorePhotoUrl.isEmpty()) {
+        if (firestorePhotoUrl != null && !firestorePhotoUrl.isEmpty() && !firestorePhotoUrl.equals("null")) {
             photoUrlToLoad = firestorePhotoUrl;
-            Log.d(TAG, "Cargando foto desde Firestore: " + firestorePhotoUrl);
         }
         // Prioridad 2: URL de FirebaseAuth como fallback
         else if (currentUser.getPhotoUrl() != null) {
             photoUrlToLoad = currentUser.getPhotoUrl().toString();
-            Log.d(TAG, "Cargando foto desde FirebaseAuth: " + photoUrlToLoad);
         }
         
-        if (photoUrlToLoad != null) {
+        if (photoUrlToLoad != null && !photoUrlToLoad.isEmpty()) {
             Glide.with(this)
                     .load(photoUrlToLoad)
                     .circleCrop()
                     .placeholder(R.drawable.ic_person_24)
                     .error(R.drawable.ic_person_24)
-                    .listener(new com.bumptech.glide.request.RequestListener<android.graphics.drawable.Drawable>() {
-                        @Override
-                        public boolean onLoadFailed(com.bumptech.glide.load.engine.GlideException e, Object model, com.bumptech.glide.request.target.Target<android.graphics.drawable.Drawable> target, boolean isFirstResource) {
-                            Log.e(TAG, "Error al cargar foto de perfil: " + model, e);
-                            return false;
-                        }
-                        
-                        @Override
-                        public boolean onResourceReady(android.graphics.drawable.Drawable resource, Object model, com.bumptech.glide.request.target.Target<android.graphics.drawable.Drawable> target, com.bumptech.glide.load.DataSource dataSource, boolean isFirstResource) {
-                            Log.d(TAG, "Foto de perfil cargada correctamente: " + model);
-                            return false;
-                        }
-                    })
                     .into(ivProfilePhoto);
         } else {
-            Log.d(TAG, "No hay foto de perfil, usando placeholder");
-            Glide.with(this)
-                    .load(R.drawable.ic_person_24)
-                    .circleCrop()
-                    .into(ivProfilePhoto);
+            // Cargar placeholder
+            ivProfilePhoto.setImageResource(R.drawable.ic_person_24);
         }
     }
 

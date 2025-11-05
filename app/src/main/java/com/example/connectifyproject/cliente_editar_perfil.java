@@ -343,7 +343,7 @@ public class cliente_editar_perfil extends AppCompatActivity {
         String photoUrlToLoad = null;
         
         // Prioridad 1: URL de Firestore
-        if (firestorePhotoUrl != null && !firestorePhotoUrl.isEmpty()) {
+        if (firestorePhotoUrl != null && !firestorePhotoUrl.isEmpty() && !firestorePhotoUrl.equals("null")) {
             photoUrlToLoad = firestorePhotoUrl;
         }
         // Prioridad 2: URL de FirebaseAuth como fallback
@@ -351,7 +351,7 @@ public class cliente_editar_perfil extends AppCompatActivity {
             photoUrlToLoad = currentUser.getPhotoUrl().toString();
         }
         
-        if (photoUrlToLoad != null) {
+        if (photoUrlToLoad != null && !photoUrlToLoad.isEmpty()) {
             Glide.with(this)
                     .load(photoUrlToLoad)
                     .circleCrop()
@@ -359,10 +359,8 @@ public class cliente_editar_perfil extends AppCompatActivity {
                     .error(R.drawable.ic_person_24)
                     .into(ivProfilePhoto);
         } else {
-            Glide.with(this)
-                    .load(R.drawable.ic_person_24)
-                    .circleCrop()
-                    .into(ivProfilePhoto);
+            // Cargar placeholder sin circleCrop ya que es un ícono
+            ivProfilePhoto.setImageResource(R.drawable.ic_person_24);
         }
     }
 
