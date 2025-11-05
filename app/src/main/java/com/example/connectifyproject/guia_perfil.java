@@ -302,9 +302,13 @@ public class guia_perfil extends AppCompatActivity {
         
         // Botón para eliminar
         MaterialButton removeButton = new MaterialButton(this);
-        removeButton.setText("×");
-        removeButton.setTextSize(18);
-        removeButton.setTextColor(getResources().getColor(android.R.color.holo_red_dark, null));
+        removeButton.setIcon(getResources().getDrawable(R.drawable.ic_delete, null));
+        removeButton.setIconTint(getResources().getColorStateList(android.R.color.white, null));
+        removeButton.setBackgroundColor(getResources().getColor(android.R.color.holo_red_dark, null));
+        removeButton.setCornerRadius(12);
+        LinearLayout.LayoutParams buttonParams = new LinearLayout.LayoutParams(96, 72);
+        buttonParams.setMargins(16, 0, 0, 0);
+        removeButton.setLayoutParams(buttonParams);
         removeButton.setOnClickListener(v -> removeLanguage(language));
         
         languageLayout.addView(languageText);
