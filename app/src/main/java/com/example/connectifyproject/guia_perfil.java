@@ -74,10 +74,6 @@ public class guia_perfil extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        // Asegurar que "Perfil" esté seleccionado cuando regresamos a esta actividad
-        if (bottomNavigation != null) {
-            bottomNavigation.setSelectedItemId(R.id.nav_perfil);
-        }
         // Recargar datos por si se editaron
         loadUserData();
     }
@@ -151,7 +147,15 @@ public class guia_perfil extends AppCompatActivity {
             startActivity(intent);
         });
 
-        layoutLogout.setOnClickListener(v -> logout());
+        layoutLogout.setOnClickListener(v -> {
+            // Cerrar sesión de Firebase Auth
+            AuthUI.getInstance()
+                    .signOut(this)
+                    .addOnCompleteListener(task -> {
+                        // Ir al SplashActivity que redirigirá al login
+                        redirectToLogin();
+                    });
+        });
     }
 
     private void loadUserData() {
@@ -306,7 +310,13 @@ public class guia_perfil extends AppCompatActivity {
         removeButton.setIconTint(getResources().getColorStateList(android.R.color.white, null));
         removeButton.setBackgroundColor(getResources().getColor(android.R.color.holo_red_dark, null));
         removeButton.setCornerRadius(12);
-        LinearLayout.LayoutParams buttonParams = new LinearLayout.LayoutParams(96, 72);
+        removeButton.setIconGravity(MaterialButton.ICON_GRAVITY_TEXT_START);
+        removeButton.setIconPadding(0);
+        removeButton.setText("");
+        removeButton.setGravity(Gravity.CENTER);
+        removeButton.setInsetTop(0);
+        removeButton.setInsetBottom(0);
+        LinearLayout.LayoutParams buttonParams = new LinearLayout.LayoutParams(96, 96);
         buttonParams.setMargins(16, 0, 0, 0);
         removeButton.setLayoutParams(buttonParams);
         removeButton.setOnClickListener(v -> removeLanguage(language));
@@ -406,26 +416,7 @@ public class guia_perfil extends AppCompatActivity {
                 });
     }
 
-    private void logout() {
-        // Mostrar diálogo de confirmación
-        new androidx.appcompat.app.AlertDialog.Builder(this)
-                .setTitle("Cerrar sesión")
-                .setMessage("¿Estás seguro de que quieres cerrar sesión?")
-                .setPositiveButton("Sí", (dialog, which) -> {
-                    // Cerrar sesión con Firebase Auth
-                    mAuth.signOut();
-                    
-                    // También cerrar sesión con AuthUI por si se usó
-                    AuthUI.getInstance()
-                            .signOut(this)
-                            .addOnCompleteListener(task -> {
-                                Log.d(TAG, "Usuario cerró sesión");
-                                redirectToLogin();
-                            });
-                })
-                .setNegativeButton("No", null)
-                .show();
-    }
+
 
     private void redirectToLogin() {
         Intent intent = new Intent(this, SplashActivity.class);

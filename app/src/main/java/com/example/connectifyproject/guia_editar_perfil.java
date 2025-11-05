@@ -39,6 +39,7 @@ public class guia_editar_perfil extends AppCompatActivity {
     private FirebaseFirestore db;
     private FirebaseUser currentUser;
     private StorageHelper storageHelper;
+    private Uri selectedImageUri;
 
     private ImageView ivProfilePhoto;
     private MaterialButton btnSubirImagen;
@@ -136,7 +137,12 @@ public class guia_editar_perfil extends AppCompatActivity {
                 new ActivityResultContracts.GetContent(),
                 uri -> {
                     if (uri != null) {
-                        uploadImageToFirebase(uri);
+                        selectedImageUri = uri;
+                        // Mostrar preview de la imagen seleccionada
+                        Glide.with(this)
+                                .load(uri)
+                                .circleCrop()
+                                .into(ivProfilePhoto);
                     }
                 }
         );
@@ -179,47 +185,7 @@ public class guia_editar_perfil extends AppCompatActivity {
         imagePickerLauncher.launch("image/*");
     }
 
-    private void uploadImageToFirebase(Uri imageUri) {
-        if (currentUser == null) return;
 
-        Toast.makeText(this, "Subiendo imagen...", Toast.LENGTH_SHORT).show();
-        
-        storageHelper.uploadProfilePhoto(this, imageUri, currentUser.getUid(), new StorageHelper.UploadCallback() {
-            @Override
-            public void onSuccess(String downloadUrl) {
-                updateProfileImageInFirestore(downloadUrl);
-                Glide.with(guia_editar_perfil.this)
-                        .load(downloadUrl)
-                        .circleCrop()
-                        .into(ivProfilePhoto);
-                Toast.makeText(guia_editar_perfil.this, "Imagen actualizada correctamente", Toast.LENGTH_SHORT).show();
-            }
-
-            @Override
-            public void onFailure(Exception e) {
-                Toast.makeText(guia_editar_perfil.this, "Error al subir la imagen", Toast.LENGTH_SHORT).show();
-            }
-
-            @Override
-            public void onProgress(double progress) {
-                // Opcional: mostrar progreso
-            }
-        });
-    }
-
-    private void updateProfileImageInFirestore(String photoUrl) {
-        if (currentUser == null) return;
-
-        Map<String, Object> updates = new HashMap<>();
-        updates.put("photoUrl", photoUrl);
-
-        db.collection("usuarios")
-                .document(currentUser.getUid())
-                .update(updates)
-                .addOnFailureListener(e -> {
-                    Toast.makeText(this, "Error al actualizar la imagen en el perfil", Toast.LENGTH_SHORT).show();
-                });
-    }
 
     private void saveProfile() {
         if (currentUser == null) {
@@ -276,15 +242,59 @@ public class guia_editar_perfil extends AppCompatActivity {
             updates.put("numeroYape", yape);
         }
 
-        // Actualizar en Firestore
+        btnGuardar.setEnabled(false);
+        btnGuardar.setText("Guardando...");
+
+        if (selectedImageUri != null) {
+            uploadPhotoAndSaveData(updates);
+        } else {
+            saveDataToFirestore(updates, null);
+        }
+    }
+
+    private void uploadPhotoAndSaveData(Map<String, Object> updates) {
+        String userId = currentUser.getUid();
+
+        storageHelper.uploadProfilePhoto(this, selectedImageUri, userId,
+                new StorageHelper.UploadCallback() {
+                    @Override
+                    public void onSuccess(String downloadUrl) {
+                        saveDataToFirestore(updates, downloadUrl);
+                    }
+
+                    @Override
+                    public void onFailure(Exception e) {
+                        btnGuardar.setEnabled(true);
+                        btnGuardar.setText("Guardar");
+                        Toast.makeText(guia_editar_perfil.this,
+                                "Error al subir imagen: " + e.getMessage(),
+                                Toast.LENGTH_SHORT).show();
+                    }
+
+                    @Override
+                    public void onProgress(double progress) {
+                        // Opcional: mostrar progreso
+                    }
+                });
+    }
+
+    private void saveDataToFirestore(Map<String, Object> updates, String photoUrl) {
+        if (photoUrl != null) {
+            updates.put("photoUrl", photoUrl);
+        }
+
         db.collection("usuarios")
                 .document(currentUser.getUid())
                 .update(updates)
                 .addOnSuccessListener(aVoid -> {
+                    btnGuardar.setEnabled(true);
+                    btnGuardar.setText("Guardar");
                     Toast.makeText(this, "Perfil actualizado correctamente", Toast.LENGTH_SHORT).show();
                     finish();
                 })
                 .addOnFailureListener(e -> {
+                    btnGuardar.setEnabled(true);
+                    btnGuardar.setText("Guardar");
                     Toast.makeText(this, "Error al actualizar el perfil", Toast.LENGTH_SHORT).show();
                 });
     }
