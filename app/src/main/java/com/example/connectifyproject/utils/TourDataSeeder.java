@@ -12,6 +12,7 @@ import java.util.Map;
 public class TourDataSeeder {
     private static final String TAG = "TourDataSeeder";
     private static final String COLLECTION_OFERTAS = "tours_ofertas";
+    private static final String SUBCOLLECTION_GUIAS = "guias_ofertados";
     
     public static void crearOfertasDePrueba() {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
@@ -234,7 +235,10 @@ public class TourDataSeeder {
         // Insertar ofertas en Firebase
         db.collection(COLLECTION_OFERTAS).add(oferta1)
                 .addOnSuccessListener(documentReference -> {
-                    Log.d(TAG, "Oferta 1 creada con ID: " + documentReference.getId());
+                    String oferta1Id = documentReference.getId();
+                    Log.d(TAG, "Oferta 1 creada con ID: " + oferta1Id);
+                    // Agregar guías ofertados para la oferta 1
+                    agregarGuiasOfertados(db, oferta1Id);
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Error al crear oferta 1: ", e);
@@ -242,7 +246,10 @@ public class TourDataSeeder {
         
         db.collection(COLLECTION_OFERTAS).add(oferta2)
                 .addOnSuccessListener(documentReference -> {
-                    Log.d(TAG, "Oferta 2 creada con ID: " + documentReference.getId());
+                    String oferta2Id = documentReference.getId();
+                    Log.d(TAG, "Oferta 2 creada con ID: " + oferta2Id);
+                    // Agregar guías ofertados para la oferta 2
+                    agregarGuiasOfertados(db, oferta2Id);
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Error al crear oferta 2: ", e);
@@ -250,10 +257,43 @@ public class TourDataSeeder {
                 
         db.collection(COLLECTION_OFERTAS).add(oferta3)
                 .addOnSuccessListener(documentReference -> {
-                    Log.d(TAG, "Oferta 3 creada con ID: " + documentReference.getId());
+                    String oferta3Id = documentReference.getId();
+                    Log.d(TAG, "Oferta 3 creada con ID: " + oferta3Id);
+                    // Agregar guías ofertados para la oferta 3
+                    agregarGuiasOfertados(db, oferta3Id);
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Error al crear oferta 3: ", e);
                 });
+    }
+    
+    /**
+     * Agregar guías ofertados a una oferta específica
+     */
+    private static void agregarGuiasOfertados(FirebaseFirestore db, String ofertaId) {
+        // Guía principal de ejemplo (tu usuario)
+        Map<String, Object> guiaData = new HashMap<>();
+        guiaData.put("identificadorUsuario", "YbmULw4iJXT41CdCLXV1ktCrfek1");
+        guiaData.put("nombresCompletos", "Gianfranco Enriquez Soel");
+        guiaData.put("correoElectronico", "a20224926@pucp.edu.pe");
+        guiaData.put("numeroTelefono", "987 654 321");
+        guiaData.put("numeroYape", "987654321");
+        guiaData.put("codigoPais", "+51");
+        guiaData.put("idiomasManejados", Arrays.asList("Español", "Inglés", "Chino"));
+        guiaData.put("fechaOferta", Timestamp.now());
+        guiaData.put("estadoOferta", "ofertado");
+        guiaData.put("fechaRespuesta", null);
+        guiaData.put("rechazado", false);
+        
+        // Agregar a la subcolección
+        db.collection(COLLECTION_OFERTAS)
+                .document(ofertaId)
+                .collection(SUBCOLLECTION_GUIAS)
+                .document("YbmULw4iJXT41CdCLXV1ktCrfek1")
+                .set(guiaData)
+                .addOnSuccessListener(aVoid -> 
+                    Log.d(TAG, "Guía ofertado agregado a oferta: " + ofertaId))
+                .addOnFailureListener(e -> 
+                    Log.e(TAG, "Error agregando guía ofertado a oferta: " + ofertaId, e));
     }
 }
