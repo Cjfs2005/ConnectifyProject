@@ -133,9 +133,11 @@
         <!-- Cliente Profile Child Activities -->
         <activity android:name=".cliente_metodos_pago" android:exported="false" />
         <activity android:name=".cliente_nuevo_metodo_pago" android:exported="false" />
+        <activity android:name=".cliente_agregar_metodo_pago" android:exported="false" />
         <activity android:name=".cliente_editar_perfil" android:exported="false" />
         <activity android:name=".cliente_cambiar_contrasenia" android:exported="false" />
         <activity android:name=".cliente_permisos" android:exported="false" />
+        <activity android:name=".cliente_servicios" android:exported="false" />
         
         <!-- Cliente Tours Activities -->
         <activity android:name=".cliente_tour_detalle" android:exported="false" />

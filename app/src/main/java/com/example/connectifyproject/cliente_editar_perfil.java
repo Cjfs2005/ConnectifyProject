@@ -237,14 +237,7 @@ public class cliente_editar_perfil extends AppCompatActivity {
                         }
 
                         String photoUrl = documentSnapshot.getString("photoUrl");
-                        if (photoUrl != null && !photoUrl.isEmpty()) {
-                            Glide.with(this)
-                                    .load(photoUrl)
-                                    .circleCrop()
-                                    .placeholder(R.drawable.ic_person_24)
-                                    .error(R.drawable.ic_person_24)
-                                    .into(ivProfilePhoto);
-                        }
+                        loadProfilePhoto(photoUrl);
                     }
                 })
                 .addOnFailureListener(e -> {
@@ -344,6 +337,33 @@ public class cliente_editar_perfil extends AppCompatActivity {
                     btnGuardar.setEnabled(true);
                     btnGuardar.setText("Guardar");
                 });
+    }
+
+    private void loadProfilePhoto(String firestorePhotoUrl) {
+        String photoUrlToLoad = null;
+        
+        // Prioridad 1: URL de Firestore
+        if (firestorePhotoUrl != null && !firestorePhotoUrl.isEmpty()) {
+            photoUrlToLoad = firestorePhotoUrl;
+        }
+        // Prioridad 2: URL de FirebaseAuth como fallback
+        else if (currentUser.getPhotoUrl() != null) {
+            photoUrlToLoad = currentUser.getPhotoUrl().toString();
+        }
+        
+        if (photoUrlToLoad != null) {
+            Glide.with(this)
+                    .load(photoUrlToLoad)
+                    .circleCrop()
+                    .placeholder(R.drawable.ic_person_24)
+                    .error(R.drawable.ic_person_24)
+                    .into(ivProfilePhoto);
+        } else {
+            Glide.with(this)
+                    .load(R.drawable.ic_person_24)
+                    .circleCrop()
+                    .into(ivProfilePhoto);
+        }
     }
 
     @Override

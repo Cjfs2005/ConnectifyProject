@@ -118,23 +118,27 @@ public class cliente_metodos_pago extends AppCompatActivity {
                     if (queryDocumentSnapshots != null) {
                         paymentMethods.clear();
                         
+                        // Solo mostrar la tarjeta default (si hay alguna)
+                        Cliente_PaymentMethod defaultCard = null;
                         for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
                             Cliente_PaymentMethod paymentMethod = document.toObject(Cliente_PaymentMethod.class);
                             paymentMethod.setId(document.getId());
-                            paymentMethods.add(paymentMethod);
+                            
+                            // Solo agregar si es la tarjeta default
+                            if (paymentMethod.isDefault()) {
+                                defaultCard = paymentMethod;
+                                break; // Solo puede haber una default
+                            }
                         }
                         
-                        // Ordenar: default primero
-                        paymentMethods.sort((pm1, pm2) -> Boolean.compare(pm2.isDefault(), pm1.isDefault()));
+                        if (defaultCard != null) {
+                            paymentMethods.add(defaultCard);
+                            hideEmptyState();
+                        } else {
+                            showEmptyState();
+                        }
                         
                         adapter.updateData(paymentMethods);
-                        
-                        // Mostrar/ocultar estado vacío
-                        if (paymentMethods.isEmpty()) {
-                            showEmptyState();
-                        } else {
-                            hideEmptyState();
-                        }
                     }
                 });
     }
