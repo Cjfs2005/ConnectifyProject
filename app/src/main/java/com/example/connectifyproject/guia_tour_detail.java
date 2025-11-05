@@ -10,6 +10,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.connectifyproject.databinding.GuiaTourDetailBinding;
+import com.example.connectifyproject.services.TourFirebaseService;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -20,12 +21,16 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 public class guia_tour_detail extends AppCompatActivity implements OnMapReadyCallback {
     private GuiaTourDetailBinding binding;
     private GoogleMap mMap;
+    private TourFirebaseService tourService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = GuiaTourDetailBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+        
+        // Inicializar servicio Firebase
+        tourService = new TourFirebaseService();
 
         setSupportActionBar(binding.toolbar);
         if (getSupportActionBar() != null) {
@@ -54,26 +59,40 @@ public class guia_tour_detail extends AppCompatActivity implements OnMapReadyCal
         }
 
         binding.acceptButton.setOnClickListener(v -> {
+            String firebaseId = getIntent().getStringExtra("tour_firebase_id");
+            String tourName = getIntent().getStringExtra("tour_name");
+            
             new AlertDialog.Builder(this)
                     .setTitle("Confirmar aceptación")
-                    .setMessage("¿Está seguro de aceptar esta oferta? Se rechazarán otras ofertas en el mismo horario")
+                    .setMessage("¿Está seguro de aceptar la oferta '" + tourName + "'?\n\nSe rechazarán otras ofertas en el mismo horario.")
                     .setPositiveButton("Aceptar", (dialog, which) -> {
-                        // Llamar al método de aceptación en la actividad padre si existe
-                        if (getParent() instanceof guia_tours_ofertas) {
-                            // TODO: Implementar lógica de aceptación con Firebase
-                            Toast.makeText(this, "Funcionalidad de aceptación habilitada con Firebase", Toast.LENGTH_SHORT).show();
+                        if (firebaseId != null && !firebaseId.isEmpty()) {
+                            aceptarOfertaFirebase(firebaseId, tourName);
                         } else {
-                            Toast.makeText(this, "Oferta aceptada (simulado)", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(this, "Error: ID de oferta no válido", Toast.LENGTH_SHORT).show();
                         }
-                        finish();
                     })
                     .setNegativeButton("Cancelar", null)
                     .show();
         });
 
         binding.rejectButton.setOnClickListener(v -> {
-            Toast.makeText(this, "Oferta rechazada (simulado)", Toast.LENGTH_SHORT).show();
-            finish();
+            String firebaseId = getIntent().getStringExtra("tour_firebase_id");
+            String tourName = getIntent().getStringExtra("tour_name");
+            
+            new AlertDialog.Builder(this)
+                    .setTitle("Confirmar rechazo")
+                    .setMessage("¿Está seguro de rechazar la oferta '" + tourName + "'?")
+                    .setPositiveButton("Rechazar", (dialog, which) -> {
+                        if (firebaseId != null && !firebaseId.isEmpty()) {
+                            rechazarOfertaFirebase(firebaseId, tourName);
+                        } else {
+                            Toast.makeText(this, "Oferta rechazada", Toast.LENGTH_SHORT).show();
+                            finish();
+                        }
+                    })
+                    .setNegativeButton("Cancelar", null)
+                    .show();
         });
 
         // Navbar eliminado - pantalla secundaria
@@ -97,6 +116,62 @@ public class guia_tour_detail extends AppCompatActivity implements OnMapReadyCal
             return false;
         });
         */
+    }
+    
+    /**
+     * Aceptar oferta usando Firebase
+     */
+    private void aceptarOfertaFirebase(String firebaseId, String tourName) {
+        tourService.aceptarOferta(firebaseId, new TourFirebaseService.OperationCallback() {
+            @Override
+            public void onSuccess(String message) {
+                runOnUiThread(() -> {
+                    Toast.makeText(guia_tour_detail.this, "¡Oferta '" + tourName + "' aceptada exitosamente!", Toast.LENGTH_LONG).show();
+                    
+                    // Volver a la pantalla anterior y actualizar la lista
+                    Intent resultIntent = new Intent();
+                    resultIntent.putExtra("oferta_aceptada", true);
+                    resultIntent.putExtra("firebase_id", firebaseId);
+                    setResult(RESULT_OK, resultIntent);
+                    finish();
+                });
+            }
+            
+            @Override
+            public void onError(String error) {
+                runOnUiThread(() -> {
+                    Toast.makeText(guia_tour_detail.this, "Error: " + error, Toast.LENGTH_LONG).show();
+                });
+            }
+        });
+    }
+    
+    /**
+     * Rechazar oferta usando Firebase
+     */
+    private void rechazarOfertaFirebase(String firebaseId, String tourName) {
+        tourService.rechazarOferta(firebaseId, new TourFirebaseService.OperationCallback() {
+            @Override
+            public void onSuccess(String message) {
+                runOnUiThread(() -> {
+                    Toast.makeText(guia_tour_detail.this, "Oferta '" + tourName + "' rechazada", Toast.LENGTH_SHORT).show();
+                    
+                    // Volver a la pantalla anterior
+                    Intent resultIntent = new Intent();
+                    resultIntent.putExtra("oferta_rechazada", true);
+                    resultIntent.putExtra("firebase_id", firebaseId);
+                    setResult(RESULT_OK, resultIntent);
+                    finish();
+                });
+            }
+            
+            @Override
+            public void onError(String error) {
+                runOnUiThread(() -> {
+                    Toast.makeText(guia_tour_detail.this, "Error: " + error, Toast.LENGTH_LONG).show();
+                });
+            }
+        });
     }
 
     @Override

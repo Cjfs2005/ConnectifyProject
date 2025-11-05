@@ -72,8 +72,12 @@ public class GuiaTourAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 intent.putExtra("tour_puntualidad", tour.getPuntualidad());
                 intent.putExtra("tour_transporte_incluido", tour.isTransporteIncluido());
                 intent.putExtra("tour_almuerzo_incluido", tour.isAlmuerzoIncluido());
-                context.startActivity(intent);
-                ((Activity) context).overridePendingTransition(R.anim.guia_slide_in, R.anim.guia_slide_out);
+                intent.putExtra("tour_firebase_id", tour.getFirebaseId()); // FIREBASE ID
+                
+                if (context instanceof Activity) {
+                    ((Activity) context).startActivityForResult(intent, 1001); // REQUEST_CODE_TOUR_DETAIL
+                    ((Activity) context).overridePendingTransition(R.anim.guia_slide_in, R.anim.guia_slide_out);
+                }
             });
         }
     }

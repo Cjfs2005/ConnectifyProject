@@ -378,4 +378,24 @@ public class guia_tours_ofertas extends AppCompatActivity implements GuiaFilterD
             Toast.makeText(this, "⚠️ Recordatorios de ubicación desactivados", Toast.LENGTH_SHORT).show();
         }
     }
+    
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        
+        if (requestCode == 1001 && resultCode == RESULT_OK && data != null) { // REQUEST_CODE_TOUR_DETAIL
+            boolean ofertaAceptada = data.getBooleanExtra("oferta_aceptada", false);
+            boolean ofertaRechazada = data.getBooleanExtra("oferta_rechazada", false);
+            String firebaseId = data.getStringExtra("firebase_id");
+            
+            if (ofertaAceptada || ofertaRechazada) {
+                // Recargar las ofertas desde Firebase para reflejar los cambios
+                cargarOfertasDesdeFirebase();
+                
+                if (ofertaAceptada) {
+                    Toast.makeText(this, "¡Oferta aceptada exitosamente!", Toast.LENGTH_SHORT).show();
+                }
+            }
+        }
+    }
 }

@@ -12,6 +12,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
 public class TourFirebaseService {
     private static final String TAG = "TourFirebaseService";
@@ -39,7 +43,7 @@ public class TourFirebaseService {
     }
     
     /**
-     * Obtener ofertas disponibles para guías
+     * Obtener ofertas disponibles para guías - ORDENADAS POR FECHA
      */
     public void getOfertasDisponibles(TourCallback callback) {
         Log.d(TAG, "Obteniendo ofertas disponibles...");
@@ -64,7 +68,29 @@ public class TourFirebaseService {
                         }
                     }
                     
-                    Log.d(TAG, "Total ofertas cargadas: " + ofertas.size());
+                    // Ordenar por fecha de realización del tour
+                    ofertas.sort((o1, o2) -> {
+                        try {
+                            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+                            Date fecha1 = sdf.parse(o1.getFechaRealizacion());
+                            Date fecha2 = sdf.parse(o2.getFechaRealizacion());
+                            
+                            if (fecha1 != null && fecha2 != null) {
+                                int dateCompare = fecha1.compareTo(fecha2);
+                                if (dateCompare == 0) {
+                                    // Si las fechas son iguales, ordenar por hora de inicio
+                                    return o1.getHoraInicio().compareTo(o2.getHoraInicio());
+                                }
+                                return dateCompare;
+                            }
+                            return 0;
+                        } catch (ParseException e) {
+                            Log.e(TAG, "Error al parsear fechas para ordenamiento", e);
+                            return 0;
+                        }
+                    });
+                    
+                    Log.d(TAG, "Total ofertas cargadas y ordenadas: " + ofertas.size());
                     callback.onSuccess(ofertas);
                 })
                 .addOnFailureListener(e -> {
@@ -105,6 +131,55 @@ public class TourFirebaseService {
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Error al obtener datos del guía: ", e);
                     callback.onError("Error al verificar datos del guía");
+                });
+    }
+    
+    /**
+     * Rechazar una oferta por parte de un guía
+     */
+    public void rechazarOferta(String ofertaId, OperationCallback callback) {
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser == null) {
+            callback.onError("Usuario no autenticado");
+            return;
+        }
+        
+        String guiaId = currentUser.getUid();
+        Log.d(TAG, "Guía " + guiaId + " rechazando oferta: " + ofertaId);
+        
+        // Verificar que la oferta existe y está disponible
+        db.collection(COLLECTION_OFERTAS).document(ofertaId)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        OfertaTour oferta = documentSnapshot.toObject(OfertaTour.class);
+                        if (oferta != null && "publicado".equals(oferta.getEstado())) {
+                            
+                            // Cambiar estado a "rechazado" (opcional - podrías simplemente no hacer nada)
+                            Map<String, Object> updates = new HashMap<>();
+                            updates.put("fechaActualizacion", Timestamp.now());
+                            
+                            db.collection(COLLECTION_OFERTAS).document(ofertaId)
+                                    .update(updates)
+                                    .addOnSuccessListener(aVoid -> {
+                                        Log.d(TAG, "Oferta rechazada por guía: " + guiaId);
+                                        callback.onSuccess("Oferta rechazada correctamente");
+                                    })
+                                    .addOnFailureListener(e -> {
+                                        Log.e(TAG, "Error al rechazar oferta: ", e);
+                                        callback.onError("Error al rechazar la oferta");
+                                    });
+                            
+                        } else {
+                            callback.onError("Esta oferta ya no está disponible");
+                        }
+                    } else {
+                        callback.onError("La oferta no existe");
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error al verificar oferta: ", e);
+                    callback.onError("Error al procesar la solicitud");
                 });
     }
     
