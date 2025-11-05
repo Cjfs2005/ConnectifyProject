@@ -2,46 +2,69 @@ package com.example.connectifyproject;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import com.bumptech.glide.Glide;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.example.connectifyproject.models.Cliente_User;
 import com.example.connectifyproject.utils.Cliente_PreferencesManager;
 import com.firebase.ui.auth.AuthUI;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 public class cliente_perfil extends AppCompatActivity {
 
+    private static final String TAG = "ClientePerfil";
+    
     private ImageButton btnNotifications;
     private MaterialButton btnEditarPerfil;
     private ImageView ivProfilePhoto;
     private TextView tvUserName;
+    private TextView tvEmail;
+    private TextView tvPhone;
+    private TextView tvDocument;
+    private TextView tvBirthDate;
+    private TextView tvAddress;
     private LinearLayout layoutPaymentMethods;
-    private LinearLayout layoutChangePassword;
     private LinearLayout layoutPermissions;
     private LinearLayout layoutLogout;
     private BottomNavigationView bottomNavigation;
     private Cliente_PreferencesManager preferencesManager;
     
-    // Modelo de datos del usuario
-    private Cliente_User currentUser;
+    private FirebaseAuth mAuth;
+    private FirebaseFirestore db;
+    private FirebaseUser currentUser;
+    private Cliente_User currentUserData;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.cliente_perfil);
 
+        mAuth = FirebaseAuth.getInstance();
+        db = FirebaseFirestore.getInstance();
+        currentUser = mAuth.getCurrentUser();
         preferencesManager = new Cliente_PreferencesManager(this);
         
+        if (currentUser == null) {
+            redirectToLogin();
+            return;
+        }
+        
         initViews();
-        loadUserData();
         setupBottomNavigation();
         setupClickListeners();
+        loadUserData();
     }
 
     @Override
@@ -51,6 +74,8 @@ public class cliente_perfil extends AppCompatActivity {
         if (bottomNavigation != null) {
             bottomNavigation.setSelectedItemId(R.id.nav_perfil);
         }
+        // Recargar datos por si se editaron
+        loadUserData();
     }
 
     private void initViews() {
@@ -58,8 +83,12 @@ public class cliente_perfil extends AppCompatActivity {
         btnEditarPerfil = findViewById(R.id.tv_edit_profile);
         ivProfilePhoto = findViewById(R.id.iv_profile_photo);
         tvUserName = findViewById(R.id.tv_user_name);
+        tvEmail = findViewById(R.id.tv_email);
+        tvPhone = findViewById(R.id.tv_phone);
+        tvDocument = findViewById(R.id.tv_document);
+        tvBirthDate = findViewById(R.id.tv_birth_date);
+        tvAddress = findViewById(R.id.tv_address);
         layoutPaymentMethods = findViewById(R.id.layout_payment_methods);
-        layoutChangePassword = findViewById(R.id.layout_change_password);
         layoutPermissions = findViewById(R.id.layout_permissions);
         layoutLogout = findViewById(R.id.layout_logout);
         bottomNavigation = findViewById(R.id.bottom_navigation);
@@ -117,11 +146,6 @@ public class cliente_perfil extends AppCompatActivity {
             startActivity(intent);
         });
 
-        layoutChangePassword.setOnClickListener(v -> {
-            Intent intent = new Intent(this, cliente_cambiar_contrasenia.class);
-            startActivity(intent);
-        });
-
         layoutPermissions.setOnClickListener(v -> {
             Intent intent = new Intent(this, cliente_permisos.class);
             startActivity(intent);
@@ -133,40 +157,100 @@ public class cliente_perfil extends AppCompatActivity {
                     .signOut(this)
                     .addOnCompleteListener(task -> {
                         // Ir al SplashActivity que redirigirá al login
-                        Intent intent = new Intent(this, SplashActivity.class);
-                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                        startActivity(intent);
-                        finish();
+                        redirectToLogin();
                     });
         });
     }
 
     private void loadUserData() {
-        // TODO: En producción, esto vendría de una API o base de datos
-        // Por ahora usamos datos hardcodeados a través del método estático
-        currentUser = Cliente_User.crearUsuarioEjemplo();
+        if (currentUser == null) {
+            redirectToLogin();
+            return;
+        }
         
-        // Actualizar la interfaz con los datos cargados
-        updateUserInterface();
+        db.collection("usuarios")
+                .document(currentUser.getUid())
+                .get()
+                .addOnSuccessListener(this::updateUserInterface)
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error al cargar datos del usuario", e);
+                    Toast.makeText(this, "Error al cargar perfil", Toast.LENGTH_SHORT).show();
+                });
     }
 
-    private void updateUserInterface() {
-        if (currentUser != null) {
-            // Actualizar nombre de usuario
-            tvUserName.setText(currentUser.getNombreCompleto());
+    private void updateUserInterface(DocumentSnapshot document) {
+        if (!document.exists()) {
+            Log.w(TAG, "Documento de usuario no existe");
+            return;
+        }
+        
+        try {
+            // Cargar datos del documento
+            String nombreCompleto = document.getString("nombreCompleto");
+            String email = document.getString("email");
+            String telefono = document.getString("telefono");
+            String codigoPais = document.getString("codigoPais");
+            String tipoDocumento = document.getString("tipoDocumento");
+            String numeroDocumento = document.getString("numeroDocumento");
+            String fechaNacimiento = document.getString("fechaNacimiento");
+            String domicilio = document.getString("domicilio");
+            String photoUrl = document.getString("photoUrl");
             
-            // TODO: En el futuro se pueden actualizar otros campos del perfil
-            // que actualmente están hardcodeados en el XML
-            // Por ejemplo:
-            // - Cargar imagen de perfil si existe: currentUser.getFotoPerfilUrl()
-            // - Mostrar datos dinámicos en lugar de los hardcodeados en XML
+            // Actualizar UI con los datos
+            if (nombreCompleto != null && !nombreCompleto.isEmpty()) {
+                tvUserName.setText(nombreCompleto);
+            }
+            
+            if (email != null && !email.isEmpty()) {
+                tvEmail.setText(email);
+            }
+            
+            if (telefono != null && !telefono.isEmpty()) {
+                String telefonoCompleto = (codigoPais != null ? codigoPais + " " : "") + telefono;
+                tvPhone.setText(telefonoCompleto);
+            }
+            
+            if (tipoDocumento != null && numeroDocumento != null) {
+                tvDocument.setText(tipoDocumento + ": " + numeroDocumento);
+            }
+            
+            if (fechaNacimiento != null && !fechaNacimiento.isEmpty()) {
+                tvBirthDate.setText(fechaNacimiento);
+            }
+            
+            // Manejar domicilio opcional
+            if (domicilio != null && !domicilio.isEmpty()) {
+                tvAddress.setText(domicilio);
+                tvAddress.setVisibility(View.VISIBLE);
+            } else {
+                tvAddress.setText("No especificado");
+                tvAddress.setVisibility(View.VISIBLE);
+            }
+            
+            // Cargar foto de perfil
+            if (photoUrl != null && !photoUrl.isEmpty()) {
+                Glide.with(this)
+                        .load(photoUrl)
+                        .circleCrop()
+                        .placeholder(R.drawable.ic_person_24)
+                        .error(R.drawable.ic_person_24)
+                        .into(ivProfilePhoto);
+            } else {
+                Glide.with(this)
+                        .load(R.drawable.ic_person_24)
+                        .circleCrop()
+                        .into(ivProfilePhoto);
+            }
+            
+        } catch (Exception e) {
+            Log.e(TAG, "Error al procesar datos del usuario", e);
         }
     }
 
-    // Método para obtener el usuario actual (útil para otras activities)
-    public Cliente_User getCurrentUser() {
-        return currentUser;
+    private void redirectToLogin() {
+        Intent intent = new Intent(this, SplashActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
     }
-
-
 }

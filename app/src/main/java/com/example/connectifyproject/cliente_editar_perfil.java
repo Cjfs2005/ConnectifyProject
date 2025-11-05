@@ -1,68 +1,123 @@
 package com.example.connectifyproject;
 
+import android.Manifest;
 import android.app.DatePickerDialog;
-import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
-import android.provider.MediaStore;
-import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
-import android.widget.DatePicker;
 import android.widget.ImageView;
 import android.widget.Toast;
+
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.ContextCompat;
+
+import com.bumptech.glide.Glide;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
-import com.google.android.material.textfield.TextInputLayout;
-import com.example.connectifyproject.models.Cliente_User;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.example.connectifyproject.utils.StorageHelper;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
 
 public class cliente_editar_perfil extends AppCompatActivity {
 
-    private static final int PICK_IMAGE_REQUEST = 1;
-    
+    private FirebaseAuth mAuth;
+    private FirebaseFirestore db;
+    private FirebaseUser currentUser;
+    private StorageHelper storageHelper;
+
     private ImageView ivProfilePhoto;
-    private MaterialButton btnSubirImagen, btnGuardar;
-    private TextInputEditText etNombre, etApellido, etNumeroDocumento, etTelefono, etFechaNacimiento, etDomicilio;
+    private MaterialButton btnSubirImagen;
     private AutoCompleteTextView spinnerTipoDocumento;
-    private TextInputLayout tilFechaNacimiento;
-    
-    private String[] tiposDocumento = {"DNI", "Pasaporte", "Carnet de extranjería"};
-    
-    // Modelo de datos del usuario
-    private Cliente_User currentUser;
+    private TextInputEditText etNumeroDocumento;
+    private TextInputEditText etTelefono;
+    private TextInputEditText etFechaNacimiento;
+    private MaterialButton btnGuardar;
+
+    private Uri selectedImageUri;
+    private Calendar calendar;
+    private String fechaNacimiento;
+
+    private ActivityResultLauncher<String> pickImageLauncher;
+    private ActivityResultLauncher<String> requestPermissionLauncher;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.cliente_editar_perfil);
 
-        // Initialize views
+        mAuth = FirebaseAuth.getInstance();
+        db = FirebaseFirestore.getInstance();
+        currentUser = mAuth.getCurrentUser();
+        storageHelper = new StorageHelper();
+
+        if (currentUser == null) {
+            Toast.makeText(this, "Usuario no autenticado", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+
+        calendar = Calendar.getInstance();
+
+        initializeLaunchers();
         initViews();
         setupToolbar();
         setupDropdown();
         setupDatePicker();
         setupImageUpload();
         setupSaveButton();
-        
-        // Load user data from backend (simulate with hardcoded data)
         loadUserData();
+    }
+
+    private void initializeLaunchers() {
+        pickImageLauncher = registerForActivityResult(
+                new ActivityResultContracts.GetContent(),
+                uri -> {
+                    if (uri != null) {
+                        selectedImageUri = uri;
+                        Glide.with(this)
+                                .load(uri)
+                                .circleCrop()
+                                .into(ivProfilePhoto);
+                        Toast.makeText(this, "Imagen seleccionada", Toast.LENGTH_SHORT).show();
+                    }
+                }
+        );
+
+        requestPermissionLauncher = registerForActivityResult(
+                new ActivityResultContracts.RequestPermission(),
+                isGranted -> {
+                    if (isGranted) {
+                        openImageSelector();
+                    } else {
+                        Toast.makeText(this, "Se necesita permiso para seleccionar imagenes", Toast.LENGTH_SHORT).show();
+                    }
+                }
+        );
     }
 
     private void initViews() {
         ivProfilePhoto = findViewById(R.id.iv_profile_photo);
         btnSubirImagen = findViewById(R.id.btn_subir_imagen);
-        btnGuardar = findViewById(R.id.btn_guardar);
-        etNombre = findViewById(R.id.et_nombre);
-        etApellido = findViewById(R.id.et_apellido);
+        spinnerTipoDocumento = findViewById(R.id.spinner_tipo_documento);
         etNumeroDocumento = findViewById(R.id.et_numero_documento);
         etTelefono = findViewById(R.id.et_telefono);
         etFechaNacimiento = findViewById(R.id.et_fecha_nacimiento);
-        etDomicilio = findViewById(R.id.et_domicilio);
-        spinnerTipoDocumento = findViewById(R.id.spinner_tipo_documento);
-        tilFechaNacimiento = findViewById(R.id.til_fecha_nacimiento);
+        btnGuardar = findViewById(R.id.btn_guardar);
     }
 
     private void setupToolbar() {
@@ -70,184 +125,225 @@ public class cliente_editar_perfil extends AppCompatActivity {
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setDisplayShowHomeEnabled(true);
-            getSupportActionBar().setTitle("Editar perfil");
         }
-
-        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                onBackPressed();
-            }
-        });
+        toolbar.setNavigationOnClickListener(v -> onBackPressed());
     }
 
     private void setupDropdown() {
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, 
-            android.R.layout.simple_dropdown_item_1line, tiposDocumento);
+        String[] tiposDocumento = {"DNI", "Pasaporte", "Carnet de Extranjeria"};
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                this,
+                android.R.layout.simple_dropdown_item_1line,
+                tiposDocumento
+        );
         spinnerTipoDocumento.setAdapter(adapter);
     }
 
     private void setupDatePicker() {
-        etFechaNacimiento.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showDatePicker();
-            }
-        });
-        
-        tilFechaNacimiento.setEndIconOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showDatePicker();
-            }
-        });
+        etFechaNacimiento.setOnClickListener(v -> showDatePicker());
+        findViewById(R.id.til_fecha_nacimiento).setOnClickListener(v -> showDatePicker());
     }
 
     private void showDatePicker() {
-        Calendar calendar = Calendar.getInstance();
         int year = calendar.get(Calendar.YEAR);
         int month = calendar.get(Calendar.MONTH);
         int day = calendar.get(Calendar.DAY_OF_MONTH);
 
-        DatePickerDialog datePickerDialog = new DatePickerDialog(this,
-                new DatePickerDialog.OnDateSetListener() {
-                    @Override
-                    public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
-                        String selectedDate = String.format("%02d/%02d/%04d", dayOfMonth, month + 1, year);
-                        etFechaNacimiento.setText(selectedDate);
-                    }
-                }, year, month, day);
-        
-        // Set max date to today (user can't select future dates)
-        datePickerDialog.getDatePicker().setMaxDate(System.currentTimeMillis());
+        DatePickerDialog datePickerDialog = new DatePickerDialog(
+                this,
+                (view, selectedYear, selectedMonth, selectedDay) -> {
+                    calendar.set(selectedYear, selectedMonth, selectedDay);
+                    SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+                    fechaNacimiento = sdf.format(calendar.getTime());
+                    etFechaNacimiento.setText(fechaNacimiento);
+                },
+                year, month, day
+        );
+
+        Calendar maxDate = Calendar.getInstance();
+        maxDate.add(Calendar.YEAR, -18);
+        datePickerDialog.getDatePicker().setMaxDate(maxDate.getTimeInMillis());
+
+        Calendar minDate = Calendar.getInstance();
+        minDate.add(Calendar.YEAR, -100);
+        datePickerDialog.getDatePicker().setMinDate(minDate.getTimeInMillis());
+
         datePickerDialog.show();
     }
 
     private void setupImageUpload() {
-        btnSubirImagen.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                openImageSelector();
-            }
-        });
-        
-        ivProfilePhoto.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                openImageSelector();
+        btnSubirImagen.setOnClickListener(v -> {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_IMAGES)
+                        == PackageManager.PERMISSION_GRANTED) {
+                    openImageSelector();
+                } else {
+                    requestPermissionLauncher.launch(Manifest.permission.READ_MEDIA_IMAGES);
+                }
+            } else {
+                if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
+                        == PackageManager.PERMISSION_GRANTED) {
+                    openImageSelector();
+                } else {
+                    requestPermissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE);
+                }
             }
         });
     }
 
     private void openImageSelector() {
-        Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-        intent.setType("image/*");
-        startActivityForResult(intent, PICK_IMAGE_REQUEST);
+        pickImageLauncher.launch("image/*");
     }
 
     private void setupSaveButton() {
-        btnGuardar.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                saveProfile();
-            }
-        });
+        btnGuardar.setOnClickListener(v -> saveProfile());
     }
 
     private void loadUserData() {
-        // TODO: En producción, esto vendría de Intent extras o API
-        // Por ahora usamos datos hardcodeados
-        currentUser = Cliente_User.crearUsuarioEjemplo();
-        
-        // Cargar datos en los campos del formulario
-        if (currentUser != null) {
-            etNombre.setText(currentUser.getNombre());
-            etApellido.setText(currentUser.getApellidos());
-            spinnerTipoDocumento.setText(currentUser.getTipoDocumento(), false);
-            etNumeroDocumento.setText(currentUser.getNumeroDocumento());
-            etTelefono.setText(currentUser.getTelefono());
-            etFechaNacimiento.setText(currentUser.getFechaNacimiento());
-            etDomicilio.setText(currentUser.getDomicilio());
-        }
+        db.collection("usuarios")
+                .document(currentUser.getUid())
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        String tipoDocumento = documentSnapshot.getString("tipoDocumento");
+                        if (tipoDocumento != null && !tipoDocumento.isEmpty()) {
+                            spinnerTipoDocumento.setText(tipoDocumento, false);
+                        }
+
+                        String numeroDocumento = documentSnapshot.getString("numeroDocumento");
+                        if (numeroDocumento != null && !numeroDocumento.isEmpty()) {
+                            etNumeroDocumento.setText(numeroDocumento);
+                        }
+
+                        String telefono = documentSnapshot.getString("telefono");
+                        if (telefono != null && !telefono.isEmpty()) {
+                            etTelefono.setText(telefono);
+                        }
+
+                        String fechaNac = documentSnapshot.getString("fechaNacimiento");
+                        if (fechaNac != null && !fechaNac.isEmpty()) {
+                            etFechaNacimiento.setText(fechaNac);
+                            fechaNacimiento = fechaNac;
+                            
+                            try {
+                                SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+                                Date date = sdf.parse(fechaNac);
+                                if (date != null) {
+                                    calendar.setTime(date);
+                                }
+                            } catch (ParseException e) {
+                                e.printStackTrace();
+                            }
+                        }
+
+                        String photoUrl = documentSnapshot.getString("photoUrl");
+                        if (photoUrl != null && !photoUrl.isEmpty()) {
+                            Glide.with(this)
+                                    .load(photoUrl)
+                                    .circleCrop()
+                                    .placeholder(R.drawable.ic_person_24)
+                                    .error(R.drawable.ic_person_24)
+                                    .into(ivProfilePhoto);
+                        }
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Error al cargar datos: " + e.getMessage(),
+                            Toast.LENGTH_SHORT).show();
+                });
     }
 
     private void saveProfile() {
-        // TODO: Implement save functionality
-        // Get all field values
-        String nombre = etNombre.getText().toString().trim();
-        String apellido = etApellido.getText().toString().trim();
-        String tipoDocumento = spinnerTipoDocumento.getText().toString().trim();
-        String numeroDocumento = etNumeroDocumento.getText().toString().trim();
+        String tipoDoc = spinnerTipoDocumento.getText().toString().trim();
+        String numeroDoc = etNumeroDocumento.getText().toString().trim();
         String telefono = etTelefono.getText().toString().trim();
-        String fechaNacimiento = etFechaNacimiento.getText().toString().trim();
-        String domicilio = etDomicilio.getText().toString().trim();
+        String fechaNac = etFechaNacimiento.getText().toString().trim();
 
-        // Validate fields
-        if (nombre.isEmpty() || apellido.isEmpty() || numeroDocumento.isEmpty()) {
-            // Show error message
+        if (tipoDoc.isEmpty()) {
+            Toast.makeText(this, "Seleccione un tipo de documento", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // Actualizar el modelo con los nuevos datos
-        if (currentUser != null) {
-            currentUser.setNombre(nombre);
-            currentUser.setApellidos(apellido);
-            currentUser.setTipoDocumento(tipoDocumento);
-            currentUser.setNumeroDocumento(numeroDocumento);
-            currentUser.setTelefono(telefono);
-            currentUser.setFechaNacimiento(fechaNacimiento);
-            currentUser.setDomicilio(domicilio);
+        if (numeroDoc.isEmpty()) {
+            Toast.makeText(this, "Ingrese el numero de documento", Toast.LENGTH_SHORT).show();
+            etNumeroDocumento.requestFocus();
+            return;
         }
-        
-        // TODO: Send data to backend/API
-        // Por ahora solo mostramos un mensaje de éxito
-        Toast.makeText(this, "Perfil actualizado correctamente", Toast.LENGTH_SHORT).show();
-        
-        finish();
+
+        if (telefono.isEmpty()) {
+            Toast.makeText(this, "Ingrese el numero de telefono", Toast.LENGTH_SHORT).show();
+            etTelefono.requestFocus();
+            return;
+        }
+
+        if (fechaNac.isEmpty()) {
+            Toast.makeText(this, "Seleccione la fecha de nacimiento", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        btnGuardar.setEnabled(false);
+        btnGuardar.setText("Guardando...");
+
+        if (selectedImageUri != null) {
+            uploadPhotoAndSaveData(tipoDoc, numeroDoc, telefono, fechaNac);
+        } else {
+            saveDataToFirestore(tipoDoc, numeroDoc, telefono, fechaNac, null);
+        }
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        
-        if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && data != null) {
-            Uri selectedImageUri = data.getData();
-            if (selectedImageUri != null) {
-                try {
-                    // Configurar la imagen para que cubra todo el círculo
-                    ivProfilePhoto.setImageURI(selectedImageUri);
-                    
-                    // Configuración para que la imagen cubra completamente el círculo
-                    ivProfilePhoto.setScaleType(ImageView.ScaleType.CENTER_CROP);
-                    
-                    // Remover cualquier tint o background que pueda interferir
-                    ivProfilePhoto.setBackgroundTintList(null);
-                    ivProfilePhoto.setImageTintList(null);
-                    
-                    // Remover padding para que la imagen cubra todo el espacio circular
-                    ivProfilePhoto.setPadding(0, 0, 0, 0);
-                    
-                    // Remover el background para mostrar solo la imagen
-                    ivProfilePhoto.setBackground(null);
-                    
-                    // Asegurar que mantenga la forma circular
-                    ivProfilePhoto.setClipToOutline(true);
-                    
-                    Toast.makeText(this, "Imagen actualizada", Toast.LENGTH_SHORT).show();
-                    
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    Toast.makeText(this, "Error al cargar la imagen", Toast.LENGTH_SHORT).show();
-                    
-                    // En caso de error, mantener la imagen por defecto
-                    ivProfilePhoto.setImageResource(R.drawable.ic_person);
-                    ivProfilePhoto.setScaleType(ImageView.ScaleType.CENTER);
-                }
-                
-                // TODO: Upload image to backend
-            }
+    private void uploadPhotoAndSaveData(String tipoDoc, String numeroDoc, String telefono, String fechaNac) {
+        String userId = currentUser.getUid();
+
+        storageHelper.uploadProfilePhoto(this, selectedImageUri, userId,
+                new StorageHelper.UploadCallback() {
+                    @Override
+                    public void onSuccess(String downloadUrl) {
+                        saveDataToFirestore(tipoDoc, numeroDoc, telefono, fechaNac, downloadUrl);
+                    }
+
+                    @Override
+                    public void onFailure(Exception e) {
+                        btnGuardar.setEnabled(true);
+                        btnGuardar.setText("Guardar");
+                        Toast.makeText(cliente_editar_perfil.this,
+                                "Error al subir imagen: " + e.getMessage(),
+                                Toast.LENGTH_SHORT).show();
+                    }
+
+                    @Override
+                    public void onProgress(double progress) {
+                        btnGuardar.setText("Subiendo... " + (int) progress + "%");
+                    }
+                });
+    }
+
+    private void saveDataToFirestore(String tipoDoc, String numeroDoc, String telefono,
+                                     String fechaNac, String photoUrl) {
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("tipoDocumento", tipoDoc);
+        updates.put("numeroDocumento", numeroDoc);
+        updates.put("telefono", telefono);
+        updates.put("fechaNacimiento", fechaNac);
+
+        if (photoUrl != null) {
+            updates.put("photoUrl", photoUrl);
         }
+
+        db.collection("usuarios")
+                .document(currentUser.getUid())
+                .update(updates)
+                .addOnSuccessListener(aVoid -> {
+                    Toast.makeText(this, "Perfil actualizado correctamente", Toast.LENGTH_SHORT).show();
+                    btnGuardar.setEnabled(true);
+                    btnGuardar.setText("Guardar");
+                    finish();
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Error al guardar: " + e.getMessage(),
+                            Toast.LENGTH_SHORT).show();
+                    btnGuardar.setEnabled(true);
+                    btnGuardar.setText("Guardar");
+                });
     }
 
     @Override

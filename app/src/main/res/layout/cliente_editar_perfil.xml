@@ -79,44 +79,6 @@
             </LinearLayout>
 
             <!-- Form Fields -->
-            <!-- Nombre -->
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/til_nombre"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                android:hint="Nombre"
-                app:boxStrokeColor="?attr/colorPrimary"
-                app:hintTextColor="?attr/colorPrimary">
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/et_nombre"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:inputType="textPersonName"
-                    android:text="Jorge" />
-
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <!-- Apellido -->
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/til_apellido"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                android:hint="Apellido"
-                app:boxStrokeColor="?attr/colorPrimary"
-                app:hintTextColor="?attr/colorPrimary">
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/et_apellido"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:inputType="textPersonName"
-                    android:text="Romero Paredes" />
-
-            </com.google.android.material.textfield.TextInputLayout>
-
             <!-- Tipo de documento -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/til_tipo_documento"
@@ -195,25 +157,6 @@
                     android:focusable="false"
                     android:inputType="none"
                     android:text="16/04/2001" />
-
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <!-- Domicilio -->
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/til_domicilio"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="32dp"
-                android:hint="Domicilio"
-                app:boxStrokeColor="?attr/colorPrimary"
-                app:hintTextColor="?attr/colorPrimary">
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/et_domicilio"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:inputType="textPostalAddress"
-                    android:text="Calle Arequipa 253, Lima, Perú" />
 
             </com.google.android.material.textfield.TextInputLayout>
 

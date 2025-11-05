@@ -10,10 +10,9 @@ import com.google.android.material.switchmaterial.SwitchMaterial;
 
 public class cliente_permisos extends AppCompatActivity {
 
-    private SwitchMaterial switchPosicion, switchNotificaciones;
+    private SwitchMaterial switchNotificaciones;
     private SharedPreferences sharedPreferences;
     private static final String PREF_NAME = "PermisosPrefs";
-    private static final String KEY_POSICION = "posicion_enabled";
     private static final String KEY_NOTIFICACIONES = "notificaciones_enabled";
 
     @Override
@@ -34,20 +33,12 @@ public class cliente_permisos extends AppCompatActivity {
         }
 
         // Initialize switches
-        switchPosicion = findViewById(R.id.switch_posicion);
         switchNotificaciones = findViewById(R.id.switch_notificaciones);
 
         // Load saved preferences
         loadSavedPreferences();
 
         // Setup switch listeners
-        switchPosicion.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                savePreference(KEY_POSICION, isChecked);
-            }
-        });
-
         switchNotificaciones.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -66,10 +57,7 @@ public class cliente_permisos extends AppCompatActivity {
 
     private void loadSavedPreferences() {
         // Load saved states, default to true
-        boolean posicionEnabled = sharedPreferences.getBoolean(KEY_POSICION, true);
         boolean notificacionesEnabled = sharedPreferences.getBoolean(KEY_NOTIFICACIONES, true);
-
-        switchPosicion.setChecked(posicionEnabled);
         switchNotificaciones.setChecked(notificacionesEnabled);
     }
 

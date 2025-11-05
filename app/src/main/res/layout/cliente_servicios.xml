@@ -16,54 +16,49 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:navigationIcon="@drawable/ic_arrow_back"
-        app:title="Permisos"
+        app:title="Servicios"
         app:titleTextColor="@color/white" />
 
     <!-- Content -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
+        android:gravity="center"
         android:orientation="vertical"
-        android:padding="24dp"
+        android:padding="32dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/toolbar">
 
-        <!-- Descripción -->
+        <!-- Icon -->
+        <ImageView
+            android:layout_width="96dp"
+            android:layout_height="96dp"
+            android:layout_marginBottom="24dp"
+            android:src="@drawable/ic_person_24"
+            android:tint="?attr/colorPrimary" />
+
+        <!-- Title -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:text="Funcionalidad en desarrollo"
+            android:textColor="@color/text_color"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:textAlignment="center" />
+
+        <!-- Description -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="32dp"
-            android:text="Los siguientes permisos son necesarios para que la aplicación funcione correctamente"
-            android:textColor="@color/text_color"
-            android:textSize="14sp"
+            android:text="Esta funcionalidad estará disponible próximamente.\nEstamos trabajando para brindarte la mejor experiencia."
+            android:textColor="@color/text_color_secondary"
+            android:textSize="16sp"
+            android:textAlignment="center"
             android:lineSpacingExtra="4dp" />
-
-        <!-- Notificaciones -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Notificaciones"
-                android:textColor="@color/text_color"
-                android:textSize="16sp" />
-
-            <com.google.android.material.switchmaterial.SwitchMaterial
-                android:id="@+id/switch_notificaciones"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:checked="true"
-                app:thumbTint="@color/white"
-                app:trackTint="?attr/colorPrimary" />
-
-        </LinearLayout>
 
     </LinearLayout>
 
