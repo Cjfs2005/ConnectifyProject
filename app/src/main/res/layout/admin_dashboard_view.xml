@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/surface_soft">
 
-    <!-- AppBar con colores SA -->
+    <!-- AppBar -->
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appBarLayout"
         android:layout_width="match_parent"
@@ -22,10 +23,10 @@
             android:theme="@style/ThemeOverlay.Material3.Dark.ActionBar"
             app:title="Dashboard"
             app:titleTextColor="@android:color/white"
-            app:titleCentered="false" />
-
+            app:titleCentered="false"/>
     </com.google.android.material.appbar.AppBarLayout>
 
+    <!-- Contenido scrolleable -->
     <androidx.core.widget.NestedScrollView
         android:id="@+id/scroll"
         android:layout_width="match_parent"
@@ -41,9 +42,7 @@
             android:paddingTop="24dp"
             android:paddingBottom="100dp">
 
-            <!-- Header con background fijo y campana visible -->
-
-            <!-- KPIs Cards -->
+            <!-- Encabezado (se mantiene) -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -59,23 +58,23 @@
                     android:orientation="vertical">
 
                     <TextView
+                        android:id="@+id/tvCompanyHeader"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Mundo Tours"
                         android:textColor="@android:color/white"
                         android:textSize="18sp"
-                        android:textStyle="bold" />
+                        android:textStyle="bold"/>
 
                     <TextView
+                        android:id="@+id/tvAdminHeader"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Administrador: Tony Flores"
                         android:textColor="@color/brand_lilac"
-                        android:textSize="14sp" />
-
+                        android:textSize="14sp"/>
                 </LinearLayout>
 
-                <!-- Campana de notificaciones mejorada -->
                 <ImageView
                     android:id="@+id/ivNotification"
                     android:layout_width="32dp"
@@ -85,255 +84,468 @@
                     android:contentDescription="Notificaciones"
                     android:padding="4dp"
                     android:src="@drawable/ic_notifications"
-                    app:tint="@android:color/white" />
-
+                    app:tint="@android:color/white"/>
             </LinearLayout>
 
-            <LinearLayout
+            <!-- ====== NUEVO CONTENIDO IGUAL AL REPORTE POR EMPRESA ====== -->
+
+            <!-- Filtro: Mes -->
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_marginBottom="24dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
+                android:hint="Mes"
+                app:boxBackgroundColor="@android:color/white">
+                <AutoCompleteTextView
+                    android:id="@+id/adminAutoMonth"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Métricas del Día"
-                    android:textSize="20sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/on_surface"
-                    android:layout_marginBottom="16dp" />
+                    android:inputType="none"/>
+            </com.google.android.material.textfield.TextInputLayout>
 
+            <!-- Total (mes) -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                app:cardCornerRadius="16dp">
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:layout_marginBottom="16dp">
+                    android:orientation="vertical"
+                    android:padding="12dp">
 
-                    <com.google.android.material.card.MaterialCardView
-                        android:layout_width="0dp"
+                    <TextView
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:layout_marginEnd="8dp"
-                        app:cardCornerRadius="12dp"
-                        app:cardElevation="4dp"
-                        app:cardBackgroundColor="@android:color/white">
+                        android:text="Total (mes)"
+                        android:textAppearance="@style/TextAppearance.Material3.BodySmall"/>
 
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical"
-                            android:padding="16dp">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="125"
-                                android:textSize="24sp"
-                                android:textStyle="bold"
-                                android:textColor="@color/brand_purple_dark" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Servicios Activos"
-                                android:textSize="12sp"
-                                android:textColor="@color/on_surface_variant" />
-
-                        </LinearLayout>
-
-                    </com.google.android.material.card.MaterialCardView>
-
-                    <com.google.android.material.card.MaterialCardView
-                        android:layout_width="0dp"
+                    <TextView
+                        android:id="@+id/adminTvTotalMonth"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:layout_marginStart="8dp"
-                        app:cardCornerRadius="12dp"
-                        app:cardElevation="4dp"
-                        app:cardBackgroundColor="@android:color/white">
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical"
-                            android:padding="16dp">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="89"
-                                android:textSize="24sp"
-                                android:textStyle="bold"
-                                android:textColor="@color/brand_purple_dark" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Nuevos Clientes"
-                                android:textSize="12sp"
-                                android:textColor="@color/on_surface_variant" />
-
-                        </LinearLayout>
-
-                    </com.google.android.material.card.MaterialCardView>
-
+                        android:text="0"
+                        android:textSize="24sp"
+                        android:textStyle="bold"/>
                 </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
 
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal">
+            <!-- Reservas por día de semana -->
+            <TextView
+                android:id="@+id/adminTvSectionDow"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:text="Reservas por día de semana (mes)"
+                android:textStyle="bold"/>
 
-                    <com.google.android.material.card.MaterialCardView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:layout_marginEnd="8dp"
-                        app:cardCornerRadius="12dp"
-                        app:cardElevation="4dp"
-                        app:cardBackgroundColor="@android:color/white">
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical"
-                            android:padding="16dp">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="S/2,450"
-                                android:textSize="24sp"
-                                android:textStyle="bold"
-                                android:textColor="@color/brand_purple_dark" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Ingresos Hoy"
-                                android:textSize="12sp"
-                                android:textColor="@color/on_surface_variant" />
-
-                        </LinearLayout>
-
-                    </com.google.android.material.card.MaterialCardView>
-
-                    <com.google.android.material.card.MaterialCardView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:layout_marginStart="8dp"
-                        app:cardCornerRadius="12dp"
-                        app:cardElevation="4dp"
-                        app:cardBackgroundColor="@android:color/white">
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical"
-                            android:padding="16dp">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="94%"
-                                android:textSize="24sp"
-                                android:textStyle="bold"
-                                android:textColor="@color/brand_purple_dark" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Satisfacción"
-                                android:textSize="12sp"
-                                android:textColor="@color/on_surface_variant" />
-
-                        </LinearLayout>
-
-                    </com.google.android.material.card.MaterialCardView>
-
-                </LinearLayout>
-
-            </LinearLayout>
-
-            <!-- Sección de Ventas de Servicios -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_marginBottom="24dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Ventas por Servicio"
-                    android:textSize="20sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/on_surface"
-                    android:layout_marginBottom="16dp" />
-
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/recyclerServiceSales"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:nestedScrollingEnabled="false" />
-
-            </LinearLayout>
-
-            <!-- Acciones Rápidas -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
                 android:orientation="vertical">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Acciones Rápidas"
-                    android:textSize="20sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/on_surface"
-                    android:layout_marginBottom="16dp" />
-
+                <!-- Lunes -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnAddService"
-                        style="@style/Widget.Material3.Button.TonalButton"
-                        android:layout_width="0dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingVertical="4dp">
+                    <TextView
+                        android:layout_width="40dp"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:layout_marginEnd="8dp"
-                        android:text="Nuevo Servicio"
-                        app:icon="@drawable/ic_add" />
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnManageUsers"
-                        style="@style/Widget.Material3.Button.TonalButton"
+                        android:text="Lun"/>
+                    <com.google.android.material.progressindicator.LinearProgressIndicator
+                        android:id="@+id/adminBarMon"
                         android:layout_width="0dp"
-                        android:layout_height="wrap_content"
+                        android:layout_height="12dp"
                         android:layout_weight="1"
-                        android:layout_marginStart="8dp"
-                        android:text="Gestionar Usuarios"
-                        app:icon="@drawable/ic_groups_24" />
-
+                        app:trackColor="@color/gray_300"/>
+                    <TextView
+                        android:id="@+id/adminTvMon"
+                        android:layout_width="48dp"
+                        android:layout_height="wrap_content"
+                        android:gravity="end"
+                        android:text="0"/>
                 </LinearLayout>
 
+                <!-- Martes -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingVertical="4dp">
+                    <TextView
+                        android:layout_width="40dp"
+                        android:layout_height="wrap_content"
+                        android:text="Mar"/>
+                    <com.google.android.material.progressindicator.LinearProgressIndicator
+                        android:id="@+id/adminBarTue"
+                        android:layout_width="0dp"
+                        android:layout_height="12dp"
+                        android:layout_weight="1"
+                        app:trackColor="@color/gray_300"/>
+                    <TextView
+                        android:id="@+id/adminTvTue"
+                        android:layout_width="48dp"
+                        android:layout_height="wrap_content"
+                        android:gravity="end"
+                        android:text="0"/>
+                </LinearLayout>
+
+                <!-- Miércoles -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingVertical="4dp">
+                    <TextView
+                        android:layout_width="40dp"
+                        android:layout_height="wrap_content"
+                        android:text="Mié"/>
+                    <com.google.android.material.progressindicator.LinearProgressIndicator
+                        android:id="@+id/adminBarWed"
+                        android:layout_width="0dp"
+                        android:layout_height="12dp"
+                        android:layout_weight="1"
+                        app:trackColor="@color/gray_300"/>
+                    <TextView
+                        android:id="@+id/adminTvWed"
+                        android:layout_width="48dp"
+                        android:layout_height="wrap_content"
+                        android:gravity="end"
+                        android:text="0"/>
+                </LinearLayout>
+
+                <!-- Jueves -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingVertical="4dp">
+                    <TextView
+                        android:layout_width="40dp"
+                        android:layout_height="wrap_content"
+                        android:text="Jue"/>
+                    <com.google.android.material.progressindicator.LinearProgressIndicator
+                        android:id="@+id/adminBarThu"
+                        android:layout_width="0dp"
+                        android:layout_height="12dp"
+                        android:layout_weight="1"
+                        app:trackColor="@color/gray_300"/>
+                    <TextView
+                        android:id="@+id/adminTvThu"
+                        android:layout_width="48dp"
+                        android:layout_height="wrap_content"
+                        android:gravity="end"
+                        android:text="0"/>
+                </LinearLayout>
+
+                <!-- Viernes -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingVertical="4dp">
+                    <TextView
+                        android:layout_width="40dp"
+                        android:layout_height="wrap_content"
+                        android:text="Vie"/>
+                    <com.google.android.material.progressindicator.LinearProgressIndicator
+                        android:id="@+id/adminBarFri"
+                        android:layout_width="0dp"
+                        android:layout_height="12dp"
+                        android:layout_weight="1"
+                        app:trackColor="@color/gray_300"/>
+                    <TextView
+                        android:id="@+id/adminTvFri"
+                        android:layout_width="48dp"
+                        android:layout_height="wrap_content"
+                        android:gravity="end"
+                        android:text="0"/>
+                </LinearLayout>
+
+                <!-- Sábado -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingVertical="4dp">
+                    <TextView
+                        android:layout_width="40dp"
+                        android:layout_height="wrap_content"
+                        android:text="Sáb"/>
+                    <com.google.android.material.progressindicator.LinearProgressIndicator
+                        android:id="@+id/adminBarSat"
+                        android:layout_width="0dp"
+                        android:layout_height="12dp"
+                        android:layout_weight="1"
+                        app:trackColor="@color/gray_300"/>
+                    <TextView
+                        android:id="@+id/adminTvSat"
+                        android:layout_width="48dp"
+                        android:layout_height="wrap_content"
+                        android:gravity="end"
+                        android:text="0"/>
+                </LinearLayout>
+
+                <!-- Domingo -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingVertical="4dp">
+                    <TextView
+                        android:layout_width="40dp"
+                        android:layout_height="wrap_content"
+                        android:text="Dom"/>
+                    <com.google.android.material.progressindicator.LinearProgressIndicator
+                        android:id="@+id/adminBarSun"
+                        android:layout_width="0dp"
+                        android:layout_height="12dp"
+                        android:layout_weight="1"
+                        app:trackColor="@color/gray_300"/>
+                    <TextView
+                        android:id="@+id/adminTvSun"
+                        android:layout_width="48dp"
+                        android:layout_height="wrap_content"
+                        android:gravity="end"
+                        android:text="0"/>
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Pie de estados -->
+            <TextView
+                android:id="@+id/adminTvSectionPie"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:text="Estado de reservas"
+                android:textStyle="bold"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <com.example.connectifyproject.views.superadmin.reports.SimplePieView
+                    android:id="@+id/adminPie"
+                    android:layout_width="180dp"
+                    android:layout_height="180dp"/>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:paddingStart="16dp">
+
+                    <!-- Finalizadas -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:paddingVertical="4dp">
+
+                        <View
+                            android:layout_width="12dp"
+                            android:layout_height="12dp"
+                            android:background="@drawable/legend_dot"
+                            android:backgroundTint="@color/legend_finished"
+                            android:layout_marginEnd="8dp"/>
+
+                        <TextView
+                            android:id="@+id/adminLegendLabelFinished"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Finalizadas"/>
+
+                        <TextView
+                            android:id="@+id/adminLegendFinished"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="0"
+                            android:textStyle="bold"/>
+                    </LinearLayout>
+
+                    <!-- Activas -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:paddingVertical="4dp">
+
+                        <View
+                            android:layout_width="12dp"
+                            android:layout_height="12dp"
+                            android:background="@drawable/legend_dot"
+                            android:backgroundTint="@color/legend_active"
+                            android:layout_marginEnd="8dp"/>
+
+                        <TextView
+                            android:id="@+id/adminLegendLabelActive"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Activas"/>
+
+                        <TextView
+                            android:id="@+id/adminLegendActive"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="0"
+                            android:textStyle="bold"/>
+                    </LinearLayout>
+
+                    <!-- Canceladas -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:paddingVertical="4dp">
+
+                        <View
+                            android:layout_width="12dp"
+                            android:layout_height="12dp"
+                            android:background="@drawable/legend_dot"
+                            android:backgroundTint="@color/legend_cancelled"
+                            android:layout_marginEnd="8dp"/>
+
+                        <TextView
+                            android:id="@+id/adminLegendLabelCancelled"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Canceladas"/>
+
+                        <TextView
+                            android:id="@+id/adminLegendCancelled"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="0"
+                            android:textStyle="bold"/>
+                    </LinearLayout>
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <!-- Top-3 tours -->
+            <TextView
+                android:id="@+id/adminTvSectionTop"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:text="Top 3 tours más reservados"
+                android:textStyle="bold"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:orientation="vertical">
+
+                <!-- Item 1 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingVertical="6dp">
+                    <TextView
+                        android:id="@+id/adminTop1Name"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Tour 1"/>
+                    <TextView
+                        android:id="@+id/adminTop1Val"
+                        android:layout_width="48dp"
+                        android:layout_height="wrap_content"
+                        android:gravity="end"
+                        android:text="0"/>
+                </LinearLayout>
+                <com.google.android.material.progressindicator.LinearProgressIndicator
+                    android:id="@+id/adminBarTop1"
+                    android:layout_width="match_parent"
+                    android:layout_height="12dp"
+                    app:trackColor="@color/gray_300"/>
+
+                <!-- Item 2 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingVertical="6dp">
+                    <TextView
+                        android:id="@+id/adminTop2Name"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Tour 2"/>
+                    <TextView
+                        android:id="@+id/adminTop2Val"
+                        android:layout_width="48dp"
+                        android:layout_height="wrap_content"
+                        android:gravity="end"
+                        android:text="0"/>
+                </LinearLayout>
+                <com.google.android.material.progressindicator.LinearProgressIndicator
+                    android:id="@+id/adminBarTop2"
+                    android:layout_width="match_parent"
+                    android:layout_height="12dp"
+                    app:trackColor="@color/gray_300"/>
+
+                <!-- Item 3 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingVertical="6dp">
+                    <TextView
+                        android:id="@+id/adminTop3Name"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Tour 3"/>
+                    <TextView
+                        android:id="@+id/adminTop3Val"
+                        android:layout_width="48dp"
+                        android:layout_height="wrap_content"
+                        android:gravity="end"
+                        android:text="0"/>
+                </LinearLayout>
+                <com.google.android.material.progressindicator.LinearProgressIndicator
+                    android:id="@+id/adminBarTop3"
+                    android:layout_width="match_parent"
+                    android:layout_height="12dp"
+                    app:trackColor="@color/gray_300"/>
             </LinearLayout>
 
         </LinearLayout>
-
     </androidx.core.widget.NestedScrollView>
 
-    <!-- Container para el fragment de navegación inferior -->
+    <!-- Bottom Nav container -->
     <FrameLayout
         android:id="@+id/bottomNavContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom" />
-
+        android:layout_gravity="bottom"/>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -108,6 +108,9 @@
     <!-- Estados de habilitación -->
     <color name="status_enabled">#4CAF50</color>   <!-- Verde para habilitado -->
     <color name="status_disabled">#F44336</color>  <!-- Rojo para deshabilitado -->
+    <color name="legend_cancelled">#D20D20</color>  <!-- Canceladas -->
+    <color name="legend_finished">#F1A20B</color>   <!-- Finalizadas -->
+    <color name="legend_active">#8D9C09</color>     <!-- Activas -->
 
     <!-- Alias para compatibilidad con el código -->
     <color name="teal_700">@color/avatar_teal</color>
