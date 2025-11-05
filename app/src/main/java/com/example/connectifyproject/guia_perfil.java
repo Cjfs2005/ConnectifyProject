@@ -43,6 +43,8 @@ public class guia_perfil extends AppCompatActivity {
     private TextView tvYape;
     private LinearLayout languagesContainer;
     private MaterialButton btnAddLanguage;
+    private LinearLayout layoutPermissions;
+    private LinearLayout layoutLogout;
     private BottomNavigationView bottomNavigation;
     
     private FirebaseAuth mAuth;
@@ -95,6 +97,8 @@ public class guia_perfil extends AppCompatActivity {
         tvYape = findViewById(R.id.tv_yape);
         languagesContainer = findViewById(R.id.languages_container);
         btnAddLanguage = findViewById(R.id.btn_add_language);
+        layoutPermissions = findViewById(R.id.layout_permissions);
+        layoutLogout = findViewById(R.id.layout_logout);
         bottomNavigation = findViewById(R.id.bottom_nav);
     }
 
@@ -141,6 +145,13 @@ public class guia_perfil extends AppCompatActivity {
         });
 
         btnAddLanguage.setOnClickListener(v -> showAddLanguageDialog());
+
+        layoutPermissions.setOnClickListener(v -> {
+            Intent intent = new Intent(this, guia_permisos.class);
+            startActivity(intent);
+        });
+
+        layoutLogout.setOnClickListener(v -> logout());
     }
 
     private void loadUserData() {
@@ -389,6 +400,27 @@ public class guia_perfil extends AppCompatActivity {
                     Log.e(TAG, "Error al obtener idiomas", e);
                     Toast.makeText(this, "Error al cargar idiomas", Toast.LENGTH_SHORT).show();
                 });
+    }
+
+    private void logout() {
+        // Mostrar diálogo de confirmación
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Cerrar sesión")
+                .setMessage("¿Estás seguro de que quieres cerrar sesión?")
+                .setPositiveButton("Sí", (dialog, which) -> {
+                    // Cerrar sesión con Firebase Auth
+                    mAuth.signOut();
+                    
+                    // También cerrar sesión con AuthUI por si se usó
+                    AuthUI.getInstance()
+                            .signOut(this)
+                            .addOnCompleteListener(task -> {
+                                Log.d(TAG, "Usuario cerró sesión");
+                                redirectToLogin();
+                            });
+                })
+                .setNegativeButton("No", null)
+                .show();
     }
 
     private void redirectToLogin() {
