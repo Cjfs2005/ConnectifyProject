@@ -3,11 +3,16 @@ package com.example.connectifyproject;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import java.util.List;
+import java.util.ArrayList;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -34,6 +39,10 @@ public class guia_perfil extends AppCompatActivity {
     private TextView tvDocument;
     private TextView tvBirthDate;
     private TextView tvAddress;
+    private TextView tvCci;
+    private TextView tvYape;
+    private LinearLayout languagesContainer;
+    private MaterialButton btnAddLanguage;
     private BottomNavigationView bottomNavigation;
     
     private FirebaseAuth mAuth;
@@ -82,6 +91,10 @@ public class guia_perfil extends AppCompatActivity {
         tvDocument = findViewById(R.id.tv_document);
         tvBirthDate = findViewById(R.id.tv_birth_date);
         tvAddress = findViewById(R.id.tv_address);
+        tvCci = findViewById(R.id.tv_cci);
+        tvYape = findViewById(R.id.tv_yape);
+        languagesContainer = findViewById(R.id.languages_container);
+        btnAddLanguage = findViewById(R.id.btn_add_language);
         bottomNavigation = findViewById(R.id.bottom_nav);
     }
 
@@ -126,6 +139,8 @@ public class guia_perfil extends AppCompatActivity {
             Intent intent = new Intent(this, guia_editar_perfil.class);
             startActivity(intent);
         });
+
+        btnAddLanguage.setOnClickListener(v -> showAddLanguageDialog());
     }
 
     private void loadUserData() {
@@ -194,6 +209,26 @@ public class guia_perfil extends AppCompatActivity {
                 tvAddress.setVisibility(View.VISIBLE);
             }
 
+            // Métodos de pago
+            String cci = document.getString("cci");
+            String numeroYape = document.getString("numeroYape");
+            
+            if (cci != null && !cci.isEmpty()) {
+                tvCci.setText(cci);
+            } else {
+                tvCci.setText("No especificado");
+            }
+            
+            if (numeroYape != null && !numeroYape.isEmpty()) {
+                tvYape.setText(numeroYape);
+            } else {
+                tvYape.setText("No especificado");
+            }
+            
+            // Idiomas
+            List<String> idiomas = (List<String>) document.get("idiomas");
+            displayLanguages(idiomas);
+
             // Cargar foto de perfil
             loadProfilePhoto(photoUrl);
 
@@ -221,6 +256,139 @@ public class guia_perfil extends AppCompatActivity {
             // Si no hay foto disponible, usar imagen por defecto
             ivProfilePhoto.setImageResource(R.drawable.ic_account_circle_24);
         }
+    }
+
+    private void displayLanguages(List<String> idiomas) {
+        // Limpiar el container de idiomas
+        languagesContainer.removeAllViews();
+        
+        if (idiomas != null && !idiomas.isEmpty()) {
+            for (String idioma : idiomas) {
+                addLanguageView(idioma);
+            }
+        } else {
+            // Mostrar mensaje cuando no hay idiomas
+            TextView noLanguagesText = new TextView(this);
+            noLanguagesText.setText("No hay idiomas registrados");
+            noLanguagesText.setTextColor(getResources().getColor(android.R.color.darker_gray, null));
+            noLanguagesText.setPadding(16, 8, 16, 8);
+            languagesContainer.addView(noLanguagesText);
+        }
+    }
+
+    private void addLanguageView(String language) {
+        // Crear una vista para cada idioma con botón de eliminar
+        LinearLayout languageLayout = new LinearLayout(this);
+        languageLayout.setOrientation(LinearLayout.HORIZONTAL);
+        languageLayout.setPadding(16, 8, 16, 8);
+        languageLayout.setGravity(Gravity.CENTER_VERTICAL);
+        
+        // Texto del idioma
+        TextView languageText = new TextView(this);
+        languageText.setText(language);
+        languageText.setTextSize(16);
+        languageText.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+        
+        // Botón para eliminar
+        MaterialButton removeButton = new MaterialButton(this);
+        removeButton.setText("×");
+        removeButton.setTextSize(18);
+        removeButton.setTextColor(getResources().getColor(android.R.color.holo_red_dark, null));
+        removeButton.setOnClickListener(v -> removeLanguage(language));
+        
+        languageLayout.addView(languageText);
+        languageLayout.addView(removeButton);
+        languagesContainer.addView(languageLayout);
+    }
+
+    private void removeLanguage(String language) {
+        if (currentUser == null) return;
+        
+        // Obtener la lista actual de idiomas
+        db.collection("usuarios")
+                .document(currentUser.getUid())
+                .get()
+                .addOnSuccessListener(document -> {
+                    List<String> currentLanguages = (List<String>) document.get("idiomas");
+                    if (currentLanguages != null) {
+                        currentLanguages.remove(language);
+                        
+                        // Actualizar en Firebase
+                        db.collection("usuarios")
+                                .document(currentUser.getUid())
+                                .update("idiomas", currentLanguages)
+                                .addOnSuccessListener(aVoid -> {
+                                    displayLanguages(currentLanguages);
+                                    Toast.makeText(this, "Idioma eliminado", Toast.LENGTH_SHORT).show();
+                                })
+                                .addOnFailureListener(e -> {
+                                    Log.e(TAG, "Error al eliminar idioma", e);
+                                    Toast.makeText(this, "Error al eliminar idioma", Toast.LENGTH_SHORT).show();
+                                });
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error al obtener idiomas", e);
+                    Toast.makeText(this, "Error al cargar idiomas", Toast.LENGTH_SHORT).show();
+                });
+    }
+
+    private void showAddLanguageDialog() {
+        // Lista de idiomas comunes
+        String[] languages = {
+            "Español", "Inglés", "Francés", "Alemán", "Italiano", "Portugués",
+            "Japonés", "Chino Mandarín", "Coreano", "Ruso", "Árabe", "Holandés",
+            "Sueco", "Noruego", "Danés", "Finlandés", "Polaco", "Checo"
+        };
+
+        androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(this);
+        builder.setTitle("Seleccionar Idioma");
+        builder.setItems(languages, (dialog, which) -> {
+            String selectedLanguage = languages[which];
+            addLanguageToFirebase(selectedLanguage);
+        });
+        builder.setNegativeButton("Cancelar", null);
+        builder.show();
+    }
+
+    private void addLanguageToFirebase(String newLanguage) {
+        if (currentUser == null) return;
+        
+        // Obtener la lista actual de idiomas
+        db.collection("usuarios")
+                .document(currentUser.getUid())
+                .get()
+                .addOnSuccessListener(document -> {
+                    List<String> currentLanguages = (List<String>) document.get("idiomas");
+                    if (currentLanguages == null) {
+                        currentLanguages = new ArrayList<>();
+                    }
+                    
+                    // Verificar si el idioma ya existe
+                    if (!currentLanguages.contains(newLanguage)) {
+                        currentLanguages.add(newLanguage);
+                        final List<String> updatedLanguages = new ArrayList<>(currentLanguages);
+                        
+                        // Actualizar en Firebase
+                        db.collection("usuarios")
+                                .document(currentUser.getUid())
+                                .update("idiomas", updatedLanguages)
+                                .addOnSuccessListener(aVoid -> {
+                                    displayLanguages(updatedLanguages);
+                                    Toast.makeText(this, "Idioma agregado correctamente", Toast.LENGTH_SHORT).show();
+                                })
+                                .addOnFailureListener(e -> {
+                                    Log.e(TAG, "Error al agregar idioma", e);
+                                    Toast.makeText(this, "Error al agregar idioma", Toast.LENGTH_SHORT).show();
+                                });
+                    } else {
+                        Toast.makeText(this, "Este idioma ya está agregado", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error al obtener idiomas", e);
+                    Toast.makeText(this, "Error al cargar idiomas", Toast.LENGTH_SHORT).show();
+                });
     }
 
     private void redirectToLogin() {
