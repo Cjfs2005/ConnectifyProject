@@ -214,27 +214,31 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="📅 Itinerario"
+                        android:text="📅 Itinerario del Tour"
                         android:textStyle="bold"
                         android:textSize="16sp"
-                        android:textColor="@android:color/black" />
+                        android:textColor="@android:color/black"
+                        android:layout_marginBottom="8dp" />
 
-                    <TextView
-                        android:id="@+id/tour_itinerario"
-                        android:layout_width="wrap_content"
+                    <!-- Contenedor para itinerario dinámico -->
+                    <LinearLayout
+                        android:id="@+id/itinerario_container"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="09:00 Plaza Mayor → 09:30 Catedral de Lima → 10:30 Palacio de Gobierno"
-                        android:textSize="14sp"
-                        android:textColor="#212121"
-                        android:layout_marginTop="8dp" />
+                        android:orientation="vertical">
+
+                        <!-- Los elementos del itinerario se añadirán dinámicamente -->
+
+                    </LinearLayout>
 
                     <TextView
                         android:id="@+id/tour_description"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:text="Descripción adicional del tour"
                         android:textSize="14sp"
                         android:textColor="#757575"
-                        android:layout_marginTop="8dp" />
+                        android:layout_marginTop="12dp" />
 
                 </LinearLayout>
 
@@ -258,25 +262,25 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="✅ Requerimientos"
+                        android:text="✅ Requerimientos y Consideraciones"
                         android:textStyle="bold"
                         android:textSize="16sp"
                         android:textColor="@android:color/black" />
 
                     <TextView
-                        android:id="@+id/tour_experience"
+                        android:id="@+id/tour_consideraciones"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="• Experiencia: 1 año como guía turístico"
+                        android:text="• Conocimiento de arte y cultura bohemia"
                         android:textSize="14sp"
                         android:textColor="#212121"
                         android:layout_marginTop="8dp" />
 
                     <TextView
-                        android:id="@+id/tour_punctuality"
+                        android:id="@+id/tour_languages_required"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="• Puntualidad en puntos de encuentro"
+                        android:text="• Idiomas: Español"
                         android:textSize="14sp"
                         android:textColor="#212121"
                         android:layout_marginTop="4dp" />
@@ -285,7 +289,7 @@
 
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Beneficios Card -->
+            <!-- Servicios Adicionales Card -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -303,26 +307,83 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="🎁 Beneficios"
+                        android:text="🎁 Servicios del Tour"
                         android:textStyle="bold"
                         android:textSize="16sp"
-                        android:textColor="@android:color/black" />
+                        android:textColor="@android:color/black"
+                        android:layout_marginBottom="8dp" />
+
+                    <!-- Contenedor para servicios dinámicos -->
+                    <LinearLayout
+                        android:id="@+id/servicios_container"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+
+                        <!-- Los servicios se añadirán dinámicamente -->
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Información del Pago Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="4dp"
+                android:backgroundTint="#E8F5E8">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
 
                     <TextView
-                        android:id="@+id/tour_benefits"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:textSize="14sp"
-                        android:textColor="#212121"
+                        android:text="💰 Tu Pago Como Guía"
+                        android:textStyle="bold"
+                        android:textSize="16sp"
+                        android:textColor="#2E7D32"
+                        android:layout_marginBottom="8dp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Pago garantizado por tour:"
+                            android:textSize="14sp"
+                            android:textColor="#2E7D32" />
+
+                        <TextView
+                            android:id="@+id/pago_guia_amount"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="S/. 300"
+                            android:textSize="18sp"
+                            android:textStyle="bold"
+                            android:textColor="#2E7D32" />
+
+                    </LinearLayout>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="• Pago directo al finalizar el tour\n• Sin descuentos ni comisiones\n• Empresa verificada"
+                        android:textSize="12sp"
+                        android:textColor="#4CAF50"
                         android:layout_marginTop="8dp" />
-
-                    <TextView
-                        android:id="@+id/tour_schedule"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textSize="14sp"
-                        android:textColor="#212121"
-                        android:layout_marginTop="4dp" />
 
                 </LinearLayout>
 

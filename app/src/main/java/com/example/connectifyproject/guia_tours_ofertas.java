@@ -174,14 +174,14 @@ public class guia_tours_ofertas extends AppCompatActivity implements GuiaFilterD
             }
         }
         
-        // Convertir precio de double a int
-        int precio = (int) oferta.getPrecio();
+        // Convertir PAGO AL GUÍA (no precio del tour)
+        int pagoGuia = (int) oferta.getPagoGuia();
         
         // Convertir idiomas de List<String> a String separado por comas
         String idiomas = oferta.getIdiomasTexto();
         
-        // Horario combinado
-        String horario = oferta.getHoraInicio() + " - " + oferta.getHoraFin();
+        // Horario mejorado (solo hora de inicio)
+        String horario = "Inicio: " + oferta.getHoraInicio();
         
         // Punto de encuentro (primer lugar del itinerario)
         String puntoEncuentro = "Por definir";
@@ -192,8 +192,8 @@ public class guia_tours_ofertas extends AppCompatActivity implements GuiaFilterD
             }
         }
         
-        // Beneficios (servicios no pagados)
-        String beneficios = "S/. " + (int)oferta.getPagoGuia() + " de pago";
+        // Beneficios (información clara para el guía)
+        String beneficios = "Pago garantizado: S/. " + (int)oferta.getPagoGuia();
         if (oferta.getServiciosAdicionales() != null) {
             StringBuilder sb = new StringBuilder(beneficios);
             for (Object servicioObj : oferta.getServiciosAdicionales()) {
@@ -215,7 +215,7 @@ public class guia_tours_ofertas extends AppCompatActivity implements GuiaFilterD
         GuiaTour tour = new GuiaTour(
             oferta.getTitulo(),                    // name
             location,                              // location  
-            precio,                                // price
+            pagoGuia,                              // price (usando PAGO AL GUÍA)
             oferta.getDuracion(),                  // duration
             idiomas,                               // languages
             oferta.getHoraInicio(),               // startTime

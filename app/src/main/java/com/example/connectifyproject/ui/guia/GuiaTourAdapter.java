@@ -54,8 +54,8 @@ public class GuiaTourAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             // Título del tour
             tourHolder.binding.tourName.setText(tour.getName());
             
-            // Precio del tour
-            tourHolder.binding.tourPrice.setText("S/. " + tour.getPrice());
+            // PAGO AL GUÍA (no precio del tour)
+            tourHolder.binding.tourPrice.setText("S/. " + (int)tour.getPrice());
             
             // Duración
             tourHolder.binding.tourDuration.setText(tour.getDuration());
@@ -66,26 +66,17 @@ public class GuiaTourAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             // Fecha 
             tourHolder.binding.dateText.setText(tour.getDate());
             
-            // Hora de inicio
+            // Hora de inicio y fin
             tourHolder.binding.tourStartTime.setText(tour.getStartTime());
             
-            // Itinerario resumido
-            String itinerario = tour.getItinerario();
-            if (itinerario != null && !itinerario.isEmpty()) {
-                tourHolder.binding.itinerarioText.setText(itinerario);
-            } else {
-                tourHolder.binding.itinerarioText.setText("Itinerario disponible en detalles");
-            }
-            
-            // Pago al guía (asumiendo que es diferente al precio del tour)
-            // Por ahora usamos el precio del tour, pero esto debería venir de Firebase
-            tourHolder.binding.pagoGuiaText.setText("S/. " + tour.getPrice());
+            // Pago al guía (mismo valor que el precio mostrado arriba)
+            tourHolder.binding.pagoGuiaText.setText("S/. " + (int)tour.getPrice());
 
             holder.itemView.setOnClickListener(v -> {
-                Intent intent = new Intent(context, guia_tour_detail.class); // Renombrado asumido
+                Intent intent = new Intent(context, guia_tour_detail.class);
                 intent.putExtra("tour_name", tour.getName());
                 intent.putExtra("tour_location", tour.getLocation());
-                intent.putExtra("tour_price", tour.getPrice());
+                intent.putExtra("tour_price", tour.getPrice()); // Este es el pagoGuia
                 intent.putExtra("tour_duration", tour.getDuration());
                 intent.putExtra("tour_languages", tour.getLanguages());
                 intent.putExtra("tour_start_time", tour.getStartTime());
@@ -96,14 +87,13 @@ public class GuiaTourAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 intent.putExtra("tour_meeting_point", tour.getMeetingPoint());
                 intent.putExtra("tour_empresa", tour.getEmpresa());
                 intent.putExtra("tour_itinerario", tour.getItinerario());
-                intent.putExtra("tour_experiencia_minima", tour.getExperienciaMinima());
-                intent.putExtra("tour_puntualidad", tour.getPuntualidad());
-                intent.putExtra("tour_transporte_incluido", tour.isTransporteIncluido());
-                intent.putExtra("tour_almuerzo_incluido", tour.isAlmuerzoIncluido());
-                intent.putExtra("tour_firebase_id", tour.getFirebaseId()); // FIREBASE ID
+                intent.putExtra("tour_consideraciones", tour.getExperienciaMinima()); // Consideraciones
+                intent.putExtra("tour_pago_guia", tour.getPrice()); // Pago al guía
+                intent.putExtra("tour_servicios", tour.getBenefits()); // Servicios
+                intent.putExtra("tour_firebase_id", tour.getFirebaseId());
                 
                 if (context instanceof Activity) {
-                    ((Activity) context).startActivityForResult(intent, 1001); // REQUEST_CODE_TOUR_DETAIL
+                    ((Activity) context).startActivityForResult(intent, 1001);
                     ((Activity) context).overridePendingTransition(R.anim.guia_slide_in, R.anim.guia_slide_out);
                 }
             });

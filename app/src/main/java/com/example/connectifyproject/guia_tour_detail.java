@@ -55,21 +55,25 @@ public class guia_tour_detail extends AppCompatActivity implements OnMapReadyCal
             binding.tourDuration.setText(extras.getString("tour_duration"));
             binding.tourLanguages.setText(extras.getString("tour_languages", "No especificado"));
             
-            // Precio (asumiendo que viene como double)
-            double precio = extras.getDouble("tour_price", 0.0);
-            binding.tourPrice.setText("S/. " + (int)precio);
+            // PAGO AL GUÍA (no precio del tour)
+            double pagoGuia = extras.getDouble("tour_price", 0.0);
+            binding.tourPrice.setText("S/. " + (int)pagoGuia);
             
-            // Itinerario y descripción
-            binding.tourItinerario.setText(extras.getString("tour_itinerario"));
+            // Crear itinerario visual
+            crearItinerarioVisual(extras.getString("tour_itinerario", ""));
+            
+            // Descripción
             binding.tourDescription.setText(extras.getString("tour_description"));
             
-            // Requerimientos
-            binding.tourExperience.setText("• Experiencia: " + extras.getString("tour_experiencia_minima", "No especificado"));
-            binding.tourPunctuality.setText("• " + extras.getString("tour_puntualidad", "Puntualidad requerida"));
+            // Consideraciones y requerimientos
+            binding.tourConsideraciones.setText("• " + extras.getString("tour_consideraciones", "No especificadas"));
+            binding.tourLanguagesRequired.setText("• Idiomas: " + extras.getString("tour_languages", "No especificado"));
             
-            // Beneficios
-            binding.tourBenefits.setText(extras.getString("tour_benefits"));
-            binding.tourSchedule.setText(extras.getString("tour_schedule"));
+            // Crear servicios dinámicos
+            crearServiciosAdicionales(extras.getString("tour_servicios", ""));
+            
+            // Pago al guía destacado
+            binding.pagoGuiaAmount.setText("S/. " + (int)pagoGuia);
             
             // Punto de encuentro
             binding.tourMeetingPoint.setText(extras.getString("tour_meeting_point"));
@@ -189,6 +193,152 @@ public class guia_tour_detail extends AppCompatActivity implements OnMapReadyCal
                 });
             }
         });
+    }
+
+    /**
+     * Crear una vista visual del itinerario basada en estructura Firebase
+     */
+    private void crearItinerarioVisual(String itinerario) {
+        if (itinerario == null || itinerario.isEmpty()) {
+            // Itinerario de ejemplo basado en la estructura Firebase
+            crearItinerarioEjemplo();
+            return;
+        }
+        
+        // Limpiar contenedor anterior
+        binding.itinerarioContainer.removeAllViews();
+        
+        // Separar por paradas (formato: "hora lugar → hora lugar")
+        String[] paradas = itinerario.split(" → ");
+        
+        for (int i = 0; i < paradas.length; i++) {
+            String parada = paradas[i].trim();
+            crearVistaParada(parada, i, paradas.length);
+        }
+    }
+    
+    /**
+     * Crear itinerario de ejemplo basado en estructura Firebase
+     */
+    private void crearItinerarioEjemplo() {
+        binding.itinerarioContainer.removeAllViews();
+        
+        String[][] paradasEjemplo = {
+            {"15:00", "Puente de los Suspiros", "Inicio del tour en el icónico puente"},
+            {"15:30", "Galería de Arte", "Visita a galería de arte local"},
+            {"16:30", "Malecón de Barranco", "Caminata con vista al océano Pacífico"}
+        };
+        
+        for (int i = 0; i < paradasEjemplo.length; i++) {
+            String[] parada = paradasEjemplo[i];
+            String paradaFormateada = parada[0] + " " + parada[1] + " - " + parada[2];
+            crearVistaParada(paradaFormateada, i, paradasEjemplo.length);
+        }
+    }
+    
+    /**
+     * Crear vista individual para cada parada
+     */
+    private void crearVistaParada(String parada, int indice, int total) {
+        // Crear vista para cada parada
+        android.widget.LinearLayout paradaLayout = new android.widget.LinearLayout(this);
+        paradaLayout.setOrientation(android.widget.LinearLayout.HORIZONTAL);
+        paradaLayout.setPadding(0, 12, 0, 12);
+        
+        // Icono de ubicación
+        android.widget.TextView iconoView = new android.widget.TextView(this);
+        if (indice == 0) {
+            iconoView.setText("🚩"); // Inicio
+        } else if (indice == total - 1) {
+            iconoView.setText("🏁"); // Fin
+        } else {
+            iconoView.setText("📍"); // Punto intermedio
+        }
+        iconoView.setTextSize(18);
+        iconoView.setPadding(0, 0, 16, 0);
+        
+        // Contenedor de texto
+        android.widget.LinearLayout textoLayout = new android.widget.LinearLayout(this);
+        textoLayout.setOrientation(android.widget.LinearLayout.VERTICAL);
+        textoLayout.setLayoutParams(new android.widget.LinearLayout.LayoutParams(
+            0, android.widget.LinearLayout.LayoutParams.WRAP_CONTENT, 1.0f));
+        
+        // Texto de la parada
+        android.widget.TextView paradaText = new android.widget.TextView(this);
+        paradaText.setText(parada);
+        paradaText.setTextSize(14);
+        paradaText.setTextColor(getResources().getColor(android.R.color.black));
+        
+        textoLayout.addView(paradaText);
+        
+        // Agregar elementos al layout principal
+        paradaLayout.addView(iconoView);
+        paradaLayout.addView(textoLayout);
+        
+        // Agregar al contenedor principal
+        binding.itinerarioContainer.addView(paradaLayout);
+        
+        // Agregar línea conectora (excepto en el último elemento)
+        if (indice < total - 1) {
+            android.view.View linea = new android.view.View(this);
+            android.widget.LinearLayout.LayoutParams lineaParams = 
+                new android.widget.LinearLayout.LayoutParams(3, 40);
+            lineaParams.setMargins(24, 0, 0, 0);
+            linea.setLayoutParams(lineaParams);
+            linea.setBackgroundColor(getResources().getColor(android.R.color.darker_gray));
+            binding.itinerarioContainer.addView(linea);
+        }
+    }
+    
+    /**
+     * Crear vista de servicios adicionales
+     */
+    private void crearServiciosAdicionales(String servicios) {
+        // Limpiar contenedor anterior
+        binding.serviciosContainer.removeAllViews();
+        
+        // Servicios de ejemplo basados en la estructura Firebase
+        String[] serviciosArray = {
+            "Guía especializada en arte (Incluido)",
+            "Café en terraza con vista (+S/. 15)",
+            "Transporte desde hotel (Consultar)",
+            "Material fotográfico (Incluido)"
+        };
+        
+        for (String servicio : serviciosArray) {
+            // Crear layout para cada servicio
+            android.widget.LinearLayout servicioLayout = new android.widget.LinearLayout(this);
+            servicioLayout.setOrientation(android.widget.LinearLayout.HORIZONTAL);
+            servicioLayout.setPadding(0, 6, 0, 6);
+            
+            // Icono del servicio
+            android.widget.TextView iconoView = new android.widget.TextView(this);
+            if (servicio.contains("Incluido")) {
+                iconoView.setText("✅");
+                iconoView.setTextColor(getResources().getColor(android.R.color.holo_green_dark));
+            } else if (servicio.contains("+S/.")) {
+                iconoView.setText("💰");
+                iconoView.setTextColor(getResources().getColor(android.R.color.holo_orange_dark));
+            } else {
+                iconoView.setText("ℹ️");
+                iconoView.setTextColor(getResources().getColor(android.R.color.holo_blue_dark));
+            }
+            iconoView.setTextSize(14);
+            iconoView.setPadding(0, 0, 12, 0);
+            
+            // Texto del servicio
+            android.widget.TextView servicioText = new android.widget.TextView(this);
+            servicioText.setText(servicio);
+            servicioText.setTextSize(13);
+            servicioText.setTextColor(getResources().getColor(android.R.color.black));
+            
+            // Agregar elementos al layout
+            servicioLayout.addView(iconoView);
+            servicioLayout.addView(servicioText);
+            
+            // Agregar al contenedor principal
+            binding.serviciosContainer.addView(servicioLayout);
+        }
     }
 
     @Override

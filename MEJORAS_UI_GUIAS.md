@@ -1,117 +1,92 @@
-# Mejoras UI - Vista de Guías
+# Mejoras UI - Vista de Guías (ACTUALIZADO)
 
-## 📱 Resumen de Cambios Implementados
+## 📱 Correcciones Implementadas Según Feedback
 
-Se ha modernizado completamente la interfaz de usuario para la sección de guías turísticos, siguiendo los patrones de diseño del panel administrativo y Material Design.
+### ✅ **Cambios Corregidos:**
 
-### ✅ Cambios Realizados
+#### 1. **💰 Uso de `pagoGuia` en lugar de `precio`**
+- **ANTES**: Mostraba el precio del tour para turistas
+- **DESPUÉS**: Muestra el pago que recibirá el guía
+- **Ubicaciones corregidas**:
+  - Lista de ofertas: Header de precio
+  - Sección "Pago al guía" en la card
+  - Vista de detalles: Grid de información rápida
+  - Conversión desde Firebase: Usa `oferta.getPagoGuia()`
 
-#### 1. **Lista de Ofertas de Tours (`guia_item_tour.xml`)**
-- **Antes**: Layout simple con información apilada verticalmente
-- **Después**: Cards Material Design con organización por secciones
+#### 2. **📝 Itinerario eliminado de la lista**
+- **ANTES**: Itinerario confuso en cada card de oferta
+- **DESPUÉS**: Solo en vista de detalles con presentación visual mejorada
+- **Cambios**:
+  - Removido `itinerarioText` del layout de la lista
+  - Actualizado adapter para no mostrar itinerario
+  - Mejor aprovechamiento del espacio en las cards
 
-**Nuevas características:**
-- 🏢 **Header con empresa y precio**: Badge de empresa + precio destacado
-- 📊 **Grid de información básica**: Duración e idiomas con iconos
-- 📅 **Sección de fecha destacada**: Fecha y hora con fondo coloreado
-- 📝 **Resumen de itinerario**: Vista previa del recorrido
-- 💰 **Información de pago al guía**: Sección separada y destacada
+#### 3. **🎨 Itinerario visual mejorado en detalles**
+- **ANTES**: Texto simple "hora lugar → hora lugar"  
+- **DESPUÉS**: Timeline visual con iconos y conectores
+- **Características**:
+  - 🚩 Icono de inicio para primera parada
+  - 📍 Iconos para paradas intermedias
+  - 🏁 Icono de fin para última parada
+  - Líneas conectoras entre paradas
+  - Contenedor dinámico `itinerario_container`
 
-#### 2. **Detalle del Tour (`guia_tour_detail.xml`)**
-- **Antes**: Layout con información mezclada y divisores simples
-- **Después**: Sistema de cards organizadas por categorías
+#### 4. **📊 Información clarificada**
+- **ANTES**: "15:00-18:00" confuso
+- **DESPUÉS**: "Inicio: 15:00" más claro
+- **Beneficios mejorados**: "Pago garantizado: S/. 450" en lugar de texto confuso
 
-**Nuevas características:**
-- 🖼️ **Header visual mejorado**: Imagen del tour con overlay de información
-- 📊 **Grid de información rápida**: Duración, idiomas y precio con iconos
-- 📋 **Cards temáticas separadas**: 
-  - 📅 Itinerario
-  - ✅ Requerimientos
-  - 🎁 Beneficios  
-  - 📍 Ubicación
-
-#### 3. **Adapter Actualizado (`GuiaTourAdapter.java`)**
-- Actualizado para usar los nuevos campos del layout
-- Mejor mapeo de datos desde el modelo `GuiaTour`
-- Formato mejorado para fechas, precios y texto
-
-#### 4. **Actividad de Detalle (`guia_tour_detail.java`)**
-- Código actualizado para poblar los nuevos elementos UI
-- Formato mejorado de datos (precios, fechas, texto con iconos)
-- Mejor organización de la información
-
-### 🎨 Mejoras Visuales
-
-#### **Colores y Tipografía**
-- **Empresa**: Badge morado (`#6200EA`) con fondo suave (`#E8EAF6`)
-- **Precios**: Verde destacado (`#4CAF50`) para montos
-- **Fechas**: Naranja (`#FF9800`) para información temporal
-- **Texto secundario**: Gris (`#757575`) para información complementaria
-
-#### **Espaciado y Layout**
-- Cards con `cornerRadius="12dp"` y elevación sutil
-- Padding consistente de `16dp`
-- Márgenes de `8dp` entre elementos
-- Uso de `LinearLayout` con pesos para distribución equitativa
-
-#### **Iconos y Emojis**
-- ⏰ Duración
-- 🌐 Idiomas  
-- 💰 Precios
-- 📅 Fechas
-- 📍 Ubicaciones
-- ✅ Requerimientos
-- 🎁 Beneficios
-
-### 🔧 Aspectos Técnicos
-
-#### **Compatibilidad**
-- Mantiene compatibilidad completa con el modelo `GuiaTour` existente
-- No requiere cambios en la base de datos Firebase
-- Funcionalidad de aceptar/rechazar ofertas intacta
-
-#### **Performance**
-- Layouts optimizados con `match_parent` y `wrap_content` apropiados
-- Uso de `MaterialCardView` para mejor rendimiento
-- Recycling eficiente en el adapter
-
-#### **Responsividad**
-- Layouts que se adaptan a diferentes tamaños de pantalla
-- Texto con `maxLines` y `ellipsize` para contenido largo
-- Grid flexible con `layout_weight`
-
-### 🚀 Próximos Pasos Sugeridos
-
-1. **Testing**: Verificar en diferentes dispositivos y tamaños de pantalla
-2. **Animaciones**: Considerar transiciones suaves entre cards
-3. **Temas**: Soporte para modo oscuro
-4. **Accesibilidad**: Añadir `contentDescription` para lectores de pantalla
-5. **Optimización**: Lazy loading para listas largas
-
-### 📁 Archivos Modificados
+### 🔧 **Archivos Modificados:**
 
 ```
-app/src/main/res/layout/
-├── guia_item_tour.xml          ✅ Completamente rediseñado
-└── guia_tour_detail.xml        ✅ Sistema de cards implementado
+📁 Layouts:
+├── guia_item_tour.xml          ✅ Eliminado itinerario, corregido pago
+└── guia_tour_detail.xml        ✅ Contenedor dinámico para itinerario
 
-app/src/main/java/.../ui/guia/
-└── GuiaTourAdapter.java        ✅ Actualizado para nuevos campos
-
-app/src/main/java/.../
-└── guia_tour_detail.java       ✅ Lógica actualizada para UI
+📁 Código Java:
+├── GuiaTourAdapter.java        ✅ Usa pagoGuia, sin itinerario
+├── guia_tour_detail.java       ✅ Método crearItinerarioVisual()
+└── guia_tours_ofertas.java     ✅ Conversión Firebase corregida
 ```
 
-### 🎯 Resultado Final
+### 🎯 **Resultado Final:**
 
-La interfaz ahora presenta:
-- **Mayor claridad visual** con información organizada por secciones
-- **Mejor jerarquía de información** con elementos destacados apropiadamente
-- **Consistencia con el panel admin** manteniendo la identidad visual
-- **Experiencia de usuario mejorada** con navegación más intuitiva
+#### **Lista de Ofertas:**
+- ✅ **Precio claro**: Muestra pago al guía prominentemente
+- ✅ **Información enfocada**: Sin itinerario confuso  
+- ✅ **Visual limpio**: Mejor aprovechamiento del espacio
+- ✅ **Colores consistentes**: Verde para pagos, morado para empresa
+
+#### **Detalles del Tour:**
+- ✅ **Itinerario visual**: Timeline con iconos y conectores
+- ✅ **Información clara**: "Inicio: 15:00" en lugar de rangos confusos
+- ✅ **Pago destacado**: Grid muestra pago al guía claramente
+- ✅ **Organización mejorada**: Cards temáticas bien separadas
+
+### � **Funcionalidad del Itinerario Visual:**
+
+```java
+private void crearItinerarioVisual(String itinerario) {
+    // Separa "09:00 Plaza Mayor → 09:30 Catedral → 10:30 Palacio"
+    // Crea timeline visual:
+    // 🚩 09:00 Plaza Mayor
+    // |
+    // 📍 09:30 Catedral de Lima  
+    // |
+    // 🏁 10:30 Palacio de Gobierno
+}
+```
+
+### 💡 **Beneficios de los Cambios:**
+
+1. **🎯 Claridad**: Guías ven inmediatamente cuánto ganarán
+2. **🧹 Limpieza**: Lista sin información innecesaria  
+3. **👁️ Visual**: Itinerario fácil de seguir con iconos
+4. **📱 UX**: Mejor experiencia en pantallas pequeñas
+5. **🔄 Consistencia**: Información coherente en toda la app
 
 ---
 
-*Implementado: Noviembre 2024*
-*Compatibilidad: Android API 31+*
-*Framework: Material Design 3*
+*Actualizado: Noviembre 2024*
+*Estado: ✅ Listo para testing*
+*Feedback: Incorporado completamente*
