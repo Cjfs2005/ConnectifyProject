@@ -2,6 +2,7 @@ package com.example.connectifyproject.services;
 
 import android.util.Log;
 import com.example.connectifyproject.models.OfertaTour;
+import com.example.connectifyproject.models.TourAsignado;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -252,7 +253,7 @@ public class TourFirebaseService {
      * Procesar la aceptación de la oferta
      */
     private void procesarAceptacionOferta(String ofertaId, String guiaId, OperationCallback callback) {
-        // Verificar que la oferta sigue disponible
+        // Verificar que la oferta sigue disponible y obtener todos los datos
         db.collection(COLLECTION_OFERTAS).document(ofertaId)
                 .get()
                 .addOnSuccessListener(documentSnapshot -> {
@@ -260,40 +261,21 @@ public class TourFirebaseService {
                         OfertaTour oferta = documentSnapshot.toObject(OfertaTour.class);
                         if (oferta != null && "publicado".equals(oferta.getEstado())) {
                             
-                            // Actualizar la oferta principal con el guía asignado
-                            Map<String, Object> ofertaUpdates = new HashMap<>();
-                            ofertaUpdates.put("estado", "asignado");
-                            ofertaUpdates.put("guiaAsignadoId", guiaId);
-                            ofertaUpdates.put("fechaAsignacion", Timestamp.now());
-                            ofertaUpdates.put("fechaActualizacion", Timestamp.now());
-                            
-                            // Actualizar el estado del guía en la subcolección
-                            Map<String, Object> guiaUpdates = new HashMap<>();
-                            guiaUpdates.put("estadoOferta", "aceptado");
-                            guiaUpdates.put("fechaRespuesta", Timestamp.now());
-                            
-                            // Ejecutar ambas actualizaciones
-                            db.collection(COLLECTION_OFERTAS).document(ofertaId)
-                                    .update(ofertaUpdates)
-                                    .addOnSuccessListener(aVoid -> {
-                                        // Actualizar subcolección
-                                        db.collection(COLLECTION_OFERTAS)
-                                                .document(ofertaId)
-                                                .collection(SUBCOLLECTION_GUIAS)
-                                                .document(guiaId)
-                                                .update(guiaUpdates)
-                                                .addOnSuccessListener(aVoid2 -> {
-                                                    Log.d(TAG, "Oferta y subcolección actualizadas exitosamente");
-                                                    callback.onSuccess("¡Tour aceptado exitosamente!");
-                                                })
-                                                .addOnFailureListener(e -> {
-                                                    Log.e(TAG, "Error al actualizar subcolección: ", e);
-                                                    callback.onError("Error al completar la aceptación");
-                                                });
+                            // Primero obtener datos del guía
+                            db.collection(COLLECTION_USUARIOS)
+                                    .document(guiaId)
+                                    .get()
+                                    .addOnSuccessListener(guiaDoc -> {
+                                        if (guiaDoc.exists()) {
+                                            // Crear documento en tours_asignados
+                                            crearTourAsignado(oferta, guiaDoc, ofertaId, guiaId, callback);
+                                        } else {
+                                            callback.onError("Datos del guía no encontrados");
+                                        }
                                     })
                                     .addOnFailureListener(e -> {
-                                        Log.e(TAG, "Error al actualizar oferta: ", e);
-                                        callback.onError("Error al aceptar la oferta");
+                                        Log.e(TAG, "Error al obtener datos del guía: ", e);
+                                        callback.onError("Error al verificar datos del guía");
                                     });
                             
                         } else {
@@ -307,5 +289,200 @@ public class TourFirebaseService {
                     Log.e(TAG, "Error al verificar oferta: ", e);
                     callback.onError("Error al procesar la solicitud");
                 });
+    }
+    
+    /**
+     * Crear tour asignado basado en la oferta aceptada
+     */
+    private void crearTourAsignado(OfertaTour oferta, DocumentSnapshot guiaDoc, String ofertaId, String guiaId, OperationCallback callback) {
+        // Crear estructura del guía asignado
+        Map<String, Object> guiaAsignado = new HashMap<>();
+        guiaAsignado.put("identificadorUsuario", guiaId);
+        guiaAsignado.put("nombresCompletos", guiaDoc.getString("nombresApellidos"));
+        guiaAsignado.put("correoElectronico", guiaDoc.getString("email"));
+        guiaAsignado.put("numeroTelefono", guiaDoc.getString("telefono"));
+        guiaAsignado.put("fechaAsignacion", Timestamp.now());
+        
+        // Crear itinerario con seguimiento
+        List<Map<String, Object>> itinerarioConSeguimiento = new ArrayList<>();
+        if (oferta.getItinerario() != null) {
+            for (Map<String, Object> punto : oferta.getItinerario()) {
+                Map<String, Object> puntoConSeguimiento = new HashMap<>(punto);
+                puntoConSeguimiento.put("completado", false);
+                puntoConSeguimiento.put("horaLlegada", null);
+                puntoConSeguimiento.put("horaSalida", null);
+                itinerarioConSeguimiento.add(puntoConSeguimiento);
+            }
+        }
+        
+        // Crear participantes de ejemplo (puedes modificar esto según necesites)
+        List<Map<String, Object>> participantes = new ArrayList<>();
+        Map<String, Object> participante1 = new HashMap<>();
+        participante1.put("clienteId", "LJ02gZgzedNIXxi3Yr3ppaxfElF3");
+        participante1.put("nombreCliente", "Christian Flores Soto");
+        participante1.put("emailCliente", "cjfs200516@gmail.com");
+        participante1.put("telefonoCliente", "981 030 557");
+        participante1.put("fechaInscripcion", Timestamp.now());
+        participante1.put("montoTotal", oferta.getPrecio() + 25.0); // precio base + servicios
+        participante1.put("estadoPago", "confirmado");
+        
+        List<Map<String, Object>> serviciosContratados1 = new ArrayList<>();
+        Map<String, Object> servicio1 = new HashMap<>();
+        servicio1.put("nombre", "Almuerzo en restaurante típico");
+        servicio1.put("precio", 25.0);
+        serviciosContratados1.add(servicio1);
+        participante1.put("serviciosContratados", serviciosContratados1);
+        
+        participantes.add(participante1);
+        
+        Map<String, Object> participante2 = new HashMap<>();
+        participante2.put("clienteId", "7AreAi73UAWbyH2de9FDJryrr4B3");
+        participante2.put("nombreCliente", "Alejandro Gutarra Bendezú");
+        participante2.put("emailCliente", "gianes26@outlook.com");
+        participante2.put("telefonoCliente", "976 431 852");
+        participante2.put("fechaInscripcion", Timestamp.now());
+        participante2.put("montoTotal", oferta.getPrecio()); // solo precio base
+        participante2.put("estadoPago", "pendiente");
+        participante2.put("serviciosContratados", new ArrayList<>());
+        
+        participantes.add(participante2);
+        
+        // Crear documento del tour asignado
+        Map<String, Object> tourAsignado = new HashMap<>();
+        tourAsignado.put("ofertaTourId", ofertaId);
+        tourAsignado.put("titulo", oferta.getTitulo());
+        tourAsignado.put("descripcion", oferta.getDescripcion());
+        tourAsignado.put("precio", oferta.getPrecio());
+        tourAsignado.put("duracion", oferta.getDuracion());
+        tourAsignado.put("fechaRealizacion", oferta.getFechaRealizacion());
+        tourAsignado.put("horaInicio", oferta.getHoraInicio());
+        tourAsignado.put("horaFin", oferta.getHoraFin());
+        tourAsignado.put("itinerario", itinerarioConSeguimiento);
+        tourAsignado.put("serviciosAdicionales", oferta.getServiciosAdicionales());
+        tourAsignado.put("guiaAsignado", guiaAsignado);
+        tourAsignado.put("empresaId", oferta.getEmpresaId());
+        tourAsignado.put("nombreEmpresa", oferta.getNombreEmpresa());
+        tourAsignado.put("correoEmpresa", oferta.getCorreoEmpresa());
+        tourAsignado.put("pagoGuia", oferta.getPagoGuia());
+        tourAsignado.put("idiomasRequeridos", oferta.getIdiomasRequeridos());
+        tourAsignado.put("consideraciones", oferta.getConsideraciones());
+        tourAsignado.put("participantes", participantes);
+        tourAsignado.put("estado", "confirmado");
+        tourAsignado.put("numeroParticipantesTotal", participantes.size());
+        tourAsignado.put("checkInRealizado", false);
+        tourAsignado.put("checkOutRealizado", false);
+        tourAsignado.put("horaCheckIn", null);
+        tourAsignado.put("horaCheckOut", null);
+        tourAsignado.put("reseniasClientes", new ArrayList<>());
+        tourAsignado.put("calificacionPromedio", 0.0);
+        tourAsignado.put("comentariosGuia", "");
+        tourAsignado.put("fechaAsignacion", Timestamp.now());
+        tourAsignado.put("fechaCreacion", Timestamp.now());
+        tourAsignado.put("fechaActualizacion", Timestamp.now());
+        tourAsignado.put("habilitado", true);
+        
+        // Insertar en tours_asignados
+        db.collection(COLLECTION_ASIGNADOS)
+                .add(tourAsignado)
+                .addOnSuccessListener(documentReference -> {
+                    Log.d(TAG, "Tour asignado creado con ID: " + documentReference.getId());
+                    
+                    // Ahora actualizar la oferta original
+                    actualizarOfertaOriginal(ofertaId, guiaId, callback);
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error al crear tour asignado: ", e);
+                    callback.onError("Error al crear el tour asignado");
+                });
+    }
+    
+    /**
+     * Actualizar la oferta original después de crear el tour asignado
+     */
+    private void actualizarOfertaOriginal(String ofertaId, String guiaId, OperationCallback callback) {
+        // Actualizar la oferta principal con el guía asignado
+        Map<String, Object> ofertaUpdates = new HashMap<>();
+        ofertaUpdates.put("estado", "asignado");
+        ofertaUpdates.put("guiaAsignadoId", guiaId);
+        ofertaUpdates.put("fechaAsignacion", Timestamp.now());
+        ofertaUpdates.put("fechaActualizacion", Timestamp.now());
+        
+        // Actualizar el estado del guía en la subcolección
+        Map<String, Object> guiaUpdates = new HashMap<>();
+        guiaUpdates.put("estadoOferta", "aceptado");
+        guiaUpdates.put("fechaRespuesta", Timestamp.now());
+        
+        // Ejecutar ambas actualizaciones
+        db.collection(COLLECTION_OFERTAS).document(ofertaId)
+                .update(ofertaUpdates)
+                .addOnSuccessListener(aVoid -> {
+                    // Actualizar subcolección
+                    db.collection(COLLECTION_OFERTAS)
+                            .document(ofertaId)
+                            .collection(SUBCOLLECTION_GUIAS)
+                            .document(guiaId)
+                            .update(guiaUpdates)
+                            .addOnSuccessListener(aVoid2 -> {
+                                Log.d(TAG, "Oferta y tour asignado creados exitosamente");
+                                callback.onSuccess("¡Tour aceptado exitosamente!");
+                            })
+                            .addOnFailureListener(e -> {
+                                Log.e(TAG, "Error al actualizar subcolección: ", e);
+                                callback.onError("Error al completar la aceptación");
+                            });
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error al actualizar oferta: ", e);
+                    callback.onError("Error al aceptar la oferta");
+                });
+    }
+    
+    /**
+     * Obtener tours asignados para un guía específico
+     */
+    public void getToursAsignados(TourAsignadoCallback callback) {
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser == null) {
+            callback.onError("Usuario no autenticado");
+            return;
+        }
+        
+        String guiaId = currentUser.getUid();
+        Log.d(TAG, "Obteniendo tours asignados para guía: " + guiaId);
+        
+        db.collection(COLLECTION_ASIGNADOS)
+                .whereEqualTo("guiaAsignado.identificadorUsuario", guiaId)
+                .whereEqualTo("habilitado", true)
+                .orderBy("fechaRealizacion")
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    List<TourAsignado> toursAsignados = new ArrayList<>();
+                    
+                    for (DocumentSnapshot document : queryDocumentSnapshots) {
+                        try {
+                            TourAsignado tour = document.toObject(TourAsignado.class);
+                            if (tour != null) {
+                                tour.setId(document.getId());
+                                toursAsignados.add(tour);
+                                Log.d(TAG, "Tour asignado cargado: " + tour.getTitulo());
+                            }
+                        } catch (Exception e) {
+                            Log.e(TAG, "Error al parsear tour asignado: " + document.getId(), e);
+                        }
+                    }
+                    
+                    Log.d(TAG, "Total tours asignados cargados: " + toursAsignados.size());
+                    callback.onSuccess(toursAsignados);
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error al obtener tours asignados: ", e);
+                    callback.onError("Error al cargar los tours asignados");
+                });
+    }
+    
+    // Interface para callback de tours asignados
+    public interface TourAsignadoCallback {
+        void onSuccess(List<TourAsignado> tours);
+        void onError(String error);
     }
 }

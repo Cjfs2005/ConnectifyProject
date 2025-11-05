@@ -51,12 +51,27 @@ public class GuiaAssignedTourAdapter extends RecyclerView.Adapter<RecyclerView.V
         } else if (holder instanceof AssignedTourViewHolder) {
             GuiaAssignedTour tour = item.getAssignedTour();
             AssignedTourViewHolder tourHolder = (AssignedTourViewHolder) holder;
+            
+            // Información básica mejorada
             tourHolder.binding.tourName.setText(tour.getName());
-            tourHolder.binding.tourStatus.setText("Estado: " + (tour.getStatus().equals("En Curso") ? "En Curso" : tour.getStatus()));
-            tourHolder.binding.tourEmpresa.setText("Empresa: " + tour.getEmpresa());
-            tourHolder.binding.tourInitio.setText("Inicio: " + tour.getInitio());
-            tourHolder.binding.tourDuration.setText("Duración: " + tour.getDuration());
-            tourHolder.binding.tourClients.setText("Clientes: " + tour.getClients());
+            
+            // Estado con formato mejorado y color
+            String estadoTexto = formatearEstado(tour.getStatus());
+            tourHolder.binding.tourStatus.setText(estadoTexto);
+            
+            // Empresa con formato limpio
+            tourHolder.binding.tourEmpresa.setText(tour.getEmpresa());
+            
+            // Fecha e inicio con formato claro
+            tourHolder.binding.tourInitio.setText(tour.getInitio());
+            
+            // Duración
+            tourHolder.binding.tourDuration.setText(tour.getDuration());
+            
+            // Participantes con formato mejorado
+            String participantesTexto = tour.getClients() + " " + 
+                (tour.getClients() == 1 ? "persona" : "personas");
+            tourHolder.binding.tourClients.setText(participantesTexto);
 
             // Set colorful icon
             tourHolder.binding.tourIcon.setColorFilter(Color.parseColor("#FF5722")); // Vibrant color
@@ -113,6 +128,26 @@ public class GuiaAssignedTourAdapter extends RecyclerView.Adapter<RecyclerView.V
         intent.putExtra("tour_services", tour.getServices());
         intent.putStringArrayListExtra("tour_itinerario", new ArrayList<>(tour.getItinerario()));
         context.startActivity(intent);
+    }
+
+    /**
+     * Formatear estado para mostrar en UI
+     */
+    private String formatearEstado(String estado) {
+        if (estado == null) return "PENDIENTE";
+        
+        switch (estado.toLowerCase()) {
+            case "en curso":
+                return "EN CURSO";
+            case "pendiente":
+                return "PENDIENTE";
+            case "finalizado":
+                return "FINALIZADO";
+            case "cancelado":
+                return "CANCELADO";
+            default:
+                return estado.toUpperCase();
+        }
     }
 
     @Override

@@ -2,6 +2,7 @@ package com.example.connectifyproject;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
@@ -10,11 +11,14 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.connectifyproject.data.TourAsignadoDataSeeder;
 import com.example.connectifyproject.databinding.GuiaAssignedToursBinding;
 import com.example.connectifyproject.fragment.GuiaDateFilterDialogFragment;
 import com.example.connectifyproject.model.GuiaAssignedItem;
 import com.example.connectifyproject.model.GuiaAssignedTour;
+import com.example.connectifyproject.models.TourAsignado;
 import com.example.connectifyproject.service.GuiaNotificationService;
+import com.example.connectifyproject.services.TourFirebaseService;
 import com.example.connectifyproject.storage.GuiaPreferencesManager;
 import com.example.connectifyproject.ui.guia.GuiaAssignedTourAdapter;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
@@ -26,19 +30,22 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 public class guia_assigned_tours extends AppCompatActivity implements GuiaDateFilterDialogFragment.FilterListener {
+    private static final String TAG = "GuiaAssignedTours";
+    
     private GuiaAssignedToursBinding binding;
     private GuiaAssignedTourAdapter adapter;
     private List<GuiaAssignedTour> allAssignedTours = new ArrayList<>();
     private List<GuiaAssignedItem> displayedItems = new ArrayList<>();
-    private List<GuiaAssignedTour> originalTours = new ArrayList<>();
     private boolean isLoading = false;
     private String currentDateFrom, currentDateTo, currentAmount, currentDuration, currentLanguages;
     
-    // Servicios para notificaciones y preferencias
+    // Servicios
     private GuiaNotificationService notificationService;
     private GuiaPreferencesManager preferencesManager;
+    private TourFirebaseService tourFirebaseService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,52 +53,31 @@ public class guia_assigned_tours extends AppCompatActivity implements GuiaDateFi
         binding = GuiaAssignedToursBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        // Inicializar servicios para notificaciones
+        // Inicializar servicios
         notificationService = new GuiaNotificationService(this);
         preferencesManager = new GuiaPreferencesManager(this);
+        tourFirebaseService = new TourFirebaseService();
 
-        // Hardcoded original data, duplicated for verification, limited to generate up to 20 items
-        List<String> itinerario1 = new ArrayList<>();
-        itinerario1.add("1. Plaza de Armas – 09:00 am");
-        itinerario1.add("2. Catedral de Lima – 09:30 am");
-        itinerario1.add("3. Convento San Francisco – 11:00 am");
-        itinerario1.add("4. Museo Larco – 01:00 pm");
-        originalTours.add(new GuiaAssignedTour("City Tour Histórico Lima", "LimaTours SAC", "02/10/2025 - 09:00 am", "6 h", 12, "En Curso", "02/10/2025", "Español, Inglés", "Desayuno, Almuerzo", itinerario1));
-        List<String> itinerario2 = new ArrayList<>();
-        itinerario2.add("1. Plaza de Armas – 09:00 am");
-        itinerario2.add("2. Catedral de Lima – 09:30 am");
-        itinerario2.add("3. Convento San Francisco – 11:00 am");
-        itinerario2.add("4. Museo Larco – 01:00 pm");
-        originalTours.add(new GuiaAssignedTour("Tour por Centro Histórico de Lima", "LimaTours SAC", "03/10/2025 - 09:00 am", "6 h", 12, "Pendiente", "03/10/2025", "Español, Inglés", "Desayuno, Almuerzo", itinerario2));
-        List<String> itinerario3 = new ArrayList<>();
-        itinerario3.add("1. Plaza de Armas – 09:00 am");
-        itinerario3.add("2. Catedral de Lima – 09:30 am");
-        itinerario3.add("3. Convento San Francisco – 11:00 am");
-        itinerario3.add("4. Museo Larco – 01:00 pm");
-        originalTours.add(new GuiaAssignedTour("Tour por Centro Histórico de Lima", "LimaTours SAC", "04/10/2025 - 09:00 am", "6 h", 12, "Pendiente", "04/10/2025", "Español, Francés", "Almuerzo", itinerario3));
-        originalTours.add(new GuiaAssignedTour("City Tour Histórico Lima", "LimaTours SAC", "02/10/2025 - 09:00 am", "6 h", 12, "En Curso", "02/10/2025", "Español, Inglés", "Desayuno, Almuerzo", itinerario1));
-        originalTours.add(new GuiaAssignedTour("Tour por Centro Histórico de Lima", "LimaTours SAC", "03/10/2025 - 09:00 am", "6 h", 12, "Pendiente", "03/10/2025", "Español, Inglés", "Desayuno, Almuerzo", itinerario2));
+        // ========================================================================
+        // CREAR TOURS ASIGNADOS DE PRUEBA EN FIREBASE
+        // ========================================================================
+        // DESCOMENTA las siguientes 2 líneas SOLO para crear la colección inicial
+        // Vuelve a comentar después de la primera ejecución para evitar duplicados
+        //TourAsignadoDataSeeder seeder = new TourAsignadoDataSeeder();
+        //seeder.crearToursAsignadosDePrueba();
+        Log.d(TAG, "Datos de prueba de tours asignados creados");
 
+        // Configurar RecyclerView
         binding.recyclerView.setLayoutManager(new LinearLayoutManager(this));
         adapter = new GuiaAssignedTourAdapter(this, displayedItems);
         binding.recyclerView.setAdapter(adapter);
 
-        // Add scroll listener for loading more as scroll
-        binding.recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
-            @Override
-            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
-                super.onScrolled(recyclerView, dx, dy);
-                LinearLayoutManager layoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
-                int totalItemCount = layoutManager.getItemCount();
-                int lastVisibleItem = layoutManager.findLastVisibleItemPosition();
-                if (!isLoading && lastVisibleItem >= totalItemCount - 1 && dy > 0 && allAssignedTours.size() < 20) {
-                    loadMore();
-                }
-            }
-        });
-
-        // Load initial page after adapter is set
-        loadMore();
+        // Mostrar loading mientras carga
+        binding.recyclerView.setVisibility(View.GONE);
+        binding.noResultsView.setVisibility(View.GONE);
+        
+        // Cargar tours asignados desde Firebase
+        loadToursAsignados();
 
         binding.filterButton.setOnClickListener(v -> {
             GuiaDateFilterDialogFragment dialog = new GuiaDateFilterDialogFragment();
@@ -104,7 +90,7 @@ public class guia_assigned_tours extends AppCompatActivity implements GuiaDateFi
             startActivity(intent);
         });
 
-        // Configurar toolbar sin botón de retroceso (pantalla principal)
+        // Configurar toolbar
         setSupportActionBar(binding.toolbar);
         if (getSupportActionBar() != null) {
             getSupportActionBar().setTitle("Tours Asignados");
@@ -115,6 +101,7 @@ public class guia_assigned_tours extends AppCompatActivity implements GuiaDateFi
             return true;
         });
 
+        // Configurar bottom navigation
         BottomNavigationView bottomNav = binding.bottomNav;
         bottomNav.setSelectedItemId(R.id.nav_tours);
         bottomNav.setOnItemSelectedListener(item -> {
@@ -135,44 +122,151 @@ public class guia_assigned_tours extends AppCompatActivity implements GuiaDateFi
         });
     }
 
-    private void loadMore() {
-        isLoading = true;
-        int offsetDays = allAssignedTours.size() / originalTours.size(); // Correct offset calculation
-        List<GuiaAssignedTour> moreTours = new ArrayList<>();
-        for (GuiaAssignedTour t : originalTours) {
-            if (allAssignedTours.size() + moreTours.size() >= 20) break;
-            List<String> newItinerario = new ArrayList<>(t.getItinerario());
-            String newDate = addDaysToDate(t.getDate(), offsetDays);
-            String newInitio = newDate + " - " + t.getInitio().split(" - ")[1];
-            GuiaAssignedTour copy = new GuiaAssignedTour(
-                    t.getName(),
-                    t.getEmpresa(),
-                    newInitio,
-                    t.getDuration(),
-                    t.getClients(),
-                    t.getStatus(),
-                    newDate,
-                    t.getLanguages(),
-                    t.getServices(),
-                    newItinerario
-            );
-            moreTours.add(copy);
-        }
-        allAssignedTours.addAll(moreTours);
-        onApplyFilters(currentDateFrom, currentDateTo, currentAmount, currentDuration, currentLanguages);
-        isLoading = false;
+    /**
+     * Cargar tours asignados desde Firebase
+     */
+    private void loadToursAsignados() {
+        Log.d(TAG, "Cargando tours asignados desde Firebase...");
+        
+        tourFirebaseService.getToursAsignados(new TourFirebaseService.TourAsignadoCallback() {
+            @Override
+            public void onSuccess(List<TourAsignado> tours) {
+                Log.d(TAG, "Tours asignados cargados: " + tours.size());
+                
+                // Convertir TourAsignado a GuiaAssignedTour para compatibilidad con UI existente
+                allAssignedTours.clear();
+                for (TourAsignado tourAsignado : tours) {
+                    GuiaAssignedTour guiaAssignedTour = convertToGuiaAssignedTour(tourAsignado);
+                    allAssignedTours.add(guiaAssignedTour);
+                }
+                
+                // Aplicar filtros y actualizar UI
+                runOnUiThread(() -> {
+                    onApplyFilters(currentDateFrom, currentDateTo, currentAmount, currentDuration, currentLanguages);
+                });
+            }
+
+            @Override
+            public void onError(String error) {
+                Log.e(TAG, "Error al cargar tours asignados: " + error);
+                runOnUiThread(() -> {
+                    Toast.makeText(guia_assigned_tours.this, "Error al cargar tours: " + error, Toast.LENGTH_LONG).show();
+                    // Mostrar vista vacía en caso de error
+                    binding.recyclerView.setVisibility(View.GONE);
+                    binding.noResultsView.setVisibility(View.VISIBLE);
+                });
+            }
+        });
     }
 
-    private String addDaysToDate(String dateStr, int days) {
-        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+    /**
+     * Convertir TourAsignado de Firebase a GuiaAssignedTour para UI
+     */
+    private GuiaAssignedTour convertToGuiaAssignedTour(TourAsignado tourAsignado) {
+        // Formatear fecha para UI
+        String fechaFormateada = formatDateForUI(tourAsignado.getFechaRealizacion());
+        String inicioFormateado = fechaFormateada + " - " + tourAsignado.getHoraInicio();
+        
+        // Convertir itinerario con mejor formato
+        List<String> itinerarioFormateado = new ArrayList<>();
+        if (tourAsignado.getItinerario() != null) {
+            for (int i = 0; i < tourAsignado.getItinerario().size(); i++) {
+                Map<String, Object> punto = (Map<String, Object>) tourAsignado.getItinerario().get(i);
+                String orden = String.valueOf(i + 1);
+                String titulo = (String) punto.get("titulo");
+                String hora = (String) punto.get("horaEstimada");
+                
+                // Manejar casos donde titulo o hora pueden ser null
+                if (titulo == null) titulo = "Sin título";
+                if (hora == null) hora = "Sin hora";
+                
+                itinerarioFormateado.add(orden + ". " + titulo + " - " + hora);
+            }
+        }
+        
+        // Formatear idiomas con manejo de null
+        String idiomas = "";
+        if (tourAsignado.getIdiomasRequeridos() != null && !tourAsignado.getIdiomasRequeridos().isEmpty()) {
+            idiomas = String.join(", ", tourAsignado.getIdiomasRequeridos());
+        }
+        
+        // Formatear servicios adicionales con manejo de null
+        String servicios = "";
+        if (tourAsignado.getServiciosAdicionales() != null && !tourAsignado.getServiciosAdicionales().isEmpty()) {
+            List<String> nombreServicios = new ArrayList<>();
+            for (Object servicio : tourAsignado.getServiciosAdicionales()) {
+                Map<String, Object> servicioMap = (Map<String, Object>) servicio;
+                String nombreServicio = (String) servicioMap.get("nombre");
+                if (nombreServicio != null) {
+                    nombreServicios.add(nombreServicio);
+                }
+            }
+            servicios = String.join(", ", nombreServicios);
+        }
+        
+        // Determinar estado para UI
+        String estadoUI = mapearEstadoParaUI(tourAsignado.getEstado());
+        
+        // Número de participantes (manejar caso null de Firebase)
+        int numeroParticipantes = tourAsignado.getNumeroParticipantesTotal() != null ? 
+            tourAsignado.getNumeroParticipantesTotal() : 0;
+
+        return new GuiaAssignedTour(
+            tourAsignado.getTitulo(),
+            tourAsignado.getNombreEmpresa(),
+            inicioFormateado,
+            tourAsignado.getDuracion(),
+            numeroParticipantes,
+            estadoUI,
+            fechaFormateada,
+            idiomas,
+            servicios,
+            itinerarioFormateado
+        );
+    }
+
+    /**
+     * Formatear fecha de Firebase Timestamp a formato UI
+     */
+    private String formatDateForUI(Object fechaRealizacion) {
+        if (fechaRealizacion == null) return "";
+        
         try {
-            Date date = sdf.parse(dateStr);
-            Calendar cal = Calendar.getInstance();
-            cal.setTime(date);
-            cal.add(Calendar.DAY_OF_YEAR, days);
-            return sdf.format(cal.getTime());
-        } catch (ParseException e) {
-            return dateStr;
+            // Si es Timestamp de Firebase
+            if (fechaRealizacion instanceof com.google.firebase.Timestamp) {
+                com.google.firebase.Timestamp timestamp = (com.google.firebase.Timestamp) fechaRealizacion;
+                Date date = timestamp.toDate();
+                SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+                return sdf.format(date);
+            }
+            // Si es String, intentar parsearlo
+            else if (fechaRealizacion instanceof String) {
+                return (String) fechaRealizacion;
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error al formatear fecha: ", e);
+        }
+        
+        return "";
+    }
+
+    /**
+     * Mapear estado de Firebase a estado de UI
+     */
+    private String mapearEstadoParaUI(String estadoFirebase) {
+        if (estadoFirebase == null) return "Pendiente";
+        
+        switch (estadoFirebase.toLowerCase()) {
+            case "confirmado":
+                return "Pendiente";
+            case "en_progreso":
+                return "En Curso";
+            case "completado":
+                return "Finalizado";
+            case "cancelado":
+                return "Cancelado";
+            default:
+                return "Pendiente";
         }
     }
 
@@ -187,6 +281,7 @@ public class guia_assigned_tours extends AppCompatActivity implements GuiaDateFi
         SimpleDateFormat inputFormat = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault());
         SimpleDateFormat storedFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
         List<GuiaAssignedTour> filteredTours = new ArrayList<>();
+        
         for (GuiaAssignedTour tour : allAssignedTours) {
             boolean matches = true;
             try {
@@ -233,14 +328,16 @@ public class guia_assigned_tours extends AppCompatActivity implements GuiaDateFi
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
         try {
             Date tourDate = sdf.parse(date);
-            Date today = sdf.parse("02/10/2025"); // Current date
-            if (sdf.format(today).equals(date)) {
+            Date today = new Date(); // Fecha actual real
+            SimpleDateFormat todayFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+            
+            if (todayFormat.format(today).equals(date)) {
                 return "Hoy, " + date.replace("/", " de ");
             } else {
                 Calendar cal = Calendar.getInstance();
                 cal.setTime(today);
                 cal.add(Calendar.DAY_OF_YEAR, 1);
-                if (sdf.format(cal.getTime()).equals(date)) {
+                if (todayFormat.format(cal.getTime()).equals(date)) {
                     return "Mañana, " + date.replace("/", " de ");
                 }
                 return date.replace("/", " de ");
@@ -284,13 +381,13 @@ public class guia_assigned_tours extends AppCompatActivity implements GuiaDateFi
         if (preferencesManager.isNotificationEnabled("tour_reminders")) {
             // Simular 3 recordatorios: hoy, mañana, en 2 días
             notificationService.sendTourReminderNotification(
-                "City Tour Lima Histórica", "23/10/2025", "9:00 AM", 0
+                "City Tour Lima Histórica", "05/11/2025", "9:00 AM", 0
             );
             notificationService.sendTourReminderNotification(
-                "Tour Barranco y Miraflores", "24/10/2025", "2:00 PM", 1
+                "Tour Barranco y Miraflores", "06/11/2025", "2:00 PM", 1
             );
             notificationService.sendTourReminderNotification(
-                "Tour Gastronómico", "25/10/2025", "11:00 AM", 2
+                "Tour Gastronómico", "07/11/2025", "11:00 AM", 2
             );
             Toast.makeText(this, "📅 Recordatorios de tours enviados (hoy, mañana, 2 días)", Toast.LENGTH_LONG).show();
         } else {
