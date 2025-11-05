@@ -171,8 +171,10 @@ public class SaReportsFragment extends Fragment {
                 // Color por ranking (0 = mayor → primer color)
                 int color = TOP5_COLORS[Math.min(i, TOP5_COLORS.length - 1)];
                 prog.setIndicatorColor(color);
-                // color del track para contraste (suave)
                 prog.setTrackColor(Color.parseColor("#E6E6E6"));
+
+                // → tocar una barra también navega al detalle de esa empresa
+                row.setOnClickListener(v -> navigateToCompanyReport(it.name));
 
                 binding.listContainer.addView(row);
             }
@@ -191,6 +193,9 @@ public class SaReportsFragment extends Fragment {
                 tvName.setText(company);
                 tvBadge.setText(String.valueOf(value));
 
+                // ✅ NUEVO: al tocar la fila, ir al detalle de esa empresa
+                row.setOnClickListener(v -> navigateToCompanyReport(company));
+
                 binding.listContainer.addView(row);
             }
 
@@ -204,8 +209,20 @@ public class SaReportsFragment extends Fragment {
             View row = inf.inflate(R.layout.sa_item_company_row, binding.listContainer, false);
             ((TextView) row.findViewById(R.id.tvName)).setText(selectedCompany);
             ((TextView) row.findViewById(R.id.tvBadge)).setText(String.valueOf(valor));
+
+            // ✅ NUEVO: también navegamos desde la vista filtrada
+            row.setOnClickListener(v -> navigateToCompanyReport(selectedCompany));
+
             binding.listContainer.addView(row);
         }
+    }
+
+    /** Navega al fragmento de reporte por empresa, pasando el nombre como argumento. */
+    private void navigateToCompanyReport(String companyName) {
+        NavController nav = NavHostFragment.findNavController(this);
+        Bundle args = new Bundle();
+        args.putString("companyName", companyName);
+        nav.navigate(R.id.action_saReports_to_saCompanyReport, args);
     }
 
     // ---------- helpers UI ----------
@@ -217,7 +234,7 @@ public class SaReportsFragment extends Fragment {
         int padBottom = Math.round(8 * getResources().getDisplayMetrics().density);
         tv.setPadding(0, padTop, 0, padBottom);
         tv.setText(text);
-        tv.setTextSize(sizeSp); // tamaño grande pedido
+        tv.setTextSize(sizeSp); // tamaño grande
         tv.setTypeface(tv.getTypeface(), android.graphics.Typeface.BOLD);
         return tv;
     }
