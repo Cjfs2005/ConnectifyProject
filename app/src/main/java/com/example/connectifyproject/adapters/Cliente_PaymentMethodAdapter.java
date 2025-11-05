@@ -18,7 +18,6 @@ public class Cliente_PaymentMethodAdapter extends RecyclerView.Adapter<Cliente_P
 
     public interface OnItemClickListener {
         void onDeleteClick(int position, Cliente_PaymentMethod paymentMethod);
-        void onSetDefaultClick(int position, Cliente_PaymentMethod paymentMethod);
     }
 
     public Cliente_PaymentMethodAdapter(List<Cliente_PaymentMethod> paymentMethods, OnItemClickListener listener) {
@@ -51,40 +50,14 @@ public class Cliente_PaymentMethodAdapter extends RecyclerView.Adapter<Cliente_P
             
             String expiryFormatted = paymentMethod.getExpiryFormatted();
             holder.tvExpiryDate.setText(expiryFormatted != null ? expiryFormatted : "");
-            
-            // Mostrar badge de default
-            if (paymentMethod.isDefault()) {
-                holder.tvDefaultBadge.setVisibility(View.VISIBLE);
-            } else {
-                holder.tvDefaultBadge.setVisibility(View.GONE);
-            }
         } catch (Exception e) {
             // En caso de error, mostrar valores por defecto
             holder.tvCardName.setText("Tarjeta");
             holder.tvExpiryDate.setText("");
-            holder.tvDefaultBadge.setVisibility(View.GONE);
         }
         
         // Capturar paymentMethod en variable final para los listeners
         final Cliente_PaymentMethod finalPaymentMethod = paymentMethod;
-        
-        // Configurar botón de establecer como predeterminado
-        if (paymentMethod != null && paymentMethod.isDefault()) {
-            holder.ivSetDefault.setImageResource(R.drawable.ic_star);
-            holder.ivSetDefault.setEnabled(false);
-            holder.ivSetDefault.setAlpha(0.5f);
-        } else {
-            holder.ivSetDefault.setImageResource(R.drawable.ic_star_border);
-            holder.ivSetDefault.setEnabled(true);
-            holder.ivSetDefault.setAlpha(1.0f);
-        }
-        
-        // Click en establecer como predeterminado
-        holder.ivSetDefault.setOnClickListener(v -> {
-            if (itemClickListener != null && finalPaymentMethod != null && !finalPaymentMethod.isDefault()) {
-                itemClickListener.onSetDefaultClick(position, finalPaymentMethod);
-            }
-        });
         
         // Click en eliminar
         holder.ivDelete.setOnClickListener(v -> {
@@ -114,19 +87,15 @@ public class Cliente_PaymentMethodAdapter extends RecyclerView.Adapter<Cliente_P
     public static class ViewHolder extends RecyclerView.ViewHolder {
         TextView tvCardName;
         TextView tvExpiryDate;
-        TextView tvDefaultBadge;
         ImageView ivCardLogo;
         ImageView ivDelete;
-        ImageView ivSetDefault;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             tvCardName = itemView.findViewById(R.id.tv_card_name);
             tvExpiryDate = itemView.findViewById(R.id.tv_expiry_date);
-            tvDefaultBadge = itemView.findViewById(R.id.tv_default_badge);
             ivCardLogo = itemView.findViewById(R.id.iv_card_logo);
             ivDelete = itemView.findViewById(R.id.iv_delete);
-            ivSetDefault = itemView.findViewById(R.id.iv_set_default);
         }
     }
 }

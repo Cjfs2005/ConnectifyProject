@@ -67,7 +67,6 @@ public class cliente_perfil extends AppCompatActivity {
         setupBottomNavigation();
         setupClickListeners();
         loadUserData();
-        loadDefaultPaymentMethod();
     }
 
     @Override
@@ -79,7 +78,6 @@ public class cliente_perfil extends AppCompatActivity {
         }
         // Recargar datos por si se editaron
         loadUserData();
-        loadDefaultPaymentMethod();
     }
 
     private void initViews() {
@@ -259,86 +257,7 @@ public class cliente_perfil extends AppCompatActivity {
                 .into(ivProfilePhoto);
     }
 
-    private void loadDefaultPaymentMethod() {
-        Log.d(TAG, "Cargando método de pago por defecto para usuario: " + currentUser.getUid());
-        
-        db.collection("usuarios")
-                .document(currentUser.getUid())
-                .collection("payment_methods")
-                .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    if (queryDocumentSnapshots != null && !queryDocumentSnapshots.isEmpty()) {
-                        Log.d(TAG, "Documentos de métodos de pago encontrados: " + queryDocumentSnapshots.size());
-                        
-                        // Buscar tarjeta default primero
-                        for (com.google.firebase.firestore.QueryDocumentSnapshot document : queryDocumentSnapshots) {
-                            Log.d(TAG, "Procesando documento de pago: " + document.getId());
-                            Log.d(TAG, "Datos del documento: " + document.getData());
-                            
-                            try {
-                                com.example.connectifyproject.models.Cliente_PaymentMethod paymentMethod = 
-                                        document.toObject(com.example.connectifyproject.models.Cliente_PaymentMethod.class);
-                                
-                                if (paymentMethod != null) {
-                                    Log.d(TAG, "PaymentMethod parseado - Brand: " + paymentMethod.getCardBrand() + 
-                                              ", Last4: " + paymentMethod.getLast4Digits() + ", Default: " + paymentMethod.isDefault());
-                                    
-                                    if (paymentMethod.isDefault()) {
-                                        Log.d(TAG, "Encontrado método por defecto, actualizando UI");
-                                        updatePaymentMethodInfo(paymentMethod);
-                                        return;
-                                    }
-                                } else {
-                                    Log.w(TAG, "PaymentMethod es null después del parsing");
-                                }
-                            } catch (Exception e) {
-                                Log.e(TAG, "Error parsing payment method", e);
-                            }
-                        }
-                        
-                        // Si no hay default, mostrar la primera disponible
-                        Log.d(TAG, "No se encontró método por defecto, usando el primero disponible");
-                        try {
-                            com.google.firebase.firestore.QueryDocumentSnapshot firstDoc = 
-                                    (com.google.firebase.firestore.QueryDocumentSnapshot) queryDocumentSnapshots.getDocuments().get(0);
-                            com.example.connectifyproject.models.Cliente_PaymentMethod paymentMethod = 
-                                    firstDoc.toObject(com.example.connectifyproject.models.Cliente_PaymentMethod.class);
-                            
-                            if (paymentMethod != null) {
-                                Log.d(TAG, "Usando primer método disponible: " + paymentMethod.getCardBrand());
-                                updatePaymentMethodInfo(paymentMethod);
-                            } else {
-                                Log.w(TAG, "Primer documento no se pudo parsear");
-                                tvDefaultPaymentInfo.setText("Agregar método de pago");
-                            }
-                        } catch (Exception e) {
-                            Log.e(TAG, "Error getting first payment method", e);
-                            tvDefaultPaymentInfo.setText("Agregar método de pago");
-                        }
-                    } else {
-                        // No hay métodos de pago
-                        Log.d(TAG, "No se encontraron métodos de pago");
-                        tvDefaultPaymentInfo.setText("Agregar método de pago");
-                    }
-                })
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "Error loading payment methods", e);
-                    tvDefaultPaymentInfo.setText("Agregar método de pago");
-                });
-    }
-    
-    private void updatePaymentMethodInfo(com.example.connectifyproject.models.Cliente_PaymentMethod paymentMethod) {
-        String displayInfo = paymentMethod.getDisplayName();
-        Log.d(TAG, "Actualizando info de método de pago - DisplayName: " + displayInfo);
-        
-        if (displayInfo != null && !displayInfo.isEmpty()) {
-            tvDefaultPaymentInfo.setText(displayInfo);
-            Log.d(TAG, "Texto actualizado en UI: " + displayInfo);
-        } else {
-            tvDefaultPaymentInfo.setText("Método de pago configurado");
-            Log.d(TAG, "Usando texto por defecto");
-        }
-    }
+
 
     private void redirectToLogin() {
         Intent intent = new Intent(this, SplashActivity.class);

@@ -257,7 +257,7 @@ public class cliente_agregar_metodo_pago extends AppCompatActivity {
         String expiryYear = spinnerExpiryYear.getText().toString();
         String cvv = etCvv.getText().toString();
         String nickname = etNickname.getText().toString().trim();
-        boolean setAsDefault = true; // Siempre establecer como predeterminada
+        // Eliminamos la lógica de predeterminada
 
         // Validate
         boolean isValid = true;
@@ -326,39 +326,18 @@ public class cliente_agregar_metodo_pago extends AppCompatActivity {
 
         // Save to Firestore
         String userId = mAuth.getCurrentUser().getUid();
-        
-        if (setAsDefault) {
-            // If setting as default, use batch to update all others
-            saveAsDefault(userId, paymentMethod);
-        } else {
-            // Just save normally
-            saveNormal(userId, paymentMethod);
-        }
+        savePaymentMethod(userId, paymentMethod);
     }
 
-    private void saveNormal(String userId, Cliente_PaymentMethod paymentMethod) {
-        // Check if this is the first card
+    private void savePaymentMethod(String userId, Cliente_PaymentMethod paymentMethod) {
+        // Sin lógica de predeterminada, simplemente guardar
         db.collection("usuarios")
                 .document(userId)
                 .collection("payment_methods")
-                .get()
-                .addOnSuccessListener(querySnapshot -> {
-                    boolean isFirstCard = querySnapshot.isEmpty();
-                    paymentMethod.setDefault(isFirstCard); // First card is always default
-
-                    db.collection("usuarios")
-                            .document(userId)
-                            .collection("payment_methods")
-                            .add(paymentMethod.toMap())
-                            .addOnSuccessListener(documentReference -> {
-                                Toast.makeText(this, "Tarjeta guardada correctamente", Toast.LENGTH_SHORT).show();
-                                finish();
-                            })
-                            .addOnFailureListener(e -> {
-                                Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                                btnSave.setEnabled(true);
-                                btnSave.setText("Guardar tarjeta");
-                            });
+                .add(paymentMethod)
+                .addOnSuccessListener(documentReference -> {
+                    Toast.makeText(this, "Tarjeta guardada correctamente", Toast.LENGTH_SHORT).show();
+                    finish();
                 })
                 .addOnFailureListener(e -> {
                     Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
@@ -367,46 +346,7 @@ public class cliente_agregar_metodo_pago extends AppCompatActivity {
                 });
     }
 
-    private void saveAsDefault(String userId, Cliente_PaymentMethod paymentMethod) {
-        paymentMethod.setDefault(true);
 
-        // Get all existing payment methods
-        db.collection("usuarios")
-                .document(userId)
-                .collection("payment_methods")
-                .get()
-                .addOnSuccessListener(querySnapshot -> {
-                    WriteBatch batch = db.batch();
-
-                    // Set all others to non-default
-                    querySnapshot.getDocuments().forEach(doc -> {
-                        batch.update(doc.getReference(), "isDefault", false);
-                    });
-
-                    // Add new card
-                    batch.set(db.collection("usuarios")
-                            .document(userId)
-                            .collection("payment_methods")
-                            .document(), paymentMethod.toMap());
-
-                    // Commit batch
-                    batch.commit()
-                            .addOnSuccessListener(aVoid -> {
-                                Toast.makeText(this, "Tarjeta guardada como predeterminada", Toast.LENGTH_SHORT).show();
-                                finish();
-                            })
-                            .addOnFailureListener(e -> {
-                                Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                                btnSave.setEnabled(true);
-                                btnSave.setText("Guardar tarjeta");
-                            });
-                })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                    btnSave.setEnabled(true);
-                    btnSave.setText("Guardar tarjeta");
-                });
-    }
 
     @Override
     public void onBackPressed() {

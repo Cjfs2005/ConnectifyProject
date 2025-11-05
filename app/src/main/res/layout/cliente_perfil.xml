@@ -358,7 +358,7 @@
                         android:id="@+id/tv_default_payment_info"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Agregar método de pago"
+                        android:text="Ver tarjetas"
                         android:textAppearance="@style/TextAppearance.Material3.BodySmall"
                         android:textColor="?attr/colorOnSurfaceVariant" />
 

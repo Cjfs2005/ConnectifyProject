@@ -85,11 +85,6 @@ public class cliente_metodos_pago extends AppCompatActivity {
                 public void onDeleteClick(int position, Cliente_PaymentMethod paymentMethod) {
                     showDeleteConfirmationDialog(paymentMethod);
                 }
-
-                @Override
-                public void onSetDefaultClick(int position, Cliente_PaymentMethod paymentMethod) {
-                    setAsDefault(paymentMethod);
-                }
             });
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -170,12 +165,6 @@ public class cliente_metodos_pago extends AppCompatActivity {
     }
 
     private void showDeleteConfirmationDialog(Cliente_PaymentMethod paymentMethod) {
-        // No permitir eliminar si es el único método de pago y es default
-        if (paymentMethod.isDefault() && paymentMethods.size() == 1) {
-            Toast.makeText(this, "No puede eliminar el único método de pago", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        
         new AlertDialog.Builder(this)
                 .setTitle("Eliminar método de pago")
                 .setMessage("¿Está seguro de que desea eliminar " + paymentMethod.getDisplayName() + "?")
@@ -196,12 +185,6 @@ public class cliente_metodos_pago extends AppCompatActivity {
                 .delete()
                 .addOnSuccessListener(aVoid -> {
                     Toast.makeText(this, "Método de pago eliminado", Toast.LENGTH_SHORT).show();
-                    
-                    // Si era default y quedan más tarjetas, marcar la primera como default
-                    if (paymentMethod.isDefault() && paymentMethods.size() > 1) {
-                        // El listener se encargará de actualizar la lista
-                        setFirstAsDefault();
-                    }
                 })
                 .addOnFailureListener(e -> {
                     Toast.makeText(this, "Error al eliminar: " + e.getMessage(),
@@ -209,45 +192,7 @@ public class cliente_metodos_pago extends AppCompatActivity {
                 });
     }
 
-    private void setAsDefault(Cliente_PaymentMethod paymentMethod) {
-        // Usar batch write para actualizar todas las tarjetas de una vez
-        WriteBatch batch = db.batch();
-        
-        // Quitar default de todas las tarjetas
-        for (Cliente_PaymentMethod pm : paymentMethods) {
-            db.collection("usuarios")
-                    .document(currentUser.getUid())
-                    .collection("payment_methods")
-                    .document(pm.getId())
-                    .update("default", false);
-        }
-        
-        // Marcar la seleccionada como default
-        db.collection("usuarios")
-                .document(currentUser.getUid())
-                .collection("payment_methods")
-                .document(paymentMethod.getId())
-                .update("default", true)
-                .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(this, paymentMethod.getDisplayName() + " marcado como predeterminado",
-                            Toast.LENGTH_SHORT).show();
-                })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(this, "Error al actualizar: " + e.getMessage(),
-                            Toast.LENGTH_SHORT).show();
-                });
-    }
 
-    private void setFirstAsDefault() {
-        if (!paymentMethods.isEmpty()) {
-            Cliente_PaymentMethod firstMethod = paymentMethods.get(0);
-            db.collection("usuarios")
-                    .document(currentUser.getUid())
-                    .collection("payment_methods")
-                    .document(firstMethod.getId())
-                    .update("default", true);
-        }
-    }
 
     private void showEmptyState() {
         if (emptyStateLayout != null) {
