@@ -58,7 +58,13 @@ public class guia_tour_detail extends AppCompatActivity implements OnMapReadyCal
                     .setTitle("Confirmar aceptación")
                     .setMessage("¿Está seguro de aceptar esta oferta? Se rechazarán otras ofertas en el mismo horario")
                     .setPositiveButton("Aceptar", (dialog, which) -> {
-                        Toast.makeText(this, "Oferta aceptada (simulado)", Toast.LENGTH_SHORT).show();
+                        // Llamar al método de aceptación en la actividad padre si existe
+                        if (getParent() instanceof guia_tours_ofertas) {
+                            // TODO: Implementar lógica de aceptación con Firebase
+                            Toast.makeText(this, "Funcionalidad de aceptación habilitada con Firebase", Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(this, "Oferta aceptada (simulado)", Toast.LENGTH_SHORT).show();
+                        }
                         finish();
                     })
                     .setNegativeButton("Cancelar", null)

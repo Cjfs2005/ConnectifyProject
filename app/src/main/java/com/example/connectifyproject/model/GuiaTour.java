@@ -18,6 +18,7 @@ public class GuiaTour {
     private String puntualidad; // e.g., "Puntualidad en puntos de encuentro"
     private boolean transporteIncluido;
     private boolean almuerzoIncluido;
+    private String firebaseId; // ID de Firebase para referencia
 
     public GuiaTour(String name, String location, double price, String duration, String languages,
                     String startTime, String date, String description, String benefits,
@@ -60,4 +61,8 @@ public class GuiaTour {
     public String getPuntualidad() { return puntualidad; }
     public boolean isTransporteIncluido() { return transporteIncluido; }
     public boolean isAlmuerzoIncluido() { return almuerzoIncluido; }
+    public String getFirebaseId() { return firebaseId; }
+    
+    // Setter para Firebase ID
+    public void setFirebaseId(String firebaseId) { this.firebaseId = firebaseId; }
 }
