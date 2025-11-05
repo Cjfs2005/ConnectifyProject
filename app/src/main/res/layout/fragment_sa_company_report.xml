@@ -104,7 +104,7 @@
                         android:layout_width="0dp"
                         android:layout_height="12dp"
                         android:layout_weight="1"
-                        app:trackColor="@color/grey_300"/>
+                        app:trackColor="@color/gray_300"/>
                     <TextView
                         android:id="@+id/tvMon"
                         android:layout_width="48dp"
@@ -129,7 +129,7 @@
                         android:layout_width="0dp"
                         android:layout_height="12dp"
                         android:layout_weight="1"
-                        app:trackColor="@color/grey_300"/>
+                        app:trackColor="@color/gray_300"/>
                     <TextView
                         android:id="@+id/tvTue"
                         android:layout_width="48dp"
@@ -154,7 +154,7 @@
                         android:layout_width="0dp"
                         android:layout_height="12dp"
                         android:layout_weight="1"
-                        app:trackColor="@color/grey_300"/>
+                        app:trackColor="@color/gray_300"/>
                     <TextView
                         android:id="@+id/tvWed"
                         android:layout_width="48dp"
@@ -179,7 +179,7 @@
                         android:layout_width="0dp"
                         android:layout_height="12dp"
                         android:layout_weight="1"
-                        app:trackColor="@color/grey_300"/>
+                        app:trackColor="@color/gray_300"/>
                     <TextView
                         android:id="@+id/tvThu"
                         android:layout_width="48dp"
@@ -204,7 +204,7 @@
                         android:layout_width="0dp"
                         android:layout_height="12dp"
                         android:layout_weight="1"
-                        app:trackColor="@color/grey_300"/>
+                        app:trackColor="@color/gray_300"/>
                     <TextView
                         android:id="@+id/tvFri"
                         android:layout_width="48dp"
@@ -229,7 +229,7 @@
                         android:layout_width="0dp"
                         android:layout_height="12dp"
                         android:layout_weight="1"
-                        app:trackColor="@color/grey_300"/>
+                        app:trackColor="@color/gray_300"/>
                     <TextView
                         android:id="@+id/tvSat"
                         android:layout_width="48dp"
@@ -254,7 +254,7 @@
                         android:layout_width="0dp"
                         android:layout_height="12dp"
                         android:layout_weight="1"
-                        app:trackColor="@color/grey_300"/>
+                        app:trackColor="@color/gray_300"/>
                     <TextView
                         android:id="@+id/tvSun"
                         android:layout_width="48dp"
@@ -285,6 +285,7 @@
                     android:layout_width="180dp"
                     android:layout_height="180dp" />
 
+                <!-- Leyenda con puntos de color -->
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
@@ -292,43 +293,83 @@
                     android:orientation="vertical"
                     android:paddingStart="16dp">
 
-                    <TextView
-                        android:layout_width="wrap_content"
+                    <!-- Finalizadas -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Finalizadas"/>
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingVertical="4dp">
+                        <View
+                            android:layout_width="12dp"
+                            android:layout_height="12dp"
+                            android:layout_marginEnd="8dp"
+                            android:background="@drawable/legend_dot"
+                            android:backgroundTint="@color/legend_finished"/>
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Finalizadas"/>
+                        <TextView
+                            android:id="@+id/legendFinished"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="0"
+                            android:textStyle="bold"/>
+                    </LinearLayout>
 
-                    <TextView
-                        android:id="@+id/legendFinished"
-                        android:layout_width="wrap_content"
+                    <!-- Activas -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="0"
-                        android:textStyle="bold"/>
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingVertical="4dp">
+                        <View
+                            android:layout_width="12dp"
+                            android:layout_height="12dp"
+                            android:layout_marginEnd="8dp"
+                            android:background="@drawable/legend_dot"
+                            android:backgroundTint="@color/legend_active"/>
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Activas"/>
+                        <TextView
+                            android:id="@+id/legendActive"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="0"
+                            android:textStyle="bold"/>
+                    </LinearLayout>
 
-                    <TextView
-                        android:layout_width="wrap_content"
+                    <!-- Canceladas -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:text="Activas"/>
-
-                    <TextView
-                        android:id="@+id/legendActive"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="0"
-                        android:textStyle="bold"/>
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:text="Canceladas"/>
-
-                    <TextView
-                        android:id="@+id/legendCancelled"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="0"
-                        android:textStyle="bold"/>
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingVertical="4dp">
+                        <View
+                            android:layout_width="12dp"
+                            android:layout_height="12dp"
+                            android:layout_marginEnd="8dp"
+                            android:background="@drawable/legend_dot"
+                            android:backgroundTint="@color/legend_cancelled"/>
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Canceladas"/>
+                        <TextView
+                            android:id="@+id/legendCancelled"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="0"
+                            android:textStyle="bold"/>
+                    </LinearLayout>
                 </LinearLayout>
             </LinearLayout>
 
@@ -371,7 +412,7 @@
                     android:id="@+id/barTop1"
                     android:layout_width="match_parent"
                     android:layout_height="12dp"
-                    app:trackColor="@color/grey_300"/>
+                    app:trackColor="@color/gray_300"/>
 
                 <!-- Item 2 -->
                 <LinearLayout
@@ -398,7 +439,7 @@
                     android:id="@+id/barTop2"
                     android:layout_width="match_parent"
                     android:layout_height="12dp"
-                    app:trackColor="@color/grey_300"/>
+                    app:trackColor="@color/gray_300"/>
 
                 <!-- Item 3 -->
                 <LinearLayout
@@ -425,7 +466,7 @@
                     android:id="@+id/barTop3"
                     android:layout_width="match_parent"
                     android:layout_height="12dp"
-                    app:trackColor="@color/grey_300"/>
+                    app:trackColor="@color/gray_300"/>
             </LinearLayout>
 
         </LinearLayout>

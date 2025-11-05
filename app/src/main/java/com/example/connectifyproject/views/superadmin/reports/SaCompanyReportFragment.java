@@ -37,7 +37,8 @@ public class SaCompanyReportFragment extends Fragment {
     // paleta (coincide con la de Top-5)
     @ColorInt private int c1, c2, c3, c4, c5;
 
-    @Nullable @Override
+    @Nullable
+    @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
@@ -45,10 +46,11 @@ public class SaCompanyReportFragment extends Fragment {
         return binding.getRoot();
     }
 
-    @Override public void onViewCreated(@NonNull View v, @Nullable Bundle s) {
+    @Override
+    public void onViewCreated(@NonNull View v, @Nullable Bundle s) {
         super.onViewCreated(v, s);
 
-        // colores
+        // colores top (para Top-3)
         c1 = getColor(R.color.sa_top1); // #3B234A
         c2 = getColor(R.color.sa_top2); // #523961
         c3 = getColor(R.color.sa_top3); // #BAAFC4
@@ -58,7 +60,7 @@ public class SaCompanyReportFragment extends Fragment {
         final NavController nav = NavHostFragment.findNavController(this);
         companyName = getArguments() != null ? getArguments().getString("companyName", "") : "";
 
-        // Toolbar con up-navigation y título
+        // Toolbar con up-navigation, título y flecha blanca
         MaterialToolbar tb = binding.toolbar;
         tb.setTitle(companyName.isEmpty() ? "Reporte de empresa" : companyName);
         tb.setNavigationIcon(R.drawable.ic_arrow_back_24);
@@ -87,8 +89,7 @@ public class SaCompanyReportFragment extends Fragment {
         // 2) Total (mes)
         binding.tvTotalMonth.setText(String.valueOf(md.totalMonth));
 
-        // 3) Barras por día de semana (acumulado Lun-Dom)
-        //    L, M, X, J, V, S, D
+        // 3) Barras por día de semana (Lun..Dom)
         LinearProgressIndicator[] bars = new LinearProgressIndicator[]{
                 binding.barMon, binding.barTue, binding.barWed,
                 binding.barThu, binding.barFri, binding.barSat, binding.barSun
@@ -106,12 +107,12 @@ public class SaCompanyReportFragment extends Fragment {
             bars[i].setProgress(pct);
         }
 
-        // 4) Pie de estados
+        // 4) Pie de estados (orden: finalizadas, activas, canceladas)
         binding.pie.setValues(md.finished, md.active, md.cancelled);
         binding.pie.setColors(
-                getColor(R.color.teal_700),   // finalizadas
-                getColor(R.color.brand_purple_dark), // activas
-                getColor(R.color.red_600) // canceladas
+                getColor(R.color.legend_finished),   // Finalizadas -> #F1A20B
+                getColor(R.color.legend_active),     // Activas     -> #8D9C09
+                getColor(R.color.legend_cancelled)   // Canceladas  -> #D20D20
         );
         binding.legendFinished.setText(String.valueOf(md.finished));
         binding.legendActive.setText(String.valueOf(md.active));
@@ -193,8 +194,8 @@ public class SaCompanyReportFragment extends Fragment {
         for (int i = 0; i < 7; i++) if (m.byDow[i] < 0) m.byDow[i] = 0;
 
         // estados (partición simple)
-        m.finished = Math.max(0, (int) Math.round(m.totalMonth * (0.45 + r.nextDouble() * 0.25)));
-        m.active   = Math.max(0, (int) Math.round(m.totalMonth * (0.20 + r.nextDouble() * 0.20)));
+        m.finished  = Math.max(0, (int) Math.round(m.totalMonth * (0.45 + r.nextDouble() * 0.25)));
+        m.active    = Math.max(0, (int) Math.round(m.totalMonth * (0.20 + r.nextDouble() * 0.20)));
         m.cancelled = Math.max(0, m.totalMonth - m.finished - m.active);
 
         // top-3 tours
