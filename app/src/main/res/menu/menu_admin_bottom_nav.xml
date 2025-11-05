@@ -1,22 +1,22 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
         android:id="@+id/nav_dashboard"
-        android:icon="@drawable/ic_dashboard_negro"
+        android:icon="@drawable/ic_analytics_24"
         android:title="@string/nav_dashboard" />
     <item
         android:id="@+id/nav_tours"
-        android:icon="@drawable/ic_tour_negro"
+        android:icon="@drawable/ic_mapa"
         android:title="@string/nav_tours" />
     <item
         android:id="@+id/nav_chat"
-        android:icon="@drawable/ic_chat_negro"
+        android:icon="@drawable/ic_chat_24"
         android:title="@string/nav_chat" />
     <item
         android:id="@+id/nav_pagos"
-        android:icon="@drawable/ic_pagos_negro"
+        android:icon="@drawable/ic_credit_card"
         android:title="@string/nav_pagos" />
     <item
         android:id="@+id/nav_perfil"
-        android:icon="@drawable/ic_perfil_negro"
+        android:icon="@drawable/ic_person_24"
         android:title="@string/nav_perfil" />
 </menu>

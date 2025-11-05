@@ -24,7 +24,7 @@
     <!-- "Mi perfil" es un tab distinto; NO debe usar el id del fragmento de detalle -->
     <item
         android:id="@+id/nav_profile_self"
-        android:icon="@drawable/ic_nav_perfil"
+        android:icon="@drawable/ic_person_24"
         android:title="Mi perfil" />
 
 </menu>

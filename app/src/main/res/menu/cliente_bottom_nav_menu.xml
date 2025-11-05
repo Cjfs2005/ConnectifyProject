@@ -12,7 +12,7 @@
         
     <item
         android:id="@+id/nav_tours"
-        android:icon="@drawable/ic_explore_24"
+        android:icon="@drawable/ic_mapa"
         android:title="@string/cliente_nav_tours" />
         
     <item
