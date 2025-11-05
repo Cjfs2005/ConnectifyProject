@@ -103,6 +103,15 @@ public class guia_historial extends AppCompatActivity {
         initializeDefaultPreferences();
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Asegurar que "Historial" esté seleccionado cuando regresamos a esta actividad
+        if (binding.bottomNav != null) {
+            binding.bottomNav.setSelectedItemId(R.id.nav_historial);
+        }
+    }
+
     private void checkNotificationPermissions() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) 

@@ -74,6 +74,10 @@ public class guia_perfil extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        // Asegurar que "Perfil" esté seleccionado cuando regresamos a esta actividad
+        if (bottomNavigation != null) {
+            bottomNavigation.setSelectedItemId(R.id.nav_perfil);
+        }
         // Recargar datos por si se editaron
         loadUserData();
     }
@@ -359,11 +363,9 @@ public class guia_perfil extends AppCompatActivity {
     }
 
     private void showAddLanguageDialog() {
-        // Lista de idiomas comunes
+        // Lista de idiomas igual que en el registro de guía
         String[] languages = {
-            "Español", "Inglés", "Francés", "Alemán", "Italiano", "Portugués",
-            "Japonés", "Chino Mandarín", "Coreano", "Ruso", "Árabe", "Holandés",
-            "Sueco", "Noruego", "Danés", "Finlandés", "Polaco", "Checo"
+            "Español", "Inglés", "Francés", "Alemán", "Italiano", "Chino", "Japonés"
         };
 
         androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(this);

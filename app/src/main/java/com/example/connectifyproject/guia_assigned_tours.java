@@ -135,6 +135,15 @@ public class guia_assigned_tours extends AppCompatActivity implements GuiaDateFi
         });
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Asegurar que "Tours" esté seleccionado cuando regresamos a esta actividad
+        if (binding.bottomNav != null) {
+            binding.bottomNav.setSelectedItemId(R.id.nav_tours);
+        }
+    }
+
     private void loadMore() {
         isLoading = true;
         int offsetDays = allAssignedTours.size() / originalTours.size(); // Correct offset calculation
