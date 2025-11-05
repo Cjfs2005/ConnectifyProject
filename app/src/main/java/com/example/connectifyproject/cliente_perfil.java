@@ -32,6 +32,7 @@ public class cliente_perfil extends AppCompatActivity {
     private TextView tvUserName;
     private TextView tvEmail;
     private TextView tvPhone;
+    private TextView tvDocumentType;
     private TextView tvDocument;
     private TextView tvBirthDate;
     private TextView tvAddress;
@@ -85,6 +86,7 @@ public class cliente_perfil extends AppCompatActivity {
         tvUserName = findViewById(R.id.tv_user_name);
         tvEmail = findViewById(R.id.tv_email);
         tvPhone = findViewById(R.id.tv_phone);
+        tvDocumentType = findViewById(R.id.tv_document_type);
         tvDocument = findViewById(R.id.tv_document);
         tvBirthDate = findViewById(R.id.tv_birth_date);
         tvAddress = findViewById(R.id.tv_address);
@@ -211,7 +213,8 @@ public class cliente_perfil extends AppCompatActivity {
             }
             
             if (tipoDocumento != null && numeroDocumento != null) {
-                tvDocument.setText(tipoDocumento + ": " + numeroDocumento);
+                tvDocumentType.setText(tipoDocumento);
+                tvDocument.setText(numeroDocumento);
             }
             
             if (fechaNacimiento != null && !fechaNacimiento.isEmpty()) {

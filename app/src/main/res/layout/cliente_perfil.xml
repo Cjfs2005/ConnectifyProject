@@ -135,6 +135,7 @@
                     android:orientation="vertical">
 
                     <TextView
+                        android:id="@+id/tv_document_type"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="DNI"
@@ -406,14 +407,14 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Canales de notificaciones"
+                        android:text="Permisos"
                         android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
                         android:textColor="?attr/colorOnSurface" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Gestionar notificaciones"
+                        android:text="Canales de notificaciones"
                         android:textAppearance="@style/TextAppearance.Material3.BodySmall"
                         android:textColor="?attr/colorOnSurfaceVariant" />
 

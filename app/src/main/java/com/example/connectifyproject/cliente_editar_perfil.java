@@ -46,6 +46,7 @@ public class cliente_editar_perfil extends AppCompatActivity {
     private TextInputEditText etNumeroDocumento;
     private TextInputEditText etTelefono;
     private TextInputEditText etFechaNacimiento;
+    private TextInputEditText etDomicilio;
     private MaterialButton btnGuardar;
 
     private Uri selectedImageUri;
@@ -117,6 +118,7 @@ public class cliente_editar_perfil extends AppCompatActivity {
         etNumeroDocumento = findViewById(R.id.et_numero_documento);
         etTelefono = findViewById(R.id.et_telefono);
         etFechaNacimiento = findViewById(R.id.et_fecha_nacimiento);
+        etDomicilio = findViewById(R.id.et_domicilio);
         btnGuardar = findViewById(R.id.btn_guardar);
     }
 
@@ -224,6 +226,11 @@ public class cliente_editar_perfil extends AppCompatActivity {
                         if (fechaNac != null && !fechaNac.isEmpty()) {
                             etFechaNacimiento.setText(fechaNac);
                             fechaNacimiento = fechaNac;
+                        }
+
+                        String domicilio = documentSnapshot.getString("domicilio");
+                        if (domicilio != null && !domicilio.isEmpty()) {
+                            etDomicilio.setText(domicilio);
                             
                             try {
                                 SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
@@ -251,6 +258,7 @@ public class cliente_editar_perfil extends AppCompatActivity {
         String numeroDoc = etNumeroDocumento.getText().toString().trim();
         String telefono = etTelefono.getText().toString().trim();
         String fechaNac = etFechaNacimiento.getText().toString().trim();
+        String domicilio = etDomicilio.getText().toString().trim();
 
         if (tipoDoc.isEmpty()) {
             Toast.makeText(this, "Seleccione un tipo de documento", Toast.LENGTH_SHORT).show();
@@ -278,20 +286,20 @@ public class cliente_editar_perfil extends AppCompatActivity {
         btnGuardar.setText("Guardando...");
 
         if (selectedImageUri != null) {
-            uploadPhotoAndSaveData(tipoDoc, numeroDoc, telefono, fechaNac);
+            uploadPhotoAndSaveData(tipoDoc, numeroDoc, telefono, fechaNac, domicilio);
         } else {
-            saveDataToFirestore(tipoDoc, numeroDoc, telefono, fechaNac, null);
+            saveDataToFirestore(tipoDoc, numeroDoc, telefono, fechaNac, domicilio, null);
         }
     }
 
-    private void uploadPhotoAndSaveData(String tipoDoc, String numeroDoc, String telefono, String fechaNac) {
+    private void uploadPhotoAndSaveData(String tipoDoc, String numeroDoc, String telefono, String fechaNac, String domicilio) {
         String userId = currentUser.getUid();
 
         storageHelper.uploadProfilePhoto(this, selectedImageUri, userId,
                 new StorageHelper.UploadCallback() {
                     @Override
                     public void onSuccess(String downloadUrl) {
-                        saveDataToFirestore(tipoDoc, numeroDoc, telefono, fechaNac, downloadUrl);
+                        saveDataToFirestore(tipoDoc, numeroDoc, telefono, fechaNac, domicilio, downloadUrl);
                     }
 
                     @Override
@@ -311,12 +319,13 @@ public class cliente_editar_perfil extends AppCompatActivity {
     }
 
     private void saveDataToFirestore(String tipoDoc, String numeroDoc, String telefono,
-                                     String fechaNac, String photoUrl) {
+                                     String fechaNac, String domicilio, String photoUrl) {
         Map<String, Object> updates = new HashMap<>();
         updates.put("tipoDocumento", tipoDoc);
         updates.put("numeroDocumento", numeroDoc);
         updates.put("telefono", telefono);
         updates.put("fechaNacimiento", fechaNac);
+        updates.put("domicilio", domicilio);
 
         if (photoUrl != null) {
             updates.put("photoUrl", photoUrl);

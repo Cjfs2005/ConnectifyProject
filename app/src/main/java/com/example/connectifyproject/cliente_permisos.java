@@ -17,7 +17,7 @@ public class cliente_permisos extends AppCompatActivity {
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             getSupportActionBar().setDisplayShowHomeEnabled(true);
-            getSupportActionBar().setTitle("Canales de notificaciones");
+            getSupportActionBar().setTitle("Permisos");
         }
 
         // Handle back button

@@ -158,6 +158,26 @@
 
             </com.google.android.material.textfield.TextInputLayout>
 
+            <!-- Campo Domicilio -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/til_domicilio"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:hint="Domicilio"
+                app:boxStrokeColor="?attr/colorPrimary"
+                app:hintTextColor="?attr/colorPrimary"
+                app:endIconMode="clear_text">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/et_domicilio"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textCapWords|textMultiLine"
+                    android:maxLines="3" />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
             <!-- Botón Guardar -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_guardar"
