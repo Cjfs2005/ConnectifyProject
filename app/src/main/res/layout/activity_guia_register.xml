@@ -237,6 +237,44 @@
                 android:maxLines="2" />
         </com.google.android.material.textfield.TextInputLayout>
 
+        <!-- CCI -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilCciGuia"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:hint="CCI (Código de Cuenta Interbancario)"
+            app:layout_constraintTop_toBottomOf="@id/tilDomicilioGuia"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etCciGuia"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="number"
+                android:maxLength="20" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Número de YAPE -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilYapeGuia"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:hint="Número de YAPE"
+            app:layout_constraintTop_toBottomOf="@id/tilCciGuia"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etYapeGuia"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="number"
+                android:maxLength="9" />
+        </com.google.android.material.textfield.TextInputLayout>
+
         <!-- Sección Idiomas -->
         <TextView
             android:id="@+id/tvIdiomasLabel"
@@ -247,7 +285,7 @@
             android:textSize="16sp"
             android:textStyle="bold"
             android:textColor="@color/black"
-            app:layout_constraintTop_toBottomOf="@id/tilDomicilioGuia"
+            app:layout_constraintTop_toBottomOf="@id/tilYapeGuia"
             app:layout_constraintStart_toStartOf="parent" />
 
         <!-- Checkboxes de Idiomas -->

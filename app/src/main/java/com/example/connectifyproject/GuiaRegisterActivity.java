@@ -49,7 +49,7 @@ public class GuiaRegisterActivity extends AppCompatActivity {
     
     private ImageView imgProfilePreview;
     private Button btnSelectPhoto;
-    private TextInputEditText etNombreCompleto, etNumeroDoc, etFechaNacimiento, etEmailGuia, etDomicilio;
+    private TextInputEditText etNombreCompleto, etNumeroDoc, etFechaNacimiento, etEmailGuia, etDomicilio, etCci, etYape;
     private EditText etTelefono;
     private Spinner spinnerTipoDoc;
     private CountryCodePicker ccpTelefono;
@@ -129,6 +129,8 @@ public class GuiaRegisterActivity extends AppCompatActivity {
         ccpTelefono = findViewById(R.id.ccpTelefonoGuia);
         etTelefono = findViewById(R.id.etTelefonoGuia);
         etDomicilio = findViewById(R.id.etDomicilioGuia);
+        etCci = findViewById(R.id.etCciGuia);
+        etYape = findViewById(R.id.etYapeGuia);
         
         // Checkboxes de idiomas
         cbEspanol = findViewById(R.id.cbEspanol);
@@ -274,6 +276,8 @@ public class GuiaRegisterActivity extends AppCompatActivity {
         String telefono = etTelefono.getText().toString().trim();
         String codigoPais = ccpTelefono.getSelectedCountryCodeWithPlus();
         String domicilio = etDomicilio.getText().toString().trim();
+        String cci = etCci.getText().toString().trim();
+        String yape = etYape.getText().toString().trim();
         List<String> idiomas = getSelectedIdiomas();
 
         // Validaciones
@@ -301,6 +305,30 @@ public class GuiaRegisterActivity extends AppCompatActivity {
             return;
         }
 
+        if (cci.isEmpty()) {
+            etCci.setError("Ingresa tu CCI (Código de Cuenta Interbancario)");
+            etCci.requestFocus();
+            return;
+        }
+
+        if (cci.length() != 20) {
+            etCci.setError("El CCI debe tener exactamente 20 dígitos");
+            etCci.requestFocus();
+            return;
+        }
+
+        if (yape.isEmpty()) {
+            etYape.setError("Ingresa tu número de YAPE");
+            etYape.requestFocus();
+            return;
+        }
+
+        if (yape.length() != 9) {
+            etYape.setError("El número de YAPE debe tener exactamente 9 dígitos");
+            etYape.requestFocus();
+            return;
+        }
+
         if (idiomas.size() < 2) {
             Toast.makeText(this, "Selecciona al menos 2 idiomas (Español + otro)", Toast.LENGTH_SHORT).show();
             return;
@@ -310,19 +338,20 @@ public class GuiaRegisterActivity extends AppCompatActivity {
         btnGuardar.setText("Guardando...");
 
         if (selectedImageUri != null) {
-            uploadPhotoAndSaveData(nombreCompleto, tipoDoc, numeroDoc, fecha, telefono, codigoPais, domicilio, idiomas);
+            uploadPhotoAndSaveData(nombreCompleto, tipoDoc, numeroDoc, fecha, telefono, codigoPais, domicilio, cci, yape, idiomas);
         } else {
-            saveDataToFirestore(nombreCompleto, tipoDoc, numeroDoc, fecha, telefono, codigoPais, domicilio, idiomas, null);
+            saveDataToFirestore(nombreCompleto, tipoDoc, numeroDoc, fecha, telefono, codigoPais, domicilio, cci, yape, idiomas, null);
         }
     }
 
     private void uploadPhotoAndSaveData(String nombreCompleto, String tipoDoc, String numeroDoc, 
-                                        String fecha, String telefono, String codigoPais, String domicilio, List<String> idiomas) {
+                                        String fecha, String telefono, String codigoPais, String domicilio, 
+                                        String cci, String yape, List<String> idiomas) {
         storageHelper.uploadProfilePhoto(this, selectedImageUri, currentUser.getUid(), new StorageHelper.UploadCallback() {
             @Override
             public void onSuccess(String downloadUrl) {
                 Log.d(TAG, "Foto subida: " + downloadUrl);
-                saveDataToFirestore(nombreCompleto, tipoDoc, numeroDoc, fecha, telefono, codigoPais, domicilio, idiomas, downloadUrl);
+                saveDataToFirestore(nombreCompleto, tipoDoc, numeroDoc, fecha, telefono, codigoPais, domicilio, cci, yape, idiomas, downloadUrl);
             }
 
             @Override
@@ -342,27 +371,27 @@ public class GuiaRegisterActivity extends AppCompatActivity {
 
     private void saveDataToFirestore(String nombreCompleto, String tipoDoc, String numeroDoc, 
                                      String fecha, String telefono, String codigoPais, String domicilio, 
-                                     List<String> idiomas, String photoUrl) {
+                                     String cci, String yape, List<String> idiomas, String photoUrl) {
         // Usar foto subida, de Google Auth o default
         if (photoUrl != null) {
             // Foto subida por el usuario
-            saveFinalDataToFirestore(nombreCompleto, tipoDoc, numeroDoc, fecha, telefono, codigoPais, domicilio, idiomas, photoUrl);
+            saveFinalDataToFirestore(nombreCompleto, tipoDoc, numeroDoc, fecha, telefono, codigoPais, domicilio, cci, yape, idiomas, photoUrl);
         } else if (currentUser.getPhotoUrl() != null) {
             // Foto de Google Auth
-            saveFinalDataToFirestore(nombreCompleto, tipoDoc, numeroDoc, fecha, telefono, codigoPais, domicilio, idiomas, currentUser.getPhotoUrl().toString());
+            saveFinalDataToFirestore(nombreCompleto, tipoDoc, numeroDoc, fecha, telefono, codigoPais, domicilio, cci, yape, idiomas, currentUser.getPhotoUrl().toString());
         } else {
             // Obtener URL de foto por defecto desde Firebase Storage
             storageHelper.getDefaultPhotoUrl(new StorageHelper.UploadCallback() {
                 @Override
                 public void onSuccess(String downloadUrl) {
-                    saveFinalDataToFirestore(nombreCompleto, tipoDoc, numeroDoc, fecha, telefono, codigoPais, domicilio, idiomas, downloadUrl);
+                    saveFinalDataToFirestore(nombreCompleto, tipoDoc, numeroDoc, fecha, telefono, codigoPais, domicilio, cci, yape, idiomas, downloadUrl);
                 }
 
                 @Override
                 public void onFailure(Exception e) {
                     Log.e(TAG, "Error al obtener foto por defecto, usando gs:// URI", e);
                     // Fallback: usar el gs:// URI directamente
-                    saveFinalDataToFirestore(nombreCompleto, tipoDoc, numeroDoc, fecha, telefono, codigoPais, domicilio, idiomas, AuthConstants.DEFAULT_PHOTO_URL);
+                    saveFinalDataToFirestore(nombreCompleto, tipoDoc, numeroDoc, fecha, telefono, codigoPais, domicilio, cci, yape, idiomas, AuthConstants.DEFAULT_PHOTO_URL);
                 }
 
                 @Override
@@ -378,7 +407,7 @@ public class GuiaRegisterActivity extends AppCompatActivity {
      */
     private void saveFinalDataToFirestore(String nombreCompleto, String tipoDoc, String numeroDoc, 
                                           String fecha, String telefono, String codigoPais, String domicilio, 
-                                          List<String> idiomas, String resolvedPhotoUrl) {
+                                          String cci, String yape, List<String> idiomas, String resolvedPhotoUrl) {
         Map<String, Object> guiaData = new HashMap<>();
         guiaData.put(AuthConstants.FIELD_EMAIL, currentUser.getEmail());
         guiaData.put(AuthConstants.FIELD_ROL, AuthConstants.ROLE_GUIA);
@@ -389,6 +418,8 @@ public class GuiaRegisterActivity extends AppCompatActivity {
         guiaData.put(AuthConstants.FIELD_TELEFONO, telefono);
         guiaData.put(AuthConstants.FIELD_CODIGO_PAIS, codigoPais);
         guiaData.put(AuthConstants.FIELD_DOMICILIO, domicilio.isEmpty() ? "" : domicilio);
+        guiaData.put("cci", cci.isEmpty() ? "" : cci);
+        guiaData.put("numeroYape", yape.isEmpty() ? "" : yape);
         guiaData.put(AuthConstants.FIELD_UID, currentUser.getUid());
         guiaData.put(AuthConstants.FIELD_HABILITADO, false); // Guía NO habilitado hasta aprobación del admin
         guiaData.put(AuthConstants.FIELD_IDIOMAS, idiomas);
