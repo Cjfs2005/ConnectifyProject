@@ -236,28 +236,20 @@ public class cliente_perfil extends AppCompatActivity {
     }
 
     private void loadProfilePhoto(String firestorePhotoUrl) {
-        String photoUrlToLoad = null;
+        // Cargar foto usando la URL de Firestore con fallback a Firebase Auth
+        String photoUrlToLoad = firestorePhotoUrl;
         
-        // Prioridad 1: URL de Firestore
-        if (firestorePhotoUrl != null && !firestorePhotoUrl.isEmpty() && !firestorePhotoUrl.equals("null")) {
-            photoUrlToLoad = firestorePhotoUrl;
-        }
-        // Prioridad 2: URL de FirebaseAuth como fallback
-        else if (currentUser.getPhotoUrl() != null) {
-            photoUrlToLoad = currentUser.getPhotoUrl().toString();
+        // Si no hay URL de Firestore válida, usar Firebase Auth como fallback
+        if (photoUrlToLoad == null || photoUrlToLoad.isEmpty() || photoUrlToLoad.equals("null")) {
+            photoUrlToLoad = currentUser.getPhotoUrl() != null ? currentUser.getPhotoUrl().toString() : null;
         }
         
-        if (photoUrlToLoad != null && !photoUrlToLoad.isEmpty()) {
-            Glide.with(this)
-                    .load(photoUrlToLoad)
-                    .circleCrop()
-                    .placeholder(R.drawable.ic_person_24)
-                    .error(R.drawable.ic_person_24)
-                    .into(ivProfilePhoto);
-        } else {
-            // Cargar placeholder
-            ivProfilePhoto.setImageResource(R.drawable.ic_person_24);
-        }
+        Glide.with(this)
+                .load(photoUrlToLoad)
+                .circleCrop()
+                .placeholder(R.drawable.ic_account_circle_24)
+                .error(R.drawable.ic_account_circle_24)
+                .into(ivProfilePhoto);
     }
 
     private void redirectToLogin() {

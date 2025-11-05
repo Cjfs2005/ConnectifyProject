@@ -355,12 +355,12 @@ public class cliente_editar_perfil extends AppCompatActivity {
             Glide.with(this)
                     .load(photoUrlToLoad)
                     .circleCrop()
-                    .placeholder(R.drawable.ic_person_24)
-                    .error(R.drawable.ic_person_24)
+                    .placeholder(R.drawable.ic_account_circle_24)
+                    .error(R.drawable.ic_account_circle_24)
                     .into(ivProfilePhoto);
         } else {
-            // Cargar placeholder sin circleCrop ya que es un ícono
-            ivProfilePhoto.setImageResource(R.drawable.ic_person_24);
+            // Cargar placeholder
+            ivProfilePhoto.setImageResource(R.drawable.ic_account_circle_24);
         }
     }
 

@@ -70,10 +70,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:background="@color/light_gray"
-                        android:padding="16dp"
                         android:scaleType="centerCrop"
-                        android:src="@drawable/ic_person_24"
-                        android:tint="@color/text_color_secondary" />
+                        android:src="@drawable/ic_account_circle_24" />
 
                 </androidx.cardview.widget.CardView>
 
