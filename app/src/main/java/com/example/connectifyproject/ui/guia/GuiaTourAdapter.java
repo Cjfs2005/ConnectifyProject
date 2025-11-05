@@ -47,11 +47,39 @@ public class GuiaTourAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         } else if (holder instanceof TourViewHolder) {
             GuiaTour tour = item.getTour();
             TourViewHolder tourHolder = (TourViewHolder) holder;
+            
+            // Empresa badge
+            tourHolder.binding.empresaText.setText(tour.getEmpresa());
+            
+            // Título del tour
             tourHolder.binding.tourName.setText(tour.getName());
-            tourHolder.binding.tourPrice.setText("Pago: S/ " + tour.getPrice());
-            tourHolder.binding.tourDuration.setText("Duración: " + tour.getDuration());
-            tourHolder.binding.tourLanguages.setText("Idiomas: " + tour.getLanguages());
-            tourHolder.binding.tourStartTime.setText("Inicio: " + tour.getStartTime() + " " + tour.getDate());
+            
+            // Precio del tour
+            tourHolder.binding.tourPrice.setText("S/. " + tour.getPrice());
+            
+            // Duración
+            tourHolder.binding.tourDuration.setText(tour.getDuration());
+            
+            // Idiomas
+            tourHolder.binding.tourLanguages.setText(tour.getLanguages());
+            
+            // Fecha 
+            tourHolder.binding.dateText.setText(tour.getDate());
+            
+            // Hora de inicio
+            tourHolder.binding.tourStartTime.setText(tour.getStartTime());
+            
+            // Itinerario resumido
+            String itinerario = tour.getItinerario();
+            if (itinerario != null && !itinerario.isEmpty()) {
+                tourHolder.binding.itinerarioText.setText(itinerario);
+            } else {
+                tourHolder.binding.itinerarioText.setText("Itinerario disponible en detalles");
+            }
+            
+            // Pago al guía (asumiendo que es diferente al precio del tour)
+            // Por ahora usamos el precio del tour, pero esto debería venir de Firebase
+            tourHolder.binding.pagoGuiaText.setText("S/. " + tour.getPrice());
 
             holder.itemView.setOnClickListener(v -> {
                 Intent intent = new Intent(context, guia_tour_detail.class); // Renombrado asumido

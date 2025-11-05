@@ -43,19 +43,36 @@ public class guia_tour_detail extends AppCompatActivity implements OnMapReadyCal
 
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
+            // Header información
+            binding.empresaBadge.setText(extras.getString("tour_empresa", "Empresa Tours"));
+            String fecha = extras.getString("tour_date", "");
+            String hora = extras.getString("tour_start_time", "");
+            binding.tourDate.setText(fecha + " " + hora);
+            
+            // Información principal
             binding.tourName.setText(extras.getString("tour_name"));
-            binding.tourLocation.setText(extras.getString("tour_location"));
+            binding.tourLocation.setText("📍 " + extras.getString("tour_location"));
             binding.tourDuration.setText(extras.getString("tour_duration"));
+            binding.tourLanguages.setText(extras.getString("tour_languages", "No especificado"));
+            
+            // Precio (asumiendo que viene como double)
+            double precio = extras.getDouble("tour_price", 0.0);
+            binding.tourPrice.setText("S/. " + (int)precio);
+            
+            // Itinerario y descripción
+            binding.tourItinerario.setText(extras.getString("tour_itinerario"));
             binding.tourDescription.setText(extras.getString("tour_description"));
+            
+            // Requerimientos
+            binding.tourExperience.setText("• Experiencia: " + extras.getString("tour_experiencia_minima", "No especificado"));
+            binding.tourPunctuality.setText("• " + extras.getString("tour_puntualidad", "Puntualidad requerida"));
+            
+            // Beneficios
             binding.tourBenefits.setText(extras.getString("tour_benefits"));
             binding.tourSchedule.setText(extras.getString("tour_schedule"));
+            
+            // Punto de encuentro
             binding.tourMeetingPoint.setText(extras.getString("tour_meeting_point"));
-            binding.tourEmpresa.setText(extras.getString("tour_empresa"));
-            binding.tourItinerario.setText(extras.getString("tour_itinerario"));
-            binding.tourExperience.setText(extras.getString("tour_experiencia_minima"));
-            binding.tourPunctuality.setText(extras.getString("tour_puntualidad"));
-            // Note: Added tour_languages from model if available; adjust if needed
-            binding.tourLanguages.setText(extras.getString("tour_languages", "No especificado"));
         }
 
         binding.acceptButton.setOnClickListener(v -> {
