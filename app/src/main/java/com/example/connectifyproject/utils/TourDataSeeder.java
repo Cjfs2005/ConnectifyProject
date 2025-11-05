@@ -20,7 +20,7 @@ public class TourDataSeeder {
         // Oferta 1: City Tour Lima Centro Histórico
         Map<String, Object> oferta1 = new HashMap<>();
         oferta1.put("titulo", "City Tour Lima Centro Histórico");
-        oferta1.put("descripcion", "Explora el corazón colonial de Lima visitando lugares emblemáticos");
+        oferta1.put("descripcion", "Explora el corazón colonial de Lima visitando lugares emblemáticos y llenos de historia");
         oferta1.put("precio", 65.0);
         oferta1.put("duracion", "4 horas");
         oferta1.put("fechaRealizacion", "15/11/2025");
@@ -56,7 +56,7 @@ public class TourDataSeeder {
         List<Map<String, Object>> servicios1 = new ArrayList<>();
         Map<String, Object> servicio1 = new HashMap<>();
         servicio1.put("nombre", "Almuerzo en restaurante típico");
-        servicio1.put("descripcion", "Comida tradicional peruana en restaurante del centro");
+        servicio1.put("descripcion", "Comida tradicional peruana en restaurante del centro histórico");
         servicio1.put("esPagado", true);
         servicio1.put("precio", 25.0);
         servicios1.add(servicio1);
@@ -84,8 +84,8 @@ public class TourDataSeeder {
         
         // Requisitos para guías
         oferta1.put("pagoGuia", 450.0);
-        oferta1.put("idiomasRequeridos", Arrays.asList("Espanol", "Ingles"));
-        oferta1.put("consideraciones", "Minimo 1 ano como guia turistico. Conocimiento en historia colonial de Lima.");
+        oferta1.put("idiomasRequeridos", Arrays.asList("Español", "Inglés"));
+        oferta1.put("consideraciones", "Mínimo 1 año como guía turístico. Conocimiento en historia colonial de Lima.");
         
         // Control de estado
         oferta1.put("estado", "publicado");
@@ -158,7 +158,7 @@ public class TourDataSeeder {
         
         // Requisitos para guías
         oferta2.put("pagoGuia", 300.0);
-        oferta2.put("idiomasRequeridos", Arrays.asList("Espanol"));
+        oferta2.put("idiomasRequeridos", Arrays.asList("Español"));
         oferta2.put("consideraciones", "Conocimiento de arte y cultura bohemia.");
         
         // Control de estado
@@ -175,7 +175,7 @@ public class TourDataSeeder {
         // Oferta 3: Circuito Gastronómico
         Map<String, Object> oferta3 = new HashMap<>();
         oferta3.put("titulo", "Circuito Gastronómico Lima");
-        oferta3.put("descripcion", "Descubre los sabores tradicionales de la capital");
+        oferta3.put("descripcion", "Descubre los sabores tradicionales de la capital peruana");
         oferta3.put("precio", 80.0);
         oferta3.put("duracion", "5 horas");
         oferta3.put("fechaRealizacion", "17/11/2025");
@@ -218,7 +218,7 @@ public class TourDataSeeder {
         
         // Requisitos para guías
         oferta3.put("pagoGuia", 400.0);
-        oferta3.put("idiomasRequeridos", Arrays.asList("Espanol", "Ingles"));
+        oferta3.put("idiomasRequeridos", Arrays.asList("Español", "Inglés"));
         oferta3.put("consideraciones", "Conocimiento de gastronomía peruana tradicional.");
         
         // Control de estado
