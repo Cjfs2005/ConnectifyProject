@@ -52,29 +52,28 @@ public class GuiaAssignedTourAdapter extends RecyclerView.Adapter<RecyclerView.V
             GuiaAssignedTour tour = item.getAssignedTour();
             AssignedTourViewHolder tourHolder = (AssignedTourViewHolder) holder;
             
-            // Información básica mejorada
+            // ✅ USAR LA MISMA ESTRUCTURA QUE OFERTAS
+            tourHolder.binding.empresaText.setText(tour.getEmpresa());
             tourHolder.binding.tourName.setText(tour.getName());
-            
-            // Estado con formato mejorado y color
-            String estadoTexto = formatearEstado(tour.getStatus());
-            tourHolder.binding.tourStatus.setText(estadoTexto);
-            
-            // Empresa con formato limpio
-            tourHolder.binding.tourEmpresa.setText(tour.getEmpresa());
-            
-            // Fecha e inicio con formato claro
-            tourHolder.binding.tourInitio.setText(tour.getInitio());
-            
-            // Duración
             tourHolder.binding.tourDuration.setText(tour.getDuration());
+            tourHolder.binding.tourClients.setText(tour.getClients() + " personas");
             
-            // Participantes con formato mejorado
-            String participantesTexto = tour.getClients() + " " + 
-                (tour.getClients() == 1 ? "persona" : "personas");
-            tourHolder.binding.tourClients.setText(participantesTexto);
-
-            // Set colorful icon
-            tourHolder.binding.tourIcon.setColorFilter(Color.parseColor("#FF5722")); // Vibrant color
+            // Estado con color dinámico
+            String estado = formatearEstado(tour.getStatus());
+            tourHolder.binding.tourStatus.setText(estado);
+            
+            // Fechas - separar fecha y hora como en ofertas
+            String[] fechaHora = tour.getInitio().split(" - ");
+            if (fechaHora.length == 2) {
+                tourHolder.binding.dateText.setText(fechaHora[0]);
+                tourHolder.binding.tourStartTime.setText(fechaHora[1]);
+            } else {
+                tourHolder.binding.dateText.setText(tour.getDate() != null ? tour.getDate() : "Fecha no disponible");
+                tourHolder.binding.tourStartTime.setText("Hora no disponible");
+            }
+            
+            // ✅ MOSTRAR PAGO AL GUÍA (igual que en ofertas)
+            tourHolder.binding.pagoGuiaText.setText("S/. " + (int) tour.getPagoGuia());
 
             boolean isEnCurso = tour.getStatus().equals("En Curso");
             tourHolder.binding.actionsLayout.setVisibility(isEnCurso ? View.VISIBLE : View.GONE);

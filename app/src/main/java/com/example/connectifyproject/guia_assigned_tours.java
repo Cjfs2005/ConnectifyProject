@@ -160,27 +160,33 @@ public class guia_assigned_tours extends AppCompatActivity implements GuiaDateFi
     }
 
     /**
-     * Convertir TourAsignado de Firebase a GuiaAssignedTour para UI
+     * Convertir TourAsignado de Firebase a GuiaAssignedTour para UI - COMPATIBLE CON OFERTAS
      */
     private GuiaAssignedTour convertToGuiaAssignedTour(TourAsignado tourAsignado) {
         // Formatear fecha para UI
         String fechaFormateada = formatDateForUI(tourAsignado.getFechaRealizacion());
         String inicioFormateado = fechaFormateada + " - " + tourAsignado.getHoraInicio();
         
-        // Convertir itinerario con mejor formato
+        // Convertir itinerario con estructura COMPATIBLE (lugar, actividad)
         List<String> itinerarioFormateado = new ArrayList<>();
         if (tourAsignado.getItinerario() != null) {
             for (int i = 0; i < tourAsignado.getItinerario().size(); i++) {
                 Map<String, Object> punto = (Map<String, Object>) tourAsignado.getItinerario().get(i);
                 String orden = String.valueOf(i + 1);
-                String titulo = (String) punto.get("titulo");
+                
+                // ✅ USAR "lugar" en lugar de "titulo" (compatible con ofertas)
+                String lugar = (String) punto.get("lugar");
+                if (lugar == null) {
+                    lugar = (String) punto.get("titulo"); // Fallback para datos existentes
+                }
+                
                 String hora = (String) punto.get("horaEstimada");
                 
-                // Manejar casos donde titulo o hora pueden ser null
-                if (titulo == null) titulo = "Sin título";
+                // Manejar casos donde lugar o hora pueden ser null
+                if (lugar == null) lugar = "Sin título";
                 if (hora == null) hora = "Sin hora";
                 
-                itinerarioFormateado.add(orden + ". " + titulo + " - " + hora);
+                itinerarioFormateado.add(orden + ". " + lugar + " - " + hora);
             }
         }
         
@@ -211,6 +217,9 @@ public class guia_assigned_tours extends AppCompatActivity implements GuiaDateFi
         int numeroParticipantes = tourAsignado.getNumeroParticipantesTotal() != null ? 
             tourAsignado.getNumeroParticipantesTotal() : 0;
 
+        // ✅ INCLUIR PAGO AL GUÍA (compatible con ofertas)
+        double pagoGuia = tourAsignado.getPagoGuia() > 0 ? tourAsignado.getPagoGuia() : 85.0; // Valor por defecto
+
         return new GuiaAssignedTour(
             tourAsignado.getTitulo(),
             tourAsignado.getNombreEmpresa(),
@@ -221,7 +230,8 @@ public class guia_assigned_tours extends AppCompatActivity implements GuiaDateFi
             fechaFormateada,
             idiomas,
             servicios,
-            itinerarioFormateado
+            itinerarioFormateado,
+            pagoGuia // ✅ Añadir pagoGuia al constructor
         );
     }
 

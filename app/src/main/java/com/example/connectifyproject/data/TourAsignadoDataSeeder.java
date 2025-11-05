@@ -46,14 +46,15 @@ public class TourAsignadoDataSeeder {
         guiaAsignado.put("numeroTelefono", "987 654 321");
         guiaAsignado.put("fechaAsignacion", Timestamp.now());
 
-        // Crear itinerario con seguimiento para Lima
+        // Crear itinerario con seguimiento para Lima - COMPATIBLE CON OFERTAS
         List<Map<String, Object>> itinerarioLima = new ArrayList<>();
         
         Map<String, Object> punto1 = new HashMap<>();
         punto1.put("orden", 1);
-        punto1.put("titulo", "Plaza Mayor de Lima");
-        punto1.put("descripcion", "Recorrido por la plaza principal y catedral");
+        punto1.put("lugar", "Plaza Mayor de Lima");  // ✅ Usar "lugar" como en ofertas
+        punto1.put("actividad", "Recorrido por la plaza principal y catedral");  // ✅ Usar "actividad" como en ofertas
         punto1.put("horaEstimada", "09:00");
+        // Campos adicionales para seguimiento del tour asignado
         punto1.put("completado", true);
         punto1.put("horaLlegada", "09:05");
         punto1.put("horaSalida", "10:15");
@@ -61,9 +62,10 @@ public class TourAsignadoDataSeeder {
 
         Map<String, Object> punto2 = new HashMap<>();
         punto2.put("orden", 2);
-        punto2.put("titulo", "Palacio de Gobierno");
-        punto2.put("descripcion", "Visita externa y cambio de guardia");
+        punto2.put("lugar", "Palacio de Gobierno");  // ✅ Usar "lugar" como en ofertas
+        punto2.put("actividad", "Visita externa y cambio de guardia");  // ✅ Usar "actividad" como en ofertas
         punto2.put("horaEstimada", "10:30");
+        // Campos adicionales para seguimiento del tour asignado
         punto2.put("completado", true);
         punto2.put("horaLlegada", "10:25");
         punto2.put("horaSalida", "11:00");
@@ -71,9 +73,10 @@ public class TourAsignadoDataSeeder {
 
         Map<String, Object> punto3 = new HashMap<>();
         punto3.put("orden", 3);
-        punto3.put("titulo", "Convento de San Francisco");
-        punto3.put("descripcion", "Recorrido por catacumbas y biblioteca");
+        punto3.put("lugar", "Convento de San Francisco");  // ✅ Usar "lugar" como en ofertas
+        punto3.put("actividad", "Recorrido por catacumbas y biblioteca");  // ✅ Usar "actividad" como en ofertas
         punto3.put("horaEstimada", "11:15");
+        // Campos adicionales para seguimiento del tour asignado
         punto3.put("completado", false);
         punto3.put("horaLlegada", null);
         punto3.put("horaSalida", null);
@@ -193,9 +196,10 @@ public class TourAsignadoDataSeeder {
         
         Map<String, Object> punto1 = new HashMap<>();
         punto1.put("orden", 1);
-        punto1.put("titulo", "Estación San Pedro");
-        punto1.put("descripcion", "Punto de encuentro y abordaje del tren");
+        punto1.put("lugar", "Estación San Pedro");  // ✅ Usar "lugar" como en ofertas
+        punto1.put("actividad", "Punto de encuentro y abordaje del tren");  // ✅ Usar "actividad" como en ofertas
         punto1.put("horaEstimada", "06:30");
+        // Campos adicionales para seguimiento del tour asignado
         punto1.put("completado", false);
         punto1.put("horaLlegada", null);
         punto1.put("horaSalida", null);
@@ -203,9 +207,10 @@ public class TourAsignadoDataSeeder {
 
         Map<String, Object> punto2 = new HashMap<>();
         punto2.put("orden", 2);
-        punto2.put("titulo", "Aguas Calientes");
-        punto2.put("descripcion", "Llegada y traslado en bus a Machu Picchu");
+        punto2.put("lugar", "Aguas Calientes");  // ✅ Usar "lugar" como en ofertas
+        punto2.put("actividad", "Llegada y traslado en bus a Machu Picchu");  // ✅ Usar "actividad" como en ofertas
         punto2.put("horaEstimada", "09:45");
+        // Campos adicionales para seguimiento del tour asignado
         punto2.put("completado", false);
         punto2.put("horaLlegada", null);
         punto2.put("horaSalida", null);
@@ -213,9 +218,10 @@ public class TourAsignadoDataSeeder {
 
         Map<String, Object> punto3 = new HashMap<>();
         punto3.put("orden", 3);
-        punto3.put("titulo", "Ciudadela de Machu Picchu");
-        punto3.put("descripcion", "Recorrido guiado por la ciudadela inca");
+        punto3.put("lugar", "Ciudadela de Machu Picchu");  // ✅ Usar "lugar" como en ofertas
+        punto3.put("actividad", "Recorrido guiado por la ciudadela inca");  // ✅ Usar "actividad" como en ofertas
         punto3.put("horaEstimada", "10:30");
+        // Campos adicionales para seguimiento del tour asignado
         punto3.put("completado", false);
         punto3.put("horaLlegada", null);
         punto3.put("horaSalida", null);
@@ -313,14 +319,15 @@ public class TourAsignadoDataSeeder {
         guiaAsignado.put("numeroTelefono", "958 741 123");
         guiaAsignado.put("fechaAsignacion", Timestamp.now());
 
-        // Crear itinerario para Arequipa
+        // Crear itinerario para Arequipa - COMPATIBLE CON OFERTAS
         List<Map<String, Object>> itinerarioArequipa = new ArrayList<>();
         
         Map<String, Object> punto1 = new HashMap<>();
         punto1.put("orden", 1);
-        punto1.put("titulo", "Plaza de Armas");
-        punto1.put("descripcion", "Centro histórico y catedral");
+        punto1.put("lugar", "Plaza de Armas");  // ✅ Usar "lugar" como en ofertas
+        punto1.put("actividad", "Centro histórico y catedral");  // ✅ Usar "actividad" como en ofertas
         punto1.put("horaEstimada", "10:00");
+        // Campos adicionales para seguimiento del tour asignado
         punto1.put("completado", false);
         punto1.put("horaLlegada", null);
         punto1.put("horaSalida", null);
@@ -328,9 +335,10 @@ public class TourAsignadoDataSeeder {
 
         Map<String, Object> punto2 = new HashMap<>();
         punto2.put("orden", 2);
-        punto2.put("titulo", "Monasterio de Santa Catalina");
-        punto2.put("descripcion", "Recorrido por el monasterio colonial");
+        punto2.put("lugar", "Monasterio de Santa Catalina");  // ✅ Usar "lugar" como en ofertas
+        punto2.put("actividad", "Recorrido por el monasterio colonial");  // ✅ Usar "actividad" como en ofertas
         punto2.put("horaEstimada", "11:00");
+        // Campos adicionales para seguimiento del tour asignado
         punto2.put("completado", false);
         punto2.put("horaLlegada", null);
         punto2.put("horaSalida", null);
@@ -421,14 +429,15 @@ public class TourAsignadoDataSeeder {
         guiaAsignado.put("numeroTelefono", "965 874 123");
         guiaAsignado.put("fechaAsignacion", Timestamp.now());
 
-        // Crear itinerario para Ica
+        // Crear itinerario para Ica - COMPATIBLE CON OFERTAS
         List<Map<String, Object>> itinerarioIca = new ArrayList<>();
         
         Map<String, Object> punto1 = new HashMap<>();
         punto1.put("orden", 1);
-        punto1.put("titulo", "Laguna de Huacachina");
-        punto1.put("descripcion", "Recorrido por el oasis natural");
+        punto1.put("lugar", "Laguna de Huacachina");  // ✅ Usar "lugar" como en ofertas
+        punto1.put("actividad", "Recorrido por el oasis natural");  // ✅ Usar "actividad" como en ofertas
         punto1.put("horaEstimada", "15:00");
+        // Campos adicionales para seguimiento del tour asignado
         punto1.put("completado", false);
         punto1.put("horaLlegada", null);
         punto1.put("horaSalida", null);
@@ -436,9 +445,10 @@ public class TourAsignadoDataSeeder {
 
         Map<String, Object> punto2 = new HashMap<>();
         punto2.put("orden", 2);
-        punto2.put("titulo", "Sandboarding");
-        punto2.put("descripcion", "Actividad de deslizamiento en dunas");
+        punto2.put("lugar", "Sandboarding");  // ✅ Usar "lugar" como en ofertas
+        punto2.put("actividad", "Actividad de deslizamiento en dunas");  // ✅ Usar "actividad" como en ofertas
         punto2.put("horaEstimada", "16:00");
+        // Campos adicionales para seguimiento del tour asignado
         punto2.put("completado", false);
         punto2.put("horaLlegada", null);
         punto2.put("horaSalida", null);
