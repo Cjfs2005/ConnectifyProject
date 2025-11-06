@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.connectifyproject.data.TourAsignadoDataSeeder;
+import com.example.connectifyproject.utils.TestMomentoTourData;
 import com.example.connectifyproject.databinding.GuiaAssignedToursBinding;
 import com.example.connectifyproject.fragment.GuiaDateFilterDialogFragment;
 import com.example.connectifyproject.model.GuiaAssignedItem;
@@ -68,6 +69,10 @@ public class guia_assigned_tours extends AppCompatActivity implements GuiaDateFi
         // Vuelve a comentar después de la primera ejecución para evitar duplicados
         //TourAsignadoDataSeeder seeder = new TourAsignadoDataSeeder();
         //seeder.crearToursAsignadosDePrueba();
+        
+        // 🧪 TESTING momentoTour - DESCOMENTA para crear tours de prueba con diferentes estados
+        //TestMomentoTourData.crearToursParaTestingMomentoTour();
+        
         Log.d(TAG, "Datos de prueba de tours asignados creados");
 
         // Configurar RecyclerView
@@ -237,7 +242,8 @@ public class guia_assigned_tours extends AppCompatActivity implements GuiaDateFi
             idiomas,
             servicios,
             itinerarioFormateado,
-            pagoGuia // ✅ Añadir pagoGuia al constructor
+            pagoGuia, // ✅ Añadir pagoGuia al constructor
+            tourAsignado.getMomentoTour() != null ? tourAsignado.getMomentoTour() : "pendiente" // ✅ Incluir momentoTour
         );
     }
 
@@ -542,39 +548,60 @@ public class guia_assigned_tours extends AppCompatActivity implements GuiaDateFi
     }
     
     /**
-     * 🔘 CONFIGURAR BOTONES SEGÚN ESTADO DEL TOUR
+     * 🔘 CONFIGURAR BOTONES SEGÚN momentoTour DEL TOUR
+     * Estados: pendiente, check_in, en_curso, check_out, terminado
      */
     private void configurarBotonesPrioritario(TourAsignado tour) {
-        String estado = tour.getEstado();
+        String momentoTour = tour.getMomentoTour();
         
         // BOTÓN DETALLES - Siempre disponible
         binding.btnDetallesRapido.setVisibility(View.VISIBLE);
         binding.btnDetallesRapido.setOnClickListener(v -> abrirDetallesTour(tour));
         
-        // BOTÓN MAPA - Disponible para "en_curso" y "programado" de hoy
-        boolean puedeVerMapa = "en_curso".equals(estado) || 
-                              ("programado".equals(estado) && esTourDeHoy(tour));
-        binding.btnMapaRapido.setVisibility(puedeVerMapa ? View.VISIBLE : View.GONE);
-        if (puedeVerMapa) {
-            binding.btnMapaRapido.setOnClickListener(v -> abrirMapaTour(tour));
-        }
-        
-        if ("en_curso".equals(estado)) {
-            // 🟢 TOUR EN CURSO: Mapa + Check-out + Detalles
-            binding.btnCheckInRapido.setVisibility(View.GONE);
-            binding.btnCheckOutRapido.setVisibility(View.VISIBLE);
-            binding.btnCheckOutRapido.setOnClickListener(v -> abrirCheckOutTour(tour));
-            
-        } else if ("programado".equals(estado)) {
-            // 🔵 TOUR PROGRAMADO: Mapa + Check-in + Detalles
-            binding.btnCheckInRapido.setVisibility(View.VISIBLE);
-            binding.btnCheckOutRapido.setVisibility(View.GONE);
-            binding.btnCheckInRapido.setOnClickListener(v -> abrirCheckInTour(tour));
-            
-        } else {
-            // 🔴 OTROS ESTADOS: Solo detalles y mapa (si corresponde)
-            binding.btnCheckInRapido.setVisibility(View.GONE);
-            binding.btnCheckOutRapido.setVisibility(View.GONE);
+        // Configurar botones según momento del tour
+        switch (momentoTour != null ? momentoTour.toLowerCase() : "pendiente") {
+            case "pendiente":
+                // 🟡 PENDIENTE: Solo Check-in + Detalles
+                binding.btnMapaRapido.setVisibility(View.GONE);
+                binding.btnCheckInRapido.setVisibility(View.VISIBLE);
+                binding.btnCheckOutRapido.setVisibility(View.GONE);
+                binding.btnCheckInRapido.setOnClickListener(v -> abrirCheckInTour(tour));
+                break;
+                
+            case "check_in":
+                // 🟢 CHECK-IN DISPONIBLE: Mapa + Check-in + Detalles
+                binding.btnMapaRapido.setVisibility(View.VISIBLE);
+                binding.btnCheckInRapido.setVisibility(View.VISIBLE);
+                binding.btnCheckOutRapido.setVisibility(View.GONE);
+                binding.btnMapaRapido.setOnClickListener(v -> abrirMapaTour(tour));
+                binding.btnCheckInRapido.setOnClickListener(v -> abrirCheckInTour(tour));
+                break;
+                
+            case "en_curso":
+                // � EN CURSO: Mapa + Check-out + Detalles
+                binding.btnMapaRapido.setVisibility(View.VISIBLE);
+                binding.btnCheckInRapido.setVisibility(View.GONE);
+                binding.btnCheckOutRapido.setVisibility(View.VISIBLE);
+                binding.btnMapaRapido.setOnClickListener(v -> abrirMapaTour(tour));
+                binding.btnCheckOutRapido.setOnClickListener(v -> abrirCheckOutTour(tour));
+                break;
+                
+            case "check_out":
+                // � CHECK-OUT DISPONIBLE: Mapa + Check-out + Detalles
+                binding.btnMapaRapido.setVisibility(View.VISIBLE);
+                binding.btnCheckInRapido.setVisibility(View.GONE);
+                binding.btnCheckOutRapido.setVisibility(View.VISIBLE);
+                binding.btnMapaRapido.setOnClickListener(v -> abrirMapaTour(tour));
+                binding.btnCheckOutRapido.setOnClickListener(v -> abrirCheckOutTour(tour));
+                break;
+                
+            case "terminado":
+            default:
+                // 🔴 TERMINADO: Solo detalles
+                binding.btnMapaRapido.setVisibility(View.GONE);
+                binding.btnCheckInRapido.setVisibility(View.GONE);
+                binding.btnCheckOutRapido.setVisibility(View.GONE);
+                break;
         }
     }
     

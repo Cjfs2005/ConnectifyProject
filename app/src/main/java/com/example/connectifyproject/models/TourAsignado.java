@@ -39,6 +39,7 @@ public class TourAsignado implements Serializable {
     
     // Control del tour
     private String estado; // confirmado, en_curso, completado, cancelado
+    private String momentoTour; // pendiente, check_in, en_curso, check_out, terminado
     private Integer numeroParticipantesTotal;
     private boolean checkInRealizado;
     private boolean checkOutRealizado;
@@ -77,6 +78,7 @@ public class TourAsignado implements Serializable {
         this.nombreEmpresa = nombreEmpresa;
         this.pagoGuia = pagoGuia;
         this.estado = "confirmado";
+        this.momentoTour = "pendiente"; // ✅ NUEVO CAMPO POR DEFECTO
         this.numeroParticipantesTotal = 0;
         this.checkInRealizado = false;
         this.checkOutRealizado = false;
@@ -203,6 +205,9 @@ public class TourAsignado implements Serializable {
     
     public String getEstado() { return estado; }
     public void setEstado(String estado) { this.estado = estado; }
+    
+    public String getMomentoTour() { return momentoTour; }
+    public void setMomentoTour(String momentoTour) { this.momentoTour = momentoTour; }
     
     public Integer getNumeroParticipantesTotal() { return numeroParticipantesTotal; }
     public void setNumeroParticipantesTotal(Integer numeroParticipantesTotal) { this.numeroParticipantesTotal = numeroParticipantesTotal; }

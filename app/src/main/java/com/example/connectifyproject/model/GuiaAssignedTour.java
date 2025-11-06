@@ -14,8 +14,9 @@ public class GuiaAssignedTour {
     private String services;
     private List<String> itinerario;
     private double pagoGuia; // ✅ Añadido para compatibilidad con ofertas
+    private String momentoTour; // ✅ NUEVO CAMPO para controlar botones: pendiente, check_in, en_curso, check_out, terminado
 
-    public GuiaAssignedTour(String name, String empresa, String initio, String duration, int clients, String status, String date, String languages, String services, List<String> itinerario, double pagoGuia) {
+    public GuiaAssignedTour(String name, String empresa, String initio, String duration, int clients, String status, String date, String languages, String services, List<String> itinerario, double pagoGuia, String momentoTour) {
         this.name = name;
         this.empresa = empresa;
         this.initio = initio;
@@ -27,6 +28,7 @@ public class GuiaAssignedTour {
         this.services = services;
         this.itinerario = itinerario;
         this.pagoGuia = pagoGuia; // ✅ Inicializar pagoGuia
+        this.momentoTour = momentoTour; // ✅ Inicializar momentoTour
     }
 
     // Getters
@@ -41,4 +43,5 @@ public class GuiaAssignedTour {
     public String getServices() { return services; }
     public List<String> getItinerario() { return itinerario; }
     public double getPagoGuia() { return pagoGuia; } // ✅ Getter para pagoGuia
+    public String getMomentoTour() { return momentoTour; } // ✅ Getter para momentoTour
 }

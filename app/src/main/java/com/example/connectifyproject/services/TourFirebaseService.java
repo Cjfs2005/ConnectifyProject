@@ -629,6 +629,7 @@ public class TourFirebaseService {
     public void iniciarTour(String tourId, OperationCallback callback) {
         Map<String, Object> updates = new HashMap<>();
         updates.put("estado", "en_curso");
+        updates.put("momentoTour", "en_curso"); // ✅ Actualizar momento del tour
         updates.put("checkInRealizado", true);
         updates.put("horaCheckIn", Timestamp.now());
         
@@ -642,6 +643,54 @@ public class TourFirebaseService {
             .addOnFailureListener(e -> {
                 Log.e(TAG, "Error iniciando tour", e);
                 callback.onError("Error iniciando tour: " + e.getMessage());
+            });
+    }
+    
+    /**
+     * 🔄 ACTUALIZAR MOMENTO DEL TOUR
+     * Método específico para cambiar momentoTour: pendiente → check_in → en_curso → check_out → terminado
+     */
+    public void actualizarMomentoTour(String tourId, String nuevoMomento, OperationCallback callback) {
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("momentoTour", nuevoMomento);
+        updates.put("fechaActualizacion", Timestamp.now());
+        
+        // Actualizar campos relacionados según el momento
+        switch (nuevoMomento.toLowerCase()) {
+            case "check_in":
+                updates.put("horaCheckIn", Timestamp.now());
+                updates.put("checkInRealizado", true);
+                break;
+            case "en_curso":
+                updates.put("estado", "en_curso");
+                if (!updates.containsKey("horaCheckIn")) {
+                    updates.put("horaCheckIn", Timestamp.now());
+                    updates.put("checkInRealizado", true);
+                }
+                break;
+            case "check_out":
+                updates.put("horaCheckOut", Timestamp.now());
+                updates.put("checkOutRealizado", true);
+                break;
+            case "terminado":
+                updates.put("estado", "completado");
+                if (!updates.containsKey("horaCheckOut")) {
+                    updates.put("horaCheckOut", Timestamp.now());
+                    updates.put("checkOutRealizado", true);
+                }
+                break;
+        }
+        
+        db.collection(COLLECTION_ASIGNADOS)
+            .document(tourId)
+            .update(updates)
+            .addOnSuccessListener(aVoid -> {
+                Log.d(TAG, "Momento tour actualizado a: " + nuevoMomento);
+                callback.onSuccess("Momento del tour actualizado correctamente");
+            })
+            .addOnFailureListener(e -> {
+                Log.e(TAG, "Error actualizando momento tour", e);
+                callback.onError("Error actualizando momento del tour: " + e.getMessage());
             });
     }
 }

@@ -131,10 +131,11 @@ public class GuiaAssignedTourAdapter extends RecyclerView.Adapter<RecyclerView.V
     }
 
     /**
-     * ✅ CONFIGURAR BOTONES PARA TOUR PRIORITARIO EN LISTADO
+     * ✅ CONFIGURACIÓN DE BOTONES BASADA EN momentoTour
+     * Estados: pendiente, check_in, en_curso, check_out, terminado
      */
     private void configurarBotonesTourPrioritario(AssignedTourViewHolder holder, GuiaAssignedTour tour) {
-        String estado = tour.getStatus();
+        String momentoTour = tour.getMomentoTour();
         
         // Mostrar layout de acciones
         holder.binding.actionsLayout.setVisibility(View.VISIBLE);
@@ -143,31 +144,50 @@ public class GuiaAssignedTourAdapter extends RecyclerView.Adapter<RecyclerView.V
         holder.binding.detailsIcon.setVisibility(View.VISIBLE);
         holder.binding.detailsIcon.setOnClickListener(v -> startDetailIntent(tour));
         
-        if ("En Curso".equalsIgnoreCase(estado) || "en_curso".equalsIgnoreCase(estado)) {
-            // 🟢 TOUR EN CURSO: Mapa + Check-out + Detalles
-            holder.binding.mapIcon.setVisibility(View.VISIBLE);
-            holder.binding.checkInIcon.setVisibility(View.GONE);
-            holder.binding.checkOutIcon.setVisibility(View.VISIBLE);
-            
-            // Configurar acciones
-            holder.binding.mapIcon.setOnClickListener(v -> abrirMapaTour(tour));
-            holder.binding.checkOutIcon.setOnClickListener(v -> abrirCheckOutTour(tour));
-            
-        } else if ("Programado".equalsIgnoreCase(estado)) {
-            // 🔵 TOUR PROGRAMADO: Mapa + Check-in + Detalles
-            holder.binding.mapIcon.setVisibility(View.VISIBLE);
-            holder.binding.checkInIcon.setVisibility(View.VISIBLE);
-            holder.binding.checkOutIcon.setVisibility(View.GONE);
-            
-            // Configurar acciones
-            holder.binding.mapIcon.setOnClickListener(v -> abrirMapaTour(tour));
-            holder.binding.checkInIcon.setOnClickListener(v -> abrirCheckInTour(tour));
-            
-        } else {
-            // 🔴 OTROS ESTADOS: Solo detalles
-            holder.binding.mapIcon.setVisibility(View.GONE);
-            holder.binding.checkInIcon.setVisibility(View.GONE);
-            holder.binding.checkOutIcon.setVisibility(View.GONE);
+        // Configurar botones según momento del tour
+        switch (momentoTour != null ? momentoTour.toLowerCase() : "pendiente") {
+            case "pendiente":
+                // � PENDIENTE: Solo Check-in + Detalles
+                holder.binding.mapIcon.setVisibility(View.GONE);
+                holder.binding.checkInIcon.setVisibility(View.VISIBLE);
+                holder.binding.checkOutIcon.setVisibility(View.GONE);
+                holder.binding.checkInIcon.setOnClickListener(v -> abrirCheckInTour(tour));
+                break;
+                
+            case "check_in":
+                // 🟢 CHECK-IN DISPONIBLE: Mapa + Check-in + Detalles
+                holder.binding.mapIcon.setVisibility(View.VISIBLE);
+                holder.binding.checkInIcon.setVisibility(View.VISIBLE);
+                holder.binding.checkOutIcon.setVisibility(View.GONE);
+                holder.binding.mapIcon.setOnClickListener(v -> abrirMapaTour(tour));
+                holder.binding.checkInIcon.setOnClickListener(v -> abrirCheckInTour(tour));
+                break;
+                
+            case "en_curso":
+                // 🔵 EN CURSO: Mapa + Check-out + Detalles
+                holder.binding.mapIcon.setVisibility(View.VISIBLE);
+                holder.binding.checkInIcon.setVisibility(View.GONE);
+                holder.binding.checkOutIcon.setVisibility(View.VISIBLE);
+                holder.binding.mapIcon.setOnClickListener(v -> abrirMapaTour(tour));
+                holder.binding.checkOutIcon.setOnClickListener(v -> abrirCheckOutTour(tour));
+                break;
+                
+            case "check_out":
+                // 🟠 CHECK-OUT DISPONIBLE: Mapa + Check-out + Detalles
+                holder.binding.mapIcon.setVisibility(View.VISIBLE);
+                holder.binding.checkInIcon.setVisibility(View.GONE);
+                holder.binding.checkOutIcon.setVisibility(View.VISIBLE);
+                holder.binding.mapIcon.setOnClickListener(v -> abrirMapaTour(tour));
+                holder.binding.checkOutIcon.setOnClickListener(v -> abrirCheckOutTour(tour));
+                break;
+                
+            case "terminado":
+            default:
+                // 🔴 TERMINADO: Solo detalles
+                holder.binding.mapIcon.setVisibility(View.GONE);
+                holder.binding.checkInIcon.setVisibility(View.GONE);
+                holder.binding.checkOutIcon.setVisibility(View.GONE);
+                break;
         }
     }
     
