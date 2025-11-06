@@ -315,37 +315,9 @@ public class TourFirebaseService {
             }
         }
         
-        // Crear participantes de ejemplo (puedes modificar esto según necesites)
-        List<Map<String, Object>> participantes = new ArrayList<>();
-        Map<String, Object> participante1 = new HashMap<>();
-        participante1.put("clienteId", "LJ02gZgzedNIXxi3Yr3ppaxfElF3");
-        participante1.put("nombreCliente", "Christian Flores Soto");
-        participante1.put("emailCliente", "cjfs200516@gmail.com");
-        participante1.put("telefonoCliente", "981 030 557");
-        participante1.put("fechaInscripcion", Timestamp.now());
-        participante1.put("montoTotal", oferta.getPrecio() + 25.0); // precio base + servicios
-        participante1.put("estadoPago", "confirmado");
-        
-        List<Map<String, Object>> serviciosContratados1 = new ArrayList<>();
-        Map<String, Object> servicio1 = new HashMap<>();
-        servicio1.put("nombre", "Almuerzo en restaurante típico");
-        servicio1.put("precio", 25.0);
-        serviciosContratados1.add(servicio1);
-        participante1.put("serviciosContratados", serviciosContratados1);
-        
-        participantes.add(participante1);
-        
-        Map<String, Object> participante2 = new HashMap<>();
-        participante2.put("clienteId", "7AreAi73UAWbyH2de9FDJryrr4B3");
-        participante2.put("nombreCliente", "Alejandro Gutarra Bendezú");
-        participante2.put("emailCliente", "gianes26@outlook.com");
-        participante2.put("telefonoCliente", "976 431 852");
-        participante2.put("fechaInscripcion", Timestamp.now());
-        participante2.put("montoTotal", oferta.getPrecio()); // solo precio base
-        participante2.put("estadoPago", "pendiente");
-        participante2.put("serviciosContratados", new ArrayList<>());
-        
-        participantes.add(participante2);
+        // ✅ CORRECCIÓN: Al aceptar oferta NO crear participantes automáticamente
+        // Los participantes se agregarán cuando los clientes se registren al tour
+        List<Map<String, Object>> participantes = new ArrayList<>(); // ✅ Lista vacía inicialmente
         
         // Crear documento del tour asignado
         Map<String, Object> tourAsignado = new HashMap<>();

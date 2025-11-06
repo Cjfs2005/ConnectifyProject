@@ -61,7 +61,15 @@ public class GuiaAssignedTourAdapter extends RecyclerView.Adapter<RecyclerView.V
             tourHolder.binding.empresaText.setText(tour.getEmpresa());
             tourHolder.binding.tourName.setText(tour.getName());
             tourHolder.binding.tourDuration.setText(tour.getDuration());
-            tourHolder.binding.tourClients.setText(tour.getClients() + " personas");
+            // ✅ TEXTO INTELIGENTE PARA PARTICIPANTES
+            int numParticipantes = tour.getClients();
+            if (numParticipantes == 0) {
+                tourHolder.binding.tourClients.setText("Sin registros aún");
+            } else if (numParticipantes == 1) {
+                tourHolder.binding.tourClients.setText("1 persona");
+            } else {
+                tourHolder.binding.tourClients.setText(numParticipantes + " personas");
+            }
             
             // Estado con color dinámico
             String estado = formatearEstado(tour.getStatus());
