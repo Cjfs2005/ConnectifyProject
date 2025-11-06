@@ -628,11 +628,11 @@ public class guia_assigned_tours extends AppCompatActivity implements GuiaDateFi
     
     private int getColorForEstado(String estado) {
         switch (estado.toLowerCase()) {
-            case "en_curso": return 0xFFE8F5E8; // Verde claro
-            case "programado": return 0xFFFFF3E0; // Naranja claro
-            case "completado": return 0xFFE3F2FD; // Azul claro
-            case "cancelado": return 0xFFFFEBEE; // Rojo claro
-            default: return 0xFFF5F5F5; // Gris claro
+            case "en_curso": return 0xFF4CAF50; // Verde intenso para EN CURSO
+            case "programado": return 0xFF2196F3; // Azul para PROGRAMADO
+            case "completado": return 0xFF9C27B0; // Púrpura para COMPLETADO
+            case "cancelado": return 0xFFF44336; // Rojo para CANCELADO
+            default: return 0xFF9E9E9E; // Gris para otros estados
         }
     }
 }
