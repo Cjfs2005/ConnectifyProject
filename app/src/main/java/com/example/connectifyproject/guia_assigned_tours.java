@@ -522,7 +522,23 @@ public class guia_assigned_tours extends AppCompatActivity implements GuiaDateFi
         int colorBanner = getColorForEstado(estado);
         
         binding.tourPrioritarioEstado.setText(estadoTexto);
-        binding.tourPrioritarioCard.setCardBackgroundColor(colorBanner);
+        
+        // ✅ APLICAR COLOR DE FONDO TRANSLÚCIDO SEGÚN ESTADO
+        int colorFondo = getColorFondoBanner(estado);
+        binding.tourPrioritarioCard.setCardBackgroundColor(colorFondo);
+    }
+    
+    /**
+     * 🎨 OBTENER COLOR DE FONDO PARA BANNER (MÁS SUAVE)
+     */
+    private int getColorFondoBanner(String estado) {
+        switch (estado.toLowerCase()) {
+            case "en_curso": return 0xFFE8F5E8; // Verde claro para EN CURSO
+            case "programado": return 0xFFE3F2FD; // Azul claro para PROGRAMADO
+            case "completado": return 0xFFF3E5F5; // Púrpura claro para COMPLETADO
+            case "cancelado": return 0xFFFFEBEE; // Rojo claro para CANCELADO
+            default: return 0xFFF5F5F5; // Gris claro para otros estados
+        }
     }
     
     /**
@@ -531,22 +547,35 @@ public class guia_assigned_tours extends AppCompatActivity implements GuiaDateFi
     private void configurarBotonesPrioritario(TourAsignado tour) {
         String estado = tour.getEstado();
         
-        // Botón MAPA - Disponible para "en_curso" y "programado" de hoy
-        binding.btnMapaRapido.setEnabled("en_curso".equals(estado) || esTourDeHoy(tour));
-        binding.btnMapaRapido.setOnClickListener(v -> abrirMapaTour(tour));
-        
-        // Botón CHECK-IN - Solo para tours programados y "en_curso"
-        boolean puedeCheckIn = "programado".equals(estado) || "en_curso".equals(estado);
-        binding.btnCheckInRapido.setEnabled(puedeCheckIn);
-        binding.btnCheckInRapido.setOnClickListener(v -> abrirCheckInTour(tour));
-        
-        // Botón CHECK-OUT - Solo para tours "en_curso" con check-in realizado
-        boolean puedeCheckOut = "en_curso".equals(estado) && tour.isCheckInRealizado();
-        binding.btnCheckOutRapido.setVisibility(puedeCheckOut ? View.VISIBLE : View.GONE);
-        binding.btnCheckOutRapido.setOnClickListener(v -> abrirCheckOutTour(tour));
-        
-        // Botón DETALLES - Siempre disponible
+        // BOTÓN DETALLES - Siempre disponible
+        binding.btnDetallesRapido.setVisibility(View.VISIBLE);
         binding.btnDetallesRapido.setOnClickListener(v -> abrirDetallesTour(tour));
+        
+        // BOTÓN MAPA - Disponible para "en_curso" y "programado" de hoy
+        boolean puedeVerMapa = "en_curso".equals(estado) || 
+                              ("programado".equals(estado) && esTourDeHoy(tour));
+        binding.btnMapaRapido.setVisibility(puedeVerMapa ? View.VISIBLE : View.GONE);
+        if (puedeVerMapa) {
+            binding.btnMapaRapido.setOnClickListener(v -> abrirMapaTour(tour));
+        }
+        
+        if ("en_curso".equals(estado)) {
+            // 🟢 TOUR EN CURSO: Mapa + Check-out + Detalles
+            binding.btnCheckInRapido.setVisibility(View.GONE);
+            binding.btnCheckOutRapido.setVisibility(View.VISIBLE);
+            binding.btnCheckOutRapido.setOnClickListener(v -> abrirCheckOutTour(tour));
+            
+        } else if ("programado".equals(estado)) {
+            // 🔵 TOUR PROGRAMADO: Mapa + Check-in + Detalles
+            binding.btnCheckInRapido.setVisibility(View.VISIBLE);
+            binding.btnCheckOutRapido.setVisibility(View.GONE);
+            binding.btnCheckInRapido.setOnClickListener(v -> abrirCheckInTour(tour));
+            
+        } else {
+            // 🔴 OTROS ESTADOS: Solo detalles y mapa (si corresponde)
+            binding.btnCheckInRapido.setVisibility(View.GONE);
+            binding.btnCheckOutRapido.setVisibility(View.GONE);
+        }
     }
     
     /**
