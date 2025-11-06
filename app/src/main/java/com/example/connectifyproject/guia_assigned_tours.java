@@ -298,19 +298,27 @@ public class guia_assigned_tours extends AppCompatActivity implements GuiaDateFi
         if (estadoFirebase == null) return "Pendiente";
         
         switch (estadoFirebase.toLowerCase()) {
-            case "programado":
-                return "Programado";
+            case "pendiente":
+                return "Pendiente";
+            case "check_in":
+                return "Check-in Disponible";
             case "en_curso":
                 return "En Curso";
+            case "check_out":
+                return "Check-out Disponible";
             case "completado":
-                return "Finalizado";
+                return "Completado";
             case "cancelado":
                 return "Cancelado";
             // Compatibilidad con estados antiguos
+            case "programado":
+                return "Programado";
             case "confirmado":
                 return "Programado";
             case "en_progreso":
                 return "En Curso";
+            case "finalizado":
+                return "Completado";
             default:
                 return "Pendiente";
         }

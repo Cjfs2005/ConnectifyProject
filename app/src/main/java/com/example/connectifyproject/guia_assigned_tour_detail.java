@@ -169,14 +169,26 @@ public class guia_assigned_tour_detail extends AppCompatActivity {
         if (estado == null) return "PENDIENTE";
         
         switch (estado.toLowerCase()) {
-            case "en curso":
-            case "en_curso":
-            case "en_progreso":
-                return "EN CURSO";
-            case "programado":
-                return "PROGRAMADO";
             case "pendiente":
                 return "PENDIENTE";
+            case "check_in":
+            case "check-in disponible":
+                return "CHECK-IN DISPONIBLE";
+            case "en_curso":
+            case "en curso":
+            case "en_progreso":
+                return "EN CURSO";
+            case "check_out":
+            case "check-out disponible":
+                return "CHECK-OUT DISPONIBLE";
+            case "completado":
+            case "finalizado":
+                return "COMPLETADO";
+            case "cancelado":
+                return "CANCELADO";
+            // Compatibilidad con estados antiguos
+            case "programado":
+                return "PROGRAMADO";
             case "confirmado":
                 return "CONFIRMADO";
             default:
@@ -191,18 +203,30 @@ public class guia_assigned_tour_detail extends AppCompatActivity {
         if (estado == null) return Color.parseColor("#757575");
         
         switch (estado.toLowerCase()) {
-            case "en curso":
-            case "en_curso":
-            case "en_progreso":
-                return Color.parseColor("#4CAF50"); // Verde
-            case "programado":
-                return Color.parseColor("#FF9800"); // Naranja
             case "pendiente":
-                return Color.parseColor("#FFC107"); // Amarillo
+                return Color.parseColor("#FF9800"); // Naranja para pendiente
+            case "check_in":
+            case "check-in disponible":
+                return Color.parseColor("#03DAC6"); // Verde agua para check-in
+            case "en_curso":
+            case "en curso":
+            case "en_progreso":
+                return Color.parseColor("#4CAF50"); // Verde intenso para en curso
+            case "check_out":
+            case "check-out disponible":
+                return Color.parseColor("#FF5722"); // Naranja rojizo para check-out
+            case "completado":
+            case "finalizado":
+                return Color.parseColor("#9C27B0"); // Púrpura para completado
+            case "cancelado":
+                return Color.parseColor("#F44336"); // Rojo para cancelado
+            // Compatibilidad con estados antiguos
+            case "programado":
+                return Color.parseColor("#2196F3"); // Azul para programado
             case "confirmado":
-                return Color.parseColor("#2196F3"); // Azul
+                return Color.parseColor("#2196F3"); // Azul para confirmado
             default:
-                return Color.parseColor("#757575"); // Gris
+                return Color.parseColor("#757575"); // Gris para otros estados
         }
     }
 
