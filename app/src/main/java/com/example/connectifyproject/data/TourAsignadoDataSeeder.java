@@ -160,8 +160,7 @@ public class TourAsignadoDataSeeder {
         
         tourLima.put("consideraciones", "Se requiere caminar aproximadamente 2km. Llevar zapatos cómodos y protector solar.");
         tourLima.put("participantes", participantesLima);
-        tourLima.put("estado", "programado");
-        tourLima.put("momentoTour", "pendiente"); // ✅ NUEVO CAMPO momento del tour
+        tourLima.put("estado", "pendiente"); // ✅ Estado inicial pendiente
         tourLima.put("numeroParticipantesTotal", participantesLima.size()); // ✅ DINÁMICO basado en participantes reales
         tourLima.put("checkInRealizado", false);
         tourLima.put("checkOutRealizado", false);
@@ -289,8 +288,7 @@ public class TourAsignadoDataSeeder {
         
         tourCusco.put("consideraciones", "Incluye transporte en tren. Documentos requeridos: pasaporte o DNI. Altitud de 2400m.");
         tourCusco.put("participantes", participantesCusco);
-        tourCusco.put("estado", "confirmado");
-        tourCusco.put("momentoTour", "pendiente"); // ✅ NUEVO CAMPO momento del tour
+        tourCusco.put("estado", "pendiente"); // ✅ Estado inicial pendiente
         tourCusco.put("numeroParticipantesTotal", participantesCusco.size());
         tourCusco.put("checkInRealizado", false);
         tourCusco.put("checkOutRealizado", false);
@@ -400,8 +398,7 @@ public class TourAsignadoDataSeeder {
         
         tourArequipa.put("consideraciones", "Recorrido peatonal por el centro histórico. Protección solar recomendada.");
         tourArequipa.put("participantes", participantesArequipa);
-        tourArequipa.put("estado", "confirmado");
-        tourArequipa.put("momentoTour", "pendiente"); // ✅ NUEVO CAMPO momento del tour
+        tourArequipa.put("estado", "pendiente"); // ✅ Estado inicial pendiente
         tourArequipa.put("numeroParticipantesTotal", participantesArequipa.size());
         tourArequipa.put("checkInRealizado", false);
         tourArequipa.put("checkOutRealizado", false);
@@ -524,8 +521,7 @@ public class TourAsignadoDataSeeder {
         
         tourIca.put("consideraciones", "Actividad física moderada. Llevar ropa cómoda y protección solar. No recomendado para personas con problemas cardíacos.");
         tourIca.put("participantes", participantesIca);
-        tourIca.put("estado", "confirmado");
-        tourIca.put("momentoTour", "pendiente"); // ✅ NUEVO CAMPO momento del tour
+        tourIca.put("estado", "pendiente"); // ✅ Estado inicial pendiente
         tourIca.put("numeroParticipantesTotal", participantesIca.size());
         tourIca.put("checkInRealizado", false);
         tourIca.put("checkOutRealizado", false);
@@ -651,7 +647,7 @@ public class TourAsignadoDataSeeder {
         tourEnCurso.put("precio", 85.0);
         tourEnCurso.put("duracion", "6 horas");
         // ✅ FECHA PARA HOY (tour EN CURSO)
-        tourEnCurso.put("fechaRealizacion", crearTimestampParaFecha("05/11/2025"));
+        tourEnCurso.put("fechaRealizacion", crearTimestampParaFecha("06/11/2025"));
         tourEnCurso.put("horaInicio", "09:30");
         tourEnCurso.put("horaFin", "15:30");
         tourEnCurso.put("itinerario", itinerarioHuacachina);
@@ -666,11 +662,10 @@ public class TourAsignadoDataSeeder {
         tourEnCurso.put("participantes", participantesHuacachina);
         // ✅ ESTADO EN CURSO PARA MOSTRAR BOTONES ACTIVOS
         tourEnCurso.put("estado", "en_curso");
-        tourEnCurso.put("momentoTour", "en_curso"); // ✅ NUEVO CAMPO - tour ya en progreso
         tourEnCurso.put("numeroParticipantesTotal", participantesHuacachina.size()); // ✅ DINÁMICO basado en participantes reales
         tourEnCurso.put("checkInRealizado", true);
         tourEnCurso.put("checkOutRealizado", false);
-        tourEnCurso.put("horaCheckIn", crearTimestampParaFecha("05/11/2025 09:45"));
+        tourEnCurso.put("horaCheckIn", crearTimestampParaFecha("06/11/2025 09:45"));
         tourEnCurso.put("horaCheckOut", null);
         tourEnCurso.put("reseniasClientes", new ArrayList<>());
         tourEnCurso.put("calificacionPromedio", 0.0);

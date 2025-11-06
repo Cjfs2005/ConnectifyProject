@@ -95,4 +95,11 @@
     <string name="fui_title_register_email">Registrarse</string>
     <string name="fui_title_confirm_recover_password">Revisa tu correo</string>
     
+    <!-- Tour States -->
+    <string name="tour_state_pendiente">PENDIENTE</string>
+    <string name="tour_state_check_in">CHECK-IN DISPONIBLE</string>
+    <string name="tour_state_en_curso">EN CURSO</string>
+    <string name="tour_state_check_out">CHECK-OUT DISPONIBLE</string>
+    <string name="tour_state_completado">COMPLETADO</string>
+    
 </resources>

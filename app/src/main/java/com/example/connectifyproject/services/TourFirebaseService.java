@@ -350,7 +350,7 @@ public class TourFirebaseService {
         tourAsignado.put("idiomasRequeridos", oferta.getIdiomasRequeridos());
         tourAsignado.put("consideraciones", oferta.getConsideraciones());
         tourAsignado.put("participantes", participantes);
-        tourAsignado.put("estado", "confirmado");
+        tourAsignado.put("estado", "pendiente"); // ✅ Estado inicial único
         tourAsignado.put("numeroParticipantesTotal", participantes.size());
         tourAsignado.put("checkInRealizado", false);
         tourAsignado.put("checkOutRealizado", false);
@@ -475,12 +475,11 @@ public class TourFirebaseService {
     }
     
     /**
-     * 🎯 OBTENER TOUR PRIORITARIO - LÓGICA CLARA
+     * 🎯 OBTENER TOUR PRIORITARIO CON ESTADOS UNIFICADOS
      * 
-     * PRIORIDAD 1: Tour "en_curso" (ya iniciado)
-     * PRIORIDAD 2: Tour "programado" que es HOY y ya es hora de inicio
-     * PRIORIDAD 3: Tour "programado" que es HOY (sin importar hora)
-     * PRIORIDAD 4: Tour "programado" más próximo en fecha
+     * PRIORIDAD 1: Tour "en_curso" o "check_out" (máxima prioridad)
+     * PRIORIDAD 2: Tour "check_in" que es HOY
+     * PRIORIDAD 3: Tour "pendiente" más próximo
      */
     public void getTourPrioritario(TourPrioritarioCallback callback) {
         FirebaseUser currentUser = getCurrentUser();
@@ -497,52 +496,57 @@ public class TourFirebaseService {
             .orderBy("fechaRealizacion")
             .get()
             .addOnSuccessListener(querySnapshot -> {
-                TourAsignado tourPrioritario = null;
-                TourAsignado tourMasCercano = null;
+                List<TourAsignado> tours = new ArrayList<>();
                 
-                for (DocumentSnapshot doc : querySnapshot) {
-                    TourAsignado tour = doc.toObject(TourAsignado.class);
-                    if (tour != null) {
-                        tour.setId(doc.getId());
-                        
-                        // ✅ PRIORIDAD 1: Tour en curso (máxima prioridad)
-                        if ("en_curso".equals(tour.getEstado())) {
-                            tourPrioritario = tour;
-                            break; // ¡Este es el prioritario absoluto!
+                for (DocumentSnapshot doc : querySnapshot.getDocuments()) {
+                    try {
+                        TourAsignado tour = doc.toObject(TourAsignado.class);
+                        if (tour != null) {
+                            tour.setId(doc.getId());
+                            tours.add(tour);
                         }
-                        
-                        // ✅ PRIORIDAD 2-4: Tours programados
-                        if ("programado".equals(tour.getEstado())) {
-                            if (esTourDeHoy(tour)) {
-                                if (yaEsHoraDeInicio(tour)) {
-                                    // PRIORIDAD 2: Es hoy Y ya es hora
-                                    if (tourPrioritario == null) {
-                                        tourPrioritario = tour;
-                                    }
-                                } else {
-                                    // PRIORIDAD 3: Es hoy pero aún no es hora
-                                    if (tourPrioritario == null) {
-                                        tourPrioritario = tour;
-                                    }
-                                }
-                            } else if (tourMasCercano == null && esTourFuturo(tour)) {
-                                // PRIORIDAD 4: Más cercano en el futuro
-                                tourMasCercano = tour;
-                            }
+                    } catch (Exception e) {
+                        Log.w(TAG, "Error convirtiendo tour: " + doc.getId(), e);
+                    }
+                }
+                
+                TourAsignado tourPrioritario = null;
+                TourAsignado tourPendienteMasCercano = null;
+                
+                for (TourAsignado tour : tours) {
+                    String estado = tour.getEstado();
+                    
+                    // 🔥 MÁXIMA PRIORIDAD: Tours activos
+                    if ("en_curso".equals(estado) || "check_out".equals(estado)) {
+                        callback.onSuccess(tour);
+                        return;
+                    }
+                    
+                    // ⭐ ALTA PRIORIDAD: Tours listos para check-in HOY
+                    if ("check_in".equals(estado) && esTourDeHoy(tour)) {
+                        if (tourPrioritario == null) tourPrioritario = tour;
+                    }
+                    
+                    // 📅 PRIORIDAD NORMAL: Tour pendiente más próximo
+                    if ("pendiente".equals(estado) && esTourFuturo(tour)) {
+                        if (tourPendienteMasCercano == null || 
+                            tour.getFechaRealizacion().compareTo(tourPendienteMasCercano.getFechaRealizacion()) < 0) {
+                            tourPendienteMasCercano = tour;
                         }
                     }
                 }
                 
-                // Si no hay tour prioritario, usar el más cercano
-                if (tourPrioritario == null) {
-                    tourPrioritario = tourMasCercano;
+                if (tourPrioritario != null) {
+                    callback.onSuccess(tourPrioritario);
+                } else if (tourPendienteMasCercano != null) {
+                    callback.onSuccess(tourPendienteMasCercano);
+                } else {
+                    callback.onError("No hay tours asignados");
                 }
-                
-                callback.onSuccess(tourPrioritario);
             })
             .addOnFailureListener(e -> {
                 Log.e(TAG, "Error obteniendo tour prioritario", e);
-                callback.onError("Error: " + e.getMessage());
+                callback.onError("Error cargando tours: " + e.getMessage());
             });
     }
     
@@ -626,27 +630,73 @@ public class TourFirebaseService {
     }
     
     /**
-     * ▶️ INICIAR TOUR (cambiar de "programado" a "en_curso")
-     * Se llama desde el botón "Empezar Tour" en check-in
+     * ▶️ INICIAR TOUR (check_in → en_curso)
      */
     public void iniciarTour(String tourId, OperationCallback callback) {
         Map<String, Object> updates = new HashMap<>();
         updates.put("estado", "en_curso");
-        updates.put("momentoTour", "en_curso"); // ✅ Actualizar momento del tour
         updates.put("checkInRealizado", true);
         updates.put("horaCheckIn", Timestamp.now());
+        updates.put("fechaActualizacion", Timestamp.now());
         
         db.collection(COLLECTION_ASIGNADOS)
             .document(tourId)
             .update(updates)
             .addOnSuccessListener(aVoid -> {
                 Log.d(TAG, "Tour iniciado exitosamente");
-                callback.onSuccess("Tour iniciado correctamente");
+                callback.onSuccess("Tour iniciado exitosamente");
             })
             .addOnFailureListener(e -> {
                 Log.e(TAG, "Error iniciando tour", e);
                 callback.onError("Error iniciando tour: " + e.getMessage());
             });
+    }
+    
+    /**
+     * 🔄 HABILITAR CHECK-IN (pendiente → check_in)
+     */
+    public void habilitarCheckIn(String tourId, OperationCallback callback) {
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("estado", "check_in");
+        updates.put("fechaActualizacion", Timestamp.now());
+        
+        db.collection(COLLECTION_ASIGNADOS)
+            .document(tourId)
+            .update(updates)
+            .addOnSuccessListener(aVoid -> callback.onSuccess("Check-in habilitado"))
+            .addOnFailureListener(e -> callback.onError("Error habilitando check-in: " + e.getMessage()));
+    }
+    
+    /**
+     * 🔚 HABILITAR CHECK-OUT (en_curso → check_out)
+     */
+    public void habilitarCheckOut(String tourId, OperationCallback callback) {
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("estado", "check_out");
+        updates.put("fechaActualizacion", Timestamp.now());
+        
+        db.collection(COLLECTION_ASIGNADOS)
+            .document(tourId)
+            .update(updates)
+            .addOnSuccessListener(aVoid -> callback.onSuccess("Check-out habilitado"))
+            .addOnFailureListener(e -> callback.onError("Error habilitando check-out: " + e.getMessage()));
+    }
+    
+    /**
+     * 🏁 TERMINAR TOUR (check_out → completado)
+     */
+    public void terminarTour(String tourId, OperationCallback callback) {
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("estado", "completado");
+        updates.put("checkOutRealizado", true);
+        updates.put("horaCheckOut", Timestamp.now());
+        updates.put("fechaActualizacion", Timestamp.now());
+        
+        db.collection(COLLECTION_ASIGNADOS)
+            .document(tourId)
+            .update(updates)
+            .addOnSuccessListener(aVoid -> callback.onSuccess("Tour completado exitosamente"))
+            .addOnFailureListener(e -> callback.onError("Error completando tour: " + e.getMessage()));
     }
     
     /**

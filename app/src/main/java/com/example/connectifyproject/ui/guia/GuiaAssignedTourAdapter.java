@@ -131,11 +131,11 @@ public class GuiaAssignedTourAdapter extends RecyclerView.Adapter<RecyclerView.V
     }
 
     /**
-     * ✅ CONFIGURACIÓN DE BOTONES BASADA EN momentoTour
-     * Estados: pendiente, check_in, en_curso, check_out, terminado
+     * ✅ CONFIGURACIÓN DE BOTONES BASADA EN ESTADO UNIFICADO
+     * Estados: pendiente, check_in, en_curso, check_out, completado
      */
     private void configurarBotonesTourPrioritario(AssignedTourViewHolder holder, GuiaAssignedTour tour) {
-        String momentoTour = tour.getMomentoTour();
+        String estado = tour.getStatus();
         
         // Mostrar layout de acciones
         holder.binding.actionsLayout.setVisibility(View.VISIBLE);
@@ -144,18 +144,19 @@ public class GuiaAssignedTourAdapter extends RecyclerView.Adapter<RecyclerView.V
         holder.binding.detailsIcon.setVisibility(View.VISIBLE);
         holder.binding.detailsIcon.setOnClickListener(v -> startDetailIntent(tour));
         
-        // Configurar botones según momento del tour
-        switch (momentoTour != null ? momentoTour.toLowerCase() : "pendiente") {
+        // Configurar botones según estado del tour
+        switch (estado != null ? estado.toLowerCase() : "pendiente") {
             case "pendiente":
-                // � PENDIENTE: Solo Check-in + Detalles
+                // 📅 PENDIENTE: Solo Detalles + Botón "Habilitar Check-in"
                 holder.binding.mapIcon.setVisibility(View.GONE);
                 holder.binding.checkInIcon.setVisibility(View.VISIBLE);
                 holder.binding.checkOutIcon.setVisibility(View.GONE);
-                holder.binding.checkInIcon.setOnClickListener(v -> abrirCheckInTour(tour));
+                holder.binding.checkInIcon.setOnClickListener(v -> habilitarCheckInTour(tour));
                 break;
                 
             case "check_in":
-                // 🟢 CHECK-IN DISPONIBLE: Mapa + Check-in + Detalles
+            case "check-in disponible":
+                // ✅ CHECK-IN DISPONIBLE: Mapa + Check-in + Detalles
                 holder.binding.mapIcon.setVisibility(View.VISIBLE);
                 holder.binding.checkInIcon.setVisibility(View.VISIBLE);
                 holder.binding.checkOutIcon.setVisibility(View.GONE);
@@ -164,16 +165,18 @@ public class GuiaAssignedTourAdapter extends RecyclerView.Adapter<RecyclerView.V
                 break;
                 
             case "en_curso":
-                // 🔵 EN CURSO: Mapa + Check-out + Detalles
+            case "en curso":
+                // ▶️ EN CURSO: Mapa + Check-out + Detalles
                 holder.binding.mapIcon.setVisibility(View.VISIBLE);
                 holder.binding.checkInIcon.setVisibility(View.GONE);
                 holder.binding.checkOutIcon.setVisibility(View.VISIBLE);
                 holder.binding.mapIcon.setOnClickListener(v -> abrirMapaTour(tour));
-                holder.binding.checkOutIcon.setOnClickListener(v -> abrirCheckOutTour(tour));
+                holder.binding.checkOutIcon.setOnClickListener(v -> habilitarCheckOutTour(tour));
                 break;
                 
             case "check_out":
-                // 🟠 CHECK-OUT DISPONIBLE: Mapa + Check-out + Detalles
+            case "check-out disponible":
+                // 🏁 CHECK-OUT DISPONIBLE: Check-out + Detalles
                 holder.binding.mapIcon.setVisibility(View.VISIBLE);
                 holder.binding.checkInIcon.setVisibility(View.GONE);
                 holder.binding.checkOutIcon.setVisibility(View.VISIBLE);
@@ -181,13 +184,34 @@ public class GuiaAssignedTourAdapter extends RecyclerView.Adapter<RecyclerView.V
                 holder.binding.checkOutIcon.setOnClickListener(v -> abrirCheckOutTour(tour));
                 break;
                 
+            case "completado":
             case "terminado":
             default:
-                // 🔴 TERMINADO: Solo detalles
+                // ✅ COMPLETADO: Solo detalles
                 holder.binding.mapIcon.setVisibility(View.GONE);
                 holder.binding.checkInIcon.setVisibility(View.GONE);
                 holder.binding.checkOutIcon.setVisibility(View.GONE);
                 break;
+        }
+    }
+    
+    /**
+     * 🔄 HABILITAR CHECK-IN (pendiente → check_in)
+     */
+    private void habilitarCheckInTour(GuiaAssignedTour tour) {
+        if (context instanceof com.example.connectifyproject.guia_assigned_tours) {
+            ((com.example.connectifyproject.guia_assigned_tours) context)
+                .habilitarCheckInParaTour(tour.getTourId(), tour.getName());
+        }
+    }
+    
+    /**
+     * 🔚 HABILITAR CHECK-OUT (en_curso → check_out)
+     */
+    private void habilitarCheckOutTour(GuiaAssignedTour tour) {
+        if (context instanceof com.example.connectifyproject.guia_assigned_tours) {
+            ((com.example.connectifyproject.guia_assigned_tours) context)
+                .habilitarCheckOutParaTour(tour.getTourId(), tour.getName());
         }
     }
     
@@ -200,6 +224,7 @@ public class GuiaAssignedTourAdapter extends RecyclerView.Adapter<RecyclerView.V
             ((com.example.connectifyproject.guia_assigned_tours) context).simulateLocationReminderNotification("Plaza de Armas");
         }
         Intent intent = new Intent(context, guia_tour_map.class);
+        intent.putExtra("tour_id", tour.getTourId()); // ✅ ID para operaciones Firebase
         intent.putExtra("tour_name", tour.getName());
         intent.putExtra("tour_status", tour.getStatus());
         intent.putStringArrayListExtra("tour_itinerario", new ArrayList<>(tour.getItinerario()));
@@ -213,6 +238,7 @@ public class GuiaAssignedTourAdapter extends RecyclerView.Adapter<RecyclerView.V
             ((com.example.connectifyproject.guia_assigned_tours) context).simulateCheckInNotification(tour.getName());
         }
         Intent intent = new Intent(context, guia_check_in.class);
+        intent.putExtra("tour_id", tour.getTourId()); // ✅ ID para operaciones Firebase
         intent.putExtra("tour_name", tour.getName());
         intent.putExtra("participants_count", tour.getClients());
         context.startActivity(intent);
@@ -224,6 +250,7 @@ public class GuiaAssignedTourAdapter extends RecyclerView.Adapter<RecyclerView.V
             ((com.example.connectifyproject.guia_assigned_tours) context).simulateCheckOutNotification(tour.getName());
         }
         Intent intent = new Intent(context, guia_check_out.class);
+        intent.putExtra("tour_id", tour.getTourId()); // ✅ ID para operaciones Firebase
         intent.putExtra("tour_name", tour.getName());
         intent.putExtra("participants_count", tour.getClients());
         context.startActivity(intent);
