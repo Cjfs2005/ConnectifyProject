@@ -9,6 +9,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Date;
+import java.text.SimpleDateFormat;
+import java.text.ParseException;
+import java.util.Locale;
 
 /**
  * Seeder para crear datos de prueba de tours asignados en Firebase
@@ -138,7 +142,7 @@ public class TourAsignadoDataSeeder {
         tourLima.put("precio", 115.0);
         tourLima.put("duracion", "4 horas");
         // ✅ FECHA PARA MAÑANA (1 día antes = botones activos)
-        tourLima.put("fechaRealizacion", "06/11/2025");
+        tourLima.put("fechaRealizacion", crearTimestampParaFecha("06/11/2025"));
         tourLima.put("horaInicio", "09:00");
         tourLima.put("horaFin", "13:00");
         tourLima.put("itinerario", itinerarioLima);
@@ -265,7 +269,7 @@ public class TourAsignadoDataSeeder {
         tourCusco.put("descripcion", "Visita a la maravillosa ciudadela inca de Machu Picchu con guía especializado en historia andina.");
         tourCusco.put("precio", 405.0);
         tourCusco.put("duracion", "12 horas");
-        tourCusco.put("fechaRealizacion", Timestamp.now());
+        tourCusco.put("fechaRealizacion", crearTimestampParaFecha("20/11/2025"));
         tourCusco.put("horaInicio", "06:30");
         tourCusco.put("horaFin", "18:30");
         tourCusco.put("itinerario", itinerarioCusco);
@@ -376,7 +380,7 @@ public class TourAsignadoDataSeeder {
         tourArequipa.put("descripcion", "Descubre la arquitectura colonial de Arequipa, patrimonio mundial de la UNESCO.");
         tourArequipa.put("precio", 80.0);
         tourArequipa.put("duracion", "3 horas");
-        tourArequipa.put("fechaRealizacion", Timestamp.now());
+        tourArequipa.put("fechaRealizacion", crearTimestampParaFecha("25/11/2025"));
         tourArequipa.put("horaInicio", "10:00");
         tourArequipa.put("horaFin", "13:00");
         tourArequipa.put("itinerario", itinerarioArequipa);
@@ -499,7 +503,7 @@ public class TourAsignadoDataSeeder {
         tourIca.put("descripcion", "Vive la emoción del desierto con sandboarding y recorridos por las dunas de Huacachina.");
         tourIca.put("precio", 80.0);
         tourIca.put("duracion", "4 horas");
-        tourIca.put("fechaRealizacion", Timestamp.now());
+        tourIca.put("fechaRealizacion", crearTimestampParaFecha("30/11/2025"));
         tourIca.put("horaInicio", "15:00");
         tourIca.put("horaFin", "19:00");
         tourIca.put("itinerario", itinerarioIca);
@@ -600,7 +604,6 @@ public class TourAsignadoDataSeeder {
         participante1.put("nacionalidad", "Peruana");
         participante1.put("contactoEmergencia", "Maria Rodriguez - 987 654 321");
         participante1.put("checkIn", true);
-        participante1.put("horaCheckIn", "09:45");
         participantesHuacachina.add(participante1);
 
         Map<String, Object> participante2 = new HashMap<>();
@@ -613,7 +616,6 @@ public class TourAsignadoDataSeeder {
         participante2.put("nacionalidad", "Argentina");
         participante2.put("contactoEmergencia", "Lucia Torres - 987 321 654");
         participante2.put("checkIn", true);
-        participante2.put("horaCheckIn", "09:50");
         participantesHuacachina.add(participante2);
 
         Map<String, Object> participante3 = new HashMap<>();
@@ -626,7 +628,6 @@ public class TourAsignadoDataSeeder {
         participante3.put("nacionalidad", "Estadounidense");
         participante3.put("contactoEmergencia", "David Chen - +1 555 987 6543");
         participante3.put("checkIn", true);
-        participante3.put("horaCheckIn", "09:55");
         participantesHuacachina.add(participante3);
 
         // Servicios adicionales
@@ -646,7 +647,7 @@ public class TourAsignadoDataSeeder {
         tourEnCurso.put("precio", 85.0);
         tourEnCurso.put("duracion", "6 horas");
         // ✅ FECHA PARA HOY (tour EN CURSO)
-        tourEnCurso.put("fechaRealizacion", "05/11/2025");
+        tourEnCurso.put("fechaRealizacion", crearTimestampParaFecha("05/11/2025"));
         tourEnCurso.put("horaInicio", "09:30");
         tourEnCurso.put("horaFin", "15:30");
         tourEnCurso.put("itinerario", itinerarioHuacachina);
@@ -664,7 +665,7 @@ public class TourAsignadoDataSeeder {
         tourEnCurso.put("numeroParticipantesTotal", participantesHuacachina.size()); // ✅ DINÁMICO basado en participantes reales
         tourEnCurso.put("checkInRealizado", true);
         tourEnCurso.put("checkOutRealizado", false);
-        tourEnCurso.put("horaCheckIn", "09:45");
+        tourEnCurso.put("horaCheckIn", crearTimestampParaFecha("05/11/2025 09:45"));
         tourEnCurso.put("horaCheckOut", null);
         tourEnCurso.put("reseniasClientes", new ArrayList<>());
         tourEnCurso.put("calificacionPromedio", 0.0);
@@ -683,5 +684,25 @@ public class TourAsignadoDataSeeder {
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Error al crear tour EN CURSO: ", e);
                 });
+    }
+    
+    /**
+     * Helper para crear Timestamp desde fecha en formato String
+     */
+    private Timestamp crearTimestampParaFecha(String fechaString) {
+        try {
+            SimpleDateFormat sdf;
+            // Verificar si el string incluye hora
+            if (fechaString.contains(" ")) {
+                sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault());
+            } else {
+                sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+            }
+            Date fecha = sdf.parse(fechaString);
+            return new Timestamp(fecha);
+        } catch (ParseException e) {
+            Log.e(TAG, "Error al parsear fecha: " + fechaString, e);
+            return Timestamp.now(); // Fallback a fecha actual
+        }
     }
 }

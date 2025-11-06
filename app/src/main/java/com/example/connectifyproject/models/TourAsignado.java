@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 import com.google.firebase.Timestamp;
+import androidx.annotation.Nullable;
 
 public class TourAsignado implements Serializable {
     private String id;
@@ -12,7 +13,7 @@ public class TourAsignado implements Serializable {
     private String descripcion;
     private double precio;
     private String duracion;
-    private String fechaRealizacion;
+    private Timestamp fechaRealizacion;
     private String horaInicio;
     private String horaFin;
     
@@ -41,7 +42,9 @@ public class TourAsignado implements Serializable {
     private Integer numeroParticipantesTotal;
     private boolean checkInRealizado;
     private boolean checkOutRealizado;
+    @Nullable
     private Timestamp horaCheckIn;
+    @Nullable
     private Timestamp horaCheckOut;
     
     // Evaluación post-tour
@@ -60,7 +63,7 @@ public class TourAsignado implements Serializable {
 
     // Constructor para crear tour asignado desde oferta
     public TourAsignado(String ofertaTourId, String titulo, String descripcion, double precio, 
-                       String duracion, String fechaRealizacion, String horaInicio, String horaFin,
+                       String duracion, Timestamp fechaRealizacion, String horaInicio, String horaFin,
                        String empresaId, String nombreEmpresa, double pagoGuia) {
         this.ofertaTourId = ofertaTourId;
         this.titulo = titulo;
@@ -159,8 +162,8 @@ public class TourAsignado implements Serializable {
     public String getDuracion() { return duracion; }
     public void setDuracion(String duracion) { this.duracion = duracion; }
     
-    public String getFechaRealizacion() { return fechaRealizacion; }
-    public void setFechaRealizacion(String fechaRealizacion) { this.fechaRealizacion = fechaRealizacion; }
+    public Timestamp getFechaRealizacion() { return fechaRealizacion; }
+    public void setFechaRealizacion(Timestamp fechaRealizacion) { this.fechaRealizacion = fechaRealizacion; }
     
     public String getHoraInicio() { return horaInicio; }
     public void setHoraInicio(String horaInicio) { this.horaInicio = horaInicio; }
@@ -210,11 +213,13 @@ public class TourAsignado implements Serializable {
     public boolean isCheckOutRealizado() { return checkOutRealizado; }
     public void setCheckOutRealizado(boolean checkOutRealizado) { this.checkOutRealizado = checkOutRealizado; }
     
+    @Nullable
     public Timestamp getHoraCheckIn() { return horaCheckIn; }
-    public void setHoraCheckIn(Timestamp horaCheckIn) { this.horaCheckIn = horaCheckIn; }
+    public void setHoraCheckIn(@Nullable Timestamp horaCheckIn) { this.horaCheckIn = horaCheckIn; }
     
+    @Nullable
     public Timestamp getHoraCheckOut() { return horaCheckOut; }
-    public void setHoraCheckOut(Timestamp horaCheckOut) { this.horaCheckOut = horaCheckOut; }
+    public void setHoraCheckOut(@Nullable Timestamp horaCheckOut) { this.horaCheckOut = horaCheckOut; }
     
     public List<Map<String, Object>> getReseniasClientes() { return reseniasClientes; }
     public void setReseniasClientes(List<Map<String, Object>> reseniasClientes) { this.reseniasClientes = reseniasClientes; }

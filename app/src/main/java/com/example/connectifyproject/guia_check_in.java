@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.connectifyproject.databinding.GuiaCheckInBinding;
 import com.example.connectifyproject.model.GuiaClient;
+import com.example.connectifyproject.services.TourFirebaseService;
 import com.example.connectifyproject.ui.guia.GuiaClientAdapter;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
@@ -21,6 +22,11 @@ public class guia_check_in extends AppCompatActivity {
     private GuiaCheckInBinding binding;
     private GuiaClientAdapter adapter;
     private List<GuiaClient> clients;
+    
+    // 🚀 FIREBASE SERVICE PARA MANEJAR ESTADOS
+    private TourFirebaseService tourFirebaseService;
+    private String tourId;
+    private String tourName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,10 +34,18 @@ public class guia_check_in extends AppCompatActivity {
         binding = GuiaCheckInBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
+        // 🔧 INICIALIZAR FIREBASE SERVICE
+        tourFirebaseService = new TourFirebaseService();
+        
+        // 📋 OBTENER DATOS DEL TOUR DESDE INTENT
+        tourId = getIntent().getStringExtra("tour_id");
+        tourName = getIntent().getStringExtra("tour_name");
+        int participantsCount = getIntent().getIntExtra("participants_count", 0);
+
         setSupportActionBar(binding.toolbar);
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setTitle("Check-in");
+            getSupportActionBar().setTitle("Check-in: " + (tourName != null ? tourName : "Tour"));
         }
 
         // Hardcoded clients with rating = 0
@@ -46,13 +60,11 @@ public class guia_check_in extends AppCompatActivity {
 
         binding.confirmButton.setOnClickListener(v -> {
             Toast.makeText(this, "Check-in confirmado (simulado)", Toast.LENGTH_SHORT).show();
-            finish();
         });
 
-        // Add Empezar Tour button
+        // ▶️ BOTÓN EMPEZAR TOUR - CAMBIAR ESTADO A "EN_CURSO"
         binding.startTourButton.setOnClickListener(v -> {
-            Toast.makeText(this, "Tour empezado (simulado)", Toast.LENGTH_SHORT).show();
-            // Logic to start tour (e.g., update tour status)
+            empezarTour();
         });
 
         // Navbar eliminado - pantalla secundaria
@@ -85,5 +97,48 @@ public class guia_check_in extends AppCompatActivity {
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+    
+    /**
+     * ▶️ EMPEZAR TOUR - CAMBIAR ESTADO DE "PROGRAMADO" A "EN_CURSO"
+     */
+    private void empezarTour() {
+        if (tourId == null || tourId.isEmpty()) {
+            Toast.makeText(this, "❌ Error: ID de tour no disponible", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
+        // Deshabilitar botón para evitar clicks múltiples
+        binding.startTourButton.setEnabled(false);
+        binding.startTourButton.setText("Iniciando...");
+        
+        // Usar método específico de Firebase para iniciar tour
+        tourFirebaseService.iniciarTour(tourId, new TourFirebaseService.OperationCallback() {
+            @Override
+            public void onSuccess(String message) {
+                runOnUiThread(() -> {
+                    Toast.makeText(guia_check_in.this, 
+                        "🚀 ¡Tour iniciado exitosamente!", Toast.LENGTH_LONG).show();
+                    
+                    // Regresar a tours asignados para ver el nuevo estado
+                    Intent intent = new Intent(guia_check_in.this, guia_assigned_tours.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(intent);
+                    finish();
+                });
+            }
+            
+            @Override
+            public void onError(String error) {
+                runOnUiThread(() -> {
+                    Toast.makeText(guia_check_in.this, 
+                        "❌ Error iniciando tour: " + error, Toast.LENGTH_LONG).show();
+                    
+                    // Restaurar botón
+                    binding.startTourButton.setEnabled(true);
+                    binding.startTourButton.setText("Empezar Tour");
+                });
+            }
+        });
     }
 }

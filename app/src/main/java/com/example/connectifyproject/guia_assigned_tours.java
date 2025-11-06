@@ -40,6 +40,9 @@ public class guia_assigned_tours extends AppCompatActivity implements GuiaDateFi
     private List<GuiaAssignedTour> allAssignedTours = new ArrayList<>();
     private List<GuiaAssignedItem> displayedItems = new ArrayList<>();
     private boolean isLoading = false;
+    
+    // 🎯 TOUR PRIORITARIO - Variables importantes
+    private TourAsignado tourPrioritario = null;
     private String currentDateFrom, currentDateTo, currentAmount, currentDuration, currentLanguages;
     
     // Servicios
@@ -78,6 +81,9 @@ public class guia_assigned_tours extends AppCompatActivity implements GuiaDateFi
         
         // Cargar tours asignados desde Firebase
         loadToursAsignados();
+        
+        // 🎯 CARGAR TOUR PRIORITARIO
+        loadTourPrioritario();
 
         binding.filterButton.setOnClickListener(v -> {
             GuiaDateFilterDialogFragment dialog = new GuiaDateFilterDialogFragment();
@@ -267,14 +273,19 @@ public class guia_assigned_tours extends AppCompatActivity implements GuiaDateFi
         if (estadoFirebase == null) return "Pendiente";
         
         switch (estadoFirebase.toLowerCase()) {
-            case "confirmado":
-                return "Pendiente";
-            case "en_progreso":
+            case "programado":
+                return "Programado";
+            case "en_curso":
                 return "En Curso";
             case "completado":
                 return "Finalizado";
             case "cancelado":
                 return "Cancelado";
+            // Compatibilidad con estados antiguos
+            case "confirmado":
+                return "Programado";
+            case "en_progreso":
+                return "En Curso";
             default:
                 return "Pendiente";
         }
@@ -426,6 +437,202 @@ public class guia_assigned_tours extends AppCompatActivity implements GuiaDateFi
                 // Simular check-out
                 simulateCheckOutNotification(tourName);
                 break;
+        }
+    }
+    
+    // ========================================================================
+    // 🎯 MÉTODOS DE TOUR PRIORITARIO
+    // ========================================================================
+    
+    /**
+     * 🎯 CARGAR TOUR PRIORITARIO - Método principal
+     */
+    private void loadTourPrioritario() {
+        tourFirebaseService.getTourPrioritario(new TourFirebaseService.TourPrioritarioCallback() {
+            @Override
+            public void onSuccess(TourAsignado tour) {
+                tourPrioritario = tour;
+                if (tour != null) {
+                    Log.d(TAG, "✅ Tour prioritario encontrado: " + tour.getTitulo() + " - Estado: " + tour.getEstado());
+                    mostrarBannerTourPrioritario(tour);
+                } else {
+                    Log.d(TAG, "❌ No hay tour prioritario disponible");
+                    ocultarBannerTourPrioritario();
+                }
+            }
+            
+            @Override
+            public void onError(String error) {
+                Log.e(TAG, "Error cargando tour prioritario: " + error);
+                ocultarBannerTourPrioritario();
+            }
+        });
+    }
+    
+    /**
+     * 🎨 MOSTRAR BANNER CON TOUR PRIORITARIO
+     */
+    private void mostrarBannerTourPrioritario(TourAsignado tour) {
+        runOnUiThread(() -> {
+            // Mostrar el banner
+            binding.tourPrioritarioCard.setVisibility(View.VISIBLE);
+            
+            // Configurar información del tour
+            binding.tourPrioritarioTitulo.setText(tour.getTitulo());
+            binding.tourPrioritarioInfo.setText(String.format(
+                "🕘 Inicio: %s | 👥 %d participantes", 
+                tour.getHoraInicio(), 
+                tour.getNumeroParticipantesTotal()
+            ));
+            
+            // Configurar estado y color del banner
+            configurarEstadoBanner(tour);
+            
+            // Configurar botones según estado
+            configurarBotonesPrioritario(tour);
+        });
+    }
+    
+    /**
+     * 🎨 CONFIGURAR ESTADO Y COLOR DEL BANNER
+     */
+    private void configurarEstadoBanner(TourAsignado tour) {
+        String estado = tour.getEstado();
+        String estadoTexto = mapearEstadoParaUI(estado);
+        int colorBanner = getColorForEstado(estado);
+        
+        binding.tourPrioritarioEstado.setText(estadoTexto);
+        binding.tourPrioritarioCard.setCardBackgroundColor(colorBanner);
+    }
+    
+    /**
+     * 🔘 CONFIGURAR BOTONES SEGÚN ESTADO DEL TOUR
+     */
+    private void configurarBotonesPrioritario(TourAsignado tour) {
+        String estado = tour.getEstado();
+        
+        // Botón MAPA - Disponible para "en_curso" y "programado" de hoy
+        binding.btnMapaRapido.setEnabled("en_curso".equals(estado) || esTourDeHoy(tour));
+        binding.btnMapaRapido.setOnClickListener(v -> abrirMapaTour(tour));
+        
+        // Botón CHECK-IN - Solo para tours programados y "en_curso"
+        boolean puedeCheckIn = "programado".equals(estado) || "en_curso".equals(estado);
+        binding.btnCheckInRapido.setEnabled(puedeCheckIn);
+        binding.btnCheckInRapido.setOnClickListener(v -> abrirCheckInTour(tour));
+        
+        // Botón CHECK-OUT - Solo para tours "en_curso" con check-in realizado
+        boolean puedeCheckOut = "en_curso".equals(estado) && tour.isCheckInRealizado();
+        binding.btnCheckOutRapido.setVisibility(puedeCheckOut ? View.VISIBLE : View.GONE);
+        binding.btnCheckOutRapido.setOnClickListener(v -> abrirCheckOutTour(tour));
+        
+        // Botón DETALLES - Siempre disponible
+        binding.btnDetallesRapido.setOnClickListener(v -> abrirDetallesTour(tour));
+    }
+    
+    /**
+     * 🙈 OCULTAR BANNER CUANDO NO HAY TOUR PRIORITARIO
+     */
+    private void ocultarBannerTourPrioritario() {
+        runOnUiThread(() -> {
+            binding.tourPrioritarioCard.setVisibility(View.GONE);
+        });
+    }
+    
+    /**
+     * 📱 ABRIR MAPA DEL TOUR PRIORITARIO
+     */
+    private void abrirMapaTour(TourAsignado tour) {
+        Intent intent = new Intent(this, guia_tour_map.class);
+        intent.putExtra("tour_name", tour.getTitulo());
+        intent.putExtra("tour_status", tour.getEstado());
+        intent.putExtra("tour_clients", tour.getNumeroParticipantesTotal());
+        
+        // Convertir itinerario a ArrayList<String>
+        ArrayList<String> itinerarioList = new ArrayList<>();
+        if (tour.getItinerario() != null) {
+            for (Map<String, Object> punto : tour.getItinerario()) {
+                String lugar = (String) punto.get("lugar");
+                String hora = (String) punto.get("horaEstimada");
+                if (lugar != null && hora != null) {
+                    itinerarioList.add(hora + " " + lugar);
+                }
+            }
+        }
+        intent.putStringArrayListExtra("tour_itinerario", itinerarioList);
+        
+        // Simular notificación de ubicación
+        simulateLocationReminderNotification("Ubicación de inicio");
+        startActivity(intent);
+    }
+    
+    /**
+     * ✅ ABRIR CHECK-IN DEL TOUR PRIORITARIO
+     */
+    private void abrirCheckInTour(TourAsignado tour) {
+        // Simular notificación de check-in
+        simulateCheckInNotification(tour.getTitulo());
+        
+        Intent intent = new Intent(this, guia_check_in.class);
+        intent.putExtra("tour_id", tour.getId());
+        intent.putExtra("tour_name", tour.getTitulo());
+        intent.putExtra("participants_count", tour.getNumeroParticipantesTotal());
+        startActivity(intent);
+    }
+    
+    /**
+     * ✅ ABRIR CHECK-OUT DEL TOUR PRIORITARIO
+     */
+    private void abrirCheckOutTour(TourAsignado tour) {
+        // Simular notificación de check-out
+        simulateCheckOutNotification(tour.getTitulo());
+        
+        Intent intent = new Intent(this, guia_check_out.class);
+        intent.putExtra("tour_id", tour.getId());
+        intent.putExtra("tour_name", tour.getTitulo());
+        intent.putExtra("participants_count", tour.getNumeroParticipantesTotal());
+        startActivity(intent);
+    }
+    
+    /**
+     * 📋 ABRIR DETALLES DEL TOUR PRIORITARIO
+     */
+    private void abrirDetallesTour(TourAsignado tour) {
+        GuiaAssignedTour guiaAssignedTour = convertToGuiaAssignedTour(tour);
+        
+        Intent intent = new Intent(this, guia_assigned_tour_detail.class);
+        intent.putExtra("tour_name", guiaAssignedTour.getName());
+        intent.putExtra("tour_empresa", guiaAssignedTour.getEmpresa());
+        intent.putExtra("tour_initio", guiaAssignedTour.getInitio());
+        intent.putExtra("tour_duration", guiaAssignedTour.getDuration());
+        intent.putExtra("tour_clients", guiaAssignedTour.getClients());
+        intent.putExtra("tour_status", guiaAssignedTour.getStatus());
+        intent.putExtra("tour_languages", guiaAssignedTour.getLanguages());
+        intent.putExtra("tour_services", guiaAssignedTour.getServices());
+        intent.putStringArrayListExtra("tour_itinerario", new ArrayList<>(guiaAssignedTour.getItinerario()));
+        startActivity(intent);
+    }
+    
+    /**
+     * 🔧 MÉTODOS HELPER
+     */
+    private boolean esTourDeHoy(TourAsignado tour) {
+        if (tour.getFechaRealizacion() == null) return false;
+        
+        Date fechaTour = tour.getFechaRealizacion().toDate();
+        Date hoy = new Date();
+        
+        // Comparar solo la fecha (sin hora)
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+        return sdf.format(hoy).equals(sdf.format(fechaTour));
+    }
+    
+    private int getColorForEstado(String estado) {
+        switch (estado.toLowerCase()) {
+            case "en_curso": return 0xFFE8F5E8; // Verde claro
+            case "programado": return 0xFFFFF3E0; // Naranja claro
+            case "completado": return 0xFFE3F2FD; // Azul claro
+            case "cancelado": return 0xFFFFEBEE; // Rojo claro
+            default: return 0xFFF5F5F5; // Gris claro
         }
     }
 }

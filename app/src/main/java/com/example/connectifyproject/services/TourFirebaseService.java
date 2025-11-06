@@ -33,6 +33,13 @@ public class TourFirebaseService {
         this.mAuth = FirebaseAuth.getInstance();
     }
     
+    /**
+     * 🔐 OBTENER USUARIO ACTUAL
+     */
+    private FirebaseUser getCurrentUser() {
+        return mAuth.getCurrentUser();
+    }
+    
     // Interfaces para callbacks (siguiendo el patrón existente)
     public interface TourCallback {
         void onSuccess(List<OfertaTour> tours);
@@ -140,9 +147,10 @@ public class TourFirebaseService {
      * Procesar y ordenar los resultados de ofertas
      */
     private void procesarResultadosOfertas(List<OfertaTour> ofertas, TourCallback callback) {
-        // Ordenar por fecha de realización del tour
+        // Ordenar por fecha de realización del tour (ahora Timestamp)
         ofertas.sort((o1, o2) -> {
             try {
+                // Para ofertas, fechaRealizacion sigue siendo String, así que mantenemos el parseo
                 SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
                 Date fecha1 = sdf.parse(o1.getFechaRealizacion());
                 Date fecha2 = sdf.parse(o2.getFechaRealizacion());
@@ -456,5 +464,184 @@ public class TourFirebaseService {
     public interface TourAsignadoCallback {
         void onSuccess(List<TourAsignado> tours);
         void onError(String error);
+    }
+    
+    public interface TourPrioritarioCallback {
+        void onSuccess(TourAsignado tour);
+        void onError(String error);
+    }
+    
+    /**
+     * 🎯 OBTENER TOUR PRIORITARIO - LÓGICA CLARA
+     * 
+     * PRIORIDAD 1: Tour "en_curso" (ya iniciado)
+     * PRIORIDAD 2: Tour "programado" que es HOY y ya es hora de inicio
+     * PRIORIDAD 3: Tour "programado" que es HOY (sin importar hora)
+     * PRIORIDAD 4: Tour "programado" más próximo en fecha
+     */
+    public void getTourPrioritario(TourPrioritarioCallback callback) {
+        FirebaseUser currentUser = getCurrentUser();
+        if (currentUser == null) {
+            callback.onError("Usuario no autenticado");
+            return;
+        }
+        
+        String guiaId = currentUser.getUid();
+        
+        db.collection(COLLECTION_ASIGNADOS)
+            .whereEqualTo("guiaAsignado.identificadorUsuario", guiaId)
+            .whereEqualTo("habilitado", true)
+            .orderBy("fechaRealizacion")
+            .get()
+            .addOnSuccessListener(querySnapshot -> {
+                TourAsignado tourPrioritario = null;
+                TourAsignado tourMasCercano = null;
+                
+                for (DocumentSnapshot doc : querySnapshot) {
+                    TourAsignado tour = doc.toObject(TourAsignado.class);
+                    if (tour != null) {
+                        tour.setId(doc.getId());
+                        
+                        // ✅ PRIORIDAD 1: Tour en curso (máxima prioridad)
+                        if ("en_curso".equals(tour.getEstado())) {
+                            tourPrioritario = tour;
+                            break; // ¡Este es el prioritario absoluto!
+                        }
+                        
+                        // ✅ PRIORIDAD 2-4: Tours programados
+                        if ("programado".equals(tour.getEstado())) {
+                            if (esTourDeHoy(tour)) {
+                                if (yaEsHoraDeInicio(tour)) {
+                                    // PRIORIDAD 2: Es hoy Y ya es hora
+                                    if (tourPrioritario == null) {
+                                        tourPrioritario = tour;
+                                    }
+                                } else {
+                                    // PRIORIDAD 3: Es hoy pero aún no es hora
+                                    if (tourPrioritario == null) {
+                                        tourPrioritario = tour;
+                                    }
+                                }
+                            } else if (tourMasCercano == null && esTourFuturo(tour)) {
+                                // PRIORIDAD 4: Más cercano en el futuro
+                                tourMasCercano = tour;
+                            }
+                        }
+                    }
+                }
+                
+                // Si no hay tour prioritario, usar el más cercano
+                if (tourPrioritario == null) {
+                    tourPrioritario = tourMasCercano;
+                }
+                
+                callback.onSuccess(tourPrioritario);
+            })
+            .addOnFailureListener(e -> {
+                Log.e(TAG, "Error obteniendo tour prioritario", e);
+                callback.onError("Error: " + e.getMessage());
+            });
+    }
+    
+    /**
+     * 🕐 VERIFICAR SI ES TOUR DE HOY
+     */
+    private boolean esTourDeHoy(TourAsignado tour) {
+        if (tour.getFechaRealizacion() == null) return false;
+        
+        Date fechaTour = tour.getFechaRealizacion().toDate();
+        Date hoy = new Date();
+        
+        // Comparar solo la fecha (sin hora)
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+        return sdf.format(hoy).equals(sdf.format(fechaTour));
+    }
+    
+    /**
+     * ⏰ VERIFICAR SI YA ES HORA DE INICIO
+     */
+    private boolean yaEsHoraDeInicio(TourAsignado tour) {
+        try {
+            if (tour.getFechaRealizacion() == null || tour.getHoraInicio() == null) {
+                return false;
+            }
+            
+            // Combinar fecha (Timestamp) con hora de inicio (String)
+            Date fechaTour = tour.getFechaRealizacion().toDate();
+            SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm", Locale.getDefault());
+            Date horaInicio = timeFormat.parse(tour.getHoraInicio());
+            
+            // Crear fecha completa con fecha del tour + hora de inicio
+            Date fechaHoraInicio = new Date(fechaTour.getTime() + horaInicio.getTime() - timeFormat.parse("00:00").getTime());
+            Date ahora = new Date();
+            
+            // Es hora si ya pasó la hora de inicio
+            return ahora.getTime() >= fechaHoraInicio.getTime();
+        } catch (ParseException e) {
+            Log.e(TAG, "Error parseando fecha/hora", e);
+            return false;
+        }
+    }
+    
+    /**
+     * 📅 VERIFICAR SI ES TOUR FUTURO
+     */
+    private boolean esTourFuturo(TourAsignado tour) {
+        if (tour.getFechaRealizacion() == null) return false;
+        
+        Date fechaTour = tour.getFechaRealizacion().toDate();
+        Date hoy = new Date();
+        
+        // Comparar solo fechas (sin hora) para determinar si es futuro
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+        try {
+            Date fechaTourSinHora = sdf.parse(sdf.format(fechaTour));
+            Date hoySinHora = sdf.parse(sdf.format(hoy));
+            
+            return fechaTourSinHora.getTime() > hoySinHora.getTime();
+        } catch (ParseException e) {
+            Log.e(TAG, "Error comparando fechas", e);
+            return fechaTour.getTime() > hoy.getTime();
+        }
+    }
+    
+    /**
+     * 🔄 ACTUALIZAR ESTADO DE TOUR
+     */
+    public void actualizarEstadoTour(String tourId, String nuevoEstado, OperationCallback callback) {
+        db.collection(COLLECTION_ASIGNADOS)
+            .document(tourId)
+            .update("estado", nuevoEstado)
+            .addOnSuccessListener(aVoid -> {
+                Log.d(TAG, "Estado actualizado a: " + nuevoEstado);
+                callback.onSuccess("Estado actualizado correctamente");
+            })
+            .addOnFailureListener(e -> {
+                Log.e(TAG, "Error actualizando estado", e);
+                callback.onError("Error actualizando estado: " + e.getMessage());
+            });
+    }
+    
+    /**
+     * ▶️ INICIAR TOUR (cambiar de "programado" a "en_curso")
+     * Se llama desde el botón "Empezar Tour" en check-in
+     */
+    public void iniciarTour(String tourId, OperationCallback callback) {
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("estado", "en_curso");
+        updates.put("checkInRealizado", true);
+        updates.put("horaCheckIn", Timestamp.now());
+        
+        db.collection(COLLECTION_ASIGNADOS)
+            .document(tourId)
+            .update(updates)
+            .addOnSuccessListener(aVoid -> {
+                Log.d(TAG, "Tour iniciado exitosamente");
+                callback.onSuccess("Tour iniciado correctamente");
+            })
+            .addOnFailureListener(e -> {
+                Log.e(TAG, "Error iniciando tour", e);
+                callback.onError("Error iniciando tour: " + e.getMessage());
+            });
     }
 }
