@@ -371,7 +371,7 @@ public class guia_assigned_tours extends AppCompatActivity implements GuiaDateFi
         
         // ✅ MANTENER INFORMACIÓN DE TOUR PRIORITARIO DESPUÉS DE FILTROS
         if (tourPrioritario != null && adapter != null) {
-            adapter.setTourPrioritario(tourPrioritario.getTitulo());
+            adapter.setTourPrioritario(tourPrioritario.getId()); // Usar ID real
         }
     }
 
@@ -486,9 +486,9 @@ public class guia_assigned_tours extends AppCompatActivity implements GuiaDateFi
                     Log.d(TAG, "✅ Tour prioritario encontrado: " + tour.getTitulo() + " - Estado: " + tour.getEstado());
                     mostrarBannerTourPrioritario(tour);
                     
-                    // ✅ INFORMAR AL ADAPTADOR CUÁL ES EL TOUR PRIORITARIO
+                    // ✅ INFORMAR AL ADAPTADOR CUÁL ES EL TOUR PRIORITARIO (usando ID real)
                     if (adapter != null) {
-                        adapter.setTourPrioritario(tour.getTitulo()); // Usar título como ID único
+                        adapter.setTourPrioritario(tour.getId()); // Usar ID real de Firebase
                     }
                 } else {
                     Log.d(TAG, "❌ No hay tour prioritario disponible");
@@ -786,6 +786,62 @@ public class guia_assigned_tours extends AppCompatActivity implements GuiaDateFi
                 runOnUiThread(() -> {
                     Toast.makeText(guia_assigned_tours.this, 
                         "❌ Error: " + error, Toast.LENGTH_LONG).show();
+                });
+            }
+        });
+    }
+    
+    /**
+     * ▶️ CAMBIAR ESTADO: PENDIENTE → CHECK_IN
+     * Cambio directo de estado para tour prioritario pendiente
+     */
+    public void cambiarEstadoPendienteACheckIn(String tourId, String tourName) {
+        tourFirebaseService.cambiarPendienteACheckIn(tourId, new TourFirebaseService.OperationCallback() {
+            @Override
+            public void onSuccess(String message) {
+                runOnUiThread(() -> {
+                    Toast.makeText(guia_assigned_tours.this, 
+                        "▶️ Tour " + tourName + " listo para check-in", Toast.LENGTH_LONG).show();
+                    
+                    // Recargar datos y tour prioritario
+                    loadToursAsignados();
+                    loadTourPrioritario();
+                });
+            }
+            
+            @Override
+            public void onError(String error) {
+                runOnUiThread(() -> {
+                    Toast.makeText(guia_assigned_tours.this, 
+                        "❌ Error cambiando estado: " + error, Toast.LENGTH_LONG).show();
+                });
+            }
+        });
+    }
+    
+    /**
+     * 🛑 CAMBIAR ESTADO: EN_CURSO → CHECK_OUT
+     * Cambio directo de estado para tour en curso
+     */
+    public void cambiarEstadoEnCursoACheckOut(String tourId, String tourName) {
+        tourFirebaseService.cambiarEnCursoACheckOut(tourId, new TourFirebaseService.OperationCallback() {
+            @Override
+            public void onSuccess(String message) {
+                runOnUiThread(() -> {
+                    Toast.makeText(guia_assigned_tours.this, 
+                        "🛑 Tour " + tourName + " listo para check-out", Toast.LENGTH_LONG).show();
+                    
+                    // Recargar datos y tour prioritario
+                    loadToursAsignados();
+                    loadTourPrioritario();
+                });
+            }
+            
+            @Override
+            public void onError(String error) {
+                runOnUiThread(() -> {
+                    Toast.makeText(guia_assigned_tours.this, 
+                        "❌ Error cambiando estado: " + error, Toast.LENGTH_LONG).show();
                 });
             }
         });
