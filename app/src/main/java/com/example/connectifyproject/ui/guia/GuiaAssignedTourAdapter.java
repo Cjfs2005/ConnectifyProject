@@ -30,10 +30,21 @@ import java.util.Locale;
 public class GuiaAssignedTourAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private List<GuiaAssignedItem> items;
     private Context context;
+    
+    // ✅ TOUR PRIORITARIO - Para saber cuál debe tener botones activos
+    private String tourPrioritarioId = null;
 
     public GuiaAssignedTourAdapter(Context context, List<GuiaAssignedItem> items) {
         this.context = context;
         this.items = items;
+    }
+    
+    /**
+     * ✅ CONFIGURAR TOUR PRIORITARIO - Para habilitar botones
+     */
+    public void setTourPrioritario(String tourId) {
+        this.tourPrioritarioId = tourId;
+        notifyDataSetChanged(); // Refrescar vista para aplicar cambios
     }
 
     @NonNull
@@ -75,6 +86,10 @@ public class GuiaAssignedTourAdapter extends RecyclerView.Adapter<RecyclerView.V
             String estado = formatearEstado(tour.getStatus());
             tourHolder.binding.tourStatus.setText(estado);
             
+            // ✅ APLICAR COLOR AL ESTADO SEGÚN TIPO
+            int colorEstado = getColorForEstado(tour.getStatus());
+            tourHolder.binding.tourStatus.setTextColor(colorEstado);
+            
             // Fechas - separar fecha y hora como en ofertas
             String[] fechaHora = tour.getInitio().split(" - ");
             if (fechaHora.length == 2) {
@@ -88,22 +103,110 @@ public class GuiaAssignedTourAdapter extends RecyclerView.Adapter<RecyclerView.V
             // ✅ MOSTRAR PAGO AL GUÍA (igual que en ofertas)
             tourHolder.binding.pagoGuiaText.setText("S/. " + (int) tour.getPagoGuia());
 
-            // ✅ SOLO MOSTRAR BOTÓN DE DETALLES para tours normales
-            // Los tours prioritarios usan el banner superior
-            tourHolder.binding.actionsLayout.setVisibility(View.GONE); // Ocultar todos los botones
+            // ✅ LÓGICA DE BOTONES: Verificar si es tour prioritario
+            boolean esTourPrioritario = tourPrioritarioId != null && 
+                                       tour.getName() != null && 
+                                       tour.getName().hashCode() == tourPrioritarioId.hashCode();
             
-            // Solo mostrar botón de detalles
-            tourHolder.binding.detailsIcon.setVisibility(View.VISIBLE);
-            tourHolder.binding.mapIcon.setVisibility(View.GONE);
-            tourHolder.binding.checkInIcon.setVisibility(View.GONE);
-            tourHolder.binding.checkOutIcon.setVisibility(View.GONE);
+            if (esTourPrioritario) {
+                // ✅ TOUR PRIORITARIO: Mostrar botones según estado
+                configurarBotonesTourPrioritario(tourHolder, tour);
+            } else {
+                // ✅ TOUR NORMAL: Solo mostrar botón de detalles
+                tourHolder.binding.actionsLayout.setVisibility(View.GONE);
+                tourHolder.binding.detailsIcon.setVisibility(View.VISIBLE);
+                tourHolder.binding.mapIcon.setVisibility(View.GONE);
+                tourHolder.binding.checkInIcon.setVisibility(View.GONE);
+                tourHolder.binding.checkOutIcon.setVisibility(View.GONE);
+            }
 
             // Entire card click for details
             tourHolder.itemView.setOnClickListener(v -> startDetailIntent(tour));
             
-            // Solo botón de detalles funcional
-            tourHolder.binding.detailsIcon.setOnClickListener(v -> startDetailIntent(tour));
+            // Solo botón de detalles funcional para tours no prioritarios
+            if (!esTourPrioritario) {
+                tourHolder.binding.detailsIcon.setOnClickListener(v -> startDetailIntent(tour));
+            }
         }
+    }
+
+    /**
+     * ✅ CONFIGURAR BOTONES PARA TOUR PRIORITARIO EN LISTADO
+     */
+    private void configurarBotonesTourPrioritario(AssignedTourViewHolder holder, GuiaAssignedTour tour) {
+        String estado = tour.getStatus();
+        
+        // Mostrar layout de acciones
+        holder.binding.actionsLayout.setVisibility(View.VISIBLE);
+        
+        // BOTÓN DETALLES - Siempre disponible
+        holder.binding.detailsIcon.setVisibility(View.VISIBLE);
+        holder.binding.detailsIcon.setOnClickListener(v -> startDetailIntent(tour));
+        
+        if ("En Curso".equalsIgnoreCase(estado) || "en_curso".equalsIgnoreCase(estado)) {
+            // 🟢 TOUR EN CURSO: Mapa + Check-out + Detalles
+            holder.binding.mapIcon.setVisibility(View.VISIBLE);
+            holder.binding.checkInIcon.setVisibility(View.GONE);
+            holder.binding.checkOutIcon.setVisibility(View.VISIBLE);
+            
+            // Configurar acciones
+            holder.binding.mapIcon.setOnClickListener(v -> abrirMapaTour(tour));
+            holder.binding.checkOutIcon.setOnClickListener(v -> abrirCheckOutTour(tour));
+            
+        } else if ("Programado".equalsIgnoreCase(estado)) {
+            // 🔵 TOUR PROGRAMADO: Mapa + Check-in + Detalles
+            holder.binding.mapIcon.setVisibility(View.VISIBLE);
+            holder.binding.checkInIcon.setVisibility(View.VISIBLE);
+            holder.binding.checkOutIcon.setVisibility(View.GONE);
+            
+            // Configurar acciones
+            holder.binding.mapIcon.setOnClickListener(v -> abrirMapaTour(tour));
+            holder.binding.checkInIcon.setOnClickListener(v -> abrirCheckInTour(tour));
+            
+        } else {
+            // 🔴 OTROS ESTADOS: Solo detalles
+            holder.binding.mapIcon.setVisibility(View.GONE);
+            holder.binding.checkInIcon.setVisibility(View.GONE);
+            holder.binding.checkOutIcon.setVisibility(View.GONE);
+        }
+    }
+    
+    /**
+     * ✅ MÉTODOS HELPER PARA ABRIR PANTALLAS
+     */
+    private void abrirMapaTour(GuiaAssignedTour tour) {
+        // Simular notificación de ubicación
+        if (context instanceof com.example.connectifyproject.guia_assigned_tours) {
+            ((com.example.connectifyproject.guia_assigned_tours) context).simulateLocationReminderNotification("Plaza de Armas");
+        }
+        Intent intent = new Intent(context, guia_tour_map.class);
+        intent.putExtra("tour_name", tour.getName());
+        intent.putExtra("tour_status", tour.getStatus());
+        intent.putStringArrayListExtra("tour_itinerario", new ArrayList<>(tour.getItinerario()));
+        intent.putExtra("tour_clients", tour.getClients());
+        context.startActivity(intent);
+    }
+    
+    private void abrirCheckInTour(GuiaAssignedTour tour) {
+        // Simular notificación de check-in
+        if (context instanceof com.example.connectifyproject.guia_assigned_tours) {
+            ((com.example.connectifyproject.guia_assigned_tours) context).simulateCheckInNotification(tour.getName());
+        }
+        Intent intent = new Intent(context, guia_check_in.class);
+        intent.putExtra("tour_name", tour.getName());
+        intent.putExtra("participants_count", tour.getClients());
+        context.startActivity(intent);
+    }
+    
+    private void abrirCheckOutTour(GuiaAssignedTour tour) {
+        // Simular notificación de check-out
+        if (context instanceof com.example.connectifyproject.guia_assigned_tours) {
+            ((com.example.connectifyproject.guia_assigned_tours) context).simulateCheckOutNotification(tour.getName());
+        }
+        Intent intent = new Intent(context, guia_check_out.class);
+        intent.putExtra("tour_name", tour.getName());
+        intent.putExtra("participants_count", tour.getClients());
+        context.startActivity(intent);
     }
 
     private void startDetailIntent(GuiaAssignedTour tour) {
@@ -197,6 +300,28 @@ public class GuiaAssignedTourAdapter extends RecyclerView.Adapter<RecyclerView.V
                 return "CANCELADO";
             default:
                 return estado.toUpperCase();
+        }
+    }
+    
+    /**
+     * ✅ OBTENER COLOR PARA ESTADO (MISMO QUE BANNER PRIORITARIO)
+     */
+    private int getColorForEstado(String estado) {
+        if (estado == null) return Color.GRAY;
+        
+        switch (estado.toLowerCase()) {
+            case "en_curso":
+            case "en curso":
+                return Color.parseColor("#4CAF50"); // Verde intenso
+            case "programado":
+                return Color.parseColor("#2196F3"); // Azul
+            case "completado":
+            case "finalizado":
+                return Color.parseColor("#9C27B0"); // Púrpura
+            case "cancelado":
+                return Color.parseColor("#F44336"); // Rojo
+            default:
+                return Color.parseColor("#9E9E9E"); // Gris para otros estados
         }
     }
 

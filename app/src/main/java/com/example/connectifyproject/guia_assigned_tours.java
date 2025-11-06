@@ -343,6 +343,11 @@ public class guia_assigned_tours extends AppCompatActivity implements GuiaDateFi
         }
 
         adapter.updateItems(displayedItems);
+        
+        // ✅ MANTENER INFORMACIÓN DE TOUR PRIORITARIO DESPUÉS DE FILTROS
+        if (tourPrioritario != null && adapter != null) {
+            adapter.setTourPrioritario(tourPrioritario.getTitulo());
+        }
     }
 
     private String getFormattedHeader(String date) {
@@ -455,9 +460,19 @@ public class guia_assigned_tours extends AppCompatActivity implements GuiaDateFi
                 if (tour != null) {
                     Log.d(TAG, "✅ Tour prioritario encontrado: " + tour.getTitulo() + " - Estado: " + tour.getEstado());
                     mostrarBannerTourPrioritario(tour);
+                    
+                    // ✅ INFORMAR AL ADAPTADOR CUÁL ES EL TOUR PRIORITARIO
+                    if (adapter != null) {
+                        adapter.setTourPrioritario(tour.getTitulo()); // Usar título como ID único
+                    }
                 } else {
                     Log.d(TAG, "❌ No hay tour prioritario disponible");
                     ocultarBannerTourPrioritario();
+                    
+                    // ✅ LIMPIAR TOUR PRIORITARIO EN ADAPTADOR
+                    if (adapter != null) {
+                        adapter.setTourPrioritario(null);
+                    }
                 }
             }
             
@@ -465,6 +480,11 @@ public class guia_assigned_tours extends AppCompatActivity implements GuiaDateFi
             public void onError(String error) {
                 Log.e(TAG, "Error cargando tour prioritario: " + error);
                 ocultarBannerTourPrioritario();
+                
+                // ✅ LIMPIAR TOUR PRIORITARIO EN ADAPTADOR EN CASO DE ERROR
+                if (adapter != null) {
+                    adapter.setTourPrioritario(null);
+                }
             }
         });
     }
