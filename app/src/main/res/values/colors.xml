@@ -109,4 +109,7 @@
     <color name="status_enabled">#4CAF50</color>   <!-- Verde para habilitado -->
     <color name="status_disabled">#F44336</color>  <!-- Rojo para deshabilitado -->
 
+    <!-- Tour prioritario -->
+    <color name="tour_prioritario_background">#E8F5E8</color>   <!-- Verde claro para tour prioritario -->
+
 </resources>

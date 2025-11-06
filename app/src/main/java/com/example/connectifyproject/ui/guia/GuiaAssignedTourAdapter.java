@@ -10,6 +10,7 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.connectifyproject.R;
 import com.example.connectifyproject.databinding.GuiaItemAssignedTourBinding;
 import com.example.connectifyproject.databinding.GuiaItemHeaderBinding;
 import com.example.connectifyproject.guia_assigned_tour_detail;
@@ -103,89 +104,133 @@ public class GuiaAssignedTourAdapter extends RecyclerView.Adapter<RecyclerView.V
             // ✅ MOSTRAR PAGO AL GUÍA (igual que en ofertas)
             tourHolder.binding.pagoGuiaText.setText("S/. " + (int) tour.getPagoGuia());
 
-            // ✅ LÓGICA DE BOTONES: Verificar si es tour prioritario
+            // ✅ MOSTRAR ESTADO DEL TOUR VISUALMENTE
+            configurarEstadoTour(tourHolder, tour);
+            
+            // ✅ TODOS LOS TOURS TIENEN BOTONES SEGÚN SU ESTADO
+            configurarBotonesPorEstado(tourHolder, tour);
+
+            // ✅ DESTACAR TOUR PRIORITARIO VISUALMENTE
             boolean esTourPrioritario = tourPrioritarioId != null && 
                                        tour.getName() != null && 
                                        tour.getName().hashCode() == tourPrioritarioId.hashCode();
             
             if (esTourPrioritario) {
-                // ✅ TOUR PRIORITARIO: Mostrar botones según estado
-                configurarBotonesTourPrioritario(tourHolder, tour);
+                // Resaltar visualmente el tour prioritario
+                tourHolder.itemView.setBackgroundResource(R.color.tour_prioritario_background);
             } else {
-                // ✅ TOUR NORMAL: Solo mostrar botón de detalles
-                tourHolder.binding.actionsLayout.setVisibility(View.GONE);
-                tourHolder.binding.detailsIcon.setVisibility(View.VISIBLE);
-                tourHolder.binding.mapIcon.setVisibility(View.GONE);
-                tourHolder.binding.checkInIcon.setVisibility(View.GONE);
-                tourHolder.binding.checkOutIcon.setVisibility(View.GONE);
+                tourHolder.itemView.setBackgroundResource(R.color.white);
             }
 
             // Entire card click for details
             tourHolder.itemView.setOnClickListener(v -> startDetailIntent(tour));
-            
-            // Solo botón de detalles funcional para tours no prioritarios
-            if (!esTourPrioritario) {
-                tourHolder.binding.detailsIcon.setOnClickListener(v -> startDetailIntent(tour));
-            }
         }
     }
 
     /**
-     * ✅ CONFIGURACIÓN DE BOTONES BASADA EN ESTADO UNIFICADO
-     * Estados: pendiente, check_in, en_curso, check_out, completado
+     * ✅ CONFIGURAR ESTADO VISUAL DEL TOUR
      */
-    private void configurarBotonesTourPrioritario(AssignedTourViewHolder holder, GuiaAssignedTour tour) {
+    private void configurarEstadoTour(AssignedTourViewHolder holder, GuiaAssignedTour tour) {
         String estado = tour.getStatus();
         
-        // Mostrar layout de acciones
+        // Configurar empresa sin el estado (ya está en tour_status)
+        holder.binding.empresaText.setText(tour.getEmpresa());
+        
+        // Configurar el campo de estado dedicado
+        if (estado != null) {
+            holder.binding.tourStatus.setText(estado.toUpperCase());
+            
+            // Configurar colores según el estado
+            int colorFondo;
+            int colorTexto;
+            
+            switch (estado.toLowerCase()) {
+                case "en curso":
+                    colorFondo = 0xFFE8F5E8; // Verde claro
+                    colorTexto = 0xFF4CAF50; // Verde
+                    break;
+                case "pendiente":
+                    colorFondo = 0xFFE3F2FD; // Azul claro
+                    colorTexto = 0xFF2196F3; // Azul
+                    break;
+                case "programado":
+                    colorFondo = 0xFFE8F5E8; // Verde claro
+                    colorTexto = 0xFF4CAF50; // Verde
+                    break;
+                case "completado":
+                case "finalizado":
+                    colorFondo = 0xFFF3E5F5; // Púrpura claro
+                    colorTexto = 0xFF9C27B0; // Púrpura
+                    break;
+                default:
+                    colorFondo = 0xFFF5F5F5; // Gris claro
+                    colorTexto = 0xFF757575; // Gris
+                    break;
+            }
+            
+            holder.binding.tourStatus.setBackgroundColor(colorFondo);
+            holder.binding.tourStatus.setTextColor(colorTexto);
+        } else {
+            holder.binding.tourStatus.setText("PENDIENTE");
+            holder.binding.tourStatus.setBackgroundColor(0xFFE3F2FD);
+            holder.binding.tourStatus.setTextColor(0xFF2196F3);
+        }
+    }
+
+    /**
+     * ✅ CONFIGURACIÓN DE BOTONES PARA TODOS LOS TOURS SEGÚN SU ESTADO
+     * Estados: Pendiente, En Curso, Programado, etc.
+     */
+    private void configurarBotonesPorEstado(AssignedTourViewHolder holder, GuiaAssignedTour tour) {
+        String estado = tour.getStatus();
+        
+        // Mostrar layout de acciones para todos los tours
         holder.binding.actionsLayout.setVisibility(View.VISIBLE);
         
-        // BOTÓN DETALLES - Siempre disponible
+        // BOTÓN DETALLES - Siempre disponible para todos los tours
         holder.binding.detailsIcon.setVisibility(View.VISIBLE);
         holder.binding.detailsIcon.setOnClickListener(v -> startDetailIntent(tour));
         
         // Configurar botones según estado del tour
         switch (estado != null ? estado.toLowerCase() : "pendiente") {
             case "pendiente":
-                // 📅 PENDIENTE: Solo Detalles + Botón "Habilitar Check-in"
+                // 📅 PENDIENTE: Detalles + Check-in habilitado
                 holder.binding.mapIcon.setVisibility(View.GONE);
                 holder.binding.checkInIcon.setVisibility(View.VISIBLE);
                 holder.binding.checkOutIcon.setVisibility(View.GONE);
-                holder.binding.checkInIcon.setOnClickListener(v -> habilitarCheckInTour(tour));
+                holder.binding.checkInIcon.setOnClickListener(v -> iniciarCheckIn(tour));
                 break;
                 
-            case "check_in":
-            case "check-in disponible":
-                // ✅ CHECK-IN DISPONIBLE: Mapa + Check-in + Detalles
+            case "programado":
+                // ✅ PROGRAMADO: Detalles + Mapa + Check-in
                 holder.binding.mapIcon.setVisibility(View.VISIBLE);
                 holder.binding.checkInIcon.setVisibility(View.VISIBLE);
                 holder.binding.checkOutIcon.setVisibility(View.GONE);
-                holder.binding.mapIcon.setOnClickListener(v -> abrirMapaTour(tour));
-                holder.binding.checkInIcon.setOnClickListener(v -> abrirCheckInTour(tour));
+                holder.binding.mapIcon.setOnClickListener(v -> startMapIntent(tour));
+                holder.binding.checkInIcon.setOnClickListener(v -> iniciarCheckIn(tour));
                 break;
                 
-            case "en_curso":
             case "en curso":
-                // ▶️ EN CURSO: Mapa + Check-out + Detalles
+                // ▶️ EN CURSO: Detalles + Mapa + Check-out
                 holder.binding.mapIcon.setVisibility(View.VISIBLE);
                 holder.binding.checkInIcon.setVisibility(View.GONE);
                 holder.binding.checkOutIcon.setVisibility(View.VISIBLE);
-                holder.binding.mapIcon.setOnClickListener(v -> abrirMapaTour(tour));
-                holder.binding.checkOutIcon.setOnClickListener(v -> habilitarCheckOutTour(tour));
+                holder.binding.mapIcon.setOnClickListener(v -> startMapIntent(tour));
+                holder.binding.checkOutIcon.setOnClickListener(v -> iniciarCheckOut(tour));
                 break;
                 
+            case "check_in":
             case "check_out":
-            case "check-out disponible":
-                // 🏁 CHECK-OUT DISPONIBLE: Check-out + Detalles
+                // 🏁 CHECK-OUT DISPONIBLE: Detalles + Mapa + Check-out
                 holder.binding.mapIcon.setVisibility(View.VISIBLE);
                 holder.binding.checkInIcon.setVisibility(View.GONE);
                 holder.binding.checkOutIcon.setVisibility(View.VISIBLE);
-                holder.binding.mapIcon.setOnClickListener(v -> abrirMapaTour(tour));
-                holder.binding.checkOutIcon.setOnClickListener(v -> abrirCheckOutTour(tour));
+                holder.binding.mapIcon.setOnClickListener(v -> startMapIntent(tour));
+                holder.binding.checkOutIcon.setOnClickListener(v -> iniciarCheckOut(tour));
                 break;
                 
             case "completado":
-            case "terminado":
+            case "finalizado":
             default:
                 // ✅ COMPLETADO: Solo detalles
                 holder.binding.mapIcon.setVisibility(View.GONE);
@@ -194,7 +239,24 @@ public class GuiaAssignedTourAdapter extends RecyclerView.Adapter<RecyclerView.V
                 break;
         }
     }
+
+    // ✅ MÉTODOS PARA MANEJAR ACCIONES DE BOTONES
+    private void iniciarCheckIn(GuiaAssignedTour tour) {
+        Intent intent = new Intent(context, guia_check_in.class);
+        intent.putExtra("tour_id", tour.getTourId());
+        intent.putExtra("tour_name", tour.getName());
+        intent.putExtra("participants_count", tour.getClients());
+        context.startActivity(intent);
+    }
     
+    private void iniciarCheckOut(GuiaAssignedTour tour) {
+        Intent intent = new Intent(context, guia_check_out.class);
+        intent.putExtra("tour_id", tour.getTourId());
+        intent.putExtra("tour_name", tour.getName());
+        intent.putExtra("participants_count", tour.getClients());
+        context.startActivity(intent);
+    }
+
     /**
      * 🔄 HABILITAR CHECK-IN (pendiente → check_in)
      */
@@ -206,13 +268,20 @@ public class GuiaAssignedTourAdapter extends RecyclerView.Adapter<RecyclerView.V
     }
     
     /**
-     * 🔚 HABILITAR CHECK-OUT (en_curso → check_out)
+     * � HABILITAR CHECK-OUT (en_curso → check_out)
      */
     private void habilitarCheckOutTour(GuiaAssignedTour tour) {
         if (context instanceof com.example.connectifyproject.guia_assigned_tours) {
             ((com.example.connectifyproject.guia_assigned_tours) context)
                 .habilitarCheckOutParaTour(tour.getTourId(), tour.getName());
         }
+    }
+    
+    /**
+     * �️ ABRIR MAPA DEL TOUR
+     */
+    private void startMapIntent(GuiaAssignedTour tour) {
+        abrirMapaTour(tour);
     }
     
     /**

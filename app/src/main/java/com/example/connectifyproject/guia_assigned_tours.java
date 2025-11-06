@@ -154,11 +154,20 @@ public class guia_assigned_tours extends AppCompatActivity implements GuiaDateFi
             public void onSuccess(List<TourAsignado> tours) {
                 Log.d(TAG, "Tours asignados cargados: " + tours.size());
                 
-                // Convertir TourAsignado a GuiaAssignedTour para compatibilidad con UI existente
+                // ✅ FILTRAR TOURS COMPLETADOS - No mostrarlos en la lista
                 allAssignedTours.clear();
                 for (TourAsignado tourAsignado : tours) {
-                    GuiaAssignedTour guiaAssignedTour = convertToGuiaAssignedTour(tourAsignado);
-                    allAssignedTours.add(guiaAssignedTour);
+                    // No mostrar tours completados/finalizados en la lista principal
+                    if (tourAsignado.getEstado() == null || 
+                        (!tourAsignado.getEstado().equalsIgnoreCase("completado") && 
+                         !tourAsignado.getEstado().equalsIgnoreCase("finalizado"))) {
+                        
+                        GuiaAssignedTour guiaAssignedTour = convertToGuiaAssignedTour(tourAsignado);
+                        allAssignedTours.add(guiaAssignedTour);
+                        Log.d(TAG, "Tour agregado: " + tourAsignado.getTitulo() + " - Estado: " + tourAsignado.getEstado());
+                    } else {
+                        Log.d(TAG, "Tour completado omitido: " + tourAsignado.getTitulo() + " - Estado: " + tourAsignado.getEstado());
+                    }
                 }
                 
                 // Aplicar filtros y actualizar UI

@@ -27,16 +27,17 @@ public class TourAsignadoDataSeeder {
 
     /**
      * Crear tours asignados de ejemplo para pruebas
+     * ✅ CONFIGURACIÓN CORRECTA: Solo un tour en estado avanzado
      */
     public void crearToursAsignadosDePrueba() {
         Log.d(TAG, "Iniciando creación de tours asignados de prueba...");
         
-        // Lista de tours asignados para diferentes guías
-        crearTourAsignadoLima();
-        crearTourEnCurso(); // ✅ NUEVO TOUR PARA HOY - TESTING BOTONES
-        crearTourAsignadoCusco();
-        crearTourAsignadoArequipa();
-        crearTourAsignadoIca();
+        // ✅ SOLO UN TOUR EN ESTADO AVANZADO - El resto en pendiente
+        crearTourAsignadoLima(); // HOY - Estado pendiente
+        crearTourEnCurso(); // HOY - Estado en_curso (SOLO UNO)
+        crearTourAsignadoCusco(); // FUTURO - Estado pendiente
+        crearTourAsignadoArequipa(); // FUTURO - Estado pendiente
+        crearTourAsignadoIca(); // FUTURO - Estado pendiente
     }
 
     /**
@@ -141,8 +142,8 @@ public class TourAsignadoDataSeeder {
         tourLima.put("descripcion", "Descubre la rica historia colonial de Lima recorriendo sus principales monumentos y plazas históricas del centro de la ciudad.");
         tourLima.put("precio", 115.0);
         tourLima.put("duracion", "4 horas");
-        // ✅ FECHA PARA MAÑANA (1 día antes = botones activos)
-        tourLima.put("fechaRealizacion", crearTimestampParaFecha("06/11/2025"));
+        // ✅ FECHA PARA MAÑANA (tour pendiente)
+        tourLima.put("fechaRealizacion", crearTimestampParaFecha("07/11/2025"));
         tourLima.put("horaInicio", "09:00");
         tourLima.put("horaFin", "13:00");
         tourLima.put("itinerario", itinerarioLima);
