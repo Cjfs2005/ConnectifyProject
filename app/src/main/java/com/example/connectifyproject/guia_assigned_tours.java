@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.connectifyproject.data.TourAsignadoDataSeeder;
 import com.example.connectifyproject.utils.TestMomentoTourData;
+import com.example.connectifyproject.utils.FirebaseCleanupUtil;
 import com.example.connectifyproject.databinding.GuiaAssignedToursBinding;
 import com.example.connectifyproject.fragment.GuiaDateFilterDialogFragment;
 import com.example.connectifyproject.model.GuiaAssignedItem;
@@ -62,6 +63,12 @@ public class guia_assigned_tours extends AppCompatActivity implements GuiaDateFi
         preferencesManager = new GuiaPreferencesManager(this);
         tourFirebaseService = new TourFirebaseService();
 
+        // ========================================================================
+        // 🧹 LIMPIEZA: TOURS PROBLEMÁTICOS
+        // ========================================================================
+        // EJECUTAR UNA SOLA VEZ para limpiar tours con problemas String/Timestamp
+        FirebaseCleanupUtil.eliminarToursProblematicos();
+        
         // ========================================================================
         // CREAR TOURS ASIGNADOS DE PRUEBA EN FIREBASE
         // ========================================================================

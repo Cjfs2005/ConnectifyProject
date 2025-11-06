@@ -327,6 +327,9 @@ public class TourFirebaseService {
         // Los participantes se agregarán cuando los clientes se registren al tour
         List<Map<String, Object>> participantes = new ArrayList<>(); // ✅ Lista vacía inicialmente
         
+        // ✅ CORRECCIÓN: Convertir fecha String a Timestamp
+        Timestamp fechaRealizacionTimestamp = convertirFechaStringATimestamp(oferta.getFechaRealizacion());
+        
         // Crear documento del tour asignado
         Map<String, Object> tourAsignado = new HashMap<>();
         tourAsignado.put("ofertaTourId", ofertaId);
@@ -334,7 +337,7 @@ public class TourFirebaseService {
         tourAsignado.put("descripcion", oferta.getDescripcion());
         tourAsignado.put("precio", oferta.getPrecio());
         tourAsignado.put("duracion", oferta.getDuracion());
-        tourAsignado.put("fechaRealizacion", oferta.getFechaRealizacion());
+        tourAsignado.put("fechaRealizacion", fechaRealizacionTimestamp); // ✅ Usar Timestamp
         tourAsignado.put("horaInicio", oferta.getHoraInicio());
         tourAsignado.put("horaFin", oferta.getHoraFin());
         tourAsignado.put("itinerario", itinerarioConSeguimiento);
@@ -692,5 +695,24 @@ public class TourFirebaseService {
                 Log.e(TAG, "Error actualizando momento tour", e);
                 callback.onError("Error actualizando momento del tour: " + e.getMessage());
             });
+    }
+    
+    /**
+     * 🔧 HELPER: Convertir fecha String a Timestamp
+     * Convierte fechas en formato "dd/MM/yyyy" a Timestamp para compatibilidad
+     */
+    private Timestamp convertirFechaStringATimestamp(String fechaString) {
+        if (fechaString == null || fechaString.isEmpty()) {
+            return Timestamp.now(); // Fallback a fecha actual
+        }
+        
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+            Date fecha = sdf.parse(fechaString);
+            return new Timestamp(fecha);
+        } catch (ParseException e) {
+            Log.e(TAG, "Error parseando fecha: " + fechaString, e);
+            return Timestamp.now(); // Fallback a fecha actual
+        }
     }
 }
