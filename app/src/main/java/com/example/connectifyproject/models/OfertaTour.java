@@ -29,6 +29,14 @@ public class OfertaTour implements Serializable {
     private Timestamp fechaActualizacion;
     private boolean habilitado;
     private boolean perfilCompleto;
+    
+    // 🆕 Campos de imágenes
+    private List<String> imagenesUrls;
+    private String imagenPrincipal;
+    
+    // 🆕 Campos de tracking de guías
+    private String guiaSeleccionadoActual; // Guía al que se le ofreció actualmente
+    private Timestamp fechaUltimoOfrecimiento;
 
     // Constructor vacío requerido por Firebase
     public OfertaTour() {}
@@ -170,4 +178,36 @@ public class OfertaTour implements Serializable {
     
     public boolean isPerfilCompleto() { return perfilCompleto; }
     public void setPerfilCompleto(boolean perfilCompleto) { this.perfilCompleto = perfilCompleto; }
+    
+    // 🆕 Getters y Setters para campos de imágenes
+    public List<String> getImagenesUrls() { return imagenesUrls; }
+    public void setImagenesUrls(List<String> imagenesUrls) { 
+        this.imagenesUrls = imagenesUrls;
+        if (imagenesUrls != null && !imagenesUrls.isEmpty() && imagenPrincipal == null) {
+            this.imagenPrincipal = imagenesUrls.get(0);
+        }
+    }
+    
+    public String getImagenPrincipal() { return imagenPrincipal; }
+    public void setImagenPrincipal(String imagenPrincipal) { this.imagenPrincipal = imagenPrincipal; }
+    
+    // 🆕 Getters y Setters para tracking de guías
+    public String getGuiaSeleccionadoActual() { return guiaSeleccionadoActual; }
+    public void setGuiaSeleccionadoActual(String guiaSeleccionadoActual) { 
+        this.guiaSeleccionadoActual = guiaSeleccionadoActual; 
+    }
+    
+    public Timestamp getFechaUltimoOfrecimiento() { return fechaUltimoOfrecimiento; }
+    public void setFechaUltimoOfrecimiento(Timestamp fechaUltimoOfrecimiento) { 
+        this.fechaUltimoOfrecimiento = fechaUltimoOfrecimiento; 
+    }
+    
+    // 🆕 Helper methods para imágenes
+    public int getCantidadImagenes() {
+        return imagenesUrls != null ? imagenesUrls.size() : 0;
+    }
+    
+    public boolean tieneImagenes() {
+        return imagenesUrls != null && !imagenesUrls.isEmpty();
+    }
 }

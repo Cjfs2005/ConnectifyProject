@@ -21,6 +21,10 @@ public class TourAsignado implements Serializable {
     private List<Map<String, Object>> itinerario;
     private List<Map<String, Object>> serviciosAdicionales;
     
+    // 🆕 Imágenes del tour (copiadas desde oferta)
+    private List<String> imagenesUrls;
+    private String imagenPrincipal;
+    
     // Información del guía asignado
     private Map<String, Object> guiaAsignado;
     
@@ -246,4 +250,26 @@ public class TourAsignado implements Serializable {
     
     public boolean isHabilitado() { return habilitado; }
     public void setHabilitado(boolean habilitado) { this.habilitado = habilitado; }
+    
+    // Getters y setters para campos de imágenes
+    public List<String> getImagenesUrls() { return imagenesUrls; }
+    public void setImagenesUrls(List<String> imagenesUrls) { 
+        this.imagenesUrls = imagenesUrls;
+        // Auto-establecer imagen principal si no está definida y hay imágenes
+        if (this.imagenPrincipal == null && imagenesUrls != null && !imagenesUrls.isEmpty()) {
+            this.imagenPrincipal = imagenesUrls.get(0);
+        }
+    }
+    
+    public String getImagenPrincipal() { return imagenPrincipal; }
+    public void setImagenPrincipal(String imagenPrincipal) { this.imagenPrincipal = imagenPrincipal; }
+    
+    // Métodos auxiliares para imágenes
+    public int getCantidadImagenes() {
+        return imagenesUrls != null ? imagenesUrls.size() : 0;
+    }
+    
+    public boolean tieneImagenes() {
+        return imagenesUrls != null && !imagenesUrls.isEmpty();
+    }
 }

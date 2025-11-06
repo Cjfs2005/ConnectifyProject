@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="200dp"
+    android:height="200dp"
+    android:viewportWidth="200"
+    android:viewportHeight="200">
+    
+    <path
+        android:fillColor="#E0E0E0"
+        android:pathData="M0,0h200v200h-200z" />
+    
+    <!-- Icono de persona -->
+    <path
+        android:fillColor="#BDBDBD"
+        android:pathData="M100,60 a20,20 0 1,0 0,40 a20,20 0 1,0 0,-40z" />
+    
+    <path
+        android:fillColor="#BDBDBD"
+        android:pathData="M100,110 c-25,0 -45,15 -45,35 v15 h90 v-15 c0,-20 -20,-35 -45,-35z" />
+</vector>
