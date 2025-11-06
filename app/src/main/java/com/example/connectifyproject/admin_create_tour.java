@@ -204,27 +204,23 @@ public class admin_create_tour extends AppCompatActivity implements OnMapReadyCa
     }
     
     private void setupSearchIconListener() {
-        // Esperar a que el layout se infle completamente
-        binding.etSearchPlaces.post(() -> {
-            View etSearchPlaces = binding.etSearchPlaces;
-            if (etSearchPlaces != null) {
-                ViewParent parent = etSearchPlaces.getParent();
-                Log.d("AdminCreateTour", "Parent type: " + (parent != null ? parent.getClass().getName() : "null"));
-                
-                if (parent instanceof TextInputLayout) {
-                    TextInputLayout tilSearch = (TextInputLayout) parent;
-                    tilSearch.setEndIconOnClickListener(v -> {
-                        Log.d("AdminCreateTour", "✓ Ícono de búsqueda presionado - ejecutando searchLocation()");
-                        searchLocation();
-                    });
-                    Log.d("AdminCreateTour", "✓ Listener de búsqueda configurado correctamente");
-                } else {
-                    Log.e("AdminCreateTour", "✗ Parent no es TextInputLayout: " + (parent != null ? parent.getClass().getName() : "null"));
-                }
-            } else {
-                Log.e("AdminCreateTour", "✗ etSearchPlaces es null");
-            }
-        });
+        Log.d("AdminCreateTour", ">>> setupSearchIconListener() INICIADO <<<");
+        
+        // Usar findViewById directamente con el ID del TextInputLayout
+        TextInputLayout tilSearch = findViewById(R.id.til_search_places);
+        
+        if (tilSearch != null) {
+            Log.d("AdminCreateTour", "✓ TextInputLayout encontrado con findViewById");
+            
+            tilSearch.setEndIconOnClickListener(v -> {
+                Log.d("AdminCreateTour", "✓✓✓ ÍCONO DE LUPA PRESIONADO ✓✓✓");
+                searchLocation();
+            });
+            
+            Log.d("AdminCreateTour", "✓ Listener configurado exitosamente");
+        } else {
+            Log.e("AdminCreateTour", "✗ ERROR: TextInputLayout NO encontrado");
+        }
     }
 
     private void setupListeners() {
@@ -324,12 +320,18 @@ public class admin_create_tour extends AppCompatActivity implements OnMapReadyCa
     }
 
     private void searchLocation() {
+        Log.d("AdminCreateTour", ">>> searchLocation() INICIADO <<<");
+        
         String searchText = binding.etSearchPlaces.getText().toString().trim();
+        Log.d("AdminCreateTour", "Texto de búsqueda: '" + searchText + "'");
+        
         if (searchText.isEmpty()) {
             binding.etSearchPlaces.setError("Ingrese el nombre del lugar a buscar");
+            Log.d("AdminCreateTour", "Búsqueda cancelada: texto vacío");
             return;
         }
 
+        Log.d("AdminCreateTour", "Iniciando Geocoder...");
         Geocoder geocoder = new Geocoder(this, Locale.getDefault());
         try {
             List<Address> addresses = geocoder.getFromLocationName(searchText, 1);
