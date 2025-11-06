@@ -29,6 +29,7 @@ public class TourAsignadoDataSeeder {
         
         // Lista de tours asignados para diferentes guías
         crearTourAsignadoLima();
+        crearTourEnCurso(); // ✅ NUEVO TOUR PARA HOY - TESTING BOTONES
         crearTourAsignadoCusco();
         crearTourAsignadoArequipa();
         crearTourAsignadoIca();
@@ -129,14 +130,15 @@ public class TourAsignadoDataSeeder {
         servicioAd2.put("disponible", true);
         serviciosAdicionalesLima.add(servicioAd2);
 
-        // Crear documento del tour asignado Lima
+        // Crear documento del tour asignado Lima - MAÑANA (para testing botones)
         Map<String, Object> tourLima = new HashMap<>();
         tourLima.put("ofertaTourId", "tour_lima_historico_001");
         tourLima.put("titulo", "Lima Histórica - Centro Colonial");
         tourLima.put("descripcion", "Descubre la rica historia colonial de Lima recorriendo sus principales monumentos y plazas históricas del centro de la ciudad.");
         tourLima.put("precio", 115.0);
         tourLima.put("duracion", "4 horas");
-        tourLima.put("fechaRealizacion", Timestamp.now());
+        // ✅ FECHA PARA MAÑANA (1 día antes = botones activos)
+        tourLima.put("fechaRealizacion", "06/11/2025");
         tourLima.put("horaInicio", "09:00");
         tourLima.put("horaFin", "13:00");
         tourLima.put("itinerario", itinerarioLima);
@@ -154,15 +156,15 @@ public class TourAsignadoDataSeeder {
         
         tourLima.put("consideraciones", "Se requiere caminar aproximadamente 2km. Llevar zapatos cómodos y protector solar.");
         tourLima.put("participantes", participantesLima);
-        tourLima.put("estado", "en_progreso");
-        tourLima.put("numeroParticipantesTotal", participantesLima.size());
-        tourLima.put("checkInRealizado", true);
+        tourLima.put("estado", "programado");
+        tourLima.put("numeroParticipantesTotal", participantesLima.size()); // ✅ DINÁMICO basado en participantes reales
+        tourLima.put("checkInRealizado", false);
         tourLima.put("checkOutRealizado", false);
-        tourLima.put("horaCheckIn", "08:55");
+        tourLima.put("horaCheckIn", null);
         tourLima.put("horaCheckOut", null);
         tourLima.put("reseniasClientes", new ArrayList<>());
         tourLima.put("calificacionPromedio", 0.0);
-        tourLima.put("comentariosGuia", "Tour iniciado puntualmente. Participantes muy interesados en la historia.");
+        tourLima.put("comentariosGuia", "");
         tourLima.put("fechaAsignacion", Timestamp.now());
         tourLima.put("fechaCreacion", Timestamp.now());
         tourLima.put("fechaActualizacion", Timestamp.now());
@@ -537,6 +539,149 @@ public class TourAsignadoDataSeeder {
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Error al crear tour Ica: ", e);
+                });
+    }
+
+    /**
+     * Tour EN CURSO para testing - Huacachina hoy
+     */
+    private void crearTourEnCurso() {
+        // Crear guía asignado - USAR EL GUÍA ACTUAL
+        Map<String, Object> guiaAsignado = new HashMap<>();
+        guiaAsignado.put("identificadorUsuario", "YbmULw4iJXT41CdCLXV1ktCrfek1");
+        guiaAsignado.put("nombresCompletos", "Gianfranco Enriquez Soel");
+        guiaAsignado.put("correoElectronico", "a20224926@pucp.edu.pe");
+        guiaAsignado.put("numeroTelefono", "987 654 321");
+        guiaAsignado.put("fechaAsignacion", Timestamp.now());
+
+        // Crear itinerario con seguimiento - COMPATIBLE CON OFERTAS
+        List<Map<String, Object>> itinerarioHuacachina = new ArrayList<>();
+        
+        Map<String, Object> punto1 = new HashMap<>();
+        punto1.put("orden", 1);
+        punto1.put("lugar", "Laguna de Huacachina");  // ✅ Usar "lugar" como en ofertas
+        punto1.put("actividad", "Paseo en tubulares por las dunas");  // ✅ Usar "actividad" como en ofertas
+        punto1.put("horaEstimada", "10:00");
+        punto1.put("completado", true);
+        punto1.put("horaLlegada", "10:05");
+        punto1.put("horaSalida", "11:30");
+        itinerarioHuacachina.add(punto1);
+
+        Map<String, Object> punto2 = new HashMap<>();
+        punto2.put("orden", 2);
+        punto2.put("lugar", "Dunas del desierto");  // ✅ Usar "lugar" como en ofertas
+        punto2.put("actividad", "Sandboarding y fotografías");  // ✅ Usar "actividad" como en ofertas
+        punto2.put("horaEstimada", "11:45");
+        punto2.put("completado", true);
+        punto2.put("horaLlegada", "11:40");
+        punto2.put("horaSalida", "13:00");
+        itinerarioHuacachina.add(punto2);
+
+        Map<String, Object> punto3 = new HashMap<>();
+        punto3.put("orden", 3);
+        punto3.put("lugar", "Oasis de Huacachina");  // ✅ Usar "lugar" como en ofertas
+        punto3.put("actividad", "Almuerzo y tiempo libre");  // ✅ Usar "actividad" como en ofertas
+        punto3.put("horaEstimada", "13:15");
+        punto3.put("completado", false);
+        punto3.put("horaLlegada", null);
+        punto3.put("horaSalida", null);
+        itinerarioHuacachina.add(punto3);
+
+        // Crear participantes para tour en curso
+        List<Map<String, Object>> participantesHuacachina = new ArrayList<>();
+        
+        Map<String, Object> participante1 = new HashMap<>();
+        participante1.put("nombre", "Ana Lucía Rodriguez");
+        participante1.put("correo", "ana.rodriguez@gmail.com");
+        participante1.put("telefono", "987 123 456");
+        participante1.put("tipoDocumento", "DNI");
+        participante1.put("numeroDocumento", "70123456");
+        participante1.put("fechaNacimiento", "1995-03-22");
+        participante1.put("nacionalidad", "Peruana");
+        participante1.put("contactoEmergencia", "Maria Rodriguez - 987 654 321");
+        participante1.put("checkIn", true);
+        participante1.put("horaCheckIn", "09:45");
+        participantesHuacachina.add(participante1);
+
+        Map<String, Object> participante2 = new HashMap<>();
+        participante2.put("nombre", "Carlos Miguel Torres");
+        participante2.put("correo", "carlos.torres@outlook.com");
+        participante2.put("telefono", "987 987 987");
+        participante2.put("tipoDocumento", "Pasaporte");
+        participante2.put("numeroDocumento", "ARG123456789");
+        participante2.put("fechaNacimiento", "1988-11-15");
+        participante2.put("nacionalidad", "Argentina");
+        participante2.put("contactoEmergencia", "Lucia Torres - 987 321 654");
+        participante2.put("checkIn", true);
+        participante2.put("horaCheckIn", "09:50");
+        participantesHuacachina.add(participante2);
+
+        Map<String, Object> participante3 = new HashMap<>();
+        participante3.put("nombre", "Sophie Chen");
+        participante3.put("correo", "sophie.chen@email.com");
+        participante3.put("telefono", "+1 555 123 4567");
+        participante3.put("tipoDocumento", "Pasaporte");
+        participante3.put("numeroDocumento", "USA987654321");
+        participante3.put("fechaNacimiento", "1992-07-08");
+        participante3.put("nacionalidad", "Estadounidense");
+        participante3.put("contactoEmergencia", "David Chen - +1 555 987 6543");
+        participante3.put("checkIn", true);
+        participante3.put("horaCheckIn", "09:55");
+        participantesHuacachina.add(participante3);
+
+        // Servicios adicionales
+        List<Map<String, Object>> serviciosAdicionalesHuacachina = new ArrayList<>();
+        Map<String, Object> servicioAd1 = new HashMap<>();
+        servicioAd1.put("nombre", "Almuerzo típico");
+        servicioAd1.put("descripcion", "Almuerzo en restaurante del oasis");
+        servicioAd1.put("precio", 25.0);
+        servicioAd1.put("disponible", true);
+        serviciosAdicionalesHuacachina.add(servicioAd1);
+
+        // Crear documento del tour EN CURSO
+        Map<String, Object> tourEnCurso = new HashMap<>();
+        tourEnCurso.put("ofertaTourId", "tour_huacachina_aventura_003");
+        tourEnCurso.put("titulo", "Huacachina Aventura - Dunas y Oasis");
+        tourEnCurso.put("descripcion", "Experiencia completa en el oasis de Huacachina con tubulares, sandboarding y paisajes únicos del desierto peruano.");
+        tourEnCurso.put("precio", 85.0);
+        tourEnCurso.put("duracion", "6 horas");
+        // ✅ FECHA PARA HOY (tour EN CURSO)
+        tourEnCurso.put("fechaRealizacion", "05/11/2025");
+        tourEnCurso.put("horaInicio", "09:30");
+        tourEnCurso.put("horaFin", "15:30");
+        tourEnCurso.put("itinerario", itinerarioHuacachina);
+        tourEnCurso.put("serviciosAdicionales", serviciosAdicionalesHuacachina);
+        tourEnCurso.put("guiaAsignado", guiaAsignado);
+        tourEnCurso.put("empresaId", "empresa_ica_adventures_003");
+        tourEnCurso.put("nombreEmpresa", "Ica Desert Adventures");
+        tourEnCurso.put("correoEmpresa", "contacto@icaadventures.com");
+        tourEnCurso.put("pagoGuia", 70.0);
+        tourEnCurso.put("idiomasRequeridos", List.of("Español", "Inglés"));
+        tourEnCurso.put("consideraciones", "Actividad de aventura. Requerido experiencia mínima. Incluye equipo de seguridad.");
+        tourEnCurso.put("participantes", participantesHuacachina);
+        // ✅ ESTADO EN CURSO PARA MOSTRAR BOTONES ACTIVOS
+        tourEnCurso.put("estado", "en_curso");
+        tourEnCurso.put("numeroParticipantesTotal", participantesHuacachina.size()); // ✅ DINÁMICO basado en participantes reales
+        tourEnCurso.put("checkInRealizado", true);
+        tourEnCurso.put("checkOutRealizado", false);
+        tourEnCurso.put("horaCheckIn", "09:45");
+        tourEnCurso.put("horaCheckOut", null);
+        tourEnCurso.put("reseniasClientes", new ArrayList<>());
+        tourEnCurso.put("calificacionPromedio", 0.0);
+        tourEnCurso.put("comentariosGuia", "Tour en progreso. Todos los participantes llegaron puntuales. Excelente clima para la actividad.");
+        tourEnCurso.put("fechaAsignacion", Timestamp.now());
+        tourEnCurso.put("fechaCreacion", Timestamp.now());
+        tourEnCurso.put("fechaActualizacion", Timestamp.now());
+        tourEnCurso.put("habilitado", true);
+
+        // Insertar en Firebase
+        db.collection("tours_asignados")
+                .add(tourEnCurso)
+                .addOnSuccessListener(documentReference -> {
+                    Log.d(TAG, "Tour EN CURSO creado: " + documentReference.getId());
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error al crear tour EN CURSO: ", e);
                 });
     }
 }

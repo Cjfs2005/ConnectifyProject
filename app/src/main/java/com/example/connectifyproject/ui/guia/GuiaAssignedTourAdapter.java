@@ -19,8 +19,13 @@ import com.example.connectifyproject.guia_tour_map;
 import com.example.connectifyproject.model.GuiaAssignedItem;
 import com.example.connectifyproject.model.GuiaAssignedTour;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public class GuiaAssignedTourAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private List<GuiaAssignedItem> items;
@@ -75,13 +80,14 @@ public class GuiaAssignedTourAdapter extends RecyclerView.Adapter<RecyclerView.V
             // ✅ MOSTRAR PAGO AL GUÍA (igual que en ofertas)
             tourHolder.binding.pagoGuiaText.setText("S/. " + (int) tour.getPagoGuia());
 
-            boolean isEnCurso = tour.getStatus().equals("En Curso");
-            tourHolder.binding.actionsLayout.setVisibility(isEnCurso ? View.VISIBLE : View.GONE);
+            // ✅ LÓGICA INTELIGENTE DE BOTONES: Solo mostrar si el tour es inmiente o en curso
+            boolean shouldShowActions = shouldShowActionButtons(tour);
+            tourHolder.binding.actionsLayout.setVisibility(shouldShowActions ? View.VISIBLE : View.GONE);
 
             // Entire card click for details
             tourHolder.itemView.setOnClickListener(v -> startDetailIntent(tour));
 
-            if (isEnCurso) {
+            if (shouldShowActions) {
                 tourHolder.binding.mapIcon.setOnClickListener(v -> {
                     // Simular notificación de ubicación antes de abrir el mapa
                     if (context instanceof com.example.connectifyproject.guia_assigned_tours) {
@@ -130,6 +136,60 @@ public class GuiaAssignedTourAdapter extends RecyclerView.Adapter<RecyclerView.V
     }
 
     /**
+     * ✅ LÓGICA INTELIGENTE: Mostrar botones solo para tours inminentes o en curso
+     * - Tours "en_curso" o "En Curso": Siempre mostrar
+     * - Tours programados: Solo si es mañana o dentro de 1 día
+     * - Tours pasados o muy futuros: No mostrar
+     */
+    private boolean shouldShowActionButtons(GuiaAssignedTour tour) {
+        String status = tour.getStatus();
+        
+        // ✅ Si el tour ya está en curso, siempre mostrar botones
+        if (status != null && (status.equalsIgnoreCase("en curso") || 
+                              status.equalsIgnoreCase("en_curso") ||
+                              status.equalsIgnoreCase("en_progreso"))) {
+            return true;
+        }
+        
+        // ✅ Para tours programados, verificar si es mañana o dentro de 1 día
+        if (status != null && status.equalsIgnoreCase("programado")) {
+            try {
+                // Extraer fecha del tour
+                String fechaTour = tour.getDate(); // Formato: "06/11/2025"
+                if (fechaTour == null || fechaTour.trim().isEmpty()) {
+                    return false; // Sin fecha válida, no mostrar botones
+                }
+                
+                SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+                Date tourDate = dateFormat.parse(fechaTour.trim());
+                
+                if (tourDate == null) {
+                    return false; // Fecha no válida
+                }
+                
+                // Obtener fecha actual
+                Calendar today = Calendar.getInstance();
+                Calendar tourCalendar = Calendar.getInstance();
+                tourCalendar.setTime(tourDate);
+                
+                // Calcular diferencia en días
+                long diffInMillis = tourCalendar.getTimeInMillis() - today.getTimeInMillis();
+                long diffInDays = diffInMillis / (24 * 60 * 60 * 1000);
+                
+                // ✅ Mostrar botones si el tour es hoy o mañana (0 o 1 día de diferencia)
+                return diffInDays >= 0 && diffInDays <= 1;
+                
+            } catch (ParseException e) {
+                // Si hay error parsing fecha, no mostrar botones por seguridad
+                return false;
+            }
+        }
+        
+        // ✅ Para cualquier otro estado, no mostrar botones
+        return false;
+    }
+
+    /**
      * Formatear estado para mostrar en UI
      */
     private String formatearEstado(String estado) {
@@ -137,9 +197,15 @@ public class GuiaAssignedTourAdapter extends RecyclerView.Adapter<RecyclerView.V
         
         switch (estado.toLowerCase()) {
             case "en curso":
+            case "en_curso":
+            case "en_progreso":
                 return "EN CURSO";
+            case "programado":
+                return "PROGRAMADO";
             case "pendiente":
                 return "PENDIENTE";
+            case "confirmado":
+                return "CONFIRMADO";
             case "finalizado":
                 return "FINALIZADO";
             case "cancelado":
