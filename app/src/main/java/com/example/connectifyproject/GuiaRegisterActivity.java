@@ -426,6 +426,10 @@ public class GuiaRegisterActivity extends AppCompatActivity {
         guiaData.put(AuthConstants.FIELD_FECHA_CREACION, com.google.firebase.Timestamp.now()); // Timestamp de creación
         guiaData.put(AuthConstants.FIELD_PERFIL_COMPLETO, true); // Perfil completado
         guiaData.put(AuthConstants.FIELD_PHOTO_URL, resolvedPhotoUrl); // Foto resuelta
+        
+        // Campos para sistema de reseñas - inicializar en 0
+        guiaData.put(AuthConstants.FIELD_SUMA_RESENIAS, 0);
+        guiaData.put(AuthConstants.FIELD_NUMERO_RESENIAS, 0);
 
         db.collection(AuthConstants.COLLECTION_USUARIOS)
                 .document(currentUser.getUid())
