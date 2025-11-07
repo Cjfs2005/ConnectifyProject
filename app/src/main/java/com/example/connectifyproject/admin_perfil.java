@@ -2,54 +2,125 @@ package com.example.connectifyproject;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
+import android.util.Log;
+import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.FragmentTransaction;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.connectifyproject.databinding.AdminPerfilViewBinding;
+import com.bumptech.glide.Glide;
+import com.example.connectifyproject.adapters.AdminCompanyPhotosAdapter;
 import com.example.connectifyproject.ui.admin.AdminBottomNavFragment;
-import com.example.connectifyproject.utils.GoogleMapsHelper;
+import com.example.connectifyproject.utils.AuthConstants;
 import com.firebase.ui.auth.AuthUI;
-import com.google.android.gms.maps.CameraUpdateFactory;
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.material.button.MaterialButton;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
 
-public class admin_perfil extends AppCompatActivity implements OnMapReadyCallback {
-    private AdminPerfilViewBinding binding;
-    private GoogleMapsHelper mapsHelper;
-    private GoogleMap mGoogleMap;
-    private boolean isUpdatingLocation = false; // Flag para evitar loop infinito
-    private LatLng currentLocation = new LatLng(-12.046374, -77.042754); // Lima, Perú por defecto
+import java.util.List;
+
+public class admin_perfil extends AppCompatActivity {
+
+    private static final String TAG = "AdminPerfil";
+    
+    // Views
+    private ImageView ivProfilePhoto, btnNotifications;
+    private TextView tvUserName, tvDocumentType, tvDocument, tvEmail;
+    private TextView tvCompanyName, tvCompanyDescription, tvCompanyLocation, tvCompanyPhone, tvCompanyEmail;
+    private MaterialButton btnEditProfile, btnEditCompany;
+    private RecyclerView rvCompanyPhotos;
+    
+    // Firebase
+    private FirebaseAuth mAuth;
+    private FirebaseFirestore db;
+    private FirebaseUser currentUser;
+    
+    // Adapters
+    private AdminCompanyPhotosAdapter photosAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        binding = AdminPerfilViewBinding.inflate(getLayoutInflater());
-        setContentView(binding.getRoot());
+        setContentView(R.layout.admin_perfil_view);
 
-        // Configurar la barra superior
-        setSupportActionBar(binding.topAppBar);
+        // Inicializar Firebase
+        mAuth = FirebaseAuth.getInstance();
+        db = FirebaseFirestore.getInstance();
+        currentUser = mAuth.getCurrentUser();
 
-        // Configurar botón de notificaciones
-        binding.btnNotifications.setOnClickListener(v -> {
-            // TODO: Implementar navegación a notificaciones
+        if (currentUser == null) {
+            redirectToLogin();
+            return;
+        }
+
+        initViews();
+        setupClickListeners();
+        setupBottomNavigation();
+        loadUserData();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // No necesitamos manejar el navbar manualmente ya que usa fragment
+    }
+
+    private void initViews() {
+        // Profile views
+        ivProfilePhoto = findViewById(R.id.iv_profile_photo);
+        btnNotifications = findViewById(R.id.btn_notifications);
+        tvUserName = findViewById(R.id.tv_user_name);
+        tvDocumentType = findViewById(R.id.tv_document_type);
+        tvDocument = findViewById(R.id.tv_document);
+        tvEmail = findViewById(R.id.tv_email);
+        
+        // Company views
+        tvCompanyName = findViewById(R.id.tv_company_name);
+        tvCompanyDescription = findViewById(R.id.tv_company_description);
+        tvCompanyLocation = findViewById(R.id.tv_company_location);
+        tvCompanyPhone = findViewById(R.id.tv_company_phone);
+        tvCompanyEmail = findViewById(R.id.tv_company_email);
+        rvCompanyPhotos = findViewById(R.id.rv_company_photos);
+        
+        // Buttons
+        btnEditProfile = findViewById(R.id.btn_edit_profile);
+        btnEditCompany = findViewById(R.id.btn_edit_company);
+        
+        // Setup RecyclerView
+        setupCompanyPhotosRecyclerView();
+    }
+
+    private void setupCompanyPhotosRecyclerView() {
+        rvCompanyPhotos.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+        photosAdapter = new AdminCompanyPhotosAdapter(this);
+        rvCompanyPhotos.setAdapter(photosAdapter);
+    }
+
+    private void setupClickListeners() {
+        btnNotifications.setOnClickListener(v -> {
+            Toast.makeText(this, "Funcionalidad en desarrollo", Toast.LENGTH_SHORT).show();
         });
 
-        // Inicializar helper de ubicación
-        mapsHelper = new GoogleMapsHelper(this);
+        btnEditProfile.setOnClickListener(v -> {
+            Toast.makeText(this, "Funcionalidad en desarrollo", Toast.LENGTH_SHORT).show();
+        });
 
-        // Inicializar mapa
-        initializeMap();
+        btnEditCompany.setOnClickListener(v -> {
+            Toast.makeText(this, "Funcionalidad en desarrollo", Toast.LENGTH_SHORT).show();
+        });
 
-        // Configurar componentes
-        setupLocationSearch();
-        setupButtons();
-        setupBottomNavigation();
+        findViewById(R.id.layout_permissions).setOnClickListener(v -> {
+            Toast.makeText(this, "Funcionalidad en desarrollo", Toast.LENGTH_SHORT).show();
+        });
+
+        findViewById(R.id.layout_logout).setOnClickListener(v -> logout());
     }
 
     private void setupBottomNavigation() {
@@ -59,190 +130,89 @@ public class admin_perfil extends AppCompatActivity implements OnMapReadyCallbac
         transaction.commit();
     }
 
-    private void setupLocationSearch() {
-        // Click en el ícono de búsqueda - búsqueda manual únicamente
-        binding.tilLocation.setEndIconOnClickListener(v -> {
-            String query = binding.etLocation.getText().toString().trim();
-            if (!query.isEmpty()) {
-                searchLocation(query);
-            } else {
-                Toast.makeText(this, "Ingrese una ubicación para buscar", Toast.LENGTH_SHORT).show();
-                binding.etLocation.requestFocus();
-            }
-        });
-    }
+    private void loadUserData() {
+        if (currentUser == null) return;
 
-    private void setupButtons() {
-        // Botón cambiar logo
-        binding.btnChangeLogo.setOnClickListener(v -> {
-            Toast.makeText(this, "Funcionalidad de cambio de logo en desarrollo", Toast.LENGTH_SHORT).show();
-        });
-
-        // Sección de fotos promocionales
-        binding.btnAddPhotos.setOnClickListener(v -> {
-            Toast.makeText(this, "Funcionalidad de fotos promocionales en desarrollo", Toast.LENGTH_SHORT).show();
-        });
-
-        // Botón guardar
-        binding.btnSave.setOnClickListener(v -> {
-            saveProfileData();
-        });
-
-        // Botón cerrar sesión
-        binding.btnLogout.setOnClickListener(v -> {
-            logout();
-        });
-    }
-
-    private void initializeMap() {
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.mapFragment);
-        if (mapFragment != null) {
-            mapFragment.getMapAsync(this);
-        }
-    }
-
-    @Override
-    public void onMapReady(GoogleMap googleMap) {
-        mGoogleMap = googleMap;
-        
-        try {
-            // Configurar mapa
-            mGoogleMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
-            mGoogleMap.getUiSettings().setZoomControlsEnabled(true);
-            mGoogleMap.getUiSettings().setMapToolbarEnabled(false);
-            mGoogleMap.getUiSettings().setMyLocationButtonEnabled(false);
-            
-            // Ocultar el progress bar ya que el mapa está listo
-            binding.progressBarMap.setVisibility(View.GONE);
-            
-            // Mover cámara a Lima por defecto
-            mGoogleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, 15));
-            
-            // Agregar marcador
-            mGoogleMap.addMarker(new MarkerOptions()
-                    .position(currentLocation)
-                    .title("Ubicación de la empresa"));
-            
-            Toast.makeText(this, "Mapa cargado correctamente", Toast.LENGTH_SHORT).show();
-            
-            // Configurar click en el mapa
-            mGoogleMap.setOnMapClickListener(latLng -> {
-                currentLocation = latLng;
-                mGoogleMap.clear();
-            mGoogleMap.addMarker(new MarkerOptions()
-                    .position(latLng)
-                    .title("Nueva ubicación"));
-            
-            // Obtener dirección de las coordenadas
-            mapsHelper.getAddressFromCoordinates(latLng.latitude, latLng.longitude, 
-                new GoogleMapsHelper.LocationSearchCallback() {
-                    @Override
-                    public void onLocationFound(String address, double latitude, double longitude) {
-                        isUpdatingLocation = true;
-                        binding.etLocation.setText(address);
-                        // Restaurar el flag después de actualizar
-                        isUpdatingLocation = false;
+        db.collection(AuthConstants.COLLECTION_USUARIOS)
+                .document(currentUser.getUid())
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        updateUIWithUserData(documentSnapshot);
+                    } else {
+                        Log.e(TAG, "Documento de usuario no encontrado");
+                        Toast.makeText(this, "Error al cargar perfil", Toast.LENGTH_SHORT).show();
                     }
-
-                    @Override
-                    public void onLocationNotFound() {
-                        Toast.makeText(admin_perfil.this, "No se pudo obtener la dirección", Toast.LENGTH_SHORT).show();
-                    }
-
-                    @Override
-                    public void onError(String error) {
-                        Toast.makeText(admin_perfil.this, "Error: " + error, Toast.LENGTH_SHORT).show();
-                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error al cargar datos de usuario", e);
+                    Toast.makeText(this, "Error al cargar perfil", Toast.LENGTH_SHORT).show();
                 });
-        });
+    }
+
+    private void updateUIWithUserData(DocumentSnapshot document) {
+        try {
+            // Personal Information
+            String nombreCompleto = document.getString(AuthConstants.FIELD_NOMBRE_COMPLETO);
+            String tipoDocumento = document.getString(AuthConstants.FIELD_TIPO_DOCUMENTO);
+            String numeroDocumento = document.getString(AuthConstants.FIELD_NUMERO_DOCUMENTO);
+            String email = document.getString(AuthConstants.FIELD_EMAIL);
+            String photoUrl = document.getString(AuthConstants.FIELD_PHOTO_URL);
+
+            // Company Information
+            String nombreEmpresa = document.getString(AuthConstants.FIELD_NOMBRE_EMPRESA);
+            String descripcionEmpresa = document.getString(AuthConstants.FIELD_DESCRIPCION_EMPRESA);
+            String ubicacionEmpresa = document.getString(AuthConstants.FIELD_UBICACION_EMPRESA);
+            String telefonoEmpresa = document.getString(AuthConstants.FIELD_TELEFONO_EMPRESA);
+            String correoEmpresa = document.getString(AuthConstants.FIELD_CORREO_EMPRESA);
+            List<String> fotosEmpresa = (List<String>) document.get(AuthConstants.FIELD_FOTOS_EMPRESA);
+
+            // Update UI
+            if (nombreCompleto != null) tvUserName.setText(nombreCompleto);
+            if (tipoDocumento != null) tvDocumentType.setText(tipoDocumento);
+            if (numeroDocumento != null) tvDocument.setText(numeroDocumento);
+            if (email != null) tvEmail.setText(email);
+
+            // Company data
+            if (nombreEmpresa != null) tvCompanyName.setText(nombreEmpresa);
+            if (descripcionEmpresa != null) tvCompanyDescription.setText(descripcionEmpresa);
+            if (ubicacionEmpresa != null) tvCompanyLocation.setText(ubicacionEmpresa);
+            if (telefonoEmpresa != null) tvCompanyPhone.setText(telefonoEmpresa);
+            if (correoEmpresa != null) tvCompanyEmail.setText(correoEmpresa);
+
+            // Load profile photo
+            if (photoUrl != null && !photoUrl.isEmpty()) {
+                Glide.with(this)
+                        .load(photoUrl)
+                        .circleCrop()
+                        .placeholder(R.drawable.ic_account_circle_24)
+                        .error(R.drawable.ic_account_circle_24)
+                        .into(ivProfilePhoto);
+            }
+
+            // Load company photos
+            if (fotosEmpresa != null && !fotosEmpresa.isEmpty()) {
+                photosAdapter.updatePhotos(fotosEmpresa);
+            }
+
         } catch (Exception e) {
-            Toast.makeText(this, "Error al cargar el mapa: " + e.getMessage(), Toast.LENGTH_LONG).show();
-            binding.progressBarMap.setVisibility(View.GONE);
+            Log.e(TAG, "Error al actualizar UI con datos de usuario", e);
         }
-    }
-
-    private void searchLocation(String query) {
-        mapsHelper.searchLocation(query, new GoogleMapsHelper.LocationSearchCallback() {
-            @Override
-            public void onLocationFound(String address, double latitude, double longitude) {
-                // Marcar que estamos actualizando para evitar el loop
-                isUpdatingLocation = true;
-                
-                // Actualizar el campo de ubicación con la dirección encontrada
-                binding.etLocation.setText(address);
-                
-                // Restaurar el flag
-                isUpdatingLocation = false;
-                
-                // Actualizar mapa con las coordenadas
-                updateMapLocation(latitude, longitude);
-                    
-                Toast.makeText(admin_perfil.this, "Ubicación encontrada", Toast.LENGTH_SHORT).show();
-            }
-
-            @Override
-            public void onLocationNotFound() {
-                Toast.makeText(admin_perfil.this, "No se encontró la ubicación", Toast.LENGTH_SHORT).show();
-            }
-
-            @Override
-            public void onError(String error) {
-                Toast.makeText(admin_perfil.this, "Error al buscar: " + error, Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
-    private void updateMapLocation(double latitude, double longitude) {
-        if (mGoogleMap != null) {
-            currentLocation = new LatLng(latitude, longitude);
-            mGoogleMap.clear();
-            mGoogleMap.addMarker(new MarkerOptions()
-                    .position(currentLocation)
-                    .title("Ubicación encontrada"));
-            mGoogleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, 15));
-        }
-    }
-
-    private void saveProfileData() {
-        String email = binding.etEmail.getText().toString().trim();
-        String phone = binding.etPhone.getText().toString().trim();
-        String location = binding.etLocation.getText().toString().trim();
-
-        if (email.isEmpty() || phone.isEmpty() || location.isEmpty()) {
-            Toast.makeText(this, "Por favor complete todos los campos", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        // Aquí se puede implementar el guardado real de los datos
-        Toast.makeText(this, "Perfil guardado exitosamente", Toast.LENGTH_SHORT).show();
-
-        // Navegar de regreso al dashboard
-        Intent intent = new Intent(this, admin_dashboard.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        startActivity(intent);
-        finish();
     }
 
     private void logout() {
-        // Cerrar sesión de Firebase Auth
         AuthUI.getInstance()
                 .signOut(this)
                 .addOnCompleteListener(task -> {
-                    // Ir al SplashActivity que redirigirá al login
-                    Intent intent = new Intent(this, SplashActivity.class);
-                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                    startActivity(intent);
-                    finish();
+                    Toast.makeText(this, "Sesión cerrada", Toast.LENGTH_SHORT).show();
+                    redirectToLogin();
                 });
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        // Liberar recursos del helper de mapas
-        if (mapsHelper != null) {
-            mapsHelper.shutdown();
-        }
+    private void redirectToLogin() {
+        Intent intent = new Intent(this, SplashActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
     }
 }
