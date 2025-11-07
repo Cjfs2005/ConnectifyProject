@@ -1,6 +1,10 @@
 package com.example.connectifyproject.services;
 
 import android.util.Log;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import com.example.connectifyproject.models.OfertaTour;
 import com.example.connectifyproject.models.TourAsignado;
 import com.google.firebase.auth.FirebaseAuth;
@@ -714,5 +718,203 @@ public class TourFirebaseService {
             Log.e(TAG, "Error parseando fecha: " + fechaString, e);
             return Timestamp.now(); // Fallback a fecha actual
         }
+    }
+    
+    // ==================== ACEPTAR/RECHAZAR OFERTAS DE TOUR ====================
+    
+    /**
+     * Acepta una oferta de tour
+     * - Actualiza estado en guias_ofertados a "aceptado"
+     * - Crea documento en tours_asignados
+     * - Actualiza estadísticas del guía
+     */
+    public void aceptarOfertaTour(@NonNull String ofertaId, @NonNull AccionOfertaCallback callback) {
+        FirebaseUser currentUser = getCurrentUser();
+        if (currentUser == null) {
+            callback.onError("Usuario no autenticado");
+            return;
+        }
+        
+        String guiaId = currentUser.getUid();
+        Log.d(TAG, "Guía " + guiaId + " aceptando oferta " + ofertaId);
+        
+        // 1. Cargar la oferta completa
+        db.collection(COLLECTION_OFERTAS)
+            .document(ofertaId)
+            .get()
+            .addOnSuccessListener(ofertaDoc -> {
+                if (!ofertaDoc.exists()) {
+                    callback.onError("La oferta de tour no existe");
+                    return;
+                }
+                
+                // 2. Actualizar estado en guias_ofertados
+                Map<String, Object> actualizacionOfrecimiento = new HashMap<>();
+                actualizacionOfrecimiento.put("estadoOferta", "aceptado");
+                actualizacionOfrecimiento.put("fechaRespuesta", Timestamp.now());
+                actualizacionOfrecimiento.put("vistoAdmin", false); // Admin debe ver la aceptación
+                
+                db.collection(COLLECTION_OFERTAS)
+                    .document(ofertaId)
+                    .collection("guias_ofertados")
+                    .document(guiaId)
+                    .update(actualizacionOfrecimiento)
+                    .addOnSuccessListener(aVoid -> {
+                        // 3. Crear tour asignado
+                        crearTourAsignado(ofertaDoc, guiaId, callback);
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.e(TAG, "Error actualizando ofrecimiento", e);
+                        callback.onError("Error al aceptar oferta: " + e.getMessage());
+                    });
+            })
+            .addOnFailureListener(e -> {
+                Log.e(TAG, "Error cargando oferta", e);
+                callback.onError("Error al cargar oferta: " + e.getMessage());
+            });
+    }
+    
+    /**
+     * Crea un tour asignado a partir de una oferta aceptada
+     */
+    private void crearTourAsignado(DocumentSnapshot ofertaDoc, String guiaId, AccionOfertaCallback callback) {
+        // Cargar datos del guía
+        db.collection("usuarios")
+            .document(guiaId)
+            .get()
+            .addOnSuccessListener(guiaDoc -> {
+                if (!guiaDoc.exists()) {
+                    callback.onError("Datos del guía no encontrados");
+                    return;
+                }
+                
+                // Crear documento de tour asignado
+                Map<String, Object> tourAsignado = new HashMap<>();
+                
+                // Copiar datos de la oferta
+                tourAsignado.put("ofertaTourId", ofertaDoc.getId());
+                tourAsignado.put("titulo", ofertaDoc.getString("titulo"));
+                tourAsignado.put("descripcion", ofertaDoc.getString("descripcion"));
+                tourAsignado.put("precio", ofertaDoc.getDouble("precio"));
+                tourAsignado.put("duracion", ofertaDoc.getString("duracion"));
+                tourAsignado.put("fechaRealizacion", ofertaDoc.getTimestamp("fechaRealizacion"));
+                tourAsignado.put("horaInicio", ofertaDoc.getString("horaInicio"));
+                tourAsignado.put("horaFin", ofertaDoc.getString("horaFin"));
+                tourAsignado.put("empresaId", ofertaDoc.getString("empresaId"));
+                tourAsignado.put("nombreEmpresa", ofertaDoc.getString("nombreEmpresa"));
+                tourAsignado.put("correoEmpresa", ofertaDoc.getString("correoEmpresa"));
+                tourAsignado.put("pagoGuia", ofertaDoc.getDouble("pagoGuia"));
+                tourAsignado.put("itinerario", ofertaDoc.get("itinerario"));
+                tourAsignado.put("serviciosAdicionales", ofertaDoc.get("serviciosAdicionales"));
+                tourAsignado.put("imagenesUrls", ofertaDoc.get("imagenesUrls"));
+                tourAsignado.put("idiomasRequeridos", ofertaDoc.get("idiomasRequeridos"));
+                tourAsignado.put("consideraciones", ofertaDoc.getString("consideraciones"));
+                
+                // Datos del guía asignado
+                Map<String, Object> guiaAsignado = new HashMap<>();
+                guiaAsignado.put("identificadorUsuario", guiaId);
+                guiaAsignado.put("nombre", guiaDoc.getString("nombre"));
+                guiaAsignado.put("apellido", guiaDoc.getString("apellido"));
+                guiaAsignado.put("email", guiaDoc.getString("email"));
+                tourAsignado.put("guiaAsignado", guiaAsignado);
+                
+                // Estado y metadatos
+                tourAsignado.put("estado", "confirmado");
+                tourAsignado.put("habilitado", true);
+                tourAsignado.put("fechaAsignacion", Timestamp.now());
+                tourAsignado.put("fechaActualizacion", Timestamp.now());
+                tourAsignado.put("momentoTour", "pendiente");
+                tourAsignado.put("checkInRealizado", false);
+                tourAsignado.put("checkOutRealizado", false);
+                
+                // Guardar tour asignado
+                db.collection(COLLECTION_ASIGNADOS)
+                    .add(tourAsignado)
+                    .addOnSuccessListener(docRef -> {
+                        Log.d(TAG, "Tour asignado creado: " + docRef.getId());
+                        
+                        // Actualizar oferta: limpiar guiaSeleccionadoActual
+                        Map<String, Object> actualizacionOferta = new HashMap<>();
+                        actualizacionOferta.put("guiaSeleccionadoActual", null);
+                        actualizacionOferta.put("fechaActualizacion", Timestamp.now());
+                        
+                        db.collection(COLLECTION_OFERTAS)
+                            .document(ofertaDoc.getId())
+                            .update(actualizacionOferta)
+                            .addOnSuccessListener(aVoid -> {
+                                callback.onSuccess("Tour aceptado exitosamente");
+                            })
+                            .addOnFailureListener(e -> {
+                                Log.e(TAG, "Error actualizando oferta", e);
+                                callback.onSuccess("Tour aceptado (advertencia al actualizar oferta)");
+                            });
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.e(TAG, "Error creando tour asignado", e);
+                        callback.onError("Error al crear tour asignado: " + e.getMessage());
+                    });
+            })
+            .addOnFailureListener(e -> {
+                Log.e(TAG, "Error cargando datos del guía", e);
+                callback.onError("Error al cargar datos del guía: " + e.getMessage());
+            });
+    }
+    
+    /**
+     * Rechaza una oferta de tour
+     * - Actualiza estado en guias_ofertados a "rechazado"
+     * - Guarda motivo del rechazo
+     * - Notifica al admin
+     */
+    public void rechazarOfertaTour(@NonNull String ofertaId, @Nullable String motivoRechazo, @NonNull AccionOfertaCallback callback) {
+        FirebaseUser currentUser = getCurrentUser();
+        if (currentUser == null) {
+            callback.onError("Usuario no autenticado");
+            return;
+        }
+        
+        String guiaId = currentUser.getUid();
+        Log.d(TAG, "Guía " + guiaId + " rechazando oferta " + ofertaId);
+        
+        // Actualizar estado en guias_ofertados
+        Map<String, Object> actualizacionOfrecimiento = new HashMap<>();
+        actualizacionOfrecimiento.put("estadoOferta", "rechazado");
+        actualizacionOfrecimiento.put("fechaRespuesta", Timestamp.now());
+        actualizacionOfrecimiento.put("motivoRechazo", motivoRechazo != null ? motivoRechazo : "Sin motivo especificado");
+        actualizacionOfrecimiento.put("vistoAdmin", false); // Admin debe ver el rechazo
+        
+        db.collection(COLLECTION_OFERTAS)
+            .document(ofertaId)
+            .collection("guias_ofertados")
+            .document(guiaId)
+            .update(actualizacionOfrecimiento)
+            .addOnSuccessListener(aVoid -> {
+                // Limpiar guiaSeleccionadoActual en la oferta
+                Map<String, Object> actualizacionOferta = new HashMap<>();
+                actualizacionOferta.put("guiaSeleccionadoActual", null);
+                actualizacionOferta.put("fechaActualizacion", Timestamp.now());
+                
+                db.collection(COLLECTION_OFERTAS)
+                    .document(ofertaId)
+                    .update(actualizacionOferta)
+                    .addOnSuccessListener(aVoid2 -> {
+                        Log.d(TAG, "Oferta rechazada exitosamente");
+                        callback.onSuccess("Tour rechazado. El administrador será notificado.");
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.e(TAG, "Error actualizando oferta", e);
+                        callback.onSuccess("Tour rechazado (advertencia al actualizar oferta)");
+                    });
+            })
+            .addOnFailureListener(e -> {
+                Log.e(TAG, "Error rechazando oferta", e);
+                callback.onError("Error al rechazar oferta: " + e.getMessage());
+            });
+    }
+    
+    // Callback para aceptar/rechazar ofertas
+    public interface AccionOfertaCallback {
+        void onSuccess(String mensaje);
+        void onError(String error);
     }
 }

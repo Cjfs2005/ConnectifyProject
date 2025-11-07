@@ -544,4 +544,50 @@ public class AdminTourService {
                 return historial;
             });
     }
+    
+    // ==================== COLECCIÓN TOURS_ASIGNADOS ====================
+    
+    private static final String COLLECTION_ASIGNADOS = "tours_asignados";
+    
+    /**
+     * Carga un tour asignado por ID
+     */
+    public Task<DocumentSnapshot> cargarTourAsignado(@NonNull String tourId) {
+        Log.d(TAG, "Cargando tour asignado: " + tourId);
+        
+        return db.collection(COLLECTION_ASIGNADOS)
+            .document(tourId)
+            .get();
+    }
+    
+    /**
+     * Lista todos los tours asignados de una empresa
+     */
+    public Task<QuerySnapshot> listarToursAsignados(@NonNull String empresaId) {
+        Log.d(TAG, "Listando tours asignados de empresa: " + empresaId);
+        
+        return db.collection(COLLECTION_ASIGNADOS)
+            .whereEqualTo("empresaId", empresaId)
+            .whereEqualTo("habilitado", true)
+            .orderBy("fechaRealizacion", Query.Direction.ASCENDING)
+            .get();
+    }
+    
+    /**
+     * Actualiza el estado de un tour asignado
+     */
+    public Task<Void> actualizarEstadoTourAsignado(
+            @NonNull String tourId,
+            @NonNull String nuevoEstado) {
+        Log.d(TAG, "Actualizando estado de tour asignado: " + tourId + " a " + nuevoEstado);
+        
+        Map<String, Object> actualizacion = new HashMap<>();
+        actualizacion.put("estado", nuevoEstado);
+        actualizacion.put("fechaActualizacion", Timestamp.now());
+        
+        return db.collection(COLLECTION_ASIGNADOS)
+            .document(tourId)
+            .update(actualizacion);
+    }
 }
+

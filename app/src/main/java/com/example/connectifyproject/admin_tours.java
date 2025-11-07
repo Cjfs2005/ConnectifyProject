@@ -25,6 +25,7 @@ import com.example.connectifyproject.ui.admin.AdminBottomNavFragment;
 import com.google.android.material.tabs.TabLayout;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.text.SimpleDateFormat;
@@ -74,8 +75,8 @@ public class admin_tours extends AppCompatActivity {
         // Configurar TabLayout
         setupTabs();
 
-        // Configurar datos iniciales
-        loadTours("borradores");
+        // NO cargar datos iniciales aquí, esperar a que se cargue empresaId
+        // La carga se hará automáticamente en loadEmpresaId()
 
         // Configurar bottom navigation
         setupBottomNavigation();
@@ -93,9 +94,22 @@ public class admin_tours extends AppCompatActivity {
             db.collection("usuarios").document(userId).get()
                 .addOnSuccessListener(documentSnapshot -> {
                     if (documentSnapshot.exists()) {
-                        empresaId = documentSnapshot.getString("empresaId");
+                        String rol = documentSnapshot.getString("rol");
+                        
+                        // Si es Administrador, empresaId = UID
+                        if ("Administrador".equals(rol)) {
+                            empresaId = userId;
+                        } else {
+                            // Si es otro rol, buscar campo empresaId
+                            empresaId = documentSnapshot.getString("empresaId");
+                        }
+                        
                         // Recargar tours después de obtener empresaId
-                        loadTours(currentTab);
+                        if (empresaId != null) {
+                            loadTours(currentTab);
+                        } else {
+                            Toast.makeText(this, "No se pudo obtener ID de empresa", Toast.LENGTH_SHORT).show();
+                        }
                     }
                 })
                 .addOnFailureListener(e -> {
@@ -115,9 +129,31 @@ public class admin_tours extends AppCompatActivity {
         binding.tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
-                String tabText = tab.getText().toString().toLowerCase();
-                currentTab = tabText;
-                loadTours(tabText);
+                int position = tab.getPosition();
+                String tabState;
+                
+                switch (position) {
+                    case 0:
+                        tabState = "borradores";
+                        break;
+                    case 1:
+                        tabState = "publicados";
+                        break;
+                    case 2:
+                        tabState = "pendiente";
+                        break;
+                    case 3:
+                        tabState = "confirmados";
+                        break;
+                    case 4:
+                        tabState = "cancelados";
+                        break;
+                    default:
+                        tabState = "borradores";
+                }
+                
+                currentTab = tabState;
+                loadTours(tabState);
             }
 
             @Override
@@ -141,12 +177,12 @@ public class admin_tours extends AppCompatActivity {
                 loadBorradores();
                 break;
                 
-            case "pendiente":
-                loadPendienteConfirmacion();
+            case "publicados":
+                loadPublicados();
                 break;
                 
-            case "sin_guia":
-                loadSinGuiaAsignado();
+            case "pendiente":
+                loadPendienteConfirmacion();
                 break;
                 
             case "confirmados":
@@ -160,8 +196,12 @@ public class admin_tours extends AppCompatActivity {
     }
     
     private void loadBorradores() {
+        android.util.Log.d("AdminTours", "Cargando borradores para empresaId: " + empresaId);
+        
         adminTourService.listarBorradores(empresaId)
             .addOnSuccessListener(borradores -> {
+                android.util.Log.d("AdminTours", "Borradores encontrados: " + borradores.size());
+                
                 toursList.clear();
                 for (TourBorrador borrador : borradores) {
                     // fechaRealizacion ya es String en formato dd/MM/yyyy
@@ -182,9 +222,92 @@ public class admin_tours extends AppCompatActivity {
                     ));
                 }
                 toursAdapter.notifyDataSetChanged();
+                android.util.Log.d("AdminTours", "Lista actualizada con " + toursList.size() + " borradores");
             })
             .addOnFailureListener(e -> {
+                android.util.Log.e("AdminTours", "Error al cargar borradores", e);
                 Toast.makeText(this, "Error al cargar borradores: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            });
+    }
+    
+    private void loadPublicados() {
+        android.util.Log.d("AdminTours", "=== CARGANDO PUBLICADOS ===");
+        android.util.Log.d("AdminTours", "EmpresaId: " + empresaId);
+        
+        // Cargar tours publicados SIN guía seleccionado
+        db.collection("tours_ofertas")
+            .whereEqualTo("empresaId", empresaId)
+            .whereEqualTo("estado", "publicado")
+            .whereEqualTo("habilitado", true)
+            .get()
+            .addOnSuccessListener(querySnapshot -> {
+                android.util.Log.d("AdminTours", "Tours encontrados en tours_ofertas: " + querySnapshot.size());
+                
+                toursList.clear();
+                int toursAgregados = 0;
+                
+                for (DocumentSnapshot doc : querySnapshot.getDocuments()) {
+                    try {
+                        android.util.Log.d("AdminTours", "Procesando tour: " + doc.getId());
+                        
+                        String guiaSeleccionado = doc.getString("guiaSeleccionadoActual");
+                        android.util.Log.d("AdminTours", "  - guiaSeleccionadoActual: " + guiaSeleccionado);
+                        
+                        // Solo mostrar tours SIN guía seleccionado
+                        if (guiaSeleccionado == null || guiaSeleccionado.isEmpty()) {
+                            String titulo = doc.getString("titulo");
+                            android.util.Log.d("AdminTours", "  - titulo: " + titulo);
+                            
+                            // Manejar fecha como String o Timestamp
+                            String fecha = "Sin fecha";
+                            try {
+                                // Intentar primero como Timestamp
+                                Timestamp fechaRealizacion = doc.getTimestamp("fechaRealizacion");
+                                if (fechaRealizacion != null) {
+                                    fecha = dateFormat.format(fechaRealizacion.toDate());
+                                }
+                            } catch (Exception e) {
+                                // Si falla, intentar como String
+                                String fechaString = doc.getString("fechaRealizacion");
+                                if (fechaString != null && !fechaString.isEmpty()) {
+                                    fecha = fechaString;
+                                }
+                                android.util.Log.d("AdminTours", "  - fechaRealizacion es String: " + fechaString);
+                            }
+                            android.util.Log.d("AdminTours", "  - fecha procesada: " + fecha);
+                            
+                            List<String> imagenesUrls = (List<String>) doc.get("imagenesUrls");
+                            String imageUrl = (imagenesUrls != null && !imagenesUrls.isEmpty()) 
+                                ? imagenesUrls.get(0) 
+                                : null;
+                            android.util.Log.d("AdminTours", "  - imageUrl: " + (imageUrl != null ? "presente" : "null"));
+                            
+                            toursList.add(new TourItem(
+                                doc.getId(),
+                                titulo != null ? titulo : "Sin título",
+                                fecha,
+                                "Publicado - Sin guía",
+                                imageUrl,
+                                true,
+                                "publicado"
+                            ));
+                            toursAgregados++;
+                            android.util.Log.d("AdminTours", "  ✓ Tour agregado a la lista");
+                        } else {
+                            android.util.Log.d("AdminTours", "  - Tour omitido (tiene guía asignado)");
+                        }
+                    } catch (Exception e) {
+                        android.util.Log.e("AdminTours", "Error procesando tour " + doc.getId(), e);
+                    }
+                }
+                
+                android.util.Log.d("AdminTours", "Total tours agregados: " + toursAgregados);
+                toursAdapter.notifyDataSetChanged();
+                android.util.Log.d("AdminTours", "Adapter notificado");
+            })
+            .addOnFailureListener(e -> {
+                android.util.Log.e("AdminTours", "Error al cargar tours publicados", e);
+                Toast.makeText(this, "Error al cargar tours publicados: " + e.getMessage(), Toast.LENGTH_SHORT).show();
             });
     }
     
@@ -201,10 +324,20 @@ public class admin_tours extends AppCompatActivity {
                     // Solo mostrar tours con guía seleccionado (pendiente de confirmación)
                     if (guiaSeleccionado != null && !guiaSeleccionado.isEmpty()) {
                         String titulo = doc.getString("titulo");
-                        Timestamp fechaRealizacion = doc.getTimestamp("fechaRealizacion");
-                        String fecha = fechaRealizacion != null 
-                            ? dateFormat.format(fechaRealizacion.toDate())
-                            : "Sin fecha";
+                        
+                        // Manejar fecha como String o Timestamp
+                        String fecha = "Sin fecha";
+                        try {
+                            Timestamp fechaRealizacion = doc.getTimestamp("fechaRealizacion");
+                            if (fechaRealizacion != null) {
+                                fecha = dateFormat.format(fechaRealizacion.toDate());
+                            }
+                        } catch (Exception e) {
+                            String fechaString = doc.getString("fechaRealizacion");
+                            if (fechaString != null && !fechaString.isEmpty()) {
+                                fecha = fechaString;
+                            }
+                        }
                         
                         List<String> imagenesUrls = (List<String>) doc.get("imagenesUrls");
                         String imageUrl = (imagenesUrls != null && !imagenesUrls.isEmpty()) 
@@ -257,79 +390,56 @@ public class admin_tours extends AppCompatActivity {
             });
     }
     
-    private void loadSinGuiaAsignado() {
-        db.collection("tours_ofertas")
+    private void loadConfirmados() {
+        db.collection("tours_asignados")
             .whereEqualTo("empresaId", empresaId)
-            .whereEqualTo("estado", "publicado")
+            .whereEqualTo("habilitado", true)
             .get()
             .addOnSuccessListener(querySnapshot -> {
                 toursList.clear();
-                querySnapshot.getDocuments().forEach(doc -> {
-                    String guiaSeleccionado = doc.getString("guiaSeleccionadoActual");
+                for (DocumentSnapshot doc : querySnapshot.getDocuments()) {
+                    String estadoDoc = doc.getString("estado");
                     
-                    // Solo mostrar tours SIN guía seleccionado
-                    if (guiaSeleccionado == null || guiaSeleccionado.isEmpty()) {
+                    // Solo mostrar tours confirmados, en curso o completados
+                    if (estadoDoc != null && 
+                        (estadoDoc.equals("confirmado") || 
+                         estadoDoc.equals("en_curso") || 
+                         estadoDoc.equals("completado"))) {
+                        
                         String titulo = doc.getString("titulo");
-                        Timestamp fechaRealizacion = doc.getTimestamp("fechaRealizacion");
-                        String fecha = fechaRealizacion != null 
-                            ? dateFormat.format(fechaRealizacion.toDate())
-                            : "Sin fecha";
+                        
+                        // Manejar fecha como String o Timestamp
+                        String fecha = "Sin fecha";
+                        try {
+                            Timestamp fechaRealizacion = doc.getTimestamp("fechaRealizacion");
+                            if (fechaRealizacion != null) {
+                                fecha = dateFormat.format(fechaRealizacion.toDate());
+                            }
+                        } catch (Exception e) {
+                            String fechaString = doc.getString("fechaRealizacion");
+                            if (fechaString != null && !fechaString.isEmpty()) {
+                                fecha = fechaString;
+                            }
+                        }
                         
                         List<String> imagenesUrls = (List<String>) doc.get("imagenesUrls");
                         String imageUrl = (imagenesUrls != null && !imagenesUrls.isEmpty()) 
                             ? imagenesUrls.get(0) 
                             : null;
                         
+                        String estadoDisplay = capitalizeFirst(estadoDoc.replace("_", " "));
+                        
                         toursList.add(new TourItem(
                             doc.getId(),
                             titulo,
                             fecha,
-                            "Sin guía asignado",
+                            estadoDisplay,
                             imageUrl,
-                            false,
-                            "sin_guia"
+                            true,
+                            "confirmado"
                         ));
                     }
-                });
-                toursAdapter.notifyDataSetChanged();
-            })
-            .addOnFailureListener(e -> {
-                Toast.makeText(this, "Error al cargar tours sin guía: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-            });
-    }
-    
-    private void loadConfirmados() {
-        db.collection("tours_asignados")
-            .whereEqualTo("empresaId", empresaId)
-            .whereIn("estado", java.util.Arrays.asList("confirmado", "en_curso", "completado"))
-            .get()
-            .addOnSuccessListener(querySnapshot -> {
-                toursList.clear();
-                querySnapshot.getDocuments().forEach(doc -> {
-                    String titulo = doc.getString("titulo");
-                    Timestamp fechaRealizacion = doc.getTimestamp("fechaRealizacion");
-                    String fecha = fechaRealizacion != null 
-                        ? dateFormat.format(fechaRealizacion.toDate())
-                        : "Sin fecha";
-                    
-                    List<String> imagenesUrls = (List<String>) doc.get("imagenesUrls");
-                    String imageUrl = (imagenesUrls != null && !imagenesUrls.isEmpty()) 
-                        ? imagenesUrls.get(0) 
-                        : null;
-                    
-                    String estadoDoc = doc.getString("estado");
-                    String estadoDisplay = estadoDoc != null ? capitalizeFirst(estadoDoc) : "Confirmado";
-                    
-                    toursList.add(new TourItem(
-                        doc.getId(),
-                        titulo,
-                        fecha,
-                        estadoDisplay,
-                        imageUrl,
-                        true,
-                        "confirmado"
-                    ));
-                });
+                }
                 toursAdapter.notifyDataSetChanged();
             })
             .addOnFailureListener(e -> {
@@ -347,10 +457,20 @@ public class admin_tours extends AppCompatActivity {
                 toursList.clear();
                 querySnapshot.getDocuments().forEach(doc -> {
                     String titulo = doc.getString("titulo");
-                    Timestamp fechaRealizacion = doc.getTimestamp("fechaRealizacion");
-                    String fecha = fechaRealizacion != null 
-                        ? dateFormat.format(fechaRealizacion.toDate())
-                        : "Sin fecha";
+                    
+                    // Manejar fecha como String o Timestamp
+                    String fecha = "Sin fecha";
+                    try {
+                        Timestamp fechaRealizacion = doc.getTimestamp("fechaRealizacion");
+                        if (fechaRealizacion != null) {
+                            fecha = dateFormat.format(fechaRealizacion.toDate());
+                        }
+                    } catch (Exception e) {
+                        String fechaString = doc.getString("fechaRealizacion");
+                        if (fechaString != null && !fechaString.isEmpty()) {
+                            fecha = fechaString;
+                        }
+                    }
                     
                     List<String> imagenesUrls = (List<String>) doc.get("imagenesUrls");
                     String imageUrl = (imagenesUrls != null && !imagenesUrls.isEmpty()) 
@@ -376,10 +496,20 @@ public class admin_tours extends AppCompatActivity {
                     .addOnSuccessListener(querySnapshot2 -> {
                         querySnapshot2.getDocuments().forEach(doc -> {
                             String titulo = doc.getString("titulo");
-                            Timestamp fechaRealizacion = doc.getTimestamp("fechaRealizacion");
-                            String fecha = fechaRealizacion != null 
-                                ? dateFormat.format(fechaRealizacion.toDate())
-                                : "Sin fecha";
+                            
+                            // Manejar fecha como String o Timestamp
+                            String fecha = "Sin fecha";
+                            try {
+                                Timestamp fechaRealizacion = doc.getTimestamp("fechaRealizacion");
+                                if (fechaRealizacion != null) {
+                                    fecha = dateFormat.format(fechaRealizacion.toDate());
+                                }
+                            } catch (Exception e) {
+                                String fechaString = doc.getString("fechaRealizacion");
+                                if (fechaString != null && !fechaString.isEmpty()) {
+                                    fecha = fechaString;
+                                }
+                            }
                             
                             List<String> imagenesUrls = (List<String>) doc.get("imagenesUrls");
                             String imageUrl = (imagenesUrls != null && !imagenesUrls.isEmpty()) 

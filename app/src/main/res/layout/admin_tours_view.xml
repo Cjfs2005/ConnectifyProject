@@ -85,7 +85,12 @@
                 app:tabTextColor="@color/on_surface_variant"
                 app:tabSelectedTextColor="@color/brand_purple_dark"
                 app:tabIndicatorColor="@color/brand_purple_dark"
-                app:tabMode="fixed">
+                app:tabMode="scrollable">
+
+                <com.google.android.material.tabs.TabItem
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Borradores" />
 
                 <com.google.android.material.tabs.TabItem
                     android:layout_width="wrap_content"
@@ -95,7 +100,12 @@
                 <com.google.android.material.tabs.TabItem
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Borrador" />
+                    android:text="Pendiente" />
+
+                <com.google.android.material.tabs.TabItem
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Confirmados" />
 
                 <com.google.android.material.tabs.TabItem
                     android:layout_width="wrap_content"

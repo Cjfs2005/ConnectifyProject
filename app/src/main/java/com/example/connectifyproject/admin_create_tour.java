@@ -315,6 +315,9 @@ public class admin_create_tour extends AppCompatActivity implements OnMapReadyCa
             (view, hourOfDay, minuteOfDay) -> {
                 tourStartTime = String.format(Locale.getDefault(), "%02d:%02d", hourOfDay, minuteOfDay);
                 binding.etTourStartTime.setText(tourStartTime);
+                
+                // Calcular duración automáticamente si ya hay hora de fin
+                calcularDuracion();
             },
             hour,
             minute,
@@ -333,12 +336,69 @@ public class admin_create_tour extends AppCompatActivity implements OnMapReadyCa
             (view, hourOfDay, minuteOfDay) -> {
                 tourEndTime = String.format(Locale.getDefault(), "%02d:%02d", hourOfDay, minuteOfDay);
                 binding.etTourEndTime.setText(tourEndTime);
+                
+                // Calcular duración automáticamente si ya hay hora de inicio
+                calcularDuracion();
             },
             hour,
             minute,
             true // Formato 24 horas
         );
         timePickerDialog.show();
+    }
+    
+    /**
+     * Calcula automáticamente la duración del tour basándose en hora inicio y fin
+     */
+    private void calcularDuracion() {
+        if (tourStartTime != null && !tourStartTime.isEmpty() && 
+            tourEndTime != null && !tourEndTime.isEmpty()) {
+            
+            try {
+                // Parse hora inicio
+                String[] startParts = tourStartTime.split(":");
+                int startHour = Integer.parseInt(startParts[0]);
+                int startMinute = Integer.parseInt(startParts[1]);
+                
+                // Parse hora fin
+                String[] endParts = tourEndTime.split(":");
+                int endHour = Integer.parseInt(endParts[0]);
+                int endMinute = Integer.parseInt(endParts[1]);
+                
+                // Calcular diferencia en minutos
+                int startTotalMinutes = startHour * 60 + startMinute;
+                int endTotalMinutes = endHour * 60 + endMinute;
+                int differenceMinutes = endTotalMinutes - startTotalMinutes;
+                
+                // Si la hora de fin es menor que la de inicio, asumir que cruza medianoche
+                if (differenceMinutes < 0) {
+                    differenceMinutes += 24 * 60; // Agregar 24 horas
+                }
+                
+                // Convertir a horas con decimales
+                double durationHours = differenceMinutes / 60.0;
+                
+                // Formatear y mostrar duración
+                String duracionFormateada;
+                if (differenceMinutes % 60 == 0) {
+                    // Duración exacta en horas (ej: 2 hrs, 3 hrs)
+                    duracionFormateada = String.valueOf((int) durationHours);
+                } else {
+                    // Duración con decimales (ej: 2.5 hrs, 1.75 hrs)
+                    duracionFormateada = String.format(Locale.getDefault(), "%.2f", durationHours);
+                }
+                
+                binding.etTourDuration.setText(duracionFormateada);
+                
+                // Mostrar mensaje informativo
+                Toast.makeText(this, 
+                    "Duración calculada: " + duracionFormateada + " hrs", 
+                    Toast.LENGTH_SHORT).show();
+                
+            } catch (Exception e) {
+                Log.e("AdminCreateTour", "Error al calcular duración", e);
+            }
+        }
     }
     
     private void showIdiomasDialog() {
