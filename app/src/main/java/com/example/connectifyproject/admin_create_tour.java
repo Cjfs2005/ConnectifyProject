@@ -61,6 +61,11 @@ public class admin_create_tour extends AppCompatActivity implements OnMapReadyCa
     private String tourPrice;
     private String tourDuration;
     private String tourDate;
+    private String tourStartTime;
+    private String tourEndTime;
+    private String pagoGuia;
+    private List<String> selectedIdiomas;
+    private String consideraciones;
     private List<TourPlace> selectedPlaces;
     private List<TourService> additionalServices;
     
@@ -187,6 +192,7 @@ public class admin_create_tour extends AppCompatActivity implements OnMapReadyCa
         additionalServices = new ArrayList<>();
         selectedImageUris = new ArrayList<>();
         uploadedImageUrls = new ArrayList<>();
+        selectedIdiomas = new ArrayList<>();
         selectedCalendar = Calendar.getInstance();
         dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
         binding.etTourDate.setText(dateFormat.format(selectedCalendar.getTime()));
@@ -232,6 +238,13 @@ public class admin_create_tour extends AppCompatActivity implements OnMapReadyCa
         binding.btnAddPlace.setOnClickListener(v -> addPlace());
         binding.btnAddService.setOnClickListener(v -> showAddServiceDialog());
         binding.etTourDate.setOnClickListener(v -> showDatePicker());
+        
+        // Listeners para los time pickers
+        binding.etTourStartTime.setOnClickListener(v -> showTimePickerStart());
+        binding.etTourEndTime.setOnClickListener(v -> showTimePickerEnd());
+        
+        // Listener para selector de idiomas
+        binding.etIdiomasRequeridos.setOnClickListener(v -> showIdiomasDialog());
         
         // Botón para seleccionar imágenes (agregar en el layout si no existe)
         if (binding.btnSelectImages != null) {
@@ -290,6 +303,75 @@ public class admin_create_tour extends AppCompatActivity implements OnMapReadyCa
         );
         datePickerDialog.getDatePicker().setMinDate(System.currentTimeMillis());
         datePickerDialog.show();
+    }
+    
+    private void showTimePickerStart() {
+        Calendar currentTime = Calendar.getInstance();
+        int hour = currentTime.get(Calendar.HOUR_OF_DAY);
+        int minute = currentTime.get(Calendar.MINUTE);
+        
+        android.app.TimePickerDialog timePickerDialog = new android.app.TimePickerDialog(
+            this,
+            (view, hourOfDay, minuteOfDay) -> {
+                tourStartTime = String.format(Locale.getDefault(), "%02d:%02d", hourOfDay, minuteOfDay);
+                binding.etTourStartTime.setText(tourStartTime);
+            },
+            hour,
+            minute,
+            true // Formato 24 horas
+        );
+        timePickerDialog.show();
+    }
+    
+    private void showTimePickerEnd() {
+        Calendar currentTime = Calendar.getInstance();
+        int hour = currentTime.get(Calendar.HOUR_OF_DAY);
+        int minute = currentTime.get(Calendar.MINUTE);
+        
+        android.app.TimePickerDialog timePickerDialog = new android.app.TimePickerDialog(
+            this,
+            (view, hourOfDay, minuteOfDay) -> {
+                tourEndTime = String.format(Locale.getDefault(), "%02d:%02d", hourOfDay, minuteOfDay);
+                binding.etTourEndTime.setText(tourEndTime);
+            },
+            hour,
+            minute,
+            true // Formato 24 horas
+        );
+        timePickerDialog.show();
+    }
+    
+    private void showIdiomasDialog() {
+        String[] idiomasDisponibles = {"Español", "Inglés", "Francés", "Alemán", "Portugués", "Italiano", "Chino", "Japonés"};
+        boolean[] idiomasSeleccionados = new boolean[idiomasDisponibles.length];
+        
+        // Marcar los idiomas ya seleccionados
+        for (int i = 0; i < idiomasDisponibles.length; i++) {
+            if (selectedIdiomas.contains(idiomasDisponibles[i])) {
+                idiomasSeleccionados[i] = true;
+            }
+        }
+        
+        new MaterialAlertDialogBuilder(this)
+            .setTitle("Seleccionar idiomas requeridos")
+            .setMultiChoiceItems(idiomasDisponibles, idiomasSeleccionados, (dialog, which, isChecked) -> {
+                if (isChecked) {
+                    if (!selectedIdiomas.contains(idiomasDisponibles[which])) {
+                        selectedIdiomas.add(idiomasDisponibles[which]);
+                    }
+                } else {
+                    selectedIdiomas.remove(idiomasDisponibles[which]);
+                }
+            })
+            .setPositiveButton("Aceptar", (dialog, which) -> {
+                if (selectedIdiomas.isEmpty()) {
+                    binding.etIdiomasRequeridos.setText("");
+                } else {
+                    binding.etIdiomasRequeridos.setText(String.join(", ", selectedIdiomas));
+                }
+            })
+            .setNegativeButton("Cancelar", null)
+            .show();
     }
 
     private void addPlace() {
@@ -477,6 +559,8 @@ public class admin_create_tour extends AppCompatActivity implements OnMapReadyCa
         tourDescription = binding.etTourDescription.getText().toString().trim();
         tourPrice = binding.etTourPrice.getText().toString().trim();
         tourDuration = binding.etTourDuration.getText().toString().trim();
+        tourStartTime = binding.etTourStartTime.getText().toString().trim();
+        tourEndTime = binding.etTourEndTime.getText().toString().trim();
         
         if (tourTitle.isEmpty()) {
             binding.etTourTitle.setError("Ingrese el titulo del tour");
@@ -492,6 +576,16 @@ public class admin_create_tour extends AppCompatActivity implements OnMapReadyCa
         }
         if (tourDuration.isEmpty()) {
             binding.etTourDuration.setError("Ingrese la duracion");
+            return false;
+        }
+        if (tourStartTime.isEmpty()) {
+            binding.etTourStartTime.setError("Seleccione la hora de inicio");
+            Toast.makeText(this, "Seleccione la hora de inicio del tour", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+        if (tourEndTime.isEmpty()) {
+            binding.etTourEndTime.setError("Seleccione la hora de fin");
+            Toast.makeText(this, "Seleccione la hora de fin del tour", Toast.LENGTH_SHORT).show();
             return false;
         }
         return true;
@@ -515,6 +609,36 @@ public class admin_create_tour extends AppCompatActivity implements OnMapReadyCa
     }
 
     private boolean validateStep4() {
+        pagoGuia = binding.etPagoGuia.getText().toString().trim();
+        consideraciones = binding.etConsideraciones.getText().toString().trim();
+        
+        // Validar pago al guía
+        if (pagoGuia.isEmpty()) {
+            binding.etPagoGuia.setError("Ingrese el pago al guía");
+            Toast.makeText(this, "Debe especificar el pago al guía", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+        
+        try {
+            double pago = Double.parseDouble(pagoGuia);
+            if (pago <= 0) {
+                binding.etPagoGuia.setError("El pago debe ser mayor a 0");
+                Toast.makeText(this, "El pago al guía debe ser mayor a 0", Toast.LENGTH_SHORT).show();
+                return false;
+            }
+        } catch (NumberFormatException e) {
+            binding.etPagoGuia.setError("Ingrese un monto válido");
+            Toast.makeText(this, "Ingrese un monto válido para el pago al guía", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+        
+        // Validar idiomas
+        if (selectedIdiomas.isEmpty()) {
+            binding.etIdiomasRequeridos.setError("Seleccione al menos un idioma");
+            Toast.makeText(this, "Debe seleccionar al menos un idioma requerido", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+        
         return true;
     }
 
@@ -709,6 +833,10 @@ public class admin_create_tour extends AppCompatActivity implements OnMapReadyCa
         String duracion = tourDuration != null ? tourDuration : binding.etTourDuration.getText().toString().trim();
         borrador.setDuracion(duracion);
         
+        // Hora de inicio y fin
+        borrador.setHoraInicio(tourStartTime != null ? tourStartTime : binding.etTourStartTime.getText().toString().trim());
+        borrador.setHoraFin(tourEndTime != null ? tourEndTime : binding.etTourEndTime.getText().toString().trim());
+        
         // Convertir fecha Calendar a String dd/MM/yyyy
         if (selectedCalendar != null) {
             SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
@@ -743,13 +871,19 @@ public class admin_create_tour extends AppCompatActivity implements OnMapReadyCa
         borrador.setImagenesUrls(new ArrayList<>(uploadedImageUrls));
         borrador.setImagenPrincipal(uploadedImageUrls.isEmpty() ? null : uploadedImageUrls.get(0));
         
-        // Idiomas requeridos (por ahora vacío, se debería agregar selector en UI)
-        List<String> idiomas = new ArrayList<>();
-        idiomas.add("Español"); // Valor por defecto
-        borrador.setIdiomasRequeridos(idiomas);
+        // Idiomas requeridos
+        borrador.setIdiomasRequeridos(new ArrayList<>(selectedIdiomas));
         
-        // Pago al guía (por ahora 0, se debería agregar campo en UI)
-        borrador.setPagoGuia(0.0);
+        // Pago al guía
+        try {
+            double pagoGuiaValue = Double.parseDouble(pagoGuia != null ? pagoGuia : binding.etPagoGuia.getText().toString().trim());
+            borrador.setPagoGuia(pagoGuiaValue);
+        } catch (NumberFormatException e) {
+            borrador.setPagoGuia(0.0);
+        }
+        
+        // Consideraciones para el guía
+        borrador.setConsideraciones(consideraciones != null ? consideraciones : binding.etConsideraciones.getText().toString().trim());
         
         // Datos de la empresa
         borrador.setEmpresaId(empresaId);

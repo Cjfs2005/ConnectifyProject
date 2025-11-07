@@ -186,6 +186,7 @@
                             android:id="@+id/til_tour_date"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            android:layout_marginBottom="12dp"
                             app:endIconMode="custom"
                             app:endIconDrawable="@drawable/ic_calendar"
                             style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
@@ -199,6 +200,55 @@
                                 android:clickable="true" />
 
                         </com.google.android.material.textfield.TextInputLayout>
+
+                        <!-- Hora de Inicio y Hora de Fin en fila -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:layout_marginBottom="12dp">
+
+                            <com.google.android.material.textfield.TextInputLayout
+                                android:id="@+id/til_tour_start_time"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:layout_marginEnd="8dp"
+                                app:endIconMode="custom"
+                                app:endIconDrawable="@drawable/ic_time"
+                                style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
+
+                                <com.google.android.material.textfield.TextInputEditText
+                                    android:id="@+id/et_tour_start_time"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:hint="Hora de inicio"
+                                    android:focusable="false"
+                                    android:clickable="true" />
+
+                            </com.google.android.material.textfield.TextInputLayout>
+
+                            <com.google.android.material.textfield.TextInputLayout
+                                android:id="@+id/til_tour_end_time"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:layout_marginStart="8dp"
+                                app:endIconMode="custom"
+                                app:endIconDrawable="@drawable/ic_time"
+                                style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
+
+                                <com.google.android.material.textfield.TextInputEditText
+                                    android:id="@+id/et_tour_end_time"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:hint="Hora de fin"
+                                    android:focusable="false"
+                                    android:clickable="true" />
+
+                            </com.google.android.material.textfield.TextInputLayout>
+
+                        </LinearLayout>
 
                         <!-- Selección de Imágenes -->
                         <TextView
@@ -415,6 +465,7 @@
                 android:orientation="vertical"
                 android:visibility="gone">
 
+                <!-- Servicios Adicionales -->
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -461,6 +512,90 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:minHeight="100dp" />
+
+                    </LinearLayout>
+
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Requisitos para el Guía -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="2dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Requisitos para el Guía"
+                            android:textColor="@color/text_primary"
+                            android:textStyle="bold"
+                            android:textSize="16sp"
+                            android:layout_marginBottom="16dp" />
+
+                        <!-- Pago al Guía -->
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="12dp"
+                            app:prefixText="S/ "
+                            app:helperText="Pago que recibirá el guía asignado"
+                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/et_pago_guia"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:hint="Pago al guía"
+                                android:inputType="numberDecimal" />
+
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <!-- Idiomas Requeridos -->
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="12dp"
+                            app:endIconMode="custom"
+                            app:endIconDrawable="@drawable/ic_language"
+                            app:helperText="Idiomas que debe manejar el guía"
+                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/et_idiomas_requeridos"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:hint="Idiomas requeridos"
+                                android:focusable="false"
+                                android:clickable="true" />
+
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <!-- Consideraciones/Detalles Adicionales -->
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            app:helperText="Experiencia mínima, conocimientos específicos, etc."
+                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/et_consideraciones"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:hint="Consideraciones para el guía"
+                                android:maxLines="4"
+                                android:minLines="3"
+                                android:gravity="top"
+                                android:inputType="textMultiLine" />
+
+                        </com.google.android.material.textfield.TextInputLayout>
 
                     </LinearLayout>
 
