@@ -354,7 +354,7 @@ public class TourFirebaseService {
         tourAsignado.put("idiomasRequeridos", oferta.getIdiomasRequeridos());
         tourAsignado.put("consideraciones", oferta.getConsideraciones());
         tourAsignado.put("participantes", participantes);
-        tourAsignado.put("estado", "confirmado");
+        tourAsignado.put("estado", "pendiente"); // ✅ Estado inicial único
         tourAsignado.put("numeroParticipantesTotal", participantes.size());
         tourAsignado.put("checkInRealizado", false);
         tourAsignado.put("checkOutRealizado", false);
@@ -479,12 +479,11 @@ public class TourFirebaseService {
     }
     
     /**
-     * 🎯 OBTENER TOUR PRIORITARIO - LÓGICA CLARA
+     * 🎯 OBTENER TOUR PRIORITARIO CON ESTADOS UNIFICADOS
      * 
-     * PRIORIDAD 1: Tour "en_curso" (ya iniciado)
-     * PRIORIDAD 2: Tour "programado" que es HOY y ya es hora de inicio
-     * PRIORIDAD 3: Tour "programado" que es HOY (sin importar hora)
-     * PRIORIDAD 4: Tour "programado" más próximo en fecha
+     * PRIORIDAD 1: Tour "en_curso" o "check_out" (máxima prioridad)
+     * PRIORIDAD 2: Tour "check_in" que es HOY
+     * PRIORIDAD 3: Tour "pendiente" más próximo
      */
     public void getTourPrioritario(TourPrioritarioCallback callback) {
         FirebaseUser currentUser = getCurrentUser();
@@ -501,52 +500,66 @@ public class TourFirebaseService {
             .orderBy("fechaRealizacion")
             .get()
             .addOnSuccessListener(querySnapshot -> {
-                TourAsignado tourPrioritario = null;
-                TourAsignado tourMasCercano = null;
+                List<TourAsignado> tours = new ArrayList<>();
                 
-                for (DocumentSnapshot doc : querySnapshot) {
-                    TourAsignado tour = doc.toObject(TourAsignado.class);
-                    if (tour != null) {
-                        tour.setId(doc.getId());
-                        
-                        // ✅ PRIORIDAD 1: Tour en curso (máxima prioridad)
-                        if ("en_curso".equals(tour.getEstado())) {
-                            tourPrioritario = tour;
-                            break; // ¡Este es el prioritario absoluto!
+                for (DocumentSnapshot doc : querySnapshot.getDocuments()) {
+                    try {
+                        TourAsignado tour = doc.toObject(TourAsignado.class);
+                        if (tour != null) {
+                            tour.setId(doc.getId());
+                            tours.add(tour);
                         }
-                        
-                        // ✅ PRIORIDAD 2-4: Tours programados
-                        if ("programado".equals(tour.getEstado())) {
-                            if (esTourDeHoy(tour)) {
-                                if (yaEsHoraDeInicio(tour)) {
-                                    // PRIORIDAD 2: Es hoy Y ya es hora
-                                    if (tourPrioritario == null) {
-                                        tourPrioritario = tour;
-                                    }
-                                } else {
-                                    // PRIORIDAD 3: Es hoy pero aún no es hora
-                                    if (tourPrioritario == null) {
-                                        tourPrioritario = tour;
-                                    }
-                                }
-                            } else if (tourMasCercano == null && esTourFuturo(tour)) {
-                                // PRIORIDAD 4: Más cercano en el futuro
-                                tourMasCercano = tour;
-                            }
+                    } catch (Exception e) {
+                        Log.w(TAG, "Error convirtiendo tour: " + doc.getId(), e);
+                    }
+                }
+                
+                TourAsignado tourPrioritario = null;
+                TourAsignado tourPendienteMasCercano = null;
+                
+                for (TourAsignado tour : tours) {
+                    String estado = tour.getEstado();
+                    
+                    // 🔥 PRIORIDAD 1: Tour en curso (máxima prioridad)
+                    if ("en_curso".equals(estado)) {
+                        callback.onSuccess(tour);
+                        return;
+                    }
+                    
+                    // 🛑 PRIORIDAD 2: Tour en check-out (alta prioridad)
+                    if ("check_out".equals(estado)) {
+                        callback.onSuccess(tour);
+                        return;
+                    }
+                    
+                    // ✅ PRIORIDAD 3: Tours listos para check-in (sin importar fecha)
+                    if ("check_in".equals(estado)) {
+                        if (tourPrioritario == null) tourPrioritario = tour;
+                    }
+                    
+                    // 📅 PRIORIDAD 4: Tour pendiente más próximo (solo si no hay tours activos)
+                    if ("pendiente".equals(estado) && (esTourDeHoy(tour) || esTourFuturo(tour))) {
+                        if (tourPendienteMasCercano == null || 
+                            tour.getFechaRealizacion().compareTo(tourPendienteMasCercano.getFechaRealizacion()) < 0) {
+                            tourPendienteMasCercano = tour;
                         }
                     }
                 }
                 
-                // Si no hay tour prioritario, usar el más cercano
-                if (tourPrioritario == null) {
-                    tourPrioritario = tourMasCercano;
+                // 🎯 LÓGICA DE SELECCIÓN CORREGIDA:
+                // 1. Si hay tour con check-in habilitado, ESE tiene prioridad
+                // 2. Si no hay tours activos, entonces el pendiente más cercano
+                if (tourPrioritario != null) {
+                    callback.onSuccess(tourPrioritario);
+                } else if (tourPendienteMasCercano != null) {
+                    callback.onSuccess(tourPendienteMasCercano);
+                } else {
+                    callback.onError("No hay tours asignados");
                 }
-                
-                callback.onSuccess(tourPrioritario);
             })
             .addOnFailureListener(e -> {
                 Log.e(TAG, "Error obteniendo tour prioritario", e);
-                callback.onError("Error: " + e.getMessage());
+                callback.onError("Error cargando tours: " + e.getMessage());
             });
     }
     
@@ -630,27 +643,97 @@ public class TourFirebaseService {
     }
     
     /**
-     * ▶️ INICIAR TOUR (cambiar de "programado" a "en_curso")
-     * Se llama desde el botón "Empezar Tour" en check-in
+     * ▶️ INICIAR TOUR (check_in → en_curso) - CON VALIDACIÓN DE ÚNICO TOUR ACTIVO
      */
     public void iniciarTour(String tourId, OperationCallback callback) {
+        // Primero verificar si ya hay un tour en curso
+        verificarTourActivoAntesCambio(tourId, "en_curso", new OperationCallback() {
+            @Override
+            public void onSuccess(String message) {
+                // No hay conflictos, proceder con el cambio
+                Map<String, Object> updates = new HashMap<>();
+                updates.put("estado", "en_curso");
+                updates.put("checkInRealizado", true);
+                updates.put("horaCheckIn", Timestamp.now());
+                updates.put("fechaActualizacion", Timestamp.now());
+                
+                db.collection(COLLECTION_ASIGNADOS)
+                    .document(tourId)
+                    .update(updates)
+                    .addOnSuccessListener(aVoid -> {
+                        Log.d(TAG, "Tour iniciado exitosamente");
+                        callback.onSuccess("Tour iniciado exitosamente");
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.e(TAG, "Error iniciando tour", e);
+                        callback.onError("Error iniciando tour: " + e.getMessage());
+                    });
+            }
+            
+            @Override
+            public void onError(String error) {
+                callback.onError(error);
+            }
+        });
+    }
+    
+    /**
+     * 🔄 HABILITAR CHECK-IN (pendiente → check_in) - CON VALIDACIÓN DE ÚNICO TOUR ACTIVO
+     */
+    public void habilitarCheckIn(String tourId, OperationCallback callback) {
+        // Primero verificar si ya hay un tour activo
+        verificarTourActivoAntesCambio(tourId, "check_in", new OperationCallback() {
+            @Override
+            public void onSuccess(String message) {
+                // No hay conflictos, proceder con el cambio
+                Map<String, Object> updates = new HashMap<>();
+                updates.put("estado", "check_in");
+                updates.put("fechaActualizacion", Timestamp.now());
+                
+                db.collection(COLLECTION_ASIGNADOS)
+                    .document(tourId)
+                    .update(updates)
+                    .addOnSuccessListener(aVoid -> callback.onSuccess("Check-in habilitado"))
+                    .addOnFailureListener(e -> callback.onError("Error habilitando check-in: " + e.getMessage()));
+            }
+            
+            @Override
+            public void onError(String error) {
+                callback.onError(error);
+            }
+        });
+    }
+    
+    /**
+     * 🔚 HABILITAR CHECK-OUT (en_curso → check_out)
+     */
+    public void habilitarCheckOut(String tourId, OperationCallback callback) {
         Map<String, Object> updates = new HashMap<>();
-        updates.put("estado", "en_curso");
-        updates.put("momentoTour", "en_curso"); // ✅ Actualizar momento del tour
-        updates.put("checkInRealizado", true);
-        updates.put("horaCheckIn", Timestamp.now());
+        updates.put("estado", "check_out");
+        updates.put("fechaActualizacion", Timestamp.now());
         
         db.collection(COLLECTION_ASIGNADOS)
             .document(tourId)
             .update(updates)
-            .addOnSuccessListener(aVoid -> {
-                Log.d(TAG, "Tour iniciado exitosamente");
-                callback.onSuccess("Tour iniciado correctamente");
-            })
-            .addOnFailureListener(e -> {
-                Log.e(TAG, "Error iniciando tour", e);
-                callback.onError("Error iniciando tour: " + e.getMessage());
-            });
+            .addOnSuccessListener(aVoid -> callback.onSuccess("Check-out habilitado"))
+            .addOnFailureListener(e -> callback.onError("Error habilitando check-out: " + e.getMessage()));
+    }
+    
+    /**
+     * 🏁 TERMINAR TOUR (check_out → completado)
+     */
+    public void terminarTour(String tourId, OperationCallback callback) {
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("estado", "completado");
+        updates.put("checkOutRealizado", true);
+        updates.put("horaCheckOut", Timestamp.now());
+        updates.put("fechaActualizacion", Timestamp.now());
+        
+        db.collection(COLLECTION_ASIGNADOS)
+            .document(tourId)
+            .update(updates)
+            .addOnSuccessListener(aVoid -> callback.onSuccess("Tour completado exitosamente"))
+            .addOnFailureListener(e -> callback.onError("Error completando tour: " + e.getMessage()));
     }
     
     /**
@@ -702,7 +785,134 @@ public class TourFirebaseService {
     }
     
     /**
-     * 🔧 HELPER: Convertir fecha String a Timestamp
+     * ▶️ CAMBIAR DE PENDIENTE A CHECK_IN - CON VALIDACIÓN DE ÚNICO TOUR ACTIVO
+     * Para tours pendientes que están listos para comenzar
+     */
+    public void cambiarPendienteACheckIn(String tourId, OperationCallback callback) {
+        // Primero verificar si ya hay un tour activo
+        verificarTourActivoAntesCambio(tourId, "check_in", new OperationCallback() {
+            @Override
+            public void onSuccess(String message) {
+                // No hay conflictos, proceder con el cambio
+                Map<String, Object> updates = new HashMap<>();
+                updates.put("estado", "check_in");
+                updates.put("fechaActualizacion", Timestamp.now());
+                
+                db.collection(COLLECTION_ASIGNADOS)
+                    .document(tourId)
+                    .update(updates)
+                    .addOnSuccessListener(aVoid -> {
+                        Log.d(TAG, "Tour cambiado a estado check_in: " + tourId);
+                        callback.onSuccess("Tour listo para check-in");
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.e(TAG, "Error cambiando a check_in", e);
+                        callback.onError("Error cambiando estado: " + e.getMessage());
+                    });
+            }
+            
+            @Override
+            public void onError(String error) {
+                callback.onError(error);
+            }
+        });
+    }
+    
+    /**
+     * 🛑 CAMBIAR DE EN_CURSO A CHECK_OUT
+     * Para tours en curso que están listos para terminar
+     */
+    public void cambiarEnCursoACheckOut(String tourId, OperationCallback callback) {
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("estado", "check_out");
+        updates.put("fechaActualizacion", Timestamp.now());
+        
+        db.collection(COLLECTION_ASIGNADOS)
+            .document(tourId)
+            .update(updates)
+            .addOnSuccessListener(aVoid -> {
+                Log.d(TAG, "Tour cambiado a estado check_out: " + tourId);
+                callback.onSuccess("Tour listo para check-out");
+            })
+            .addOnFailureListener(e -> {
+                Log.e(TAG, "Error cambiando a check_out", e);
+                callback.onError("Error cambiando estado: " + e.getMessage());
+            });
+    }
+
+    /**
+     * �️ VERIFICAR TOUR ACTIVO ANTES DE CAMBIO DE ESTADO
+     * Asegura que solo un tour puede estar en estado activo (check_in, en_curso, check_out) a la vez
+     */
+    private void verificarTourActivoAntesCambio(String tourId, String nuevoEstado, OperationCallback callback) {
+        FirebaseUser currentUser = getCurrentUser();
+        if (currentUser == null) {
+            callback.onError("Usuario no autenticado");
+            return;
+        }
+        
+        String guiaId = currentUser.getUid();
+        
+        // Obtener todos los tours del guía y verificar si hay alguno activo
+        db.collection(COLLECTION_ASIGNADOS)
+            .whereEqualTo("guiaAsignado.identificadorUsuario", guiaId)
+            .whereEqualTo("habilitado", true)
+            .get()
+            .addOnSuccessListener(querySnapshot -> {
+                String tourActivoExistente = null;
+                String tituloTourActivo = null;
+                
+                for (DocumentSnapshot doc : querySnapshot.getDocuments()) {
+                    String docId = doc.getId();
+                    String estado = doc.getString("estado");
+                    
+                    // Si es el mismo tour que queremos cambiar, saltarlo
+                    if (docId.equals(tourId)) {
+                        continue;
+                    }
+                    
+                    // Verificar si hay otro tour en estado activo
+                    if (estado != null && esEstadoActivo(estado)) {
+                        tourActivoExistente = docId;
+                        tituloTourActivo = doc.getString("titulo");
+                        break;
+                    }
+                }
+                
+                // Si no hay tour activo existente, permitir el cambio
+                if (tourActivoExistente == null) {
+                    callback.onSuccess("Ningún tour activo, cambio permitido");
+                } else {
+                    // Si ya hay un tour activo, no permitir el cambio
+                    String mensaje = String.format(
+                        "Ya tienes un tour activo: %s. Solo puedes tener un tour activo a la vez.", 
+                        tituloTourActivo != null ? tituloTourActivo : "Tour sin título"
+                    );
+                    callback.onError(mensaje);
+                }
+            })
+            .addOnFailureListener(e -> {
+                Log.e(TAG, "Error verificando tours activos", e);
+                callback.onError("Error verificando tours activos: " + e.getMessage());
+            });
+    }
+    
+    /**
+     * 🔍 VERIFICAR SI UN ESTADO ES ACTIVO
+     * Estados activos: check_in, en_curso, check_out
+     * Estados no activos: pendiente, completado, cancelado
+     */
+    private boolean esEstadoActivo(String estado) {
+        if (estado == null) return false;
+        
+        String estadoLower = estado.toLowerCase();
+        return estadoLower.equals("check_in") || 
+               estadoLower.equals("en_curso") || 
+               estadoLower.equals("check_out");
+    }
+
+    /**
+     * �🔧 HELPER: Convertir fecha String a Timestamp
      * Convierte fechas en formato "dd/MM/yyyy" a Timestamp para compatibilidad
      */
     private Timestamp convertirFechaStringATimestamp(String fechaString) {

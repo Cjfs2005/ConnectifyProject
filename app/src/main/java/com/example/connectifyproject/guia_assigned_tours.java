@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.connectifyproject.data.TourAsignadoDataSeeder;
 import com.example.connectifyproject.utils.TestMomentoTourData;
 import com.example.connectifyproject.utils.FirebaseCleanupUtil;
+import com.example.connectifyproject.utils.TourHoySeeder;
 import com.example.connectifyproject.databinding.GuiaAssignedToursBinding;
 import com.example.connectifyproject.fragment.GuiaDateFilterDialogFragment;
 import com.example.connectifyproject.model.GuiaAssignedItem;
@@ -64,23 +65,25 @@ public class guia_assigned_tours extends AppCompatActivity implements GuiaDateFi
         tourFirebaseService = new TourFirebaseService();
 
         // ========================================================================
-        // 🧹 LIMPIEZA: TOURS PROBLEMÁTICOS
+        // 🔧 CONFIGURACIÓN INICIAL - EJECUTAR SEGÚN NECESIDAD
         // ========================================================================
-        // EJECUTAR UNA SOLA VEZ para limpiar tours con problemas String/Timestamp
-        FirebaseCleanupUtil.eliminarToursProblematicos();
         
-        // ========================================================================
-        // CREAR TOURS ASIGNADOS DE PRUEBA EN FIREBASE
-        // ========================================================================
-        // DESCOMENTA las siguientes 2 líneas SOLO para crear la colección inicial
-        // Vuelve a comentar después de la primera ejecución para evitar duplicados
+        // 🧹 PASO 1: LIMPIAR DATOS PROBLEMÁTICOS (Solo si hay problemas)
+        // Ejecutar UNA SOLA VEZ para eliminar tours con errores de formato String/Timestamp
+        // FirebaseCleanupUtil.eliminarToursProblematicos();
+        
+        // 📝 PASO 2: CREAR TOURS ASIGNADOS DE PRUEBA
+        // Descomenta las siguientes líneas SOLO para crear la colección inicial
+        // ⚠️ IMPORTANTE: Vuelve a comentar después de la primera ejecución
         //TourAsignadoDataSeeder seeder = new TourAsignadoDataSeeder();
         //seeder.crearToursAsignadosDePrueba();
         
-        // 🧪 TESTING momentoTour - DESCOMENTA para crear tours de prueba con diferentes estados
-        //TestMomentoTourData.crearToursParaTestingMomentoTour();
+        // 🧪 PASO 3: TESTING ADICIONAL (Opcional)
+        // Solo usar si necesitas tours adicionales para testing específico
+        //TourHoySeeder.crearTourPendienteHoy(); // Tour individual para hoy
+        // TestMomentoTourData.crearToursParaTestingMomentoTour(); // OBSOLETO - No usar
         
-        Log.d(TAG, "Datos de prueba de tours asignados creados");
+        Log.d(TAG, "Configuración de seeders completada");
 
         // Configurar RecyclerView
         binding.recyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -151,11 +154,20 @@ public class guia_assigned_tours extends AppCompatActivity implements GuiaDateFi
             public void onSuccess(List<TourAsignado> tours) {
                 Log.d(TAG, "Tours asignados cargados: " + tours.size());
                 
-                // Convertir TourAsignado a GuiaAssignedTour para compatibilidad con UI existente
+                // ✅ FILTRAR TOURS COMPLETADOS - No mostrarlos en la lista
                 allAssignedTours.clear();
                 for (TourAsignado tourAsignado : tours) {
-                    GuiaAssignedTour guiaAssignedTour = convertToGuiaAssignedTour(tourAsignado);
-                    allAssignedTours.add(guiaAssignedTour);
+                    // No mostrar tours completados/finalizados en la lista principal
+                    if (tourAsignado.getEstado() == null || 
+                        (!tourAsignado.getEstado().equalsIgnoreCase("completado") && 
+                         !tourAsignado.getEstado().equalsIgnoreCase("finalizado"))) {
+                        
+                        GuiaAssignedTour guiaAssignedTour = convertToGuiaAssignedTour(tourAsignado);
+                        allAssignedTours.add(guiaAssignedTour);
+                        Log.d(TAG, "Tour agregado: " + tourAsignado.getTitulo() + " - Estado: " + tourAsignado.getEstado());
+                    } else {
+                        Log.d(TAG, "Tour completado omitido: " + tourAsignado.getTitulo() + " - Estado: " + tourAsignado.getEstado());
+                    }
                 }
                 
                 // Aplicar filtros y actualizar UI
@@ -250,7 +262,7 @@ public class guia_assigned_tours extends AppCompatActivity implements GuiaDateFi
             servicios,
             itinerarioFormateado,
             pagoGuia, // ✅ Añadir pagoGuia al constructor
-            tourAsignado.getMomentoTour() != null ? tourAsignado.getMomentoTour() : "pendiente" // ✅ Incluir momentoTour
+            tourAsignado.getId() // ✅ Pasar ID para operaciones Firebase
         );
     }
 
@@ -286,19 +298,27 @@ public class guia_assigned_tours extends AppCompatActivity implements GuiaDateFi
         if (estadoFirebase == null) return "Pendiente";
         
         switch (estadoFirebase.toLowerCase()) {
-            case "programado":
-                return "Programado";
+            case "pendiente":
+                return "Pendiente";
+            case "check_in":
+                return "Check-in Disponible";
             case "en_curso":
                 return "En Curso";
+            case "check_out":
+                return "Check-out Disponible";
             case "completado":
-                return "Finalizado";
+                return "Completado";
             case "cancelado":
                 return "Cancelado";
             // Compatibilidad con estados antiguos
+            case "programado":
+                return "Programado";
             case "confirmado":
                 return "Programado";
             case "en_progreso":
                 return "En Curso";
+            case "finalizado":
+                return "Completado";
             default:
                 return "Pendiente";
         }
@@ -359,7 +379,7 @@ public class guia_assigned_tours extends AppCompatActivity implements GuiaDateFi
         
         // ✅ MANTENER INFORMACIÓN DE TOUR PRIORITARIO DESPUÉS DE FILTROS
         if (tourPrioritario != null && adapter != null) {
-            adapter.setTourPrioritario(tourPrioritario.getTitulo());
+            adapter.setTourPrioritario(tourPrioritario.getId()); // Usar ID real
         }
     }
 
@@ -474,9 +494,9 @@ public class guia_assigned_tours extends AppCompatActivity implements GuiaDateFi
                     Log.d(TAG, "✅ Tour prioritario encontrado: " + tour.getTitulo() + " - Estado: " + tour.getEstado());
                     mostrarBannerTourPrioritario(tour);
                     
-                    // ✅ INFORMAR AL ADAPTADOR CUÁL ES EL TOUR PRIORITARIO
+                    // ✅ INFORMAR AL ADAPTADOR CUÁL ES EL TOUR PRIORITARIO (usando ID real)
                     if (adapter != null) {
-                        adapter.setTourPrioritario(tour.getTitulo()); // Usar título como ID único
+                        adapter.setTourPrioritario(tour.getId()); // Usar ID real de Firebase
                     }
                 } else {
                     Log.d(TAG, "❌ No hay tour prioritario disponible");
@@ -555,53 +575,58 @@ public class guia_assigned_tours extends AppCompatActivity implements GuiaDateFi
     }
     
     /**
-     * 🔘 CONFIGURAR BOTONES SEGÚN momentoTour DEL TOUR
-     * Estados: pendiente, check_in, en_curso, check_out, terminado
+     * 🔘 CONFIGURAR BOTONES SEGÚN ESTADO UNIFICADO DEL TOUR
+     * Estados: pendiente, check_in, en_curso, check_out, completado
      */
     private void configurarBotonesPrioritario(TourAsignado tour) {
-        String momentoTour = tour.getMomentoTour();
+        String estado = tour.getEstado();
         
         // BOTÓN DETALLES - Siempre disponible
         binding.btnDetallesRapido.setVisibility(View.VISIBLE);
         binding.btnDetallesRapido.setOnClickListener(v -> abrirDetallesTour(tour));
         
-        // Configurar botones según momento del tour
-        switch (momentoTour != null ? momentoTour.toLowerCase() : "pendiente") {
+        // Configurar botones según estado del tour
+        switch (estado != null ? estado.toLowerCase() : "pendiente") {
             case "pendiente":
-                // 🟡 PENDIENTE: Solo Check-in + Detalles
+                // � PENDIENTE: Solo Detalles + Botón "Habilitar Check-in"
                 binding.btnMapaRapido.setVisibility(View.GONE);
                 binding.btnCheckInRapido.setVisibility(View.VISIBLE);
                 binding.btnCheckOutRapido.setVisibility(View.GONE);
-                binding.btnCheckInRapido.setOnClickListener(v -> abrirCheckInTour(tour));
+                binding.btnCheckInRapido.setText("Habilitar Check-in");
+                binding.btnCheckInRapido.setOnClickListener(v -> habilitarCheckInParaTour(tour.getId(), tour.getTitulo()));
                 break;
                 
             case "check_in":
-                // 🟢 CHECK-IN DISPONIBLE: Mapa + Check-in + Detalles
+                // ✅ CHECK-IN DISPONIBLE: Mapa + Check-in + Detalles
                 binding.btnMapaRapido.setVisibility(View.VISIBLE);
                 binding.btnCheckInRapido.setVisibility(View.VISIBLE);
                 binding.btnCheckOutRapido.setVisibility(View.GONE);
+                binding.btnCheckInRapido.setText("Check-in");
                 binding.btnMapaRapido.setOnClickListener(v -> abrirMapaTour(tour));
                 binding.btnCheckInRapido.setOnClickListener(v -> abrirCheckInTour(tour));
                 break;
                 
             case "en_curso":
-                // � EN CURSO: Mapa + Check-out + Detalles
+                // ▶️ EN CURSO: Mapa + Check-out + Detalles
                 binding.btnMapaRapido.setVisibility(View.VISIBLE);
                 binding.btnCheckInRapido.setVisibility(View.GONE);
                 binding.btnCheckOutRapido.setVisibility(View.VISIBLE);
+                binding.btnCheckOutRapido.setText("Terminar Tour");
                 binding.btnMapaRapido.setOnClickListener(v -> abrirMapaTour(tour));
-                binding.btnCheckOutRapido.setOnClickListener(v -> abrirCheckOutTour(tour));
+                binding.btnCheckOutRapido.setOnClickListener(v -> habilitarCheckOutParaTour(tour.getId(), tour.getTitulo()));
                 break;
                 
             case "check_out":
-                // � CHECK-OUT DISPONIBLE: Mapa + Check-out + Detalles
+                // 🏁 CHECK-OUT DISPONIBLE: Check-out + Detalles
                 binding.btnMapaRapido.setVisibility(View.VISIBLE);
                 binding.btnCheckInRapido.setVisibility(View.GONE);
                 binding.btnCheckOutRapido.setVisibility(View.VISIBLE);
+                binding.btnCheckOutRapido.setText("Check-out");
                 binding.btnMapaRapido.setOnClickListener(v -> abrirMapaTour(tour));
                 binding.btnCheckOutRapido.setOnClickListener(v -> abrirCheckOutTour(tour));
                 break;
                 
+            case "completado":
             case "terminado":
             default:
                 // 🔴 TERMINADO: Solo detalles
@@ -626,6 +651,7 @@ public class guia_assigned_tours extends AppCompatActivity implements GuiaDateFi
      */
     private void abrirMapaTour(TourAsignado tour) {
         Intent intent = new Intent(this, guia_tour_map.class);
+        intent.putExtra("tour_id", tour.getId()); // ✅ ID para operaciones Firebase
         intent.putExtra("tour_name", tour.getTitulo());
         intent.putExtra("tour_status", tour.getEstado());
         intent.putExtra("tour_clients", tour.getNumeroParticipantesTotal());
@@ -717,5 +743,115 @@ public class guia_assigned_tours extends AppCompatActivity implements GuiaDateFi
             case "cancelado": return 0xFFF44336; // Rojo para CANCELADO
             default: return 0xFF9E9E9E; // Gris para otros estados
         }
+    }
+    
+    /**
+     * 🔄 HABILITAR CHECK-IN PARA TOUR
+     */
+    public void habilitarCheckInParaTour(String tourId, String tourName) {
+        tourFirebaseService.habilitarCheckIn(tourId, new TourFirebaseService.OperationCallback() {
+            @Override
+            public void onSuccess(String message) {
+                runOnUiThread(() -> {
+                    Toast.makeText(guia_assigned_tours.this, 
+                        "✅ Check-in habilitado para: " + tourName, Toast.LENGTH_LONG).show();
+                    
+                    // Recargar datos
+                    loadToursAsignados();
+                    loadTourPrioritario();
+                });
+            }
+            
+            @Override
+            public void onError(String error) {
+                runOnUiThread(() -> {
+                    Toast.makeText(guia_assigned_tours.this, 
+                        "❌ Error: " + error, Toast.LENGTH_LONG).show();
+                });
+            }
+        });
+    }
+    
+    /**
+     * 🔚 HABILITAR CHECK-OUT PARA TOUR
+     */
+    public void habilitarCheckOutParaTour(String tourId, String tourName) {
+        tourFirebaseService.habilitarCheckOut(tourId, new TourFirebaseService.OperationCallback() {
+            @Override
+            public void onSuccess(String message) {
+                runOnUiThread(() -> {
+                    Toast.makeText(guia_assigned_tours.this, 
+                        "🏁 Check-out habilitado para: " + tourName, Toast.LENGTH_LONG).show();
+                    
+                    // Recargar datos
+                    loadToursAsignados();
+                    loadTourPrioritario();
+                });
+            }
+            
+            @Override
+            public void onError(String error) {
+                runOnUiThread(() -> {
+                    Toast.makeText(guia_assigned_tours.this, 
+                        "❌ Error: " + error, Toast.LENGTH_LONG).show();
+                });
+            }
+        });
+    }
+    
+    /**
+     * ▶️ CAMBIAR ESTADO: PENDIENTE → CHECK_IN
+     * Cambio directo de estado para tour prioritario pendiente
+     */
+    public void cambiarEstadoPendienteACheckIn(String tourId, String tourName) {
+        tourFirebaseService.cambiarPendienteACheckIn(tourId, new TourFirebaseService.OperationCallback() {
+            @Override
+            public void onSuccess(String message) {
+                runOnUiThread(() -> {
+                    Toast.makeText(guia_assigned_tours.this, 
+                        "▶️ Tour " + tourName + " listo para check-in", Toast.LENGTH_LONG).show();
+                    
+                    // Recargar datos y tour prioritario
+                    loadToursAsignados();
+                    loadTourPrioritario();
+                });
+            }
+            
+            @Override
+            public void onError(String error) {
+                runOnUiThread(() -> {
+                    Toast.makeText(guia_assigned_tours.this, 
+                        "❌ Error cambiando estado: " + error, Toast.LENGTH_LONG).show();
+                });
+            }
+        });
+    }
+    
+    /**
+     * 🛑 CAMBIAR ESTADO: EN_CURSO → CHECK_OUT
+     * Cambio directo de estado para tour en curso
+     */
+    public void cambiarEstadoEnCursoACheckOut(String tourId, String tourName) {
+        tourFirebaseService.cambiarEnCursoACheckOut(tourId, new TourFirebaseService.OperationCallback() {
+            @Override
+            public void onSuccess(String message) {
+                runOnUiThread(() -> {
+                    Toast.makeText(guia_assigned_tours.this, 
+                        "🛑 Tour " + tourName + " listo para check-out", Toast.LENGTH_LONG).show();
+                    
+                    // Recargar datos y tour prioritario
+                    loadToursAsignados();
+                    loadTourPrioritario();
+                });
+            }
+            
+            @Override
+            public void onError(String error) {
+                runOnUiThread(() -> {
+                    Toast.makeText(guia_assigned_tours.this, 
+                        "❌ Error cambiando estado: " + error, Toast.LENGTH_LONG).show();
+                });
+            }
+        });
     }
 }

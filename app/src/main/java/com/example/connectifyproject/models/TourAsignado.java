@@ -42,8 +42,7 @@ public class TourAsignado implements Serializable {
     private List<Map<String, Object>> participantes;
     
     // Control del tour
-    private String estado; // confirmado, en_curso, completado, cancelado
-    private String momentoTour; // pendiente, check_in, en_curso, check_out, terminado
+    private String estado; // pendiente, check_in, en_curso, check_out, completado, cancelado
     private Integer numeroParticipantesTotal;
     private boolean checkInRealizado;
     private boolean checkOutRealizado;
@@ -81,8 +80,7 @@ public class TourAsignado implements Serializable {
         this.empresaId = empresaId;
         this.nombreEmpresa = nombreEmpresa;
         this.pagoGuia = pagoGuia;
-        this.estado = "confirmado";
-        this.momentoTour = "pendiente"; // ✅ NUEVO CAMPO POR DEFECTO
+        this.estado = "pendiente"; // ✅ Estado inicial unificado
         this.numeroParticipantesTotal = 0;
         this.checkInRealizado = false;
         this.checkOutRealizado = false;
@@ -141,8 +139,10 @@ public class TourAsignado implements Serializable {
     public String getEstadoDisplay() {
         if (estado == null) return "Sin estado";
         switch (estado.toLowerCase()) {
-            case "confirmado": return "Confirmado";
+            case "pendiente": return "Pendiente";
+            case "check_in": return "Check-in Disponible";
             case "en_curso": return "En Curso";
+            case "check_out": return "Check-out Disponible";
             case "completado": return "Completado";
             case "cancelado": return "Cancelado";
             default: return estado;
@@ -209,9 +209,6 @@ public class TourAsignado implements Serializable {
     
     public String getEstado() { return estado; }
     public void setEstado(String estado) { this.estado = estado; }
-    
-    public String getMomentoTour() { return momentoTour; }
-    public void setMomentoTour(String momentoTour) { this.momentoTour = momentoTour; }
     
     public Integer getNumeroParticipantesTotal() { return numeroParticipantesTotal; }
     public void setNumeroParticipantesTotal(Integer numeroParticipantesTotal) { this.numeroParticipantesTotal = numeroParticipantesTotal; }

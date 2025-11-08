@@ -51,6 +51,11 @@ public class guia_tour_map extends AppCompatActivity implements OnMapReadyCallba
     private boolean isTourOngoing = false;
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
     private static final int BACKGROUND_LOCATION_PERMISSION_REQUEST_CODE = 2;
+    
+    // 🚀 FIREBASE SERVICE PARA MANEJAR ESTADOS
+    private com.example.connectifyproject.services.TourFirebaseService tourFirebaseService;
+    private String tourId;
+    private String tourName;
 
     private BroadcastReceiver locationReceiver = new BroadcastReceiver() {
         @Override
@@ -86,8 +91,12 @@ public class guia_tour_map extends AppCompatActivity implements OnMapReadyCallba
             getSupportActionBar().setTitle("Tour - Mapa");
         }
 
-        // Get data from intent
-        String tourName = getIntent().getStringExtra("tour_name");
+        // 🔧 INICIALIZAR FIREBASE SERVICE
+        tourFirebaseService = new com.example.connectifyproject.services.TourFirebaseService();
+        
+        // 📋 OBTENER DATOS DEL TOUR DESDE INTENT
+        tourId = getIntent().getStringExtra("tour_id");
+        tourName = getIntent().getStringExtra("tour_name");
         String tourStatus = getIntent().getStringExtra("tour_status");
         ArrayList<String> itinerario = getIntent().getStringArrayListExtra("tour_itinerario");
         int clients = getIntent().getIntExtra("tour_clients", 0);
@@ -344,10 +353,52 @@ public class guia_tour_map extends AppCompatActivity implements OnMapReadyCallba
     }
 
     private void endTour() {
-        Intent serviceIntent = new Intent(this, GuiaLocationService.class);
-        stopService(serviceIntent);
-        Toast.makeText(this, "Tour finalizado exitosamente.", Toast.LENGTH_SHORT).show();
-        finish();
+        if (tourId == null || tourId.isEmpty()) {
+            Toast.makeText(this, "❌ Error: ID de tour no disponible", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
+        // Crear instancia del servicio Firebase si no existe
+        if (tourFirebaseService == null) {
+            tourFirebaseService = new com.example.connectifyproject.services.TourFirebaseService();
+        }
+        
+        // Deshabilitar botón para evitar clicks múltiples
+        binding.endTourButton.setEnabled(false);
+        binding.endTourButton.setText("Terminando...");
+        
+        // Habilitar check-out (en_curso → check_out)
+        tourFirebaseService.habilitarCheckOut(tourId, new com.example.connectifyproject.services.TourFirebaseService.OperationCallback() {
+            @Override
+            public void onSuccess(String message) {
+                runOnUiThread(() -> {
+                    Toast.makeText(guia_tour_map.this, 
+                        "🏁 Tour terminado. Check-out habilitado.", Toast.LENGTH_LONG).show();
+                    
+                    // Detener servicio de ubicación
+                    Intent serviceIntent = new Intent(guia_tour_map.this, com.example.connectifyproject.service.GuiaLocationService.class);
+                    stopService(serviceIntent);
+                    
+                    // Regresar a tours asignados
+                    Intent intent = new Intent(guia_tour_map.this, guia_assigned_tours.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(intent);
+                    finish();
+                });
+            }
+            
+            @Override
+            public void onError(String error) {
+                runOnUiThread(() -> {
+                    Toast.makeText(guia_tour_map.this, 
+                        "❌ Error: " + error, Toast.LENGTH_LONG).show();
+                    
+                    // Restaurar botón
+                    binding.endTourButton.setEnabled(true);
+                    binding.endTourButton.setText("Finalizar Tour");
+                });
+            }
+        });
     }
 
     private void scanQrEnd() {
