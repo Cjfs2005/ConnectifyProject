@@ -865,6 +865,12 @@ public class admin_create_tour extends AppCompatActivity implements OnMapReadyCa
                 dismissProgressDialog();
                 currentBorradorId = borradorId;
                 Toast.makeText(this, "Borrador guardado exitosamente", Toast.LENGTH_SHORT).show();
+                
+                // Regresar a la vista de gestión de tours
+                Intent intent = new Intent(this, admin_tours.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                startActivity(intent);
+                finish();
             })
             .addOnFailureListener(e -> {
                 dismissProgressDialog();

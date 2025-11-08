@@ -59,6 +59,7 @@
                     android:orientation="vertical">
 
                     <TextView
+                        android:id="@+id/tvCompanyName"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Mundo Tours"
@@ -67,6 +68,7 @@
                         android:textStyle="bold" />
 
                     <TextView
+                        android:id="@+id/tvAdminName"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Administrador: Tony Flores"

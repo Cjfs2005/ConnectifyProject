@@ -195,34 +195,123 @@ public class admin_tours extends AppCompatActivity {
         }
     }
     
+    /**
+     * MÉTODO DE MIGRACIÓN - SOLO NECESARIO UNA VEZ
+     * 
+     * Este método migra borradores antiguos que fueron creados antes de agregar
+     * los campos 'estado' y 'habilitado' al modelo TourBorrador.
+     * 
+     * PUEDE SER ELIMINADO después de que todos los usuarios hayan actualizado
+     * sus borradores existentes, ya que todos los nuevos borradores ya incluyen
+     * estos campos automáticamente desde el constructor de TourBorrador.
+     * 
+     * Para usarlo temporalmente, descomenta la línea en loadBorradores():
+     * migrarBorradoresAntiguos();
+     */
+    /*
+    private void migrarBorradoresAntiguos() {
+        // Buscar borradores sin los campos estado/habilitado y actualizarlos
+        db.collection("tours_borradores")
+            .whereEqualTo("empresaId", empresaId)
+            .get()
+            .addOnSuccessListener(querySnapshot -> {
+                int migrados = 0;
+                for (DocumentSnapshot doc : querySnapshot.getDocuments()) {
+                    // Verificar si le faltan los campos
+                    String estado = doc.getString("estado");
+                    Boolean habilitado = doc.getBoolean("habilitado");
+                    
+                    if (estado == null || habilitado == null) {
+                        // Actualizar el documento con los campos faltantes
+                        db.collection("tours_borradores")
+                            .document(doc.getId())
+                            .update(
+                                "estado", "borrador",
+                                "habilitado", true
+                            )
+                            .addOnSuccessListener(aVoid -> {
+                                android.util.Log.d("AdminTours", "Borrador migrado: " + doc.getId());
+                            });
+                        migrados++;
+                    }
+                }
+                if (migrados > 0) {
+                    android.util.Log.d("AdminTours", "Se migraron " + migrados + " borradores antiguos");
+                }
+            });
+    }
+    */
+    
     private void loadBorradores() {
-        android.util.Log.d("AdminTours", "Cargando borradores para empresaId: " + empresaId);
+        android.util.Log.d("AdminTours", "=== CARGANDO BORRADORES ===");
+        android.util.Log.d("AdminTours", "EmpresaId: " + empresaId);
         
-        adminTourService.listarBorradores(empresaId)
-            .addOnSuccessListener(borradores -> {
-                android.util.Log.d("AdminTours", "Borradores encontrados: " + borradores.size());
+        // NOTA: Si tienes borradores antiguos sin los campos estado/habilitado,
+        // descomenta temporalmente la siguiente línea para migrarlos:
+        // migrarBorradoresAntiguos();
+        
+        // Consultar directamente la colección tours_borradores (igual que tours_ofertas para publicados)
+        db.collection("tours_borradores")
+            .whereEqualTo("empresaId", empresaId)
+            .whereEqualTo("estado", "borrador")
+            .whereEqualTo("habilitado", true)
+            .get()
+            .addOnSuccessListener(querySnapshot -> {
+                android.util.Log.d("AdminTours", "Tours encontrados en tours_borradores: " + querySnapshot.size());
                 
                 toursList.clear();
-                for (TourBorrador borrador : borradores) {
-                    // fechaRealizacion ya es String en formato dd/MM/yyyy
-                    String fecha = borrador.getFechaRealizacion() != null 
-                        ? borrador.getFechaRealizacion()
-                        : "Sin fecha";
-                    
-                    String imageUrl = borrador.getImagenPrincipal();
-                    
-                    toursList.add(new TourItem(
-                        borrador.getId(),
-                        borrador.getTitulo(),
-                        fecha,
-                        "Borrador",
-                        imageUrl,
-                        false,
-                        "borrador"
-                    ));
+                int toursAgregados = 0;
+                
+                for (DocumentSnapshot doc : querySnapshot.getDocuments()) {
+                    try {
+                        android.util.Log.d("AdminTours", "Procesando borrador: " + doc.getId());
+                        
+                        String titulo = doc.getString("titulo");
+                        android.util.Log.d("AdminTours", "  - titulo: " + titulo);
+                        
+                        // Manejar fecha como String o Timestamp (igual que en loadPublicados)
+                        String fecha = "Sin fecha";
+                        try {
+                            // Intentar primero como Timestamp
+                            Timestamp fechaRealizacion = doc.getTimestamp("fechaRealizacion");
+                            if (fechaRealizacion != null) {
+                                fecha = dateFormat.format(fechaRealizacion.toDate());
+                            }
+                        } catch (Exception e) {
+                            // Si falla, intentar como String
+                            String fechaString = doc.getString("fechaRealizacion");
+                            if (fechaString != null && !fechaString.isEmpty()) {
+                                fecha = fechaString;
+                            }
+                            android.util.Log.d("AdminTours", "  - fechaRealizacion es String: " + fechaString);
+                        }
+                        android.util.Log.d("AdminTours", "  - fecha procesada: " + fecha);
+                        
+                        List<String> imagenesUrls = (List<String>) doc.get("imagenesUrls");
+                        String imageUrl = (imagenesUrls != null && !imagenesUrls.isEmpty()) 
+                            ? imagenesUrls.get(0) 
+                            : null;
+                        android.util.Log.d("AdminTours", "  - imageUrl: " + (imageUrl != null ? "presente" : "null"));
+                        
+                        toursList.add(new TourItem(
+                            doc.getId(),
+                            titulo != null ? titulo : "Sin título",
+                            fecha,
+                            "Borrador",
+                            imageUrl,
+                            false,
+                            "borrador"
+                        ));
+                        toursAgregados++;
+                        android.util.Log.d("AdminTours", "  ✓ Borrador agregado a la lista");
+                    } catch (Exception e) {
+                        android.util.Log.e("AdminTours", "Error procesando borrador " + doc.getId(), e);
+                    }
                 }
+                
+                android.util.Log.d("AdminTours", "Total borradores agregados: " + toursAgregados);
                 toursAdapter.notifyDataSetChanged();
-                android.util.Log.d("AdminTours", "Lista actualizada con " + toursList.size() + " borradores");
+                android.util.Log.d("AdminTours", "Adapter notificado");
             })
             .addOnFailureListener(e -> {
                 android.util.Log.e("AdminTours", "Error al cargar borradores", e);

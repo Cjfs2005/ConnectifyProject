@@ -42,6 +42,10 @@ public class TourBorrador implements Serializable {
     private Timestamp fechaCreacion;
     private Timestamp fechaActualizacion;
     private String creadoPor; // UID del admin/empresa que creó el borrador
+    
+    // Estado del borrador
+    private String estado; // Siempre "borrador"
+    private boolean habilitado; // Indica si el borrador está activo
 
     // Constructor vacío requerido por Firebase
     public TourBorrador() {
@@ -49,6 +53,8 @@ public class TourBorrador implements Serializable {
         this.serviciosAdicionales = new ArrayList<>();
         this.imagenesUrls = new ArrayList<>();
         this.idiomasRequeridos = new ArrayList<>();
+        this.estado = "borrador"; // Valor por defecto
+        this.habilitado = true; // Valor por defecto
     }
 
     // Constructor completo
@@ -160,6 +166,12 @@ public class TourBorrador implements Serializable {
 
     public String getCreadoPor() { return creadoPor; }
     public void setCreadoPor(String creadoPor) { this.creadoPor = creadoPor; }
+    
+    public String getEstado() { return estado; }
+    public void setEstado(String estado) { this.estado = estado; }
+    
+    public boolean isHabilitado() { return habilitado; }
+    public void setHabilitado(boolean habilitado) { this.habilitado = habilitado; }
 
     // Helper methods
     public String getResumenItinerario() {

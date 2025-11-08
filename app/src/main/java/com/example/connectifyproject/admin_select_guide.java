@@ -124,19 +124,29 @@ public class admin_select_guide extends AppCompatActivity {
     }
     
     private void loadTourRequirements() {
+        android.util.Log.d("AdminSelectGuide", "Cargando requisitos del tour: " + ofertaId);
+        
         db.collection("tours_ofertas")
             .document(ofertaId)
             .get()
             .addOnSuccessListener(doc -> {
                 if (doc.exists()) {
+                    android.util.Log.d("AdminSelectGuide", "Tour encontrado en tours_ofertas");
                     idiomasRequeridos = (List<String>) doc.get("idiomasRequeridos");
+                    android.util.Log.d("AdminSelectGuide", "Idiomas requeridos del tour: " + idiomasRequeridos);
+                    
                     if (idiomasRequeridos != null && !idiomasRequeridos.isEmpty()) {
                         // Preseleccionar chips de idiomas requeridos
                         preselectLanguageChips();
+                    } else {
+                        android.util.Log.w("AdminSelectGuide", "⚠ El tour no tiene idiomas requeridos configurados");
                     }
+                } else {
+                    android.util.Log.e("AdminSelectGuide", "✗ Tour no encontrado en tours_ofertas");
                 }
             })
             .addOnFailureListener(e -> {
+                android.util.Log.e("AdminSelectGuide", "Error al cargar requisitos del tour", e);
                 Toast.makeText(this, "Error al cargar requisitos del tour", Toast.LENGTH_SHORT).show();
             });
     }
@@ -175,43 +185,67 @@ public class admin_select_guide extends AppCompatActivity {
     private void loadGuidesFromFirebase() {
         showProgressDialog("Cargando guías...");
         
+        android.util.Log.d("AdminSelectGuide", "=== INICIANDO CARGA DE GUÍAS ===");
+        android.util.Log.d("AdminSelectGuide", "OfertaId: " + ofertaId);
+        android.util.Log.d("AdminSelectGuide", "Tour título: " + tourTitulo);
+        android.util.Log.d("AdminSelectGuide", "Idiomas requeridos: " + idiomasRequeridos);
+        
         db.collection("usuarios")
-            .whereEqualTo("rol", "guia")
+            .whereEqualTo("rol", "Guia")  // ✓ Corregido: "Guia" con mayúscula
             .whereEqualTo("habilitado", true)
             .get()
             .addOnSuccessListener(querySnapshot -> {
+                android.util.Log.d("AdminSelectGuide", "Guías encontrados en DB: " + querySnapshot.size());
+                
                 allGuides.clear();
+                int guiasDescartados = 0;
+                int guiasAgregados = 0;
                 
                 for (DocumentSnapshot doc : querySnapshot.getDocuments()) {
                     String id = doc.getId();
-                    String nombre = doc.getString("nombre");
-                    String apellido = doc.getString("apellido");
+                    
+                    // Usar nombresApellidos como campo único
+                    String nombresApellidos = doc.getString("nombresApellidos");
                     String email = doc.getString("email");
-                    String name = (nombre != null ? nombre : "") + " " + (apellido != null ? apellido : "");
+                    String name = nombresApellidos != null ? nombresApellidos : "Sin nombre";
                     
-                    // Calificación y tours (por ahora valores por defecto)
-                    Double calificacion = doc.getDouble("calificacion");
-                    double rating = calificacion != null ? calificacion : 0.0;
+                    android.util.Log.d("AdminSelectGuide", "--- Procesando guía: " + name + " (ID: " + id + ")");
                     
+                    // Calificación (calculada a partir de sumaResenias / numeroResenias)
+                    Long numeroResenias = doc.getLong("numeroResenias");
+                    Long sumaResenias = doc.getLong("sumaResenias");
+                    double rating = 0.0;
+                    if (numeroResenias != null && numeroResenias > 0 && sumaResenias != null) {
+                        rating = (double) sumaResenias / numeroResenias;
+                    }
+                    android.util.Log.d("AdminSelectGuide", "  - Calificación: " + rating + " (reseñas: " + numeroResenias + ")");
+                    
+                    // Tours completados (si existe el campo)
                     Long toursCompletados = doc.getLong("toursCompletados");
                     int tourCount = toursCompletados != null ? toursCompletados.intValue() : 0;
+                    android.util.Log.d("AdminSelectGuide", "  - Tours completados: " + tourCount);
                     
                     List<String> idiomas = (List<String>) doc.get("idiomas");
                     if (idiomas == null) {
                         idiomas = new ArrayList<>();
                     }
+                    android.util.Log.d("AdminSelectGuide", "  - Idiomas del guía: " + idiomas);
                     
-                    String profileImageUrl = doc.getString("urlFotoPerfil");
+                    // Usar photoUrl (el campo correcto en tu BD)
+                    String profileImageUrl = doc.getString("photoUrl");
+                    android.util.Log.d("AdminSelectGuide", "  - Foto perfil: " + (profileImageUrl != null ? "presente" : "null"));
                     
                     // Por ahora todos disponibles, se validará al seleccionar
                     boolean disponible = true;
                     
                     // Filtrar solo guías que cumplan con idiomas requeridos
                     if (idiomasRequeridos != null && !idiomasRequeridos.isEmpty()) {
+                        android.util.Log.d("AdminSelectGuide", "  - Verificando idiomas requeridos...");
                         boolean cumpleRequisito = false;
                         for (String idiomaRequerido : idiomasRequeridos) {
                             for (String idiomaGuia : idiomas) {
                                 if (idiomaGuia.equalsIgnoreCase(idiomaRequerido)) {
+                                    android.util.Log.d("AdminSelectGuide", "    ✓ Coincidencia: " + idiomaRequerido + " = " + idiomaGuia);
                                     cumpleRequisito = true;
                                     break;
                                 }
@@ -220,14 +254,23 @@ public class admin_select_guide extends AppCompatActivity {
                         }
                         
                         if (!cumpleRequisito) {
+                            android.util.Log.d("AdminSelectGuide", "  ✗ Guía descartado por idiomas");
+                            guiasDescartados++;
                             continue; // Saltar este guía si no cumple idiomas
                         }
                     }
                     
+                    android.util.Log.d("AdminSelectGuide", "  ✓ Guía agregado a la lista");
                     GuideItem guide = new GuideItem(id, name, email, rating, tourCount, 
                                                    idiomas, profileImageUrl, disponible);
                     allGuides.add(guide);
+                    guiasAgregados++;
                 }
+                
+                android.util.Log.d("AdminSelectGuide", "=== RESUMEN ===");
+                android.util.Log.d("AdminSelectGuide", "Total guías procesados: " + querySnapshot.size());
+                android.util.Log.d("AdminSelectGuide", "Guías agregados: " + guiasAgregados);
+                android.util.Log.d("AdminSelectGuide", "Guías descartados: " + guiasDescartados);
                 
                 filteredGuides.clear();
                 filteredGuides.addAll(allGuides);
@@ -236,11 +279,15 @@ public class admin_select_guide extends AppCompatActivity {
                 guideAdapter.notifyDataSetChanged();
                 
                 if (allGuides.isEmpty()) {
+                    android.util.Log.w("AdminSelectGuide", "⚠ No se encontraron guías que cumplan los requisitos");
                     Toast.makeText(this, "No se encontraron guías que cumplan los requisitos", 
                         Toast.LENGTH_LONG).show();
+                } else {
+                    android.util.Log.d("AdminSelectGuide", "✓ " + allGuides.size() + " guías cargados exitosamente");
                 }
             })
             .addOnFailureListener(e -> {
+                android.util.Log.e("AdminSelectGuide", "Error al cargar guías", e);
                 dismissProgressDialog();
                 Toast.makeText(this, "Error al cargar guías: " + e.getMessage(), 
                     Toast.LENGTH_SHORT).show();

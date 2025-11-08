@@ -8,6 +8,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.FragmentTransaction;
 
+import com.bumptech.glide.Glide;
 import com.example.connectifyproject.databinding.AdminPerfilViewBinding;
 import com.example.connectifyproject.ui.admin.AdminBottomNavFragment;
 import com.example.connectifyproject.utils.GoogleMapsHelper;
@@ -18,6 +19,8 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 public class admin_perfil extends AppCompatActivity implements OnMapReadyCallback {
     private AdminPerfilViewBinding binding;
@@ -25,6 +28,10 @@ public class admin_perfil extends AppCompatActivity implements OnMapReadyCallbac
     private GoogleMap mGoogleMap;
     private boolean isUpdatingLocation = false; // Flag para evitar loop infinito
     private LatLng currentLocation = new LatLng(-12.046374, -77.042754); // Lima, Perú por defecto
+    
+    // Firebase
+    private FirebaseAuth auth;
+    private FirebaseFirestore db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,6 +46,13 @@ public class admin_perfil extends AppCompatActivity implements OnMapReadyCallbac
         binding.btnNotifications.setOnClickListener(v -> {
             // TODO: Implementar navegación a notificaciones
         });
+
+        // Inicializar Firebase
+        auth = FirebaseAuth.getInstance();
+        db = FirebaseFirestore.getInstance();
+        
+        // Cargar datos del usuario
+        loadUserData();
 
         // Inicializar helper de ubicación
         mapsHelper = new GoogleMapsHelper(this);
@@ -237,6 +251,50 @@ public class admin_perfil extends AppCompatActivity implements OnMapReadyCallbac
                 });
     }
 
+    private void loadUserData() {
+        if (auth.getCurrentUser() != null) {
+            String userId = auth.getCurrentUser().getUid();
+            db.collection("usuarios").document(userId).get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        // Cargar datos del perfil
+                        String correoEmpresa = documentSnapshot.getString("correoEmpresa");
+                        String telefonoEmpresa = documentSnapshot.getString("telefonoEmpresa");
+                        String ubicacionEmpresa = documentSnapshot.getString("ubicacionEmpresa");
+                        String photoUrl = documentSnapshot.getString("photoUrl");
+                        
+                        // Actualizar campos
+                        if (correoEmpresa != null) {
+                            binding.etEmail.setText(correoEmpresa);
+                        }
+                        
+                        if (telefonoEmpresa != null) {
+                            binding.etPhone.setText(telefonoEmpresa);
+                        }
+                        
+                        if (ubicacionEmpresa != null) {
+                            binding.etLocation.setText(ubicacionEmpresa);
+                            // Buscar y actualizar mapa con esta ubicación
+                            searchLocation(ubicacionEmpresa);
+                        }
+                        
+                        // Cargar foto de perfil
+                        if (photoUrl != null && !photoUrl.isEmpty()) {
+                            Glide.with(this)
+                                .load(photoUrl)
+                                .placeholder(R.drawable.placeholder_tour)
+                                .error(R.drawable.placeholder_tour)
+                                .circleCrop()
+                                .into(binding.ivCompanyLogo);
+                        }
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Error al cargar datos del perfil", Toast.LENGTH_SHORT).show();
+                });
+        }
+    }
+    
     @Override
     protected void onDestroy() {
         super.onDestroy();
