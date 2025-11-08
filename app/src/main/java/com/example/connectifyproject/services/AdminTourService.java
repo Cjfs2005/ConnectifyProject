@@ -420,44 +420,78 @@ public class AdminTourService {
             @NonNull String guiaId,
             @Nullable String motivoSeleccion) {
         
-        Log.d(TAG, "Ofreciendo tour " + ofertaId + " al guía " + guiaId);
+        Log.d(TAG, "=== INICIANDO SELECCIÓN DE GUÍA ===");
+        Log.d(TAG, "Oferta ID: " + ofertaId);
+        Log.d(TAG, "Guía ID: " + guiaId);
         
-        // Datos del ofrecimiento
-        Map<String, Object> ofrecimiento = new HashMap<>();
-        ofrecimiento.put("guiaId", guiaId);
-        ofrecimiento.put("estadoOferta", "pendiente");
-        ofrecimiento.put("fechaOfrecimiento", Timestamp.now());
-        ofrecimiento.put("fechaRespuesta", null);
-        ofrecimiento.put("motivoRechazo", null);
-        ofrecimiento.put("motivoSeleccion", motivoSeleccion);
-        ofrecimiento.put("vistoAdmin", true);
-        
-        // Actualizar oferta principal
-        Map<String, Object> actualizacionOferta = new HashMap<>();
-        actualizacionOferta.put("guiaSeleccionadoActual", guiaId);
-        actualizacionOferta.put("fechaUltimoOfrecimiento", Timestamp.now());
-        actualizacionOferta.put("fechaActualizacion", Timestamp.now());
-        
-        // Crear entrada en subcollection y actualizar documento principal
-        return db.collection(COLLECTION_OFERTAS)
-            .document(ofertaId)
-            .collection(SUBCOLLECTION_GUIAS)
+        // Primero obtener información del guía
+        return db.collection("usuarios")
             .document(guiaId)
-            .set(ofrecimiento)
+            .get()
             .continueWithTask(task -> {
-                if (task.isSuccessful()) {
-                    return db.collection(COLLECTION_OFERTAS)
-                        .document(ofertaId)
-                        .update(actualizacionOferta);
-                } else {
+                if (!task.isSuccessful()) {
+                    Log.e(TAG, "Error al obtener datos del guía", task.getException());
+                    throw task.getException() != null ? task.getException()
+                        : new Exception("Error al obtener datos del guía");
+                }
+                
+                DocumentSnapshot guiaDoc = task.getResult();
+                if (!guiaDoc.exists()) {
+                    Log.e(TAG, "Guía no encontrado en BD");
+                    throw new Exception("Guía no encontrado");
+                }
+                
+                Log.d(TAG, "Datos del guía obtenidos correctamente");
+                
+                // Datos del ofrecimiento con información completa del guía
+                Map<String, Object> ofrecimiento = new HashMap<>();
+                ofrecimiento.put("identificadorUsuario", guiaId);
+                ofrecimiento.put("nombresCompletos", guiaDoc.getString("nombresApellidos"));
+                ofrecimiento.put("correoElectronico", guiaDoc.getString("email"));
+                ofrecimiento.put("numeroTelefono", guiaDoc.getString("telefono"));
+                ofrecimiento.put("codigoPais", guiaDoc.getString("codigoPais"));
+                ofrecimiento.put("numeroYape", guiaDoc.getString("numeroYape"));
+                ofrecimiento.put("idiomasManejados", guiaDoc.get("idiomas"));
+                ofrecimiento.put("estadoOferta", "pendiente");
+                ofrecimiento.put("fechaOferta", Timestamp.now());
+                ofrecimiento.put("fechaRespuesta", null);
+                ofrecimiento.put("motivoRechazo", null);
+                ofrecimiento.put("motivoSeleccion", motivoSeleccion);
+                ofrecimiento.put("vistoAdmin", true);
+                ofrecimiento.put("rechazado", false);
+                
+                Log.d(TAG, "Creando ofrecimiento en subcolección...");
+                
+                // Crear entrada en subcollection
+                return db.collection(COLLECTION_OFERTAS)
+                    .document(ofertaId)
+                    .collection(SUBCOLLECTION_GUIAS)
+                    .document(guiaId)
+                    .set(ofrecimiento);
+            })
+            .continueWithTask(task -> {
+                if (!task.isSuccessful()) {
+                    Log.e(TAG, "Error al crear ofrecimiento", task.getException());
                     throw task.getException() != null ? task.getException()
                         : new Exception("Error al crear ofrecimiento");
                 }
+                
+                Log.d(TAG, "Ofrecimiento creado, actualizando oferta principal...");
+                
+                // Actualizar oferta principal
+                Map<String, Object> actualizacionOferta = new HashMap<>();
+                actualizacionOferta.put("guiaSeleccionadoActual", guiaId);
+                actualizacionOferta.put("fechaUltimoOfrecimiento", Timestamp.now());
+                actualizacionOferta.put("fechaActualizacion", Timestamp.now());
+                
+                return db.collection(COLLECTION_OFERTAS)
+                    .document(ofertaId)
+                    .update(actualizacionOferta);
             })
             .addOnSuccessListener(aVoid -> 
-                Log.d(TAG, "Guía seleccionado exitosamente"))
+                Log.d(TAG, "✓ Guía seleccionado exitosamente"))
             .addOnFailureListener(e -> 
-                Log.e(TAG, "Error al seleccionar guía", e));
+                Log.e(TAG, "✗ Error al seleccionar guía", e));
     }
     
     /**

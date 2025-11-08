@@ -384,22 +384,33 @@ public class admin_select_guide extends AppCompatActivity {
     }
 
     private void onGuideSelected(GuideItem guide) {
+        android.util.Log.d("AdminSelectGuide", "onGuideSelected llamado para: " + guide.name);
+        
         // Confirmar selección
         new androidx.appcompat.app.AlertDialog.Builder(this)
             .setTitle("Confirmar selección")
             .setMessage("¿Desea ofrecer el tour \"" + tourTitulo + "\" a " + guide.name + "?")
             .setPositiveButton("Confirmar", (dialog, which) -> {
+                android.util.Log.d("AdminSelectGuide", "Usuario confirmó la selección");
                 selectGuide(guide);
             })
-            .setNegativeButton("Cancelar", null)
+            .setNegativeButton("Cancelar", (dialog, which) -> {
+                android.util.Log.d("AdminSelectGuide", "Usuario canceló la selección");
+            })
             .show();
     }
     
     private void selectGuide(GuideItem guide) {
+        android.util.Log.d("AdminSelectGuide", "=== SELECCIONANDO GUÍA ===");
+        android.util.Log.d("AdminSelectGuide", "Guía seleccionado: " + guide.name + " (ID: " + guide.id + ")");
+        android.util.Log.d("AdminSelectGuide", "Oferta ID: " + ofertaId);
+        android.util.Log.d("AdminSelectGuide", "Tour: " + tourTitulo);
+        
         showProgressDialog("Ofreciendo tour al guía...");
         
         adminTourService.seleccionarGuia(ofertaId, guide.id, null)
             .addOnSuccessListener(aVoid -> {
+                android.util.Log.d("AdminSelectGuide", "✓ Tour ofrecido exitosamente");
                 dismissProgressDialog();
                 
                 // Enviar notificación local al guía
@@ -416,6 +427,7 @@ public class admin_select_guide extends AppCompatActivity {
                 finish();
             })
             .addOnFailureListener(e -> {
+                android.util.Log.e("AdminSelectGuide", "✗ Error al ofrecer tour", e);
                 dismissProgressDialog();
                 Toast.makeText(this, "Error al ofrecer tour: " + e.getMessage(), 
                     Toast.LENGTH_SHORT).show();
@@ -514,6 +526,7 @@ public class admin_select_guide extends AppCompatActivity {
             private final TextView tvRating;
             private final TextView tvTourCount;
             private final TextView tvLanguages;
+            private final com.google.android.material.button.MaterialButton btnSelectGuide;
             
             public GuideViewHolder(@NonNull View itemView) {
                 super(itemView);
@@ -522,6 +535,7 @@ public class admin_select_guide extends AppCompatActivity {
                 tvRating = itemView.findViewById(R.id.tv_guide_rating);
                 tvTourCount = itemView.findViewById(R.id.tv_guide_tour_count);
                 tvLanguages = itemView.findViewById(R.id.tv_guide_languages);
+                btnSelectGuide = itemView.findViewById(R.id.btn_select_guide);
             }
             
             public void bind(GuideItem guide, OnGuideClickListener listener) {
@@ -542,8 +556,8 @@ public class admin_select_guide extends AppCompatActivity {
                     ivProfileImage.setImageResource(R.drawable.placeholder_profile);
                 }
                 
-                // Click listener
-                itemView.setOnClickListener(v -> {
+                // Click listener en el botón "Elegir"
+                btnSelectGuide.setOnClickListener(v -> {
                     if (listener != null) {
                         listener.onGuideClick(guide);
                     }
