@@ -34,7 +34,7 @@ public class AdminServiciosAdapter extends RecyclerView.Adapter<AdminServiciosAd
     public void onBindViewHolder(@NonNull ServicioViewHolder holder, int position) {
         Map<String, Object> servicio = servicios.get(position);
         String nombre = (String) servicio.get("nombre");
-        Object costoObj = servicio.get("costo");
+        Object costoObj = servicio.get("precio");
         
         holder.tvServiceName.setText(nombre != null ? nombre : "");
         

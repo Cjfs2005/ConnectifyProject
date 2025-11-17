@@ -15,13 +15,23 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.firebase.firestore.FirebaseFirestore;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 public class guia_tour_detail extends AppCompatActivity implements OnMapReadyCallback {
     private GuiaTourDetailBinding binding;
     private GoogleMap mMap;
     private TourFirebaseService tourService;
+    private String ofertaId;
+    private List<Map<String, Object>> itinerarioData;
+    private List<Map<String, Object>> serviciosData;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,6 +41,9 @@ public class guia_tour_detail extends AppCompatActivity implements OnMapReadyCal
         
         // Inicializar servicio Firebase
         tourService = new TourFirebaseService();
+        
+        // Obtener ID de la oferta
+        ofertaId = getIntent().getStringExtra("tour_firebase_id");
 
         setSupportActionBar(binding.toolbar);
         if (getSupportActionBar() != null) {
@@ -40,6 +53,11 @@ public class guia_tour_detail extends AppCompatActivity implements OnMapReadyCal
 
         binding.mapView.onCreate(savedInstanceState);
         binding.mapView.getMapAsync(this);
+        
+        // Cargar datos desde Firebase
+        if (ofertaId != null && !ofertaId.isEmpty()) {
+            cargarDatosDesdeFirebase();
+        }
 
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
@@ -51,7 +69,6 @@ public class guia_tour_detail extends AppCompatActivity implements OnMapReadyCal
             
             // Información principal
             binding.tourName.setText(extras.getString("tour_name"));
-            binding.tourLocation.setText("📍 " + extras.getString("tour_location"));
             binding.tourDuration.setText(extras.getString("tour_duration"));
             binding.tourLanguages.setText(extras.getString("tour_languages", "No especificado"));
             
@@ -63,7 +80,7 @@ public class guia_tour_detail extends AppCompatActivity implements OnMapReadyCal
             crearItinerarioVisual(extras.getString("tour_itinerario", ""));
             
             // Descripción
-            binding.tourDescription.setText(extras.getString("tour_description"));
+            //binding.tourDescription.setText(extras.getString("tour_description"));
             
             // Consideraciones y requerimientos
             binding.tourConsideraciones.setText("• " + extras.getString("tour_consideraciones", "No especificadas"));
@@ -74,9 +91,6 @@ public class guia_tour_detail extends AppCompatActivity implements OnMapReadyCal
             
             // Pago al guía destacado
             binding.pagoGuiaAmount.setText("S/. " + (int)pagoGuia);
-            
-            // Punto de encuentro
-            binding.tourMeetingPoint.setText(extras.getString("tour_meeting_point"));
         }
 
         binding.acceptButton.setOnClickListener(v -> {
@@ -248,11 +262,11 @@ public class guia_tour_detail extends AppCompatActivity implements OnMapReadyCal
         // Icono de ubicación
         android.widget.TextView iconoView = new android.widget.TextView(this);
         if (indice == 0) {
-            iconoView.setText("🚩"); // Inicio
+            iconoView.setText(""); // Inicio
         } else if (indice == total - 1) {
-            iconoView.setText("🏁"); // Fin
+            iconoView.setText(""); // Fin
         } else {
-            iconoView.setText("📍"); // Punto intermedio
+            iconoView.setText(""); // Punto intermedio
         }
         iconoView.setTextSize(18);
         iconoView.setPadding(0, 0, 16, 0);
@@ -341,6 +355,216 @@ public class guia_tour_detail extends AppCompatActivity implements OnMapReadyCal
         }
     }
 
+    /**
+     * Cargar itinerario y servicios desde Firebase
+     */
+    private void cargarDatosDesdeFirebase() {
+        FirebaseFirestore.getInstance()
+            .collection("tours_ofertas")
+            .document(ofertaId)
+            .get()
+            .addOnSuccessListener(doc -> {
+                if (doc.exists()) {
+                    // Cargar itinerario
+                    itinerarioData = (List<Map<String, Object>>) doc.get("itinerario");
+                    if (itinerarioData != null && !itinerarioData.isEmpty()) {
+                        mostrarItinerarioReal();
+                    }
+                    
+                    // Cargar servicios adicionales
+                    serviciosData = (List<Map<String, Object>>) doc.get("serviciosAdicionales");
+                    if (serviciosData != null && !serviciosData.isEmpty()) {
+                        mostrarServiciosReales();
+                    }
+                    
+                    // Actualizar mapa con puntos reales del itinerario
+                    if (mMap != null && itinerarioData != null) {
+                        mostrarRutaEnMapa();
+                    }
+                }
+            })
+            .addOnFailureListener(e -> {
+                Toast.makeText(this, "Error al cargar detalles del tour", Toast.LENGTH_SHORT).show();
+            });
+    }
+    
+    /**
+     * Mostrar itinerario real desde Firebase
+     */
+    private void mostrarItinerarioReal() {
+        binding.itinerarioContainer.removeAllViews();
+        
+        for (int i = 0; i < itinerarioData.size(); i++) {
+            Map<String, Object> punto = itinerarioData.get(i);
+            String nombre = (String) punto.get("nombre");
+            String direccion = (String) punto.get("direccion");
+            
+            crearVistaParadaReal(nombre, direccion, i, itinerarioData.size());
+        }
+    }
+    
+    /**
+     * Crear vista individual para cada parada del itinerario real
+     */
+    private void crearVistaParadaReal(String nombre, String direccion, int indice, int total) {
+        android.widget.LinearLayout paradaLayout = new android.widget.LinearLayout(this);
+        paradaLayout.setOrientation(android.widget.LinearLayout.HORIZONTAL);
+        paradaLayout.setPadding(0, 12, 0, 12);
+        
+        // Icono de ubicación
+        android.widget.TextView iconoView = new android.widget.TextView(this);
+        if (indice == 0) {
+            iconoView.setText(""); // Inicio
+        } else if (indice == total - 1) {
+            iconoView.setText(""); // Fin
+        } else {
+            iconoView.setText(""); // Punto intermedio
+        }
+        iconoView.setTextSize(18);
+        iconoView.setPadding(0, 0, 16, 0);
+        
+        // Contenedor de texto
+        android.widget.LinearLayout textoLayout = new android.widget.LinearLayout(this);
+        textoLayout.setOrientation(android.widget.LinearLayout.VERTICAL);
+        textoLayout.setLayoutParams(new android.widget.LinearLayout.LayoutParams(
+            0, android.widget.LinearLayout.LayoutParams.WRAP_CONTENT, 1.0f));
+        
+        // Nombre del lugar
+        android.widget.TextView nombreText = new android.widget.TextView(this);
+        nombreText.setText((indice + 1) + ". " + (nombre != null ? nombre : "Punto del tour"));
+        nombreText.setTextSize(14);
+        nombreText.setTextColor(getResources().getColor(android.R.color.black));
+        nombreText.setTypeface(null, android.graphics.Typeface.BOLD);
+        
+        textoLayout.addView(nombreText);
+        
+        // Agregar elementos al layout principal
+        paradaLayout.addView(iconoView);
+        paradaLayout.addView(textoLayout);
+        
+        // Agregar al contenedor principal
+        binding.itinerarioContainer.addView(paradaLayout);
+        
+        // Agregar línea conectora (excepto en el último elemento)
+        if (indice < total - 1) {
+            android.view.View linea = new android.view.View(this);
+            android.widget.LinearLayout.LayoutParams lineaParams = 
+                new android.widget.LinearLayout.LayoutParams(3, 40);
+            lineaParams.setMargins(24, 0, 0, 0);
+            linea.setLayoutParams(lineaParams);
+            linea.setBackgroundColor(getResources().getColor(android.R.color.darker_gray));
+            binding.itinerarioContainer.addView(linea);
+        }
+    }
+    
+    /**
+     * Mostrar servicios adicionales reales desde Firebase
+     */
+    private void mostrarServiciosReales() {
+        binding.serviciosContainer.removeAllViews();
+        
+        for (Map<String, Object> servicio : serviciosData) {
+            String nombre = (String) servicio.get("nombre");
+            Boolean esPagado = (Boolean) servicio.get("esPagado");
+            Object precioObj = servicio.get("precio");
+            
+            if (nombre != null) {
+                android.widget.LinearLayout servicioLayout = new android.widget.LinearLayout(this);
+                servicioLayout.setOrientation(android.widget.LinearLayout.HORIZONTAL);
+                servicioLayout.setPadding(0, 8, 0, 8);
+                
+                android.widget.TextView iconoView = new android.widget.TextView(this);
+                iconoView.setText("✓ ");
+                iconoView.setTextSize(16);
+                iconoView.setTextColor(getResources().getColor(android.R.color.holo_green_dark));
+                iconoView.setPadding(0, 0, 8, 0);
+                
+                android.widget.TextView nombreView = new android.widget.TextView(this);
+                String textoServicio = nombre;
+                
+                if (esPagado != null && esPagado && precioObj != null) {
+                    double precio = precioObj instanceof Long ? 
+                        ((Long) precioObj).doubleValue() : (Double) precioObj;
+                    textoServicio += " (S/ " + (int)precio + ")";
+                } else {
+                    textoServicio += " (Incluido)";
+                }
+                
+                nombreView.setText(textoServicio);
+                nombreView.setTextSize(14);
+                nombreView.setTextColor(getResources().getColor(android.R.color.black));
+                
+                servicioLayout.addView(iconoView);
+                servicioLayout.addView(nombreView);
+                binding.serviciosContainer.addView(servicioLayout);
+            }
+        }
+    }
+    
+    /**
+     * Mostrar ruta en el mapa con todos los puntos del itinerario
+     */
+    private void mostrarRutaEnMapa() {
+        if (mMap == null || itinerarioData == null || itinerarioData.isEmpty()) {
+            return;
+        }
+        
+        mMap.clear();
+        
+        // Crear polyline para conectar los puntos
+        PolylineOptions polylineOptions = new PolylineOptions()
+                .color(getResources().getColor(R.color.brand_purple_dark))
+                .width(8);
+        
+        // Builder para ajustar la cámara a todos los puntos
+        LatLngBounds.Builder boundsBuilder = new LatLngBounds.Builder();
+        
+        // Agregar marcadores para cada punto del itinerario
+        for (int i = 0; i < itinerarioData.size(); i++) {
+            Map<String, Object> punto = itinerarioData.get(i);
+            Double latitud = (Double) punto.get("latitud");
+            Double longitud = (Double) punto.get("longitud");
+            String nombre = (String) punto.get("nombre");
+            
+            if (latitud != null && longitud != null) {
+                LatLng position = new LatLng(latitud, longitud);
+                
+                mMap.addMarker(new MarkerOptions()
+                        .position(position)
+                        .title((i + 1) + ". " + (nombre != null ? nombre : "Punto del tour")));
+                
+                // Agregar punto a la polilínea
+                polylineOptions.add(position);
+                
+                // Agregar punto al bounds
+                boundsBuilder.include(position);
+            }
+        }
+        
+        // Dibujar la línea conectando todos los puntos si hay más de uno
+        if (itinerarioData.size() > 1) {
+            mMap.addPolyline(polylineOptions);
+        }
+        
+        // Ajustar la cámara para mostrar todos los puntos
+        try {
+            LatLngBounds bounds = boundsBuilder.build();
+            int padding = 150; // padding en píxeles
+            mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, padding));
+        } catch (Exception e) {
+            // Si hay un error, centrar en el primer punto
+            if (!itinerarioData.isEmpty()) {
+                Map<String, Object> primerPunto = itinerarioData.get(0);
+                Double lat = (Double) primerPunto.get("latitud");
+                Double lng = (Double) primerPunto.get("longitud");
+                if (lat != null && lng != null) {
+                    LatLng firstPoint = new LatLng(lat, lng);
+                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(firstPoint, 12));
+                }
+            }
+        }
+    }
+
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
@@ -353,9 +577,15 @@ public class guia_tour_detail extends AppCompatActivity implements OnMapReadyCal
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-        LatLng lima = new LatLng(-12.0464, -77.0428);
-        mMap.addMarker(new MarkerOptions().position(lima).title("Centro Histórico de Lima"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(lima, 15));
+        
+        // Si ya tenemos datos del itinerario, mostrarlos en el mapa
+        if (itinerarioData != null && !itinerarioData.isEmpty()) {
+            mostrarRutaEnMapa();
+        } else {
+            // Ubicación por defecto mientras se cargan los datos
+            LatLng lima = new LatLng(-12.0464, -77.0428);
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(lima, 12));
+        }
     }
 
     @Override

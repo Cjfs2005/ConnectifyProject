@@ -1007,35 +1007,91 @@ public class TourFirebaseService {
                 tourAsignado.put("descripcion", ofertaDoc.getString("descripcion"));
                 tourAsignado.put("precio", ofertaDoc.getDouble("precio"));
                 tourAsignado.put("duracion", ofertaDoc.getString("duracion"));
-                tourAsignado.put("fechaRealizacion", ofertaDoc.getTimestamp("fechaRealizacion"));
+                
+                // Convertir fechaRealizacion de String a Timestamp si es necesario
+                Object fechaRealizacionObj = ofertaDoc.get("fechaRealizacion");
+                if (fechaRealizacionObj instanceof Timestamp) {
+                    tourAsignado.put("fechaRealizacion", fechaRealizacionObj);
+                } else if (fechaRealizacionObj instanceof String) {
+                    // Intentar parsear la fecha
+                    try {
+                        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd/MM/yyyy");
+                        java.util.Date date = sdf.parse((String) fechaRealizacionObj);
+                        tourAsignado.put("fechaRealizacion", new Timestamp(date));
+                    } catch (Exception e) {
+                        tourAsignado.put("fechaRealizacion", Timestamp.now());
+                    }
+                }
+                
                 tourAsignado.put("horaInicio", ofertaDoc.getString("horaInicio"));
                 tourAsignado.put("horaFin", ofertaDoc.getString("horaFin"));
                 tourAsignado.put("empresaId", ofertaDoc.getString("empresaId"));
                 tourAsignado.put("nombreEmpresa", ofertaDoc.getString("nombreEmpresa"));
                 tourAsignado.put("correoEmpresa", ofertaDoc.getString("correoEmpresa"));
                 tourAsignado.put("pagoGuia", ofertaDoc.getDouble("pagoGuia"));
-                tourAsignado.put("itinerario", ofertaDoc.get("itinerario"));
+                
+                // Copiar itinerario y agregar campos de control
+                List<Map<String, Object>> itinerarioOferta = (List<Map<String, Object>>) ofertaDoc.get("itinerario");
+                if (itinerarioOferta != null) {
+                    List<Map<String, Object>> itinerarioAsignado = new ArrayList<>();
+                    for (Map<String, Object> punto : itinerarioOferta) {
+                        Map<String, Object> puntoAsignado = new HashMap<>(punto);
+                        puntoAsignado.put("completado", false);
+                        puntoAsignado.put("horaLlegada", null);
+                        puntoAsignado.put("horaSalida", null);
+                        itinerarioAsignado.add(puntoAsignado);
+                    }
+                    tourAsignado.put("itinerario", itinerarioAsignado);
+                }
+                
                 tourAsignado.put("serviciosAdicionales", ofertaDoc.get("serviciosAdicionales"));
-                tourAsignado.put("imagenesUrls", ofertaDoc.get("imagenesUrls"));
                 tourAsignado.put("idiomasRequeridos", ofertaDoc.get("idiomasRequeridos"));
                 tourAsignado.put("consideraciones", ofertaDoc.getString("consideraciones"));
                 
-                // Datos del guía asignado
+                // Copiar imágenes
+                List<String> imagenesUrls = (List<String>) ofertaDoc.get("imagenesUrls");
+                if (imagenesUrls == null) {
+                    imagenesUrls = new ArrayList<>();
+                }
+                tourAsignado.put("imagenesUrls", imagenesUrls);
+                
+                // Datos del guía asignado (completos)
                 Map<String, Object> guiaAsignado = new HashMap<>();
                 guiaAsignado.put("identificadorUsuario", guiaId);
-                guiaAsignado.put("nombre", guiaDoc.getString("nombre"));
-                guiaAsignado.put("apellido", guiaDoc.getString("apellido"));
-                guiaAsignado.put("email", guiaDoc.getString("email"));
+                
+                // Concatenar nombre completo
+                String nombre = guiaDoc.getString("nombre");
+                String apellido = guiaDoc.getString("apellido");
+                String nombresCompletos = "";
+                if (nombre != null && apellido != null) {
+                    nombresCompletos = nombre + " " + apellido;
+                } else if (nombre != null) {
+                    nombresCompletos = nombre;
+                }
+                guiaAsignado.put("nombresCompletos", nombresCompletos);
+                
+                guiaAsignado.put("correoElectronico", guiaDoc.getString("email"));
+                guiaAsignado.put("numeroTelefono", guiaDoc.getString("telefono"));
+                guiaAsignado.put("fechaAsignacion", Timestamp.now());
                 tourAsignado.put("guiaAsignado", guiaAsignado);
                 
                 // Estado y metadatos
-                tourAsignado.put("estado", "confirmado");
+                tourAsignado.put("estado", "pendiente"); // Cambiar a "pendiente" en lugar de "confirmado"
                 tourAsignado.put("habilitado", true);
                 tourAsignado.put("fechaAsignacion", Timestamp.now());
+                tourAsignado.put("fechaCreacion", Timestamp.now());
                 tourAsignado.put("fechaActualizacion", Timestamp.now());
-                tourAsignado.put("momentoTour", "pendiente");
                 tourAsignado.put("checkInRealizado", false);
                 tourAsignado.put("checkOutRealizado", false);
+                tourAsignado.put("horaCheckIn", null);
+                tourAsignado.put("horaCheckOut", null);
+                
+                // Campos adicionales
+                tourAsignado.put("numeroParticipantesTotal", 0);
+                tourAsignado.put("participantes", new ArrayList<>());
+                tourAsignado.put("reseniasClientes", new ArrayList<>());
+                tourAsignado.put("comentariosGuia", "");
+                tourAsignado.put("calificacionPromedio", 0);
                 
                 // Guardar tour asignado
                 db.collection(COLLECTION_ASIGNADOS)

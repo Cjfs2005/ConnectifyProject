@@ -99,15 +99,6 @@
                             android:textSize="20sp"
                             android:textColor="@android:color/black" />
 
-                        <TextView
-                            android:id="@+id/tour_location"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="📍 Lima Centro"
-                            android:textSize="14sp"
-                            android:textColor="#757575"
-                            android:layout_marginTop="4dp" />
-
                         <!-- Información rápida en grid -->
                         <LinearLayout
                             android:layout_width="match_parent"
@@ -231,14 +222,14 @@
 
                     </LinearLayout>
 
-                    <TextView
+                    <!--<TextView
                         android:id="@+id/tour_description"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Descripción adicional del tour"
                         android:textSize="14sp"
                         android:textColor="#757575"
-                        android:layout_marginTop="12dp" />
+                        android:layout_marginTop="12dp" /> -->
 
                 </LinearLayout>
 
@@ -407,18 +398,10 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="📍 Punto de Encuentro"
+                        android:text="📍 Ruta del Tour"
                         android:textStyle="bold"
                         android:textSize="16sp"
                         android:textColor="@android:color/black" />
-
-                    <TextView
-                        android:id="@+id/tour_meeting_point"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textSize="14sp"
-                        android:textColor="#212121"
-                        android:layout_marginTop="8dp" />
 
                     <com.google.android.gms.maps.MapView
                         android:id="@+id/map_view"
