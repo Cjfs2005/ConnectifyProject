@@ -1093,7 +1093,7 @@ public class TourFirebaseService {
                 tourAsignado.put("guiaAsignado", guiaAsignado);
                 
                 // Estado y metadatos
-                tourAsignado.put("estado", "pendiente"); // Cambiar a "pendiente" en lugar de "confirmado"
+                tourAsignado.put("estado", "confirmado"); // Tour confirmado cuando el guía acepta
                 tourAsignado.put("habilitado", true);
                 tourAsignado.put("fechaAsignacion", Timestamp.now());
                 tourAsignado.put("fechaCreacion", Timestamp.now());

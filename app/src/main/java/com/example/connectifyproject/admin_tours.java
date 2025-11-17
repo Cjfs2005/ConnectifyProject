@@ -803,15 +803,14 @@ public class admin_tours extends AppCompatActivity {
                                 showRejectionOptions(tour);
                             });
                         } else {
-                            btnAction.setText("Ver detalle");
-                            btnAction.setVisibility(View.VISIBLE);
-                            btnAction.setOnClickListener(v -> {
-                                Intent intent = new Intent(admin_tours.this, admin_tour_details.class);
-                                intent.putExtra("tour_id", tour.getId());
-                                intent.putExtra("tour_tipo", tour.getTipo());
-                                startActivity(intent);
-                            });
+                            // Ocultar botón - el usuario puede hacer clic en el item completo
+                            btnAction.setVisibility(View.GONE);
                         }
+                        break;
+                    
+                    case "confirmado":
+                        // Ocultar botón - el usuario puede hacer clic en el item completo
+                        btnAction.setVisibility(View.GONE);
                         break;
                         
                     default:
