@@ -103,7 +103,14 @@ public class admin_tour_details extends AppCompatActivity implements OnMapReadyC
     
     private void loadTourData() {
         // Determinar la colección según el tipo de tour
-        String collection = "borrador".equals(tourTipo) ? "tours_borradores" : "tours_ofertas";
+        String collection;
+        if ("confirmado".equals(tourTipo)) {
+            collection = "tours_asignados";
+        } else if ("borrador".equals(tourTipo)) {
+            collection = "tours_borradores";
+        } else {
+            collection = "tours_ofertas";
+        }
         
         db.collection(collection).document(tourId).get()
             .addOnSuccessListener(documentSnapshot -> {
@@ -111,7 +118,18 @@ public class admin_tour_details extends AppCompatActivity implements OnMapReadyC
                     // Cargar datos básicos
                     String titulo = documentSnapshot.getString("titulo");
                     String descripcion = documentSnapshot.getString("descripcion");
-                    String fechaRealizacion = documentSnapshot.getString("fechaRealizacion");
+                    
+                    // Manejar fechaRealizacion como String o Timestamp
+                    String fechaRealizacion = null;
+                    try {
+                        Timestamp fechaTimestamp = documentSnapshot.getTimestamp("fechaRealizacion");
+                        if (fechaTimestamp != null) {
+                            fechaRealizacion = dateFormat.format(fechaTimestamp.toDate());
+                        }
+                    } catch (Exception e) {
+                        fechaRealizacion = documentSnapshot.getString("fechaRealizacion");
+                    }
+                    
                     Double precio = documentSnapshot.getDouble("precio");
                     String horaInicio = documentSnapshot.getString("horaInicio");
                     String horaFin = documentSnapshot.getString("horaFin");
@@ -184,6 +202,24 @@ public class admin_tour_details extends AppCompatActivity implements OnMapReadyC
                         binding.tvEstadoBadge.setBackgroundColor(getColor(R.color.success_500));
                     } else {
                         binding.tvEstadoBadge.setBackgroundColor(getColor(R.color.text_secondary));
+                    }
+                    
+                    // Cargar información del guía según el tipo de tour
+                    if ("confirmado".equals(tourTipo)) {
+                        // Para tours confirmados, obtener guía del campo guiaAsignado
+                        Map<String, Object> guiaAsignado = (Map<String, Object>) documentSnapshot.get("guiaAsignado");
+                        if (guiaAsignado != null) {
+                            mostrarInfoGuiaConfirmado(guiaAsignado);
+                        }
+                    } else if ("pendiente".equals(tourTipo)) {
+                        // Para tours pendientes, obtener guía del campo guiaSeleccionadoActual
+                        String guiaSeleccionadoId = documentSnapshot.getString("guiaSeleccionadoActual");
+                        if (guiaSeleccionadoId != null && !guiaSeleccionadoId.isEmpty()) {
+                            cargarInfoGuiaPendiente(guiaSeleccionadoId);
+                        }
+                    } else if (guiaAsignadoId != null && !guiaAsignadoId.isEmpty()) {
+                        // Para otros tipos con guía asignado
+                        cargarInfoGuiaDesdeUsuarios(guiaAsignadoId);
                     }
                     
                     // Configurar botón "Seleccionar Guía"
@@ -428,16 +464,25 @@ public class admin_tour_details extends AppCompatActivity implements OnMapReadyC
             db.collection("usuarios").document(guiaAsignadoId).get()
                 .addOnSuccessListener(docGuia -> {
                     if (docGuia.exists()) {
-                        // Cargar idiomas
-                        List<String> idiomas = (List<String>) docGuia.get("idiomas");
-                        if (idiomas != null && !idiomas.isEmpty()) {
-                            binding.tvGuiaIdiomas.setText(String.join(", ", idiomas));
+                        // Cargar nombre
+                        String nombre = docGuia.getString("nombre");
+                        String apellido = docGuia.getString("apellido");
+                        if (nombre != null && apellido != null) {
+                            binding.tvGuiaNombre.setText(nombre + " " + apellido);
+                        }
+                        
+                        // Cargar correo
+                        String email = docGuia.getString("email");
+                        if (email != null && !email.isEmpty()) {
+                            binding.tvGuiaCorreo.setText("📧 " + email);
+                            binding.tvGuiaCorreo.setVisibility(View.VISIBLE);
                         }
                         
                         // Cargar teléfono
                         String telefono = docGuia.getString("telefono");
                         if (telefono != null && !telefono.isEmpty()) {
                             binding.tvGuiaTelefono.setText("📞 " + telefono);
+                            binding.tvGuiaTelefono.setVisibility(View.VISIBLE);
                         }
                         
                         // Cargar foto del guía
@@ -471,5 +516,121 @@ public class admin_tour_details extends AppCompatActivity implements OnMapReadyC
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
         transaction.replace(R.id.bottomNavContainer, bottomNavFragment);
         transaction.commit();
+    }
+    
+    /**
+     * Mostrar información del guía para tours confirmados
+     * El guía ya está en el documento como objeto guiaAsignado
+     */
+    private void mostrarInfoGuiaConfirmado(Map<String, Object> guiaAsignado) {
+        binding.layoutGuiaAsignada.setVisibility(View.VISIBLE);
+        binding.tvGuiaNoAsignada.setVisibility(View.GONE);
+        
+        // Obtener datos del guía
+        String nombresCompletos = (String) guiaAsignado.get("nombresCompletos");
+        String correoElectronico = (String) guiaAsignado.get("correoElectronico");
+        String numeroTelefono = (String) guiaAsignado.get("numeroTelefono");
+        
+        // Mostrar información
+        if (nombresCompletos != null) {
+            binding.tvGuiaNombre.setText(nombresCompletos);
+        }
+        
+        if (correoElectronico != null) {
+            binding.tvGuiaCorreo.setText("📧 " + correoElectronico);
+            binding.tvGuiaCorreo.setVisibility(View.VISIBLE);
+        }
+        
+        if (numeroTelefono != null) {
+            binding.tvGuiaTelefono.setText("📞 " + numeroTelefono);
+            binding.tvGuiaTelefono.setVisibility(View.VISIBLE);
+        }
+        
+        // Mostrar badge de confirmado
+        binding.tvGuiaEstadoBadge.setText("✓ Confirmado");
+        binding.tvGuiaEstadoBadge.setVisibility(View.VISIBLE);
+        binding.tvGuiaEstadoBadge.setTextColor(getColor(R.color.success_500));
+        binding.tvGuiaEstadoBadge.setBackgroundTintList(getColorStateList(R.color.success_50));
+    }
+    
+    /**
+     * Cargar información del guía para tours pendientes
+     * Busca el guía en la colección usuarios y muestra con badge de pendiente
+     */
+    private void cargarInfoGuiaPendiente(String guiaId) {
+        db.collection("usuarios").document(guiaId).get()
+            .addOnSuccessListener(docGuia -> {
+                if (docGuia.exists()) {
+                    binding.layoutGuiaAsignada.setVisibility(View.VISIBLE);
+                    binding.tvGuiaNoAsignada.setVisibility(View.GONE);
+                    
+                    // Obtener datos del guía
+                    String nombre = docGuia.getString("nombre");
+                    String apellido = docGuia.getString("apellido");
+                    String email = docGuia.getString("email");
+                    String telefono = docGuia.getString("telefono");
+                    
+                    // Mostrar información
+                    if (nombre != null && apellido != null) {
+                        binding.tvGuiaNombre.setText(nombre + " " + apellido);
+                    }
+                    
+                    if (email != null) {
+                        binding.tvGuiaCorreo.setText("📧 " + email);
+                        binding.tvGuiaCorreo.setVisibility(View.VISIBLE);
+                    }
+                    
+                    if (telefono != null) {
+                        binding.tvGuiaTelefono.setText("📞 " + telefono);
+                        binding.tvGuiaTelefono.setVisibility(View.VISIBLE);
+                    }
+                    
+                    // Mostrar badge de pendiente
+                    binding.tvGuiaEstadoBadge.setText("⏱ Pendiente de confirmación");
+                    binding.tvGuiaEstadoBadge.setVisibility(View.VISIBLE);
+                    binding.tvGuiaEstadoBadge.setTextColor(getColor(R.color.avatar_amber));
+                    binding.tvGuiaEstadoBadge.setBackgroundTintList(getColorStateList(R.color.primary_50));
+                }
+            })
+            .addOnFailureListener(e -> {
+                Toast.makeText(this, "Error al cargar datos del guía", Toast.LENGTH_SHORT).show();
+            });
+    }
+    
+    /**
+     * Cargar información del guía desde colección usuarios (para otros casos)
+     */
+    private void cargarInfoGuiaDesdeUsuarios(String guiaId) {
+        db.collection("usuarios").document(guiaId).get()
+            .addOnSuccessListener(docGuia -> {
+                if (docGuia.exists()) {
+                    binding.layoutGuiaAsignada.setVisibility(View.VISIBLE);
+                    binding.tvGuiaNoAsignada.setVisibility(View.GONE);
+                    
+                    // Obtener datos del guía
+                    String nombre = docGuia.getString("nombre");
+                    String apellido = docGuia.getString("apellido");
+                    String email = docGuia.getString("email");
+                    String telefono = docGuia.getString("telefono");
+                    
+                    // Mostrar información
+                    if (nombre != null && apellido != null) {
+                        binding.tvGuiaNombre.setText(nombre + " " + apellido);
+                    }
+                    
+                    if (email != null) {
+                        binding.tvGuiaCorreo.setText("📧 " + email);
+                        binding.tvGuiaCorreo.setVisibility(View.VISIBLE);
+                    }
+                    
+                    if (telefono != null) {
+                        binding.tvGuiaTelefono.setText("📞 " + telefono);
+                        binding.tvGuiaTelefono.setVisibility(View.VISIBLE);
+                    }
+                }
+            })
+            .addOnFailureListener(e -> {
+                Toast.makeText(this, "Error al cargar datos del guía", Toast.LENGTH_SHORT).show();
+            });
     }
 }

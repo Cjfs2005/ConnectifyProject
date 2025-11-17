@@ -417,10 +417,35 @@
                                     android:orientation="vertical">
 
                                     <TextView
-                                        android:id="@+id/tvGuiaIdiomas"
+                                        android:id="@+id/tvGuiaNombre"
                                         android:layout_width="match_parent"
                                         android:layout_height="wrap_content"
-                                        android:text="Idiomas: Español, Inglés"
+                                        android:text="Nombre del Guía"
+                                        android:textColor="@color/text_primary"
+                                        android:textSize="16sp"
+                                        android:textStyle="bold"
+                                        android:layout_marginBottom="4dp" />
+                                    
+                                    <TextView
+                                        android:id="@+id/tvGuiaEstadoBadge"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="✓ Confirmado"
+                                        android:textColor="@color/success_500"
+                                        android:textSize="12sp"
+                                        android:textStyle="bold"
+                                        android:paddingHorizontal="8dp"
+                                        android:paddingVertical="2dp"
+                                        android:background="@drawable/rounded_corner_bg"
+                                        android:backgroundTint="@color/success_50"
+                                        android:layout_marginBottom="8dp"
+                                        android:visibility="gone" />
+
+                                    <TextView
+                                        android:id="@+id/tvGuiaCorreo"
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:text="📧 correo@ejemplo.com"
                                         android:textColor="@color/text_secondary"
                                         android:textSize="14sp"
                                         android:layout_marginBottom="4dp" />
