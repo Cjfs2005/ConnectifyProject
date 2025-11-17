@@ -6,6 +6,7 @@ import com.example.connectifyproject.model.Chat;
 import com.example.connectifyproject.model.ChatMessage;
 import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 
@@ -99,22 +100,24 @@ public class ChatService {
         String clientId = ids[0].compareTo(ids[1]) < 0 ? ids[0] : ids[1];
         String adminId = ids[0].compareTo(ids[1]) < 0 ? ids[1] : ids[0];
         
-        // Crear el chat con información completa
-        Chat newChat = new Chat();
-        newChat.setChatId(message.getChatId());
-        newChat.setClientId(clientId);
-        newChat.setAdminId(adminId);
-        newChat.setClientName(clientName != null ? clientName : "Cliente");
-        newChat.setClientPhotoUrl(clientPhotoUrl);
-        newChat.setAdminName(adminName != null ? adminName : "Empresa");
-        newChat.setAdminPhotoUrl(adminPhotoUrl);
-        newChat.setLastMessage(message.getMessageText());
-        newChat.setLastMessageTime(message.getTimestamp());
-        newChat.setActive(true);
+        // Crear el chat con información completa usando Map para serverTimestamp
+        Map<String, Object> chatData = new HashMap<>();
+        chatData.put("chatId", message.getChatId());
+        chatData.put("clientId", clientId);
+        chatData.put("adminId", adminId);
+        chatData.put("clientName", clientName != null ? clientName : "Cliente");
+        chatData.put("clientPhotoUrl", clientPhotoUrl);
+        chatData.put("adminName", adminName != null ? adminName : "Empresa");
+        chatData.put("adminPhotoUrl", adminPhotoUrl);
+        chatData.put("lastMessage", message.getMessageText());
+        chatData.put("lastMessageTime", FieldValue.serverTimestamp()); // Timestamp del servidor
+        chatData.put("active", true);
+        chatData.put("unreadCountClient", 0);
+        chatData.put("unreadCountAdmin", 0);
         
         db.collection(COLLECTION_CHATS)
             .document(message.getChatId())
-            .set(newChat)
+            .set(chatData)
             .addOnSuccessListener(aVoid -> {
                 Log.d(TAG, "Chat creado con primer mensaje: " + message.getChatId());
                 saveMessage(message, listener);
@@ -138,12 +141,24 @@ public class ChatService {
         
         message.setMessageId(messageId);
         
+        // Crear Map con los datos del mensaje usando FieldValue.serverTimestamp()
+        Map<String, Object> messageData = new HashMap<>();
+        messageData.put("messageId", message.getMessageId());
+        messageData.put("chatId", message.getChatId());
+        messageData.put("senderId", message.getSenderId());
+        messageData.put("senderName", message.getSenderName());
+        messageData.put("senderRole", message.getSenderRole());
+        messageData.put("messageText", message.getMessageText());
+        messageData.put("timestamp", FieldValue.serverTimestamp()); // Timestamp del SERVIDOR
+        messageData.put("read", message.isRead());
+        messageData.put("messageType", message.getMessageType() != null ? message.getMessageType() : "text");
+        
         // Guardar mensaje
         db.collection(COLLECTION_CHATS)
             .document(message.getChatId())
             .collection(COLLECTION_MESSAGES)
             .document(messageId)
-            .set(message)
+            .set(messageData)
             .addOnSuccessListener(aVoid -> {
                 // Actualizar el chat con el último mensaje
                 updateChatLastMessage(message);
@@ -162,7 +177,7 @@ public class ChatService {
     private void updateChatLastMessage(ChatMessage message) {
         Map<String, Object> updates = new HashMap<>();
         updates.put("lastMessage", message.getMessageText());
-        updates.put("lastMessageTime", message.getTimestamp());
+        updates.put("lastMessageTime", FieldValue.serverTimestamp()); // Usar timestamp del servidor
         updates.put("lastSenderId", message.getSenderId()); // Guardar quién envió el último mensaje
         
         // Incrementar contador de no leídos del receptor

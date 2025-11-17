@@ -23,7 +23,7 @@ public class ChatMessage {
         this.senderName = senderName;
         this.senderRole = senderRole;
         this.messageText = messageText;
-        this.timestamp = Timestamp.now();
+        // NO establecer timestamp aquí - se establecerá en el servidor
         this.read = false;
         this.messageType = "text";
     }
