@@ -17,6 +17,7 @@ import com.example.connectifyproject.R;
 import com.example.connectifyproject.cliente_tour_detalle;
 import com.example.connectifyproject.models.Cliente_Tour;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Cliente_ToursAdapter extends RecyclerView.Adapter<Cliente_ToursAdapter.TourViewHolder> {
@@ -62,7 +63,26 @@ public class Cliente_ToursAdapter extends RecyclerView.Adapter<Cliente_ToursAdap
         // Click listener para abrir detalles del tour
         holder.itemView.setOnClickListener(v -> {
             Intent intent = new Intent(context, cliente_tour_detalle.class);
-            intent.putExtra("tour_object", tour);
+            // Pasar solo datos serializables
+            intent.putExtra("tour_id", tour.getId());
+            intent.putExtra("tour_title", tour.getTitle());
+            intent.putExtra("tour_description", tour.getDescription());
+            intent.putExtra("tour_company", tour.getCompanyName());
+            intent.putExtra("tour_location", tour.getLocation());
+            intent.putExtra("tour_price", tour.getPrice());
+            intent.putExtra("tour_duration", tour.getDuration());
+            intent.putExtra("tour_date", tour.getDate());
+            intent.putExtra("tour_start_time", tour.getStartTime());
+            intent.putExtra("tour_end_time", tour.getEndTime());
+            intent.putExtra("tour_image_url", tour.getImageUrl());
+            intent.putExtra("oferta_tour_id", tour.getOfertaTourId());
+            intent.putExtra("empresa_id", tour.getEmpresaId());
+            
+            if (tour.getIdiomasRequeridos() != null) {
+                intent.putStringArrayListExtra("idiomas", new ArrayList<>(tour.getIdiomasRequeridos()));
+            }
+            intent.putExtra("consideraciones", tour.getConsideraciones());
+            
             context.startActivity(intent);
         });
     }

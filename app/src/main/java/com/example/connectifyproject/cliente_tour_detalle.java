@@ -20,6 +20,7 @@ import com.example.connectifyproject.models.Cliente_Tour;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -60,21 +61,59 @@ public class cliente_tour_detalle extends AppCompatActivity implements Cliente_S
 
     private void getIntentData() {
         Intent intent = getIntent();
-        tour = (Cliente_Tour) intent.getSerializableExtra("tour_object");
         
-        if (tour == null) {
-            // Fallback para compatibilidad con método anterior
-            tour = new Cliente_Tour(
-                intent.getStringExtra("tour_id"),
-                intent.getStringExtra("tour_title"),
-                intent.getStringExtra("tour_description"),
-                intent.getStringExtra("tour_duration"),
-                intent.getDoubleExtra("tour_price", 0.0),
-                intent.getStringExtra("tour_location"),
-                4.5f,
-                intent.getStringExtra("tour_company")
-            );
+        // Crear tour desde los extras del intent
+        tour = new Cliente_Tour();
+        tour.setId(intent.getStringExtra("tour_id"));
+        tour.setTitle(intent.getStringExtra("tour_title"));
+        tour.setDescription(intent.getStringExtra("tour_description"));
+        tour.setCompanyName(intent.getStringExtra("tour_company"));
+        tour.setLocation(intent.getStringExtra("tour_location"));
+        tour.setPrice(intent.getDoubleExtra("tour_price", 0.0));
+        tour.setDuration(intent.getStringExtra("tour_duration"));
+        tour.setDate(intent.getStringExtra("tour_date"));
+        tour.setStartTime(intent.getStringExtra("tour_start_time"));
+        tour.setEndTime(intent.getStringExtra("tour_end_time"));
+        tour.setImageUrl(intent.getStringExtra("tour_image_url"));
+        tour.setOfertaTourId(intent.getStringExtra("oferta_tour_id"));
+        tour.setEmpresaId(intent.getStringExtra("empresa_id"));
+        
+        ArrayList<String> idiomas = intent.getStringArrayListExtra("idiomas");
+        if (idiomas != null) {
+            tour.setIdiomasRequeridos(idiomas);
         }
+        tour.setConsideraciones(intent.getStringExtra("consideraciones"));
+        
+        // Recargar servicios e itinerario desde Firebase
+        loadTourDetailsFromFirebase();
+    }
+    
+    private void loadTourDetailsFromFirebase() {
+        if (tour.getId() == null) return;
+        
+        FirebaseFirestore.getInstance()
+                .collection("tours_asignados")
+                .document(tour.getId())
+                .get()
+                .addOnSuccessListener(doc -> {
+                    if (doc.exists()) {
+                        // Cargar servicios adicionales
+                        List<Map<String, Object>> servicios = 
+                            (List<Map<String, Object>>) doc.get("serviciosAdicionales");
+                        tour.setServiciosAdicionales(servicios);
+                        
+                        // Cargar itinerario
+                        List<Map<String, Object>> itinerario = 
+                            (List<Map<String, Object>>) doc.get("itinerario");
+                        tour.setItinerario(itinerario);
+                        
+                        // Actualizar servicios
+                        loadServiciosData();
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Error cargando detalles del tour", Toast.LENGTH_SHORT).show();
+                });
     }
 
     private void initViews() {

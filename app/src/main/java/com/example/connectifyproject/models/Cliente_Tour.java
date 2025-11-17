@@ -23,11 +23,11 @@ public class Cliente_Tour implements Serializable {
     // Campos adicionales de Firebase
     private String ofertaTourId;
     private String empresaId;
-    private Timestamp fechaRealizacion;
+    private transient Timestamp fechaRealizacion; // transient para que no se serialice
     private List<String> idiomasRequeridos;
     private String consideraciones;
-    private List<Map<String, Object>> itinerario;
-    private List<Map<String, Object>> serviciosAdicionales;
+    private transient List<Map<String, Object>> itinerario; // transient porque Map no es serializable
+    private transient List<Map<String, Object>> serviciosAdicionales; // transient porque Map no es serializable
     private boolean habilitado;
 
     // Constructor vacío
