@@ -84,13 +84,19 @@ public class guia_historial extends AppCompatActivity {
             if (id == R.id.nav_historial) {
                 return true;
             } else if (id == R.id.nav_ofertas) {
-                startActivity(new Intent(this, guia_tours_ofertas.class));
+                Intent intent = new Intent(this, guia_tours_ofertas.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);  // ✅ Añadir
+                startActivity(intent);
                 return true;
             } else if (id == R.id.nav_tours) {
-                startActivity(new Intent(this, guia_assigned_tours.class));
+                Intent intent = new Intent(this, guia_assigned_tours.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);  // ✅ Añadir
+                startActivity(intent);
                 return true;
             } else if (id == R.id.nav_perfil) {
-                startActivity(new Intent(this, guia_perfil.class));
+                Intent intent = new Intent(this, guia_perfil.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);  // ✅ Añadir
+                startActivity(intent);
                 return true;
             }
             return false;

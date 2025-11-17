@@ -128,21 +128,28 @@ public class guia_assigned_tours extends AppCompatActivity implements GuiaDateFi
         bottomNav.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
             if (id == R.id.nav_historial) {
-                startActivity(new Intent(this, guia_historial.class));
+                Intent intent = new Intent(this, guia_historial.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+                startActivity(intent);
                 return true;
             } else if (id == R.id.nav_ofertas) {
-                startActivity(new Intent(this, guia_tours_ofertas.class));
+                Intent intent = new Intent(this, guia_tours_ofertas.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+                startActivity(intent);
                 return true;
             } else if (id == R.id.nav_tours) {
                 return true;
             } else if (id == R.id.nav_perfil) {
-                startActivity(new Intent(this, guia_perfil.class));
+                Intent intent = new Intent(this, guia_perfil.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+                startActivity(intent);
                 return true;
             }
             return false;
         });
     }
 
+    @Override
     protected void onResume() {
         super.onResume();
         // Asegurar que "Tours" esté seleccionado cuando regresamos a esta actividad

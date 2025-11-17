@@ -109,15 +109,21 @@ public class guia_tours_ofertas extends AppCompatActivity implements GuiaFilterD
         bottomNav.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
             if (id == R.id.nav_historial) {
-                startActivity(new Intent(this, guia_historial.class));
+                Intent intent = new Intent(this, guia_historial.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+                startActivity(intent);
                 return true;
             } else if (id == R.id.nav_ofertas) {
                 return true;
             } else if (id == R.id.nav_tours) {
-                startActivity(new Intent(this, guia_assigned_tours.class));
+                Intent intent = new Intent(this, guia_assigned_tours.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+                startActivity(intent);
                 return true;
             } else if (id == R.id.nav_perfil) {
-                startActivity(new Intent(this, guia_perfil.class));
+                Intent intent = new Intent(this, guia_perfil.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+                startActivity(intent);
                 return true;
             }
             return false;

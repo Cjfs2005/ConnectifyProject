@@ -105,20 +105,20 @@ public class guia_perfil extends AppCompatActivity {
     private void setupBottomNavigation() {
         bottomNavigation.setOnItemSelectedListener(item -> {
             int itemId = item.getItemId();
-            
+
             if (itemId == R.id.nav_historial) {
                 Intent intent = new Intent(this, guia_historial.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);  // ✅ Cambiar aquí
                 startActivity(intent);
                 return true;
             } else if (itemId == R.id.nav_ofertas) {
                 Intent intent = new Intent(this, guia_tours_ofertas.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);  // ✅ Cambiar aquí
                 startActivity(intent);
                 return true;
             } else if (itemId == R.id.nav_tours) {
                 Intent intent = new Intent(this, guia_assigned_tours.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);  // ✅ Cambiar aquí
                 startActivity(intent);
                 return true;
             } else if (itemId == R.id.nav_perfil) {
@@ -127,7 +127,7 @@ public class guia_perfil extends AppCompatActivity {
             }
             return false;
         });
-        
+
         // Seleccionar "Perfil" por defecto
         bottomNavigation.setSelectedItemId(R.id.nav_perfil);
     }
