@@ -9,6 +9,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.bumptech.glide.Glide;
 import com.example.connectifyproject.databinding.GuiaTourDetailBinding;
 import com.example.connectifyproject.services.TourFirebaseService;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -365,6 +366,17 @@ public class guia_tour_detail extends AppCompatActivity implements OnMapReadyCal
             .get()
             .addOnSuccessListener(doc -> {
                 if (doc.exists()) {
+                    // Cargar imagen principal
+                    String imagenPrincipal = doc.getString("imagenPrincipal");
+                    if (imagenPrincipal != null && !imagenPrincipal.isEmpty()) {
+                        Glide.with(this)
+                            .load(imagenPrincipal)
+                            .placeholder(R.drawable.ic_tour_banner)
+                            .error(R.drawable.ic_tour_banner)
+                            .centerCrop()
+                            .into(binding.tourImage);
+                    }
+                    
                     // Cargar itinerario
                     itinerarioData = (List<Map<String, Object>>) doc.get("itinerario");
                     if (itinerarioData != null && !itinerarioData.isEmpty()) {

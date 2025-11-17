@@ -245,7 +245,24 @@ public class TourFirebaseService {
                                 .update(updates)
                                 .addOnSuccessListener(aVoid -> {
                                     Log.d(TAG, "Oferta rechazada por guía: " + guiaId);
-                                    callback.onSuccess("Oferta rechazada correctamente");
+                                    
+                                    // IMPORTANTE: Actualizar guiaSeleccionadoActual a null en el documento principal
+                                    Map<String, Object> ofertaUpdates = new HashMap<>();
+                                    ofertaUpdates.put("guiaSeleccionadoActual", null);
+                                    ofertaUpdates.put("fechaActualizacion", Timestamp.now());
+                                    
+                                    db.collection(COLLECTION_OFERTAS)
+                                            .document(ofertaId)
+                                            .update(ofertaUpdates)
+                                            .addOnSuccessListener(aVoid2 -> {
+                                                Log.d(TAG, "guiaSeleccionadoActual actualizado a null");
+                                                callback.onSuccess("Oferta rechazada correctamente");
+                                            })
+                                            .addOnFailureListener(e -> {
+                                                Log.e(TAG, "Error al actualizar guiaSeleccionadoActual: ", e);
+                                                // Aún así consideramos exitoso el rechazo
+                                                callback.onSuccess("Oferta rechazada correctamente");
+                                            });
                                 })
                                 .addOnFailureListener(e -> {
                                     Log.e(TAG, "Error al rechazar oferta: ", e);
