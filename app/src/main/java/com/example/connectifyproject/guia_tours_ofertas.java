@@ -124,6 +124,15 @@ public class guia_tours_ofertas extends AppCompatActivity implements GuiaFilterD
         });
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Asegurar que "Ofertas" esté seleccionado cuando regresamos a esta actividad
+        if (binding.bottomNav != null) {
+            binding.bottomNav.setSelectedItemId(R.id.nav_ofertas);
+        }
+    }
+
     /**
      * Cargar ofertas desde Firebase
      */

@@ -143,6 +143,14 @@ public class guia_assigned_tours extends AppCompatActivity implements GuiaDateFi
         });
     }
 
+    protected void onResume() {
+        super.onResume();
+        // Asegurar que "Tours" esté seleccionado cuando regresamos a esta actividad
+        if (binding.bottomNav != null) {
+            binding.bottomNav.setSelectedItemId(R.id.nav_tours);
+        }
+    }
+
     /**
      * Cargar tours asignados desde Firebase
      */
