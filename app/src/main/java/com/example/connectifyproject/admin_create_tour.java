@@ -319,7 +319,14 @@ public class admin_create_tour extends AppCompatActivity implements OnMapReadyCa
             selectedCalendar.get(Calendar.MONTH),
             selectedCalendar.get(Calendar.DAY_OF_MONTH)
         );
-        datePickerDialog.getDatePicker().setMinDate(System.currentTimeMillis());
+        // Establecer fecha mínima como mañana (al menos 1 día después)
+        Calendar tomorrow = Calendar.getInstance();
+        tomorrow.add(Calendar.DAY_OF_MONTH, 1);
+        tomorrow.set(Calendar.HOUR_OF_DAY, 0);
+        tomorrow.set(Calendar.MINUTE, 0);
+        tomorrow.set(Calendar.SECOND, 0);
+        tomorrow.set(Calendar.MILLISECOND, 0);
+        datePickerDialog.getDatePicker().setMinDate(tomorrow.getTimeInMillis());
         datePickerDialog.show();
     }
     
@@ -663,6 +670,13 @@ public class admin_create_tour extends AppCompatActivity implements OnMapReadyCa
             return false;
         }
         
+        // Validar que la fecha sea al menos al día siguiente
+        if (!validateFechaMinima()) {
+            binding.etTourDate.setError("La fecha debe ser al menos mañana");
+            Toast.makeText(this, "La fecha del tour debe ser al menos al día siguiente", Toast.LENGTH_LONG).show();
+            return false;
+        }
+        
         // Validar que la hora de fin sea al menos 1 hora después de la hora de inicio
         if (!validateTimeRange(tourStartTime, tourEndTime)) {
             Toast.makeText(this, "La hora de fin debe ser al menos 1 hora después de la hora de inicio", Toast.LENGTH_LONG).show();
@@ -676,6 +690,33 @@ public class admin_create_tour extends AppCompatActivity implements OnMapReadyCa
         }
         
         return true;
+    }
+    
+    /**
+     * Valida que la fecha seleccionada sea al menos al día siguiente
+     */
+    private boolean validateFechaMinima() {
+        if (selectedCalendar == null) {
+            return false;
+        }
+        
+        // Obtener el inicio del día de mañana (00:00:00)
+        Calendar tomorrow = Calendar.getInstance();
+        tomorrow.add(Calendar.DAY_OF_MONTH, 1);
+        tomorrow.set(Calendar.HOUR_OF_DAY, 0);
+        tomorrow.set(Calendar.MINUTE, 0);
+        tomorrow.set(Calendar.SECOND, 0);
+        tomorrow.set(Calendar.MILLISECOND, 0);
+        
+        // Obtener el inicio del día seleccionado (00:00:00)
+        Calendar selectedDay = (Calendar) selectedCalendar.clone();
+        selectedDay.set(Calendar.HOUR_OF_DAY, 0);
+        selectedDay.set(Calendar.MINUTE, 0);
+        selectedDay.set(Calendar.SECOND, 0);
+        selectedDay.set(Calendar.MILLISECOND, 0);
+        
+        // La fecha seleccionada debe ser igual o posterior a mañana
+        return !selectedDay.before(tomorrow);
     }
     
     /**

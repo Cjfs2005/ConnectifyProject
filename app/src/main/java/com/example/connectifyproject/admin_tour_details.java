@@ -216,24 +216,15 @@ public class admin_tour_details extends AppCompatActivity implements OnMapReadyC
     }
 
     private void setTourLocationOnMap() {
-        // Ubicaciones predefinidas para diferentes tours
-        switch (tourTitulo) {
-            case "Tour Lima Centro":
-                tourLocation = new LatLng(-12.046374, -77.042754); // Plaza Mayor Lima
-                binding.tvTourLocation.setText("Plaza Mayor, Lima Centro, Perú");
-                break;
-            case "Tour Casonas Históricas":
-                tourLocation = new LatLng(-12.045678, -77.041234); // Casonas históricas
-                binding.tvTourLocation.setText("Casonas Históricas, Lima, Perú");
-                break;
-            case "Tour Huascarán":
-                tourLocation = new LatLng(-9.123456, -77.654321); // Huascarán
-                binding.tvTourLocation.setText("Parque Nacional Huascarán, Perú");
-                break;
-            default:
-                tourLocation = new LatLng(-12.046374, -77.042754); // Lima por defecto
-                binding.tvTourLocation.setText("Lima, Perú");
-                break;
+        // Usar el primer punto del itinerario si está disponible
+        if (itinerarioItems != null && !itinerarioItems.isEmpty()) {
+            Cliente_ItinerarioItem primerPunto = itinerarioItems.get(0);
+            tourLocation = new LatLng(primerPunto.getLatitude(), primerPunto.getLongitude());
+            // La ubicación ya se estableció en loadTourData()
+        } else {
+            // Ubicación por defecto si no hay itinerario
+            tourLocation = new LatLng(-12.046374, -77.042754); // Lima por defecto
+            binding.tvTourLocation.setText("Lima, Perú");
         }
         
         if (mGoogleMap != null) {

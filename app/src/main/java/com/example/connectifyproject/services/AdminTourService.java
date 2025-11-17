@@ -343,17 +343,22 @@ public class AdminTourService {
                     oferta.setPrecio(borrador.getPrecio());
                     oferta.setDuracion(borrador.getDuracion());
                     oferta.setFechaRealizacion(borrador.getFechaRealizacion());
+                    oferta.setHoraInicio(borrador.getHoraInicio());
+                    oferta.setHoraFin(borrador.getHoraFin());
                     oferta.setItinerario(borrador.getItinerario());
                     oferta.setServiciosAdicionales(borrador.getServiciosAdicionales());
                     oferta.setImagenesUrls(nuevasUrls);
                     oferta.setImagenPrincipal(nuevasUrls != null && !nuevasUrls.isEmpty() ? nuevasUrls.get(0) : null);
                     oferta.setIdiomasRequeridos(borrador.getIdiomasRequeridos());
+                    oferta.setConsideraciones(borrador.getConsideraciones());
                     oferta.setPagoGuia(borrador.getPagoGuia());
                     oferta.setEmpresaId(borrador.getEmpresaId());
+                    oferta.setNombreEmpresa(borrador.getNombreEmpresa());
+                    oferta.setCorreoEmpresa(borrador.getCorreoEmpresa());
                     oferta.setEstado("publicado");
                     oferta.setGuiaSeleccionadoActual(null);
                     oferta.setFechaUltimoOfrecimiento(null);
-                    oferta.setFechaCreacion(borrador.getFechaCreacion());
+                    oferta.setFechaCreacion(borrador.getFechaCreacion() != null ? borrador.getFechaCreacion() : Timestamp.now());
                     oferta.setFechaActualizacion(Timestamp.now());
                     oferta.setHabilitado(true);
                     

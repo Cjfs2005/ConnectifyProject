@@ -375,7 +375,7 @@ public class admin_tours extends AppCompatActivity {
                                 doc.getId(),
                                 titulo != null ? titulo : "Sin título",
                                 fecha,
-                                "Publicado - Sin guía",
+                                "Sin asignar",
                                 imageUrl,
                                 true,
                                 "publicado"
