@@ -80,4 +80,11 @@
     <string name="label_sort">Orden</string>
     <string name="hint_search_requests">Nombre / DNI / Empresa…</string>
     <string name="action_enable">Habilitar</string>
+
+    <!-- Tour States -->
+    <string name="tour_state_pendiente">PENDIENTE</string>
+    <string name="tour_state_check_in">CHECK-IN DISPONIBLE</string>
+    <string name="tour_state_en_curso">EN CURSO</string>
+    <string name="tour_state_check_out">CHECK-OUT DISPONIBLE</string>
+    <string name="tour_state_completado">COMPLETADO</string>
 </resources>

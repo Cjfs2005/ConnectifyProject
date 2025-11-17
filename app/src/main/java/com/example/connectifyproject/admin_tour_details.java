@@ -9,6 +9,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
+import com.bumptech.glide.Glide;
 import com.example.connectifyproject.adapters.AdminItinerarioAdapter;
 import com.example.connectifyproject.adapters.AdminServiciosAdapter;
 import com.example.connectifyproject.databinding.AdminTourDetailsViewBinding;
@@ -21,18 +22,30 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.tabs.TabLayout;
+import com.google.firebase.Timestamp;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 public class admin_tour_details extends AppCompatActivity implements OnMapReadyCallback, AdminItinerarioAdapter.OnItinerarioItemClickListener {
     private AdminTourDetailsViewBinding binding;
     private GoogleMap mGoogleMap;
+    private String tourId;
+    private String tourTipo;  // "borrador" o "publicado"
     private String tourTitulo;
     private String tourEstado;
     private boolean tourEsPublicado;
     private LatLng tourLocation;
+    
+    // Firebase
+    private FirebaseFirestore db;
+    private SimpleDateFormat dateFormat;
     
     // Adapters para las listas
     private AdminItinerarioAdapter itinerarioAdapter;
@@ -46,23 +59,32 @@ public class admin_tour_details extends AppCompatActivity implements OnMapReadyC
         binding = AdminTourDetailsViewBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
+        // Inicializar Firebase
+        db = FirebaseFirestore.getInstance();
+        dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+        
         // Obtener datos del Intent
+        tourId = getIntent().getStringExtra("tour_id");
         tourTitulo = getIntent().getStringExtra("tour_titulo");
         tourEstado = getIntent().getStringExtra("tour_estado");
+        tourTipo = getIntent().getStringExtra("tour_tipo"); // "borrador" o "publicado"
         tourEsPublicado = getIntent().getBooleanExtra("tour_es_publicado", false);
 
         if (tourTitulo == null) {
             tourTitulo = "Tour de ejemplo";
         }
+        
+        if (tourId == null) {
+            Toast.makeText(this, "Error: ID de tour no válido", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
 
         // Configurar toolbar
         binding.topAppBar.setNavigationOnClickListener(v -> finish());
 
-        // Configurar información del tour
-        setupTourInfo();
-
-        // Configurar botones
-        setupButtons();
+        // Cargar datos del tour desde Firebase
+        loadTourData();
 
         // Configurar tabs
         setupTabs();
@@ -72,6 +94,104 @@ public class admin_tour_details extends AppCompatActivity implements OnMapReadyC
 
         // No mostrar bottom navigation en pantallas secundarias
         // setupBottomNavigation();
+    }
+    
+    private void loadTourData() {
+        // Determinar la colección según el tipo de tour
+        String collection = "borrador".equals(tourTipo) ? "tours_borradores" : "tours_ofertas";
+        
+        db.collection(collection).document(tourId).get()
+            .addOnSuccessListener(documentSnapshot -> {
+                if (documentSnapshot.exists()) {
+                    // Cargar datos básicos
+                    String titulo = documentSnapshot.getString("titulo");
+                    String descripcion = documentSnapshot.getString("descripcion");
+                    String fechaRealizacion = documentSnapshot.getString("fechaRealizacion");
+                    Double precio = documentSnapshot.getDouble("precio");
+                    String horaInicio = documentSnapshot.getString("horaInicio");
+                    String horaFin = documentSnapshot.getString("horaFin");
+                    String duracion = documentSnapshot.getString("duracion");
+                    
+                    // Cargar imágenes
+                    List<String> imagenesUrls = (List<String>) documentSnapshot.get("imagenesUrls");
+                    if (imagenesUrls != null && !imagenesUrls.isEmpty()) {
+                        Glide.with(this)
+                            .load(imagenesUrls.get(0))
+                            .placeholder(R.drawable.placeholder_tour)
+                            .error(R.drawable.placeholder_tour)
+                            .centerCrop()
+                            .into(binding.ivTourHero);
+                    }
+                    
+                    // Cargar itinerario
+                    List<Map<String, Object>> itinerarioData = (List<Map<String, Object>>) documentSnapshot.get("itinerario");
+                    if (itinerarioData != null && !itinerarioData.isEmpty()) {
+                        itinerarioItems = new ArrayList<>();
+                        for (Map<String, Object> punto : itinerarioData) {
+                            String nombre = (String) punto.get("nombre");
+                            String direccion = (String) punto.get("direccion");
+                            Double latitud = (Double) punto.get("latitud");
+                            Double longitud = (Double) punto.get("longitud");
+                            
+                            if (nombre != null && latitud != null && longitud != null) {
+                                itinerarioItems.add(new Cliente_ItinerarioItem(
+                                    "",  // hora (vacío por ahora)
+                                    nombre,
+                                    direccion != null ? direccion : "",
+                                    latitud,
+                                    longitud
+                                ));
+                            }
+                        }
+                    }
+                    
+                    // Cargar servicios adicionales
+                    List<Map<String, Object>> serviciosData = (List<Map<String, Object>>) documentSnapshot.get("serviciosAdicionales");
+                    if (serviciosData != null && !serviciosData.isEmpty()) {
+                        serviciosList = new ArrayList<>();
+                        for (Map<String, Object> servicio : serviciosData) {
+                            String nombre = (String) servicio.get("nombre");
+                            Boolean esPagado = (Boolean) servicio.get("esPagado");
+                            if (nombre != null) {
+                                serviciosList.add(nombre + (Boolean.TRUE.equals(esPagado) ? " (Pagado)" : " (Incluido)"));
+                            }
+                        }
+                    }
+                    
+                    // Actualizar UI con los datos cargados
+                    if (titulo != null) binding.tvTourNombre.setText(titulo);
+                    if (descripcion != null) binding.tvTourDescripcion.setText(descripcion);
+                    if (fechaRealizacion != null) {
+                        binding.tvFechaInicio.setText(fechaRealizacion);
+                        binding.tvFechaFin.setText(fechaRealizacion);
+                    }
+                    if (precio != null) binding.tvCostoPorPersona.setText("$" + precio.intValue());
+                    if (horaInicio != null && horaFin != null) {
+                        binding.tvServicios.setText("Horario: " + horaInicio + " - " + horaFin);
+                    }
+                    
+                    // Configurar badge de estado
+                    binding.tvEstadoBadge.setText(tourEstado);
+                    if (tourEsPublicado) {
+                        binding.tvEstadoBadge.setBackgroundColor(getColor(R.color.success_500));
+                    } else {
+                        binding.tvEstadoBadge.setBackgroundColor(getColor(R.color.text_secondary));
+                    }
+                    
+                    // Configurar botón "Seleccionar Guía"
+                    setupButtons();
+                    
+                    // Si hay itinerario, establecer ubicación en el mapa
+                    if (itinerarioItems != null && !itinerarioItems.isEmpty()) {
+                        Cliente_ItinerarioItem primerPunto = itinerarioItems.get(0);
+                        tourLocation = new LatLng(primerPunto.getLatitude(), primerPunto.getLongitude());
+                        binding.tvTourLocation.setText(primerPunto.getPlaceName() + ", " + primerPunto.getDescription());
+                    }
+                }
+            })
+            .addOnFailureListener(e -> {
+                Toast.makeText(this, "Error al cargar datos del tour: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            });
     }
 
     private void initializeMap() {
@@ -149,43 +269,19 @@ public class admin_tour_details extends AppCompatActivity implements OnMapReadyC
         }
     }
 
-    private void setupTourInfo() {
-        // Configurar imagen del tour
-        binding.ivTourHero.setImageResource(R.drawable.tour_lima_centro);
-
-        // Configurar badge de estado
-        binding.tvEstadoBadge.setText(tourEstado);
-        if (tourEsPublicado) {
-            binding.tvEstadoBadge.setBackgroundColor(getColor(R.color.success_500));
-        } else {
-            binding.tvEstadoBadge.setBackgroundColor(getColor(R.color.text_secondary));
-        }
-
-        // Configurar información básica del tour
-        binding.tvTourNombre.setText(tourTitulo);
-        binding.tvTourDescripcion.setText("Se explora el bosque raro a las afueras de Lima en acompañamiento de un guía que ilustrará la flora y fauna de este enigmático lugar.");
-        
-        // Configurar precios
-        binding.tvCostoPorPersona.setText("$499");
-        binding.tvServicios.setText("Guía, equipamiento de exploración, comidas");
-        
-        // Configurar duración
-        binding.tvFechaInicio.setText("15 de julio, 2024");
-        binding.tvFechaFin.setText("20 de julio, 2024");
-    }
-
     private void setupButtons() {
-        // Mostrar botón "Asignar Guía" solo si el tour está en borrador
-        if (!tourEsPublicado && "Borrador".equals(tourEstado)) {
+        // Mostrar botón "Seleccionar Guía" solo si el tour está publicado
+        if ("publicado".equals(tourTipo)) {
             binding.btnAsignarGuia.setVisibility(View.VISIBLE);
             binding.btnAsignarGuia.setOnClickListener(v -> {
                 // Navegar a la vista de selección de guías
                 Intent intent = new Intent(this, admin_select_guide.class);
-                intent.putExtra("tour_titulo", tourTitulo);
-                intent.putExtra("tour_estado", tourEstado);
+                intent.putExtra("ofertaId", tourId);
+                intent.putExtra("tourTitulo", tourTitulo);
                 startActivity(intent);
             });
         } else {
+            // Ocultar botón para tours en borrador
             binding.btnAsignarGuia.setVisibility(View.GONE);
         }
     }

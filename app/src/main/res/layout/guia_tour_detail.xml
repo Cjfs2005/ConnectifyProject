@@ -30,20 +30,180 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <ImageView
-                android:id="@+id/tour_image"
+            <!-- Header Card con imagen y información básica -->
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
-                android:layout_height="180dp"
-            android:scaleType="centerCrop"
-            android:src="@drawable/ic_tour_banner" />
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="6dp"
+                android:backgroundTint="@android:color/white">
 
-            <androidx.cardview.widget.CardView
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <ImageView
+                        android:id="@+id/tour_image"
+                        android:layout_width="match_parent"
+                        android:layout_height="200dp"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/ic_tour_banner" />
+
+                    <!-- Overlay con información de empresa y fecha -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:padding="16dp"
+                        android:background="#F8F9FA">
+
+                        <TextView
+                            android:id="@+id/empresaBadge"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Empresa Tours"
+                            android:textColor="#6200EA"
+                            android:textSize="12sp"
+                            android:textStyle="bold"
+                            android:background="#E8EAF6"
+                            android:paddingHorizontal="8dp"
+                            android:paddingVertical="4dp" />
+
+                        <TextView
+                            android:id="@+id/tourDate"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="15/11/2025 09:00"
+                            android:textColor="#FF9800"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            android:layout_marginStart="8dp" />
+
+                    </LinearLayout>
+
+                    <!-- Título y información principal -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <TextView
+                            android:id="@+id/tour_name"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="City Tour Lima Centro Histórico"
+                            android:textStyle="bold"
+                            android:textSize="20sp"
+                            android:textColor="@android:color/black" />
+
+                        <TextView
+                            android:id="@+id/tour_location"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="📍 Lima Centro"
+                            android:textSize="14sp"
+                            android:textColor="#757575"
+                            android:layout_marginTop="4dp" />
+
+                        <!-- Información rápida en grid -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:layout_marginTop="12dp">
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical"
+                                android:gravity="center">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="⏰"
+                                    android:textSize="24sp" />
+
+                                <TextView
+                                    android:id="@+id/tour_duration"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="4 horas"
+                                    android:textSize="12sp"
+                                    android:textColor="#757575"
+                                    android:layout_marginTop="4dp" />
+
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical"
+                                android:gravity="center">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="🌐"
+                                    android:textSize="24sp" />
+
+                                <TextView
+                                    android:id="@+id/tour_languages"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Español, Inglés"
+                                    android:textSize="12sp"
+                                    android:textColor="#757575"
+                                    android:layout_marginTop="4dp" />
+
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical"
+                                android:gravity="center">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="💰"
+                                    android:textSize="24sp" />
+
+                                <TextView
+                                    android:id="@+id/tour_price"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="S/. 450"
+                                    android:textSize="14sp"
+                                    android:textStyle="bold"
+                                    android:textColor="#4CAF50"
+                                    android:layout_marginTop="4dp" />
+
+                            </LinearLayout>
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Itinerario Card -->
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="6dp"
-                android:background="@android:color/white">
+                app:cardCornerRadius="12dp"
+                app:cardElevation="4dp"
+                android:backgroundTint="@android:color/white">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -51,174 +211,224 @@
                     android:orientation="vertical"
                     android:padding="16dp">
 
-                    <!-- Improved header section -->
                     <TextView
-                        android:id="@+id/tour_name"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:text="📅 Itinerario del Tour"
                         android:textStyle="bold"
-                        android:textSize="20sp"
-                        android:textColor="@android:color/black" />
-
-                    <TextView
-                        android:id="@+id/tour_location"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
                         android:textSize="16sp"
-                        android:textColor="#757575"
-                        android:layout_marginTop="4dp" />
+                        android:textColor="@android:color/black"
+                        android:layout_marginBottom="8dp" />
 
-                    <TextView
-                        android:id="@+id/tour_duration"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textSize="16sp"
-                        android:textColor="#757575"
-                        android:layout_marginTop="4dp" />
-
-                    <!-- Divider for sections -->
-                    <View
+                    <!-- Contenedor para itinerario dinámico -->
+                    <LinearLayout
+                        android:id="@+id/itinerario_container"
                         android:layout_width="match_parent"
-                        android:layout_height="1dp"
-                        android:background="#E0E0E0"
-                        android:layout_marginTop="16dp"
-                        android:layout_marginBottom="16dp" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Detalles del Tour"
-                        android:textStyle="bold"
-                        android:textSize="18sp"
-                        android:textColor="@android:color/black" />
+                        android:orientation="vertical">
 
-                    <TextView
-                        android:id="@+id/tour_empresa"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textSize="16sp"
-                        android:textColor="#212121"
-                        android:layout_marginTop="8dp" />
+                        <!-- Los elementos del itinerario se añadirán dinámicamente -->
 
-                    <TextView
-                        android:id="@+id/tour_itinerario"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textSize="16sp"
-                        android:textColor="#212121"
-                        android:layout_marginTop="4dp" />
+                    </LinearLayout>
 
                     <TextView
                         android:id="@+id/tour_description"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:textSize="16sp"
-                        android:textColor="#212121"
-                        android:layout_marginTop="4dp" />
+                        android:text="Descripción adicional del tour"
+                        android:textSize="14sp"
+                        android:textColor="#757575"
+                        android:layout_marginTop="12dp" />
 
-                    <!-- Divider -->
-                    <View
-                        android:layout_width="match_parent"
-                        android:layout_height="1dp"
-                        android:background="#E0E0E0"
-                        android:layout_marginTop="16dp"
-                        android:layout_marginBottom="16dp" />
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Requerimientos Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="4dp"
+                android:backgroundTint="@android:color/white">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Requerimientos"
+                        android:text="✅ Requerimientos y Consideraciones"
                         android:textStyle="bold"
-                        android:textSize="18sp"
+                        android:textSize="16sp"
                         android:textColor="@android:color/black" />
 
                     <TextView
-                        android:id="@+id/tour_languages"
+                        android:id="@+id/tour_consideraciones"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:textSize="16sp"
+                        android:text="• Conocimiento de arte y cultura bohemia"
+                        android:textSize="14sp"
                         android:textColor="#212121"
                         android:layout_marginTop="8dp" />
 
                     <TextView
-                        android:id="@+id/tour_experience"
+                        android:id="@+id/tour_languages_required"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:textSize="16sp"
+                        android:text="• Idiomas: Español"
+                        android:textSize="14sp"
                         android:textColor="#212121"
                         android:layout_marginTop="4dp" />
 
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Servicios Adicionales Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="4dp"
+                android:backgroundTint="@android:color/white">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
                     <TextView
-                        android:id="@+id/tour_punctuality"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:textSize="16sp"
-                        android:textColor="#212121"
-                        android:layout_marginTop="4dp" />
-
-                    <!-- Divider -->
-                    <View
-                        android:layout_width="match_parent"
-                        android:layout_height="1dp"
-                        android:background="#E0E0E0"
-                        android:layout_marginTop="16dp"
-                        android:layout_marginBottom="16dp" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Beneficios"
+                        android:text="🎁 Servicios del Tour"
                         android:textStyle="bold"
-                        android:textSize="18sp"
-                        android:textColor="@android:color/black" />
+                        android:textSize="16sp"
+                        android:textColor="@android:color/black"
+                        android:layout_marginBottom="8dp" />
+
+                    <!-- Contenedor para servicios dinámicos -->
+                    <LinearLayout
+                        android:id="@+id/servicios_container"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+
+                        <!-- Los servicios se añadirán dinámicamente -->
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Información del Pago Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="4dp"
+                android:backgroundTint="#E8F5E8">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
 
                     <TextView
-                        android:id="@+id/tour_benefits"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:text="💰 Tu Pago Como Guía"
+                        android:textStyle="bold"
                         android:textSize="16sp"
-                        android:textColor="#212121"
+                        android:textColor="#2E7D32"
+                        android:layout_marginBottom="8dp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Pago garantizado por tour:"
+                            android:textSize="14sp"
+                            android:textColor="#2E7D32" />
+
+                        <TextView
+                            android:id="@+id/pago_guia_amount"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="S/. 300"
+                            android:textSize="18sp"
+                            android:textStyle="bold"
+                            android:textColor="#2E7D32" />
+
+                    </LinearLayout>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="• Pago directo al finalizar el tour\n• Sin descuentos ni comisiones\n• Empresa verificada"
+                        android:textSize="12sp"
+                        android:textColor="#4CAF50"
                         android:layout_marginTop="8dp" />
 
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Ubicación Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="4dp"
+                android:backgroundTint="@android:color/white">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
                     <TextView
-                        android:id="@+id/tour_schedule"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:textSize="16sp"
-                        android:textColor="#212121"
-                        android:layout_marginTop="4dp" />
-
-                    <!-- Divider -->
-                    <View
-                        android:layout_width="match_parent"
-                        android:layout_height="1dp"
-                        android:background="#E0E0E0"
-                        android:layout_marginTop="16dp"
-                        android:layout_marginBottom="16dp" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Ubicación"
+                        android:text="📍 Punto de Encuentro"
                         android:textStyle="bold"
-                        android:textSize="18sp"
+                        android:textSize="16sp"
                         android:textColor="@android:color/black" />
 
                     <TextView
                         android:id="@+id/tour_meeting_point"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:textSize="16sp"
+                        android:textSize="14sp"
                         android:textColor="#212121"
                         android:layout_marginTop="8dp" />
 
                     <com.google.android.gms.maps.MapView
                         android:id="@+id/map_view"
                         android:layout_width="match_parent"
-                        android:layout_height="220dp"
+                        android:layout_height="200dp"
                         android:layout_marginTop="8dp" />
+
                 </LinearLayout>
-            </androidx.cardview.widget.CardView>
+
+            </com.google.android.material.card.MaterialCardView>
 
             <LinearLayout
                 android:layout_width="match_parent"

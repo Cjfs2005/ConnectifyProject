@@ -39,7 +39,7 @@
                 android:id="@+id/tour_price"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="S/. 450"
+                android:text="S/. 65"
                 android:textColor="#4CAF50"
                 android:textSize="18sp"
                 android:textStyle="bold" />
@@ -157,6 +157,18 @@
                 android:textColor="#FF9800" />
 
         </LinearLayout>
+
+        <!-- Itinerario resumido -->
+        <TextView
+            android:id="@+id/itinerarioText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="09:00 Plaza Mayor → 09:30 Catedral de Lima → 10:30 Palacio de Gobierno"
+            android:textSize="12sp"
+            android:textColor="#757575"
+            android:layout_marginBottom="8dp"
+            android:maxLines="2"
+            android:ellipsize="end" />
 
         <!-- Pago al guía -->
         <LinearLayout

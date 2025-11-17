@@ -6,6 +6,7 @@ import android.view.View;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -14,9 +15,12 @@ import com.example.connectifyproject.databinding.GuiaToursOfertasBinding;
 import com.example.connectifyproject.fragment.GuiaFilterDialogFragment;
 import com.example.connectifyproject.model.GuiaItem;
 import com.example.connectifyproject.model.GuiaTour;
+import com.example.connectifyproject.models.OfertaTour;
 import com.example.connectifyproject.service.GuiaNotificationService;
+import com.example.connectifyproject.services.TourFirebaseService;
 import com.example.connectifyproject.storage.GuiaPreferencesManager;
 import com.example.connectifyproject.ui.guia.GuiaTourAdapter;
+import com.example.connectifyproject.utils.TourDataSeeder;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import java.text.ParseException;
@@ -36,6 +40,10 @@ public class guia_tours_ofertas extends AppCompatActivity implements GuiaFilterD
     private boolean isLoading = false;
     private String currentDateFrom, currentDateTo, currentAmount, currentDuration, currentLanguages;
     
+    // Firebase Services
+    private TourFirebaseService tourService;
+    private List<OfertaTour> ofertasFirebase = new ArrayList<>();
+    
     // Servicios para notificaciones
     private GuiaNotificationService notificationService;
     private GuiaPreferencesManager preferencesManager;
@@ -46,6 +54,9 @@ public class guia_tours_ofertas extends AppCompatActivity implements GuiaFilterD
         binding = GuiaToursOfertasBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
+        // Inicializar servicios Firebase
+        tourService = new TourFirebaseService();
+        
         // Inicializar servicios para notificaciones
         notificationService = new GuiaNotificationService(this);
         preferencesManager = new GuiaPreferencesManager(this);
@@ -61,43 +72,26 @@ public class guia_tours_ofertas extends AppCompatActivity implements GuiaFilterD
             return true;
         });
 
-        // Hardcoded original data, duplicated for verification, limited to generate up to 20 items
-        originalTours.add(new GuiaTour("Tour por Centro Histórico de Lima", "Lima, Lima", 250, "9 horas", "Español,Inglés", "12:00", "02/10/2025",
-                "Visita Plaza de Armas, Catedral, etc.", "Pago neto, Almuerzo incluido, Certificado", "9:00 a.m. - 5:00 p.m.", "Avenida del Sol 1457, Playa Serena, Lima",
-                "LimaTours SAC", "Plaza de Armas (1hrs30min), Catedral(1hrs), Convento San Francisco(1hrs), Museo Larco(2hrs)", "1 año como guía turístico", "Puntualidad en puntos de encuentro", true, true));
-        originalTours.add(new GuiaTour("Tour por Centro Histórico de Lima", "Lima, Lima", 280, "8 horas", "Español,Francés", "11:00", "02/10/2025",
-                "Explora monumentos coloniales.", "Pago neto, Transporte incluido", "8:00 a.m. - 4:00 p.m.", "Plaza Mayor, Lima",
-                "PeruGuides Inc", "Catedral (2hrs), Museo (1hr30min)", "2 años experiencia", "Alta puntualidad requerida", true, false));
-        originalTours.add(new GuiaTour("Tour por Centro Histórico de Lima", "Lima, Lima", 250, "9 horas", "Español,Inglés", "12:00", "02/10/2025",
-                "Visita Plaza de Armas, Catedral, etc.", "Pago neto, Almuerzo incluido, Certificado", "9:00 a.m. - 5:00 p.m.", "Avenida del Sol 1457, Playa Serena, Lima",
-                "LimaTours SAC", "Plaza de Armas (1hrs30min), Catedral(1hrs), Convento San Francisco(1hrs), Museo Larco(2hrs)", "1 año como guía turístico", "Puntualidad en puntos de encuentro", true, true));
-        originalTours.add(new GuiaTour("Tour por Centro Histórico de Lima", "Lima, Lima", 280, "8 horas", "Español,Francés", "11:00", "02/10/2025",
-                "Explora monumentos coloniales.", "Pago neto, Transporte incluido", "8:00 a.m. - 4:00 p.m.", "Plaza Mayor, Lima",
-                "PeruGuides Inc", "Catedral (2hrs), Museo (1hr30min)", "2 años experiencia", "Alta puntualidad requerida", true, false));
-        originalTours.add(new GuiaTour("Tour por Centro Histórico de Lima", "Lima, Lima", 250, "9 horas", "Español,Inglés", "12:00", "02/10/2025",
-                "Visita Plaza de Armas, Catedral, etc.", "Pago neto, Almuerzo incluido, Certificado", "9:00 a.m. - 5:00 p.m.", "Avenida del Sol 1457, Playa Serena, Lima",
-                "LimaTours SAC", "Plaza de Armas (1hrs30min), Catedral(1hrs), Convento San Francisco(1hrs), Museo Larco(2hrs)", "1 año como guía turístico", "Puntualidad en puntos de encuentro", true, true));
-
+        // Configurar RecyclerView
         binding.recyclerView.setLayoutManager(new LinearLayoutManager(this));
         adapter = new GuiaTourAdapter(this, displayedItems);
         binding.recyclerView.setAdapter(adapter);
+
+        // SOLO EJECUTAR UNA VEZ para crear datos de prueba
+        //TourDataSeeder.crearOfertasDePrueba(); // Descomenta para crear ofertas de prueba
+        
+        // Cargar ofertas desde Firebase
+        cargarOfertasDesdeFirebase();
 
         // Add scroll listener for loading more as scroll
         binding.recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
                 super.onScrolled(recyclerView, dx, dy);
-                LinearLayoutManager layoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
-                int totalItemCount = layoutManager.getItemCount();
-                int lastVisibleItem = layoutManager.findLastVisibleItemPosition();
-                if (!isLoading && lastVisibleItem >= totalItemCount - 1 && dy > 0 && allTours.size() < 20) {
-                    loadMore();
-                }
+                // Deshabilitado el scroll infinito por ahora
+                // Se carga todo desde Firebase de una vez
             }
         });
-
-        // Load initial page after adapter is set
-        loadMore();
 
         binding.filterButton.setOnClickListener(v -> {
             GuiaFilterDialogFragment dialog = new GuiaFilterDialogFragment();
@@ -130,59 +124,168 @@ public class guia_tours_ofertas extends AppCompatActivity implements GuiaFilterD
         });
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        // Asegurar que "Ofertas" esté seleccionado cuando regresamos a esta actividad
-        if (binding.bottomNav != null) {
-            binding.bottomNav.setSelectedItemId(R.id.nav_ofertas);
-        }
+    /**
+     * Cargar ofertas desde Firebase
+     */
+    private void cargarOfertasDesdeFirebase() {
+        binding.noResultsView.setVisibility(View.GONE);
+        
+        tourService.getOfertasDisponibles(new TourFirebaseService.TourCallback() {
+            @Override
+            public void onSuccess(List<OfertaTour> ofertas) {
+                runOnUiThread(() -> {
+                    ofertasFirebase = ofertas;
+                    // Convertir ofertas de Firebase a modelo GuiaTour existente
+                    allTours.clear();
+                    for (OfertaTour oferta : ofertas) {
+                        GuiaTour tour = convertirOfertaToGuiaTour(oferta);
+                        allTours.add(tour);
+                    }
+                    
+                    // Aplicar filtros actuales
+                    onApplyFilters(currentDateFrom, currentDateTo, currentAmount, currentDuration, currentLanguages);
+                    
+                    if (allTours.isEmpty()) {
+                        mostrarMensajeNoOfertas();
+                    }
+                });
+            }
+            
+            @Override
+            public void onError(String error) {
+                runOnUiThread(() -> {
+                    Toast.makeText(guia_tours_ofertas.this, "Error: " + error, Toast.LENGTH_LONG).show();
+                    mostrarMensajeNoOfertas();
+                });
+            }
+        });
     }
-
-    private void loadMore() {
-        isLoading = true;
-        int offsetDays = allTours.size() / originalTours.size(); // Correct offset calculation
-        List<GuiaTour> moreTours = new ArrayList<>();
-        for (GuiaTour t : originalTours) {
-            if (allTours.size() + moreTours.size() >= 20) break;
-            String newDate = addDaysToDate(t.getDate(), offsetDays);
-            GuiaTour copy = new GuiaTour(
-                    t.getName(),
-                    t.getLocation(),
-                    t.getPrice(),
-                    t.getDuration(),
-                    t.getLanguages(),
-                    t.getStartTime(),
-                    newDate,
-                    t.getDescription(),
-                    t.getBenefits(),
-                    t.getSchedule(),
-                    t.getMeetingPoint(),
-                    t.getEmpresa(),
-                    t.getItinerario(),
-                    t.getExperienciaMinima(),
-                    t.getPuntualidad(),
-                    t.isTransporteIncluido(),
-                    t.isAlmuerzoIncluido()
-            );
-            moreTours.add(copy);
+    
+    /**
+     * Convertir OfertaTour de Firebase a GuiaTour para compatibilidad
+     */
+    private GuiaTour convertirOfertaToGuiaTour(OfertaTour oferta) {
+        // Extraer ubicación del primer punto del itinerario
+        String location = "Lima, Lima"; // Default
+        if (oferta.getItinerario() != null && !oferta.getItinerario().isEmpty()) {
+            Object lugarObj = oferta.getItinerario().get(0).get("lugar");
+            if (lugarObj != null) {
+                location = lugarObj.toString() + ", Lima";
+            }
         }
-        allTours.addAll(moreTours);
-        onApplyFilters(currentDateFrom, currentDateTo, currentAmount, currentDuration, currentLanguages);
-        isLoading = false;
+        
+        // Convertir PAGO AL GUÍA (no precio del tour)
+        int pagoGuia = (int) oferta.getPagoGuia();
+        
+        // Convertir idiomas de List<String> a String separado por comas
+        String idiomas = oferta.getIdiomasTexto();
+        
+        // Horario mejorado (solo hora de inicio)
+        String horario = "Inicio: " + oferta.getHoraInicio();
+        
+        // Punto de encuentro (primer lugar del itinerario)
+        String puntoEncuentro = "Por definir";
+        if (oferta.getItinerario() != null && !oferta.getItinerario().isEmpty()) {
+            Object lugarObj = oferta.getItinerario().get(0).get("lugar");
+            if (lugarObj != null) {
+                puntoEncuentro = lugarObj.toString();
+            }
+        }
+        
+        // Beneficios (información clara para el guía)
+        String beneficios = "Pago garantizado: S/. " + (int)oferta.getPagoGuia();
+        if (oferta.getServiciosAdicionales() != null) {
+            StringBuilder sb = new StringBuilder(beneficios);
+            for (Object servicioObj : oferta.getServiciosAdicionales()) {
+                if (servicioObj instanceof java.util.Map) {
+                    java.util.Map<String, Object> servicio = (java.util.Map<String, Object>) servicioObj;
+                    Boolean esPagado = (Boolean) servicio.get("esPagado");
+                    if (esPagado != null && !esPagado) {
+                        String nombre = (String) servicio.get("nombre");
+                        if (nombre != null) {
+                            sb.append(", ").append(nombre);
+                        }
+                    }
+                }
+            }
+            beneficios = sb.toString();
+        }
+        
+        // Crear GuiaTour compatible
+        GuiaTour tour = new GuiaTour(
+            oferta.getTitulo(),                    // name
+            location,                              // location  
+            pagoGuia,                              // price (usando PAGO AL GUÍA)
+            oferta.getDuracion(),                  // duration
+            idiomas,                               // languages
+            oferta.getHoraInicio(),               // startTime
+            oferta.getFechaRealizacion(),         // date
+            oferta.getDescripcion(),              // description
+            beneficios,                           // benefits
+            horario,                              // schedule
+            puntoEncuentro,                       // meetingPoint
+            oferta.getNombreEmpresa(),            // empresa
+            oferta.getResumenItinerario(),        // itinerario
+            oferta.getConsideraciones(),          // experienciaMinima
+            "Puntualidad requerida",              // puntualidad
+            true,                                 // transporteIncluido
+            false                                 // almuerzoIncluido
+        );
+        
+        // Guardar referencia al ID de Firebase
+        tour.setFirebaseId(oferta.getId());
+        
+        return tour;
     }
-
-    private String addDaysToDate(String dateStr, int days) {
-        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
-        try {
-            Date date = sdf.parse(dateStr);
-            Calendar cal = Calendar.getInstance();
-            cal.setTime(date);
-            cal.add(Calendar.DAY_OF_YEAR, days);
-            return sdf.format(cal.getTime());
-        } catch (ParseException e) {
-            return dateStr;
+    
+    /**
+     * Mostrar mensaje cuando no hay ofertas
+     */
+    private void mostrarMensajeNoOfertas() {
+        binding.noResultsView.setVisibility(View.VISIBLE);
+        binding.recyclerView.setVisibility(View.GONE);
+    }
+    
+    /**
+     * Aceptar oferta de tour
+     */
+    public void aceptarOferta(GuiaTour tour) {
+        if (tour.getFirebaseId() == null) {
+            Toast.makeText(this, "Error: ID de oferta no válido", Toast.LENGTH_SHORT).show();
+            return;
         }
+        
+        new AlertDialog.Builder(this)
+                .setTitle("Aceptar Tour")
+                .setMessage("¿Estás seguro de que quieres aceptar el tour '" + tour.getName() + "'?\n\nPago: S/. " + tour.getPrice())
+                .setPositiveButton("Aceptar", (dialog, which) -> {
+                    procesarAceptacionTour(tour);
+                })
+                .setNegativeButton("Cancelar", null)
+                .show();
+    }
+    
+    /**
+     * Procesar la aceptación del tour
+     */
+    private void procesarAceptacionTour(GuiaTour tour) {
+        tourService.aceptarOferta(tour.getFirebaseId(), new TourFirebaseService.OperationCallback() {
+            @Override
+            public void onSuccess(String message) {
+                runOnUiThread(() -> {
+                    Toast.makeText(guia_tours_ofertas.this, message, Toast.LENGTH_LONG).show();
+                    // Recargar ofertas para quitar la aceptada
+                    cargarOfertasDesdeFirebase();
+                });
+            }
+            
+            @Override
+            public void onError(String error) {
+                runOnUiThread(() -> {
+                    Toast.makeText(guia_tours_ofertas.this, "Error: " + error, Toast.LENGTH_LONG).show();
+                });
+            }
+        });
     }
 
     @Override
@@ -249,7 +352,7 @@ public class guia_tours_ofertas extends AppCompatActivity implements GuiaFilterD
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
         try {
             Date tourDate = sdf.parse(date);
-            Date today = sdf.parse("02/10/2025"); // Current date
+            Date today = sdf.parse("04/11/2025"); // Current date
             if (sdf.format(today).equals(date)) {
                 return "Hoy, " + date.replace("/", " de ");
             } else {
@@ -273,6 +376,26 @@ public class guia_tours_ofertas extends AppCompatActivity implements GuiaFilterD
             Toast.makeText(this, "📍 Recordatorio de ubicación enviado", Toast.LENGTH_SHORT).show();
         } else {
             Toast.makeText(this, "⚠️ Recordatorios de ubicación desactivados", Toast.LENGTH_SHORT).show();
+        }
+    }
+    
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        
+        if (requestCode == 1001 && resultCode == RESULT_OK && data != null) { // REQUEST_CODE_TOUR_DETAIL
+            boolean ofertaAceptada = data.getBooleanExtra("oferta_aceptada", false);
+            boolean ofertaRechazada = data.getBooleanExtra("oferta_rechazada", false);
+            String firebaseId = data.getStringExtra("firebase_id");
+            
+            if (ofertaAceptada || ofertaRechazada) {
+                // Recargar las ofertas desde Firebase para reflejar los cambios
+                cargarOfertasDesdeFirebase();
+                
+                if (ofertaAceptada) {
+                    Toast.makeText(this, "¡Oferta aceptada exitosamente!", Toast.LENGTH_SHORT).show();
+                }
+            }
         }
     }
 }

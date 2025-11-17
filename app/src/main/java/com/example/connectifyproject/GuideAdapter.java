@@ -8,6 +8,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+import com.bumptech.glide.Glide;
 import java.util.List;
 
 public class GuideAdapter extends RecyclerView.Adapter<GuideAdapter.GuideViewHolder> {
@@ -54,24 +55,34 @@ public class GuideAdapter extends RecyclerView.Adapter<GuideAdapter.GuideViewHol
 
         public GuideViewHolder(@NonNull View itemView) {
             super(itemView);
-            imgProfile = itemView.findViewById(R.id.img_guide_profile);
+            imgProfile = itemView.findViewById(R.id.iv_guide_profile);
             tvName = itemView.findViewById(R.id.tv_guide_name);
             tvRating = itemView.findViewById(R.id.tv_guide_rating);
             tvLanguages = itemView.findViewById(R.id.tv_guide_languages);
             tvLocation = itemView.findViewById(R.id.tv_guide_location);
-            tvTours = itemView.findViewById(R.id.tv_guide_tours);
+            tvTours = itemView.findViewById(R.id.tv_guide_tour_count);
             btnSelect = itemView.findViewById(R.id.btn_select_guide);
         }
 
         public void bind(admin_select_guide.GuideItem guide) {
             tvName.setText(guide.name);
             tvRating.setText(String.format("★ %.1f", guide.rating));
-            tvLanguages.setText(guide.languages);
+            // Convertir lista de idiomas a String separado por comas
+            tvLanguages.setText(guide.languages != null ? String.join(", ", guide.languages) : "");
             tvLocation.setText("Lima, Perú"); // Ubicación por defecto
             tvTours.setText(String.format("%d tours", guide.tourCount));
 
-            // Usar la imagen del recurso drawable
-            imgProfile.setImageResource(guide.profileImage);
+            // Cargar imagen con Glide desde URL (profileImageUrl) o placeholder
+            if (guide.profileImageUrl != null && !guide.profileImageUrl.isEmpty()) {
+                Glide.with(itemView.getContext())
+                    .load(guide.profileImageUrl)
+                    .placeholder(R.drawable.placeholder_profile)
+                    .error(R.drawable.placeholder_profile)
+                    .circleCrop()
+                    .into(imgProfile);
+            } else {
+                imgProfile.setImageResource(R.drawable.placeholder_profile);
+            }
 
             btnSelect.setOnClickListener(v -> {
                 if (listener != null) {

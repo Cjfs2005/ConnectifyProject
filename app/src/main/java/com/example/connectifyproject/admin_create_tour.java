@@ -2,21 +2,28 @@ package com.example.connectifyproject;
 
 import android.app.DatePickerDialog;
 import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.location.Address;
 import android.location.Geocoder;
+import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewParent;
 import android.widget.Toast;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import com.example.connectifyproject.adapters.PlaceActivityAdapter;
 import com.example.connectifyproject.adapters.TourPlaceAdapter;
 import com.example.connectifyproject.adapters.TourServiceAdapter;
 import com.example.connectifyproject.databinding.AdminCreateTourViewBinding;
+import com.example.connectifyproject.models.TourBorrador;
 import com.example.connectifyproject.models.TourPlace;
 import com.example.connectifyproject.models.TourService;
+import com.example.connectifyproject.services.AdminTourService;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -28,12 +35,18 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.materialswitch.MaterialSwitch;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
+import com.google.firebase.Timestamp;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FirebaseFirestore;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 public class admin_create_tour extends AppCompatActivity implements OnMapReadyCallback {
     
@@ -48,6 +61,11 @@ public class admin_create_tour extends AppCompatActivity implements OnMapReadyCa
     private String tourPrice;
     private String tourDuration;
     private String tourDate;
+    private String tourStartTime;
+    private String tourEndTime;
+    private String pagoGuia;
+    private List<String> selectedIdiomas;
+    private String consideraciones;
     private List<TourPlace> selectedPlaces;
     private List<TourService> additionalServices;
     
@@ -59,6 +77,21 @@ public class admin_create_tour extends AppCompatActivity implements OnMapReadyCa
     
     private Calendar selectedCalendar;
     private SimpleDateFormat dateFormat;
+    
+    // Firebase
+    private AdminTourService adminTourService;
+    private FirebaseAuth auth;
+    private FirebaseFirestore db;
+    private String empresaId;
+    private String nombreEmpresa; // Nombre de la empresa del usuario
+    private String correoEmpresa; // Correo de la empresa del usuario
+    private String currentBorradorId; // ID del borrador actual
+    
+    // Gestión de imágenes
+    private List<Uri> selectedImageUris; // URIs locales de imágenes seleccionadas
+    private List<String> uploadedImageUrls; // URLs de imágenes ya subidas a Storage
+    private ActivityResultLauncher<String> imagePickerLauncher;
+    private ProgressDialog progressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,17 +99,100 @@ public class admin_create_tour extends AppCompatActivity implements OnMapReadyCa
         binding = AdminCreateTourViewBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
         
+        initializeFirebase();
         initializeData();
+        setupImagePicker();
         setupUI();
         setupListeners();
         setupAdapters();
         initializeMaps();
         updateStepVisibility();
     }
+    
+    private void initializeFirebase() {
+        adminTourService = new AdminTourService();
+        auth = FirebaseAuth.getInstance();
+        db = FirebaseFirestore.getInstance();
+        
+        // Obtener empresaId del usuario actual
+        // Para usuarios tipo Administrador, el empresaId es el mismo UID
+        if (auth.getCurrentUser() != null) {
+            String userId = auth.getCurrentUser().getUid();
+            
+            db.collection("usuarios").document(userId).get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        String rol = documentSnapshot.getString("rol");
+                        
+                        // Si es administrador, el empresaId es el mismo UID
+                        if ("Administrador".equals(rol)) {
+                            empresaId = userId;
+                            
+                            // Obtener datos de la empresa
+                            nombreEmpresa = documentSnapshot.getString("nombreEmpresa");
+                            correoEmpresa = documentSnapshot.getString("correoEmpresa");
+                            
+                            // Si no tiene correoEmpresa, usar el email del usuario
+                            if (correoEmpresa == null || correoEmpresa.isEmpty()) {
+                                correoEmpresa = documentSnapshot.getString("email");
+                            }
+                            
+                            Log.d("AdminCreateTour", "EmpresaId: " + empresaId + 
+                                  ", Nombre: " + nombreEmpresa + ", Correo: " + correoEmpresa);
+                        } else {
+                            // Si tiene empresaId como campo (casos legacy), usarlo
+                            String empresaIdField = documentSnapshot.getString("empresaId");
+                            if (empresaIdField != null && !empresaIdField.isEmpty()) {
+                                empresaId = empresaIdField;
+                            } else {
+                                empresaId = userId; // Fallback al UID
+                            }
+                            nombreEmpresa = documentSnapshot.getString("nombreEmpresa");
+                            correoEmpresa = documentSnapshot.getString("correoEmpresa");
+                        }
+                    } else {
+                        Toast.makeText(this, "No se encontró información del usuario", Toast.LENGTH_SHORT).show();
+                        Log.e("AdminCreateTour", "Documento de usuario no existe");
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Error al obtener datos de usuario: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    Log.e("AdminCreateTour", "Error al obtener datos de usuario", e);
+                });
+        } else {
+            Toast.makeText(this, "Usuario no autenticado", Toast.LENGTH_SHORT).show();
+            Log.e("AdminCreateTour", "Usuario no autenticado");
+        }
+    }
+    
+    private void setupImagePicker() {
+        imagePickerLauncher = registerForActivityResult(
+            new ActivityResultContracts.GetMultipleContents(),
+            uris -> {
+                if (uris != null && !uris.isEmpty()) {
+                    if (selectedImageUris.size() + uris.size() > 3) {
+                        Toast.makeText(this, "Máximo 3 imágenes permitidas", Toast.LENGTH_SHORT).show();
+                        // Tomar solo las que caben
+                        int remaining = 3 - selectedImageUris.size();
+                        for (int i = 0; i < Math.min(remaining, uris.size()); i++) {
+                            selectedImageUris.add(uris.get(i));
+                        }
+                    } else {
+                        selectedImageUris.addAll(uris);
+                    }
+                    updateImagePreview();
+                    Toast.makeText(this, selectedImageUris.size() + " imagen(es) seleccionada(s)", Toast.LENGTH_SHORT).show();
+                }
+            }
+        );
+    }
 
     private void initializeData() {
         selectedPlaces = new ArrayList<>();
         additionalServices = new ArrayList<>();
+        selectedImageUris = new ArrayList<>();
+        uploadedImageUrls = new ArrayList<>();
+        selectedIdiomas = new ArrayList<>();
         selectedCalendar = Calendar.getInstance();
         dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
         binding.etTourDate.setText(dateFormat.format(selectedCalendar.getTime()));
@@ -89,20 +205,28 @@ public class admin_create_tour extends AppCompatActivity implements OnMapReadyCa
             getSupportActionBar().setDisplayShowHomeEnabled(true);
         }
         
-        // Configurar listener para el ícono de búsqueda
+        // Configurar listener para el ícono de búsqueda después del inflado
         setupSearchIconListener();
     }
     
     private void setupSearchIconListener() {
-        // El TextInputLayout con ícono de búsqueda necesita ser configurado después del inflado
-        binding.getRoot().post(() -> {
-            // Buscar el TextInputLayout que contiene el campo de búsqueda
-            ViewParent parent = findViewById(R.id.et_search_places).getParent();
-            if (parent instanceof TextInputLayout) {
-                TextInputLayout tilSearch = (TextInputLayout) parent;
-                tilSearch.setEndIconOnClickListener(v -> searchLocation());
-            }
-        });
+        Log.d("AdminCreateTour", ">>> setupSearchIconListener() INICIADO <<<");
+        
+        // Usar findViewById directamente con el ID del TextInputLayout
+        TextInputLayout tilSearch = findViewById(R.id.til_search_places);
+        
+        if (tilSearch != null) {
+            Log.d("AdminCreateTour", "✓ TextInputLayout encontrado con findViewById");
+            
+            tilSearch.setEndIconOnClickListener(v -> {
+                Log.d("AdminCreateTour", "✓✓✓ ÍCONO DE LUPA PRESIONADO ✓✓✓");
+                searchLocation();
+            });
+            
+            Log.d("AdminCreateTour", "✓ Listener configurado exitosamente");
+        } else {
+            Log.e("AdminCreateTour", "✗ ERROR: TextInputLayout NO encontrado");
+        }
     }
 
     private void setupListeners() {
@@ -115,6 +239,18 @@ public class admin_create_tour extends AppCompatActivity implements OnMapReadyCa
         binding.btnAddService.setOnClickListener(v -> showAddServiceDialog());
         binding.etTourDate.setOnClickListener(v -> showDatePicker());
         
+        // Listeners para los time pickers
+        binding.etTourStartTime.setOnClickListener(v -> showTimePickerStart());
+        binding.etTourEndTime.setOnClickListener(v -> showTimePickerEnd());
+        
+        // Listener para selector de idiomas
+        binding.etIdiomasRequeridos.setOnClickListener(v -> showIdiomasDialog());
+        
+        // Botón para seleccionar imágenes (agregar en el layout si no existe)
+        if (binding.btnSelectImages != null) {
+            binding.btnSelectImages.setOnClickListener(v -> selectImages());
+        }
+        
         // Agregar listener para búsqueda de lugares con Enter
         binding.etSearchPlaces.setOnEditorActionListener((v, actionId, event) -> {
             searchLocation();
@@ -122,6 +258,22 @@ public class admin_create_tour extends AppCompatActivity implements OnMapReadyCa
         });
         
         binding.topAppBar.setNavigationOnClickListener(v -> onBackPressed());
+    }
+    
+    private void selectImages() {
+        if (selectedImageUris.size() >= 3) {
+            Toast.makeText(this, "Ya ha seleccionado el máximo de 3 imágenes", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        imagePickerLauncher.launch("image/*");
+    }
+    
+    private void updateImagePreview() {
+        // Aquí podrías actualizar un RecyclerView o ImageView con las imágenes seleccionadas
+        // Por ahora solo mostramos el contador
+        if (binding.tvImageCount != null) {
+            binding.tvImageCount.setText(selectedImageUris.size() + "/3 imágenes");
+        }
     }
 
     private void setupAdapters() {
@@ -152,6 +304,135 @@ public class admin_create_tour extends AppCompatActivity implements OnMapReadyCa
         datePickerDialog.getDatePicker().setMinDate(System.currentTimeMillis());
         datePickerDialog.show();
     }
+    
+    private void showTimePickerStart() {
+        Calendar currentTime = Calendar.getInstance();
+        int hour = currentTime.get(Calendar.HOUR_OF_DAY);
+        int minute = currentTime.get(Calendar.MINUTE);
+        
+        android.app.TimePickerDialog timePickerDialog = new android.app.TimePickerDialog(
+            this,
+            (view, hourOfDay, minuteOfDay) -> {
+                tourStartTime = String.format(Locale.getDefault(), "%02d:%02d", hourOfDay, minuteOfDay);
+                binding.etTourStartTime.setText(tourStartTime);
+                
+                // Calcular duración automáticamente si ya hay hora de fin
+                calcularDuracion();
+            },
+            hour,
+            minute,
+            true // Formato 24 horas
+        );
+        timePickerDialog.show();
+    }
+    
+    private void showTimePickerEnd() {
+        Calendar currentTime = Calendar.getInstance();
+        int hour = currentTime.get(Calendar.HOUR_OF_DAY);
+        int minute = currentTime.get(Calendar.MINUTE);
+        
+        android.app.TimePickerDialog timePickerDialog = new android.app.TimePickerDialog(
+            this,
+            (view, hourOfDay, minuteOfDay) -> {
+                tourEndTime = String.format(Locale.getDefault(), "%02d:%02d", hourOfDay, minuteOfDay);
+                binding.etTourEndTime.setText(tourEndTime);
+                
+                // Calcular duración automáticamente si ya hay hora de inicio
+                calcularDuracion();
+            },
+            hour,
+            minute,
+            true // Formato 24 horas
+        );
+        timePickerDialog.show();
+    }
+    
+    /**
+     * Calcula automáticamente la duración del tour basándose en hora inicio y fin
+     */
+    private void calcularDuracion() {
+        if (tourStartTime != null && !tourStartTime.isEmpty() && 
+            tourEndTime != null && !tourEndTime.isEmpty()) {
+            
+            try {
+                // Parse hora inicio
+                String[] startParts = tourStartTime.split(":");
+                int startHour = Integer.parseInt(startParts[0]);
+                int startMinute = Integer.parseInt(startParts[1]);
+                
+                // Parse hora fin
+                String[] endParts = tourEndTime.split(":");
+                int endHour = Integer.parseInt(endParts[0]);
+                int endMinute = Integer.parseInt(endParts[1]);
+                
+                // Calcular diferencia en minutos
+                int startTotalMinutes = startHour * 60 + startMinute;
+                int endTotalMinutes = endHour * 60 + endMinute;
+                int differenceMinutes = endTotalMinutes - startTotalMinutes;
+                
+                // Si la hora de fin es menor que la de inicio, asumir que cruza medianoche
+                if (differenceMinutes < 0) {
+                    differenceMinutes += 24 * 60; // Agregar 24 horas
+                }
+                
+                // Convertir a horas con decimales
+                double durationHours = differenceMinutes / 60.0;
+                
+                // Formatear y mostrar duración
+                String duracionFormateada;
+                if (differenceMinutes % 60 == 0) {
+                    // Duración exacta en horas (ej: 2 hrs, 3 hrs)
+                    duracionFormateada = String.valueOf((int) durationHours);
+                } else {
+                    // Duración con decimales (ej: 2.5 hrs, 1.75 hrs)
+                    duracionFormateada = String.format(Locale.getDefault(), "%.2f", durationHours);
+                }
+                
+                binding.etTourDuration.setText(duracionFormateada);
+                
+                // Mostrar mensaje informativo
+                Toast.makeText(this, 
+                    "Duración calculada: " + duracionFormateada + " hrs", 
+                    Toast.LENGTH_SHORT).show();
+                
+            } catch (Exception e) {
+                Log.e("AdminCreateTour", "Error al calcular duración", e);
+            }
+        }
+    }
+    
+    private void showIdiomasDialog() {
+        String[] idiomasDisponibles = {"Español", "Inglés", "Francés", "Alemán", "Portugués", "Italiano", "Chino", "Japonés"};
+        boolean[] idiomasSeleccionados = new boolean[idiomasDisponibles.length];
+        
+        // Marcar los idiomas ya seleccionados
+        for (int i = 0; i < idiomasDisponibles.length; i++) {
+            if (selectedIdiomas.contains(idiomasDisponibles[i])) {
+                idiomasSeleccionados[i] = true;
+            }
+        }
+        
+        new MaterialAlertDialogBuilder(this)
+            .setTitle("Seleccionar idiomas requeridos")
+            .setMultiChoiceItems(idiomasDisponibles, idiomasSeleccionados, (dialog, which, isChecked) -> {
+                if (isChecked) {
+                    if (!selectedIdiomas.contains(idiomasDisponibles[which])) {
+                        selectedIdiomas.add(idiomasDisponibles[which]);
+                    }
+                } else {
+                    selectedIdiomas.remove(idiomasDisponibles[which]);
+                }
+            })
+            .setPositiveButton("Aceptar", (dialog, which) -> {
+                if (selectedIdiomas.isEmpty()) {
+                    binding.etIdiomasRequeridos.setText("");
+                } else {
+                    binding.etIdiomasRequeridos.setText(String.join(", ", selectedIdiomas));
+                }
+            })
+            .setNegativeButton("Cancelar", null)
+            .show();
+    }
 
     private void addPlace() {
         String searchText = binding.etSearchPlaces.getText().toString().trim();
@@ -181,12 +462,18 @@ public class admin_create_tour extends AppCompatActivity implements OnMapReadyCa
     }
 
     private void searchLocation() {
+        Log.d("AdminCreateTour", ">>> searchLocation() INICIADO <<<");
+        
         String searchText = binding.etSearchPlaces.getText().toString().trim();
+        Log.d("AdminCreateTour", "Texto de búsqueda: '" + searchText + "'");
+        
         if (searchText.isEmpty()) {
             binding.etSearchPlaces.setError("Ingrese el nombre del lugar a buscar");
+            Log.d("AdminCreateTour", "Búsqueda cancelada: texto vacío");
             return;
         }
 
+        Log.d("AdminCreateTour", "Iniciando Geocoder...");
         Geocoder geocoder = new Geocoder(this, Locale.getDefault());
         try {
             List<Address> addresses = geocoder.getFromLocationName(searchText, 1);
@@ -199,10 +486,18 @@ public class admin_create_tour extends AppCompatActivity implements OnMapReadyCa
                     mMapPlaces.addMarker(new MarkerOptions()
                             .position(location)
                             .title(searchText));
-                    mMapPlaces.moveCamera(CameraUpdateFactory.newLatLngZoom(location, 15));
+                    
+                    // Animar cámara con zoom apropiado para ver detalles
+                    // Zoom 16 = vista de calle/edificios
+                    mMapPlaces.animateCamera(
+                        CameraUpdateFactory.newLatLngZoom(location, 16),
+                        1000, // Duración de animación en ms
+                        null
+                    );
+                    
                     selectedLocation = location;
                     
-                    Toast.makeText(this, "Ubicación encontrada. Verifique en el mapa y presione 'Agregar al Recorrido'", 
+                    Toast.makeText(this, "✓ Ubicación encontrada. Verifique en el mapa y presione 'Agregar al Recorrido'", 
                             Toast.LENGTH_LONG).show();
                 } else {
                     Toast.makeText(this, "Error: Mapa no disponible", Toast.LENGTH_SHORT).show();
@@ -324,6 +619,8 @@ public class admin_create_tour extends AppCompatActivity implements OnMapReadyCa
         tourDescription = binding.etTourDescription.getText().toString().trim();
         tourPrice = binding.etTourPrice.getText().toString().trim();
         tourDuration = binding.etTourDuration.getText().toString().trim();
+        tourStartTime = binding.etTourStartTime.getText().toString().trim();
+        tourEndTime = binding.etTourEndTime.getText().toString().trim();
         
         if (tourTitle.isEmpty()) {
             binding.etTourTitle.setError("Ingrese el titulo del tour");
@@ -339,6 +636,16 @@ public class admin_create_tour extends AppCompatActivity implements OnMapReadyCa
         }
         if (tourDuration.isEmpty()) {
             binding.etTourDuration.setError("Ingrese la duracion");
+            return false;
+        }
+        if (tourStartTime.isEmpty()) {
+            binding.etTourStartTime.setError("Seleccione la hora de inicio");
+            Toast.makeText(this, "Seleccione la hora de inicio del tour", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+        if (tourEndTime.isEmpty()) {
+            binding.etTourEndTime.setError("Seleccione la hora de fin");
+            Toast.makeText(this, "Seleccione la hora de fin del tour", Toast.LENGTH_SHORT).show();
             return false;
         }
         return true;
@@ -362,6 +669,36 @@ public class admin_create_tour extends AppCompatActivity implements OnMapReadyCa
     }
 
     private boolean validateStep4() {
+        pagoGuia = binding.etPagoGuia.getText().toString().trim();
+        consideraciones = binding.etConsideraciones.getText().toString().trim();
+        
+        // Validar pago al guía
+        if (pagoGuia.isEmpty()) {
+            binding.etPagoGuia.setError("Ingrese el pago al guía");
+            Toast.makeText(this, "Debe especificar el pago al guía", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+        
+        try {
+            double pago = Double.parseDouble(pagoGuia);
+            if (pago <= 0) {
+                binding.etPagoGuia.setError("El pago debe ser mayor a 0");
+                Toast.makeText(this, "El pago al guía debe ser mayor a 0", Toast.LENGTH_SHORT).show();
+                return false;
+            }
+        } catch (NumberFormatException e) {
+            binding.etPagoGuia.setError("Ingrese un monto válido");
+            Toast.makeText(this, "Ingrese un monto válido para el pago al guía", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+        
+        // Validar idiomas
+        if (selectedIdiomas.isEmpty()) {
+            binding.etIdiomasRequeridos.setError("Seleccione al menos un idioma");
+            Toast.makeText(this, "Debe seleccionar al menos un idioma requerido", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+        
         return true;
     }
 
@@ -448,15 +785,305 @@ public class admin_create_tour extends AppCompatActivity implements OnMapReadyCa
     }
 
     private void saveDraft() {
-        Toast.makeText(this, "Borrador guardado", Toast.LENGTH_SHORT).show();
+        if (!validateCurrentStep()) {
+            return;
+        }
+        
+        if (empresaId == null) {
+            Toast.makeText(this, "Error: No se pudo obtener datos de la empresa", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
+        // Validar que haya al menos 1 imagen
+        if (selectedImageUris.isEmpty() && uploadedImageUrls.isEmpty()) {
+            Toast.makeText(this, "Debe seleccionar al menos 1 imagen del tour", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
+        showProgressDialog("Guardando borrador...");
+        
+        // Si hay nuevas imágenes, subirlas primero
+        if (!selectedImageUris.isEmpty()) {
+            uploadImagesAndSaveDraft();
+        } else {
+            // Si no hay nuevas imágenes, guardar directamente
+            saveBorradorToFirebase();
+        }
+    }
+    
+    private void uploadImagesAndSaveDraft() {
+        // Crear o usar ID de borrador
+        if (currentBorradorId == null) {
+            currentBorradorId = db.collection("tours_borradores").document().getId();
+        }
+        
+        List<com.google.android.gms.tasks.Task<String>> uploadTasks = new ArrayList<>();
+        
+        for (int i = 0; i < selectedImageUris.size(); i++) {
+            Uri imageUri = selectedImageUris.get(i);
+            int imageIndex = uploadedImageUrls.size() + i;
+            
+            com.google.android.gms.tasks.Task<String> uploadTask = adminTourService.subirImagenBorrador(
+                imageUri, empresaId, currentBorradorId, imageIndex
+            );
+            uploadTasks.add(uploadTask);
+        }
+        
+        // Esperar a que todas las imágenes se suban
+        com.google.android.gms.tasks.Tasks.whenAllSuccess(uploadTasks)
+            .addOnSuccessListener(urls -> {
+                // Agregar las nuevas URLs a la lista
+                for (Object url : urls) {
+                    uploadedImageUrls.add((String) url);
+                }
+                
+                // Limpiar URIs locales ya que ya están subidas
+                selectedImageUris.clear();
+                updateImagePreview();
+                
+                // Ahora guardar el borrador
+                saveBorradorToFirebase();
+            })
+            .addOnFailureListener(e -> {
+                dismissProgressDialog();
+                Toast.makeText(this, "Error al subir imágenes: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            });
+    }
+    
+    private void saveBorradorToFirebase() {
+        // Validar que se hayan obtenido los datos de la empresa
+        if (empresaId == null || empresaId.isEmpty()) {
+            dismissProgressDialog();
+            Toast.makeText(this, "Error: No se pudo obtener datos de la empresa", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
+        TourBorrador borrador = createBorradorFromData();
+        
+        adminTourService.guardarBorrador(borrador)
+            .addOnSuccessListener(borradorId -> {
+                dismissProgressDialog();
+                currentBorradorId = borradorId;
+                Toast.makeText(this, "Borrador guardado exitosamente", Toast.LENGTH_SHORT).show();
+                
+                // Regresar a la vista de gestión de tours
+                Intent intent = new Intent(this, admin_tours.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                startActivity(intent);
+                finish();
+            })
+            .addOnFailureListener(e -> {
+                dismissProgressDialog();
+                Toast.makeText(this, "Error al guardar borrador: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            });
+    }
+    
+    private TourBorrador createBorradorFromData() {
+        TourBorrador borrador = new TourBorrador();
+        
+        if (currentBorradorId != null) {
+            borrador.setId(currentBorradorId);
+        }
+        
+        borrador.setTitulo(tourTitle != null ? tourTitle : binding.etTourTitle.getText().toString().trim());
+        borrador.setDescripcion(tourDescription != null ? tourDescription : binding.etTourDescription.getText().toString().trim());
+        
+        try {
+            double precio = Double.parseDouble(tourPrice != null ? tourPrice : binding.etTourPrice.getText().toString().trim());
+            borrador.setPrecio(precio);
+        } catch (NumberFormatException e) {
+            borrador.setPrecio(0.0);
+        }
+        
+        // Duracion como String (ej: "2 horas", "4.5 horas")
+        String duracion = tourDuration != null ? tourDuration : binding.etTourDuration.getText().toString().trim();
+        borrador.setDuracion(duracion);
+        
+        // Hora de inicio y fin
+        borrador.setHoraInicio(tourStartTime != null ? tourStartTime : binding.etTourStartTime.getText().toString().trim());
+        borrador.setHoraFin(tourEndTime != null ? tourEndTime : binding.etTourEndTime.getText().toString().trim());
+        
+        // Convertir fecha Calendar a String dd/MM/yyyy
+        if (selectedCalendar != null) {
+            SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+            String fechaStr = dateFormat.format(selectedCalendar.getTime());
+            borrador.setFechaRealizacion(fechaStr);
+        }
+        
+        // Convertir itinerario (List<TourPlace> a List<Map>)
+        List<Map<String, Object>> itinerario = new ArrayList<>();
+        for (TourPlace place : selectedPlaces) {
+            Map<String, Object> placeMap = new HashMap<>();
+            placeMap.put("nombre", place.getName());
+            placeMap.put("direccion", place.getAddress());
+            placeMap.put("latitud", place.getLatitude());
+            placeMap.put("longitud", place.getLongitude());
+            itinerario.add(placeMap);
+        }
+        borrador.setItinerario(itinerario);
+        
+        // Convertir servicios adicionales
+        List<Map<String, Object>> servicios = new ArrayList<>();
+        for (TourService service : additionalServices) {
+            Map<String, Object> serviceMap = new HashMap<>();
+            serviceMap.put("nombre", service.getName());
+            serviceMap.put("esPagado", service.isPaid());
+            serviceMap.put("precio", service.getPrice());
+            serviceMap.put("descripcion", service.getDescription());
+            servicios.add(serviceMap);
+        }
+        borrador.setServiciosAdicionales(servicios);
+        
+        borrador.setImagenesUrls(new ArrayList<>(uploadedImageUrls));
+        borrador.setImagenPrincipal(uploadedImageUrls.isEmpty() ? null : uploadedImageUrls.get(0));
+        
+        // Idiomas requeridos
+        borrador.setIdiomasRequeridos(new ArrayList<>(selectedIdiomas));
+        
+        // Pago al guía
+        try {
+            double pagoGuiaValue = Double.parseDouble(pagoGuia != null ? pagoGuia : binding.etPagoGuia.getText().toString().trim());
+            borrador.setPagoGuia(pagoGuiaValue);
+        } catch (NumberFormatException e) {
+            borrador.setPagoGuia(0.0);
+        }
+        
+        // Consideraciones para el guía
+        borrador.setConsideraciones(consideraciones != null ? consideraciones : binding.etConsideraciones.getText().toString().trim());
+        
+        // Datos de la empresa
+        borrador.setEmpresaId(empresaId);
+        borrador.setNombreEmpresa(nombreEmpresa);
+        borrador.setCorreoEmpresa(correoEmpresa);
+        borrador.setCreadoPor(auth.getCurrentUser() != null ? auth.getCurrentUser().getUid() : "");
+        
+        return borrador;
     }
 
     private void finishTour() {
-        if (validateCurrentStep()) {
-            Intent intent = new Intent(this, admin_tours.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivity(intent);
-            finish();
+        if (!validateCurrentStep()) {
+            return;
+        }
+        
+        if (empresaId == null) {
+            Toast.makeText(this, "Error: No se pudo obtener datos de la empresa", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
+        // Validar que haya al menos 1 imagen
+        if (selectedImageUris.isEmpty() && uploadedImageUrls.isEmpty()) {
+            Toast.makeText(this, "Debe seleccionar al menos 1 imagen del tour", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
+        showProgressDialog("Publicando tour...");
+        
+        // Si hay nuevas imágenes, subirlas primero
+        if (!selectedImageUris.isEmpty()) {
+            uploadImagesAndPublish();
+        } else {
+            // Si no hay nuevas imágenes, publicar directamente
+            publishTourOffer();
+        }
+    }
+    
+    private void uploadImagesAndPublish() {
+        // Crear o usar ID de borrador
+        if (currentBorradorId == null) {
+            currentBorradorId = db.collection("tours_borradores").document().getId();
+        }
+        
+        List<com.google.android.gms.tasks.Task<String>> uploadTasks = new ArrayList<>();
+        
+        for (int i = 0; i < selectedImageUris.size(); i++) {
+            Uri imageUri = selectedImageUris.get(i);
+            int imageIndex = uploadedImageUrls.size() + i;
+            
+            com.google.android.gms.tasks.Task<String> uploadTask = adminTourService.subirImagenBorrador(
+                imageUri, empresaId, currentBorradorId, imageIndex
+            );
+            uploadTasks.add(uploadTask);
+        }
+        
+        // Esperar a que todas las imágenes se suban
+        com.google.android.gms.tasks.Tasks.whenAllSuccess(uploadTasks)
+            .addOnSuccessListener(urls -> {
+                // Agregar las nuevas URLs a la lista
+                for (Object url : urls) {
+                    uploadedImageUrls.add((String) url);
+                }
+                
+                selectedImageUris.clear();
+                
+                // Ahora publicar
+                publishTourOffer();
+            })
+            .addOnFailureListener(e -> {
+                dismissProgressDialog();
+                Toast.makeText(this, "Error al subir imágenes: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            });
+    }
+    
+    private void publishTourOffer() {
+        // Validar que se hayan obtenido los datos de la empresa
+        if (empresaId == null || empresaId.isEmpty()) {
+            dismissProgressDialog();
+            Toast.makeText(this, "Error: No se pudo obtener datos de la empresa", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
+        // Primero guardar como borrador si no existe
+        TourBorrador borrador = createBorradorFromData();
+        
+        adminTourService.guardarBorrador(borrador)
+            .addOnSuccessListener(borradorId -> {
+                currentBorradorId = borradorId;
+                
+                // Validar que el borrador sea válido
+                if (!borrador.esValido()) {
+                    dismissProgressDialog();
+                    Toast.makeText(this, "Complete todos los campos requeridos (título, descripción, precio, duración, fecha, imágenes, idiomas)", 
+                        Toast.LENGTH_LONG).show();
+                    return;
+                }
+                
+                // Ahora publicar la oferta
+                adminTourService.publicarOferta(borradorId)
+                    .addOnSuccessListener(ofertaId -> {
+                        dismissProgressDialog();
+                        Toast.makeText(this, "Tour publicado exitosamente", Toast.LENGTH_SHORT).show();
+                        
+                        // Navegar a selección de guía
+                        Intent intent = new Intent(this, admin_select_guide.class);
+                        intent.putExtra("ofertaId", ofertaId);
+                        intent.putExtra("tourTitulo", borrador.getTitulo());
+                        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                        startActivity(intent);
+                        finish();
+                    })
+                    .addOnFailureListener(e -> {
+                        dismissProgressDialog();
+                        Toast.makeText(this, "Error al publicar tour: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    });
+            })
+            .addOnFailureListener(e -> {
+                dismissProgressDialog();
+                Toast.makeText(this, "Error al guardar borrador: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            });
+    }
+    
+    private void showProgressDialog(String message) {
+        if (progressDialog == null) {
+            progressDialog = new ProgressDialog(this);
+            progressDialog.setCancelable(false);
+        }
+        progressDialog.setMessage(message);
+        progressDialog.show();
+    }
+    
+    private void dismissProgressDialog() {
+        if (progressDialog != null && progressDialog.isShowing()) {
+            progressDialog.dismiss();
         }
     }
 
@@ -479,8 +1106,9 @@ public class admin_create_tour extends AppCompatActivity implements OnMapReadyCa
 
     private void setupPlacesMap() {
         if (mMapPlaces != null) {
+            // Centrar en Lima con zoom más cercano (zoom 13 = vista de ciudad)
             LatLng lima = new LatLng(-12.0464, -77.0428);
-            mMapPlaces.moveCamera(CameraUpdateFactory.newLatLngZoom(lima, 11));
+            mMapPlaces.moveCamera(CameraUpdateFactory.newLatLngZoom(lima, 13));
             
             mMapPlaces.setOnMapClickListener(latLng -> {
                 mMapPlaces.clear();
@@ -488,6 +1116,10 @@ public class admin_create_tour extends AppCompatActivity implements OnMapReadyCa
                         .position(latLng)
                         .title("Ubicacion seleccionada"));
                 selectedLocation = latLng;
+                
+                // Hacer zoom al punto seleccionado
+                mMapPlaces.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 16));
+                
                 Toast.makeText(admin_create_tour.this, 
                         "Ubicacion seleccionada. Ingrese el nombre y presione Agregar Lugar", 
                         Toast.LENGTH_SHORT).show();

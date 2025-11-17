@@ -76,12 +76,12 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="No hay oferta que se ajuste a los filtros" />
+                android:text="No hay ofertas disponibles para ti" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Ajusta tu búsqueda para encontrar los resultados que buscas" />
+                android:text="Las ofertas aparecerán aquí cuando haya tours disponibles" />
         </LinearLayout>
     </LinearLayout>
 

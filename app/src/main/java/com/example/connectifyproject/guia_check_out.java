@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.connectifyproject.databinding.GuiaCheckOutBinding;
 import com.example.connectifyproject.model.GuiaClient;
+import com.example.connectifyproject.services.TourFirebaseService;
 import com.example.connectifyproject.ui.guia.GuiaClientAdapter;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
@@ -21,12 +22,23 @@ public class guia_check_out extends AppCompatActivity {
     private GuiaCheckOutBinding binding;
     private GuiaClientAdapter adapter;
     private List<GuiaClient> clients;
+    private TourFirebaseService tourFirebaseService;
+    private String tourId;
+    private String tourName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = GuiaCheckOutBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+        
+        // Inicializar el servicio Firebase
+        tourFirebaseService = new TourFirebaseService();
+        
+        // Obtener datos del tour del Intent
+        Intent intent = getIntent();
+        tourId = intent.getStringExtra("tour_id");
+        tourName = intent.getStringExtra("tour_name");
 
         setSupportActionBar(binding.toolbar);
         if (getSupportActionBar() != null) {
@@ -51,8 +63,7 @@ public class guia_check_out extends AppCompatActivity {
 
         // Add Terminar Tour button
         binding.endTourButton.setOnClickListener(v -> {
-            Toast.makeText(this, "Tour terminado (simulado)", Toast.LENGTH_SHORT).show();
-            // Logic to end tour (e.g., update tour status)
+            terminarTour();
         });
 
         // Navbar eliminado - pantalla secundaria
@@ -85,5 +96,27 @@ public class guia_check_out extends AppCompatActivity {
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+    
+    private void terminarTour() {
+        if (tourId != null) {
+            tourFirebaseService.terminarTour(tourId, new TourFirebaseService.OperationCallback() {
+                @Override
+                public void onSuccess(String message) {
+                    Toast.makeText(guia_check_out.this, "Tour completado exitosamente", Toast.LENGTH_SHORT).show();
+                    Intent intent = new Intent(guia_check_out.this, guia_assigned_tours.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(intent);
+                    finish();
+                }
+
+                @Override
+                public void onError(String error) {
+                    Toast.makeText(guia_check_out.this, "Error al completar tour: " + error, Toast.LENGTH_SHORT).show();
+                }
+            });
+        } else {
+            Toast.makeText(this, "Error: No se encontró ID del tour", Toast.LENGTH_SHORT).show();
+        }
     }
 }

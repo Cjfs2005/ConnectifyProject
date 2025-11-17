@@ -47,17 +47,36 @@ public class GuiaTourAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         } else if (holder instanceof TourViewHolder) {
             GuiaTour tour = item.getTour();
             TourViewHolder tourHolder = (TourViewHolder) holder;
+            
+            // Empresa badge
+            tourHolder.binding.empresaText.setText(tour.getEmpresa());
+            
+            // Título del tour
             tourHolder.binding.tourName.setText(tour.getName());
-            tourHolder.binding.tourPrice.setText("Pago: S/ " + tour.getPrice());
-            tourHolder.binding.tourDuration.setText("Duración: " + tour.getDuration());
-            tourHolder.binding.tourLanguages.setText("Idiomas: " + tour.getLanguages());
-            tourHolder.binding.tourStartTime.setText("Inicio: " + tour.getStartTime() + " " + tour.getDate());
+            
+            // PAGO AL GUÍA (no precio del tour)
+            tourHolder.binding.tourPrice.setText("S/. " + (int)tour.getPrice());
+            
+            // Duración
+            tourHolder.binding.tourDuration.setText(tour.getDuration());
+            
+            // Idiomas
+            tourHolder.binding.tourLanguages.setText(tour.getLanguages());
+            
+            // Fecha 
+            tourHolder.binding.dateText.setText(tour.getDate());
+            
+            // Hora de inicio y fin
+            tourHolder.binding.tourStartTime.setText(tour.getStartTime());
+            
+            // Pago al guía (mismo valor que el precio mostrado arriba)
+            tourHolder.binding.pagoGuiaText.setText("S/. " + (int)tour.getPrice());
 
             holder.itemView.setOnClickListener(v -> {
-                Intent intent = new Intent(context, guia_tour_detail.class); // Renombrado asumido
+                Intent intent = new Intent(context, guia_tour_detail.class);
                 intent.putExtra("tour_name", tour.getName());
                 intent.putExtra("tour_location", tour.getLocation());
-                intent.putExtra("tour_price", tour.getPrice());
+                intent.putExtra("tour_price", tour.getPrice()); // Este es el pagoGuia
                 intent.putExtra("tour_duration", tour.getDuration());
                 intent.putExtra("tour_languages", tour.getLanguages());
                 intent.putExtra("tour_start_time", tour.getStartTime());
@@ -68,12 +87,15 @@ public class GuiaTourAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 intent.putExtra("tour_meeting_point", tour.getMeetingPoint());
                 intent.putExtra("tour_empresa", tour.getEmpresa());
                 intent.putExtra("tour_itinerario", tour.getItinerario());
-                intent.putExtra("tour_experiencia_minima", tour.getExperienciaMinima());
-                intent.putExtra("tour_puntualidad", tour.getPuntualidad());
-                intent.putExtra("tour_transporte_incluido", tour.isTransporteIncluido());
-                intent.putExtra("tour_almuerzo_incluido", tour.isAlmuerzoIncluido());
-                context.startActivity(intent);
-                ((Activity) context).overridePendingTransition(R.anim.guia_slide_in, R.anim.guia_slide_out);
+                intent.putExtra("tour_consideraciones", tour.getExperienciaMinima()); // Consideraciones
+                intent.putExtra("tour_pago_guia", tour.getPrice()); // Pago al guía
+                intent.putExtra("tour_servicios", tour.getBenefits()); // Servicios
+                intent.putExtra("tour_firebase_id", tour.getFirebaseId());
+                
+                if (context instanceof Activity) {
+                    ((Activity) context).startActivityForResult(intent, 1001);
+                    ((Activity) context).overridePendingTransition(R.anim.guia_slide_in, R.anim.guia_slide_out);
+                }
             });
         }
     }

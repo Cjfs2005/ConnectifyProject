@@ -18,21 +18,38 @@
         android:padding="16dp">
 
         <!-- Imagen del tour -->
-        <com.google.android.material.card.MaterialCardView
+        <FrameLayout
             android:layout_width="80dp"
-            android:layout_height="80dp"
-            app:cardCornerRadius="12dp"
-            app:cardElevation="0dp">
+            android:layout_height="80dp">
 
-            <ImageView
-                android:id="@+id/iv_tour_image"
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:scaleType="centerCrop"
-                android:src="@drawable/tour_lima_centro"
-                tools:src="@drawable/tour_lima_centro" />
+                app:cardCornerRadius="12dp"
+                app:cardElevation="0dp">
 
-        </com.google.android.material.card.MaterialCardView>
+                <ImageView
+                    android:id="@+id/iv_tour_image"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/tour_lima_centro"
+                    tools:src="@drawable/tour_lima_centro" />
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Badge de rechazo -->
+            <View
+                android:id="@+id/badge_rechazo"
+                android:layout_width="12dp"
+                android:layout_height="12dp"
+                android:layout_gravity="top|end"
+                android:layout_margin="4dp"
+                android:background="@drawable/badge_circle"
+                android:backgroundTint="@color/error_500"
+                android:visibility="gone" />
+
+        </FrameLayout>
 
         <!-- Información del tour -->
         <LinearLayout
@@ -81,6 +98,20 @@
                 android:textColor="@color/text_secondary"
                 android:textSize="14sp"
                 tools:text="Jul 15" />
+
+            <!-- Botón de acción -->
+            <Button
+                android:id="@+id/btn_action"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:minHeight="0dp"
+                android:paddingVertical="4dp"
+                android:text="Ver detalle"
+                android:textSize="12sp"
+                android:visibility="gone"
+                tools:visibility="visible" />
 
         </LinearLayout>
 
