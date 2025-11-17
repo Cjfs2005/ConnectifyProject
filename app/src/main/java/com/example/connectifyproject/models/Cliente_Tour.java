@@ -1,6 +1,9 @@
 package com.example.connectifyproject.models;
 
+import com.google.firebase.Timestamp;
 import java.io.Serializable;
+import java.util.List;
+import java.util.Map;
 
 public class Cliente_Tour implements Serializable {
     private String id;
@@ -16,6 +19,20 @@ public class Cliente_Tour implements Serializable {
     private String imageUrl;
     private float calificacion;
     private String companyName;
+    
+    // Campos adicionales de Firebase
+    private String ofertaTourId;
+    private String empresaId;
+    private Timestamp fechaRealizacion;
+    private List<String> idiomasRequeridos;
+    private String consideraciones;
+    private List<Map<String, Object>> itinerario;
+    private List<Map<String, Object>> serviciosAdicionales;
+    private boolean habilitado;
+
+    // Constructor vacío
+    public Cliente_Tour() {
+    }
 
     public Cliente_Tour(String id, String title, String company, String duration, 
                        String date, double price, String location, String description) {
@@ -101,6 +118,31 @@ public class Cliente_Tour implements Serializable {
     public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
     public void setCalificacion(float calificacion) { this.calificacion = calificacion; }
     public void setCompanyName(String companyName) { this.companyName = companyName; this.company = companyName; }
+    
+    // Getters y Setters adicionales
+    public String getOfertaTourId() { return ofertaTourId; }
+    public void setOfertaTourId(String ofertaTourId) { this.ofertaTourId = ofertaTourId; }
+    
+    public String getEmpresaId() { return empresaId; }
+    public void setEmpresaId(String empresaId) { this.empresaId = empresaId; }
+    
+    public Timestamp getFechaRealizacion() { return fechaRealizacion; }
+    public void setFechaRealizacion(Timestamp fechaRealizacion) { this.fechaRealizacion = fechaRealizacion; }
+    
+    public List<String> getIdiomasRequeridos() { return idiomasRequeridos; }
+    public void setIdiomasRequeridos(List<String> idiomasRequeridos) { this.idiomasRequeridos = idiomasRequeridos; }
+    
+    public String getConsideraciones() { return consideraciones; }
+    public void setConsideraciones(String consideraciones) { this.consideraciones = consideraciones; }
+    
+    public List<Map<String, Object>> getItinerario() { return itinerario; }
+    public void setItinerario(List<Map<String, Object>> itinerario) { this.itinerario = itinerario; }
+    
+    public List<Map<String, Object>> getServiciosAdicionales() { return serviciosAdicionales; }
+    public void setServiciosAdicionales(List<Map<String, Object>> serviciosAdicionales) { this.serviciosAdicionales = serviciosAdicionales; }
+    
+    public boolean isHabilitado() { return habilitado; }
+    public void setHabilitado(boolean habilitado) { this.habilitado = habilitado; }
 
     // Método estático para crear ejemplos de tours
     public static java.util.List<Cliente_Tour> getToursExample() {

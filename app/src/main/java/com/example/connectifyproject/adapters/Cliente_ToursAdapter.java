@@ -7,11 +7,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 import com.example.connectifyproject.R;
 import com.example.connectifyproject.cliente_tour_detalle;
 import com.example.connectifyproject.models.Cliente_Tour;
@@ -42,11 +43,21 @@ public class Cliente_ToursAdapter extends RecyclerView.Adapter<Cliente_ToursAdap
         holder.tvTourTitle.setText(tour.getTitulo());
         holder.tvTourCompany.setText(tour.getCompanyName());
         holder.tvTourDuration.setText("Duración: " + tour.getDuracion());
-        holder.tvTourDate.setText("Fecha: " + tour.getDate()); // Usar fecha específica del modelo
+        holder.tvTourDate.setText("Fecha: " + tour.getDate());
         holder.tvTourPrice.setText(String.format("S/%.2f", tour.getPrecio()));
         
-        // Usar la imagen por defecto para todos los tours
-        holder.ivTourImage.setImageResource(R.drawable.cliente_tour_lima);
+        // Cargar imagen con Glide
+        if (tour.getImageUrl() != null && !tour.getImageUrl().isEmpty()) {
+            Glide.with(context)
+                    .load(tour.getImageUrl())
+                    .placeholder(R.drawable.cliente_tour_lima)
+                    .error(R.drawable.cliente_tour_lima)
+                    .transition(DrawableTransitionOptions.withCrossFade())
+                    .centerCrop()
+                    .into(holder.ivTourImage);
+        } else {
+            holder.ivTourImage.setImageResource(R.drawable.cliente_tour_lima);
+        }
         
         // Click listener para abrir detalles del tour
         holder.itemView.setOnClickListener(v -> {

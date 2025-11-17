@@ -2,7 +2,11 @@ package com.example.connectifyproject;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
 import android.widget.ImageButton;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -11,14 +15,24 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.connectifyproject.adapters.Cliente_ToursAdapter;
 import com.example.connectifyproject.models.Cliente_Tour;
-import android.widget.ImageButton;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.firebase.Timestamp;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 public class cliente_tours extends AppCompatActivity {
 
+    private static final String TAG = "ClienteTours";
+    
     private ImageButton btnNotifications;
     private ImageButton btnFiltros;
     private RecyclerView rvTours;
@@ -26,17 +40,23 @@ public class cliente_tours extends AppCompatActivity {
     private List<Cliente_Tour> allTours;
     private List<Cliente_Tour> filteredTours;
     private BottomNavigationView bottomNavigation;
+    private ProgressBar progressBar;
+    private TextView tvEmptyMessage;
+    
+    private FirebaseFirestore db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.cliente_tours);
 
+        db = FirebaseFirestore.getInstance();
+        
         initViews();
         setupBottomNavigation();
         setupClickListeners();
         setupRecyclerView();
-        loadToursData();
+        loadToursFromFirebase();
     }
 
     @Override
@@ -53,6 +73,17 @@ public class cliente_tours extends AppCompatActivity {
         btnFiltros = findViewById(R.id.btn_filtros);
         rvTours = findViewById(R.id.rv_tours);
         bottomNavigation = findViewById(R.id.bottom_navigation);
+        
+        // Estos pueden ser null si no existen en el layout
+        progressBar = findViewById(R.id.progress_bar);
+        tvEmptyMessage = findViewById(R.id.tv_empty_message);
+        
+        if (progressBar == null) {
+            Log.w(TAG, "ProgressBar no encontrado en layout");
+        }
+        if (tvEmptyMessage == null) {
+            Log.w(TAG, "TextView empty message no encontrado en layout");
+        }
     }
 
     private void setupBottomNavigation() {
@@ -112,36 +143,193 @@ public class cliente_tours extends AppCompatActivity {
         rvTours.setAdapter(toursAdapter);
     }
 
-    private void loadToursData() {
-        // Datos hardcodeados con fechas específicas variadas
-        allTours.add(new Cliente_Tour("1", "Tour histórico por Lima", "Lima Tours", 
-                "5 hrs 30 min", "15/11/2025", 160.00, "Lima, Perú", 
-                "Explora el centro histórico de Lima y sus principales atractivos"));
+    private void loadToursFromFirebase() {
+        showLoading(true);
+        Log.d(TAG, "Iniciando carga de tours desde Firebase");
         
-        allTours.add(new Cliente_Tour("2", "Tour histórico por Arequipa", "Arequipa Tours", 
-                "5 hrs 30 min", "22/11/2025", 160.00, "Arequipa, Perú", 
-                "Descubre la ciudad blanca y su arquitectura colonial"));
+        // Primero verificar si podemos acceder a la colección
+        db.collection("tours_asignados")
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    Log.d(TAG, "Tours totales encontrados: " + querySnapshot.size());
+                    allTours.clear();
+                    filteredTours.clear();
+                    
+                    int toursValidos = 0;
+                    for (DocumentSnapshot doc : querySnapshot.getDocuments()) {
+                        // Verificar habilitado manualmente
+                        Boolean habilitado = doc.getBoolean("habilitado");
+                        Log.d(TAG, "Tour " + doc.getId() + " - habilitado: " + habilitado);
+                        
+                        if (habilitado != null && habilitado) {
+                            processTourDocument(doc);
+                            toursValidos++;
+                        }
+                    }
+                    
+                    Log.d(TAG, "Tours válidos procesados: " + toursValidos);
+                    showLoading(false);
+                    updateEmptyState();
+                    
+                    if (toursValidos == 0) {
+                        Toast.makeText(this, "No hay tours disponibles en este momento", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error cargando tours", e);
+                    Log.e(TAG, "Mensaje: " + e.getMessage());
+                    Log.e(TAG, "Tipo: " + e.getClass().getName());
+                    showLoading(false);
+                    Toast.makeText(this, "Error al cargar tours: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    updateEmptyState();
+                });
+    }
+    
+    private void processTourDocument(DocumentSnapshot doc) {
+        try {
+            Timestamp fechaRealizacion = doc.getTimestamp("fechaRealizacion");
+            if (!isTourAvailable(fechaRealizacion)) {
+                return;
+            }
+            
+            Cliente_Tour tour = new Cliente_Tour();
+            tour.setId(doc.getId());
+            tour.setTitle(doc.getString("titulo"));
+            tour.setDescription(doc.getString("descripcion"));
+            tour.setOfertaTourId(doc.getString("ofertaTourId"));
+            tour.setEmpresaId(doc.getString("empresaId"));
+            tour.setFechaRealizacion(fechaRealizacion);
+            tour.setHabilitado(Boolean.TRUE.equals(doc.getBoolean("habilitado")));
+            
+            // Duración
+            String duracion = doc.getString("duracion");
+            tour.setDuration(duracion != null ? duracion + " horas" : "");
+            
+            // Precio
+            Number precio = (Number) doc.get("precio");
+            tour.setPrice(precio != null ? precio.doubleValue() : 0.0);
+            
+            // Fecha formateada
+            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+            tour.setDate(sdf.format(fechaRealizacion.toDate()));
+            
+            // Horarios
+            String horaInicio = doc.getString("horaInicio");
+            String horaFin = doc.getString("horaFin");
+            tour.setStartTime(horaInicio != null ? horaInicio : "Por confirmar");
+            tour.setEndTime(horaFin != null ? horaFin : "Por confirmar");
+            
+            // Ubicación del primer punto del itinerario
+            List<Map<String, Object>> itinerario = (List<Map<String, Object>>) doc.get("itinerario");
+            if (itinerario != null && !itinerario.isEmpty()) {
+                String direccion = (String) itinerario.get(0).get("direccion");
+                tour.setLocation(direccion != null ? direccion : "");
+            }
+            tour.setItinerario(itinerario);
+            
+            // Idiomas
+            List<String> idiomas = (List<String>) doc.get("idiomasRequeridos");
+            tour.setIdiomasRequeridos(idiomas);
+            
+            // Consideraciones
+            tour.setConsideraciones(doc.getString("consideraciones"));
+            
+            // Servicios adicionales
+            List<Map<String, Object>> servicios = (List<Map<String, Object>>) doc.get("serviciosAdicionales");
+            tour.setServiciosAdicionales(servicios);
+            
+            // Nombre de empresa
+            String nombreEmpresa = doc.getString("nombreEmpresa");
+            if (nombreEmpresa != null && !nombreEmpresa.isEmpty()) {
+                tour.setCompanyName(nombreEmpresa);
+                addTourToList(tour);
+            } else {
+                loadCompanyName(tour);
+            }
+            
+            // Cargar imagen
+            loadTourImage(tour);
+            
+        } catch (Exception e) {
+            Log.e(TAG, "Error procesando tour: " + doc.getId(), e);
+        }
+    }
+    
+    private boolean isTourAvailable(Timestamp fechaRealizacion) {
+        if (fechaRealizacion == null) return false;
         
-        allTours.add(new Cliente_Tour("3", "Tour gastronómico por Lima", "Lima Food Tours", 
-                "4 hrs", "08/12/2025", 120.00, "Lima, Perú", 
-                "Recorre los mejores restaurantes y mercados de Lima"));
+        Calendar today = Calendar.getInstance();
+        today.set(Calendar.HOUR_OF_DAY, 0);
+        today.set(Calendar.MINUTE, 0);
+        today.set(Calendar.SECOND, 0);
+        today.set(Calendar.MILLISECOND, 0);
         
-        allTours.add(new Cliente_Tour("4", "Tour por Cusco Imperial", "Cusco Adventures", 
-                "6 hrs", "10/01/2026", 180.00, "Cusco, Perú", 
-                "Conoce la capital del imperio Inca"));
+        Calendar minDate = (Calendar) today.clone();
+        minDate.add(Calendar.DAY_OF_MONTH, 1);
         
-        allTours.add(new Cliente_Tour("5", "Tour por Machu Picchu", "Inca Trails", 
-                "8 hrs", "25/12/2025", 350.00, "Cusco, Perú", 
-                "Visita la maravilla del mundo moderno"));
+        Date tourDate = fechaRealizacion.toDate();
+        return tourDate.compareTo(minDate.getTime()) >= 0;
+    }
+    
+    private void loadCompanyName(Cliente_Tour tour) {
+        if (tour.getEmpresaId() == null) {
+            tour.setCompanyName("Empresa");
+            addTourToList(tour);
+            return;
+        }
         
-        allTours.add(new Cliente_Tour("6", "Tour por Huacachina", "Desert Adventures", 
-                "6 hrs", "03/02/2026", 200.00, "Ica, Perú", 
-                "Aventura en el oasis del desierto con sandboarding"));
-
-        // Inicialmente mostrar todos los tours
-        filteredTours.clear();
-        filteredTours.addAll(allTours);
-        toursAdapter.notifyDataSetChanged();
+        db.collection("usuarios")
+                .document(tour.getEmpresaId())
+                .get()
+                .addOnSuccessListener(doc -> {
+                    String nombreEmpresa = doc.getString("nombreEmpresa");
+                    tour.setCompanyName(nombreEmpresa != null ? nombreEmpresa : "Empresa");
+                    addTourToList(tour);
+                })
+                .addOnFailureListener(e -> {
+                    tour.setCompanyName("Empresa");
+                    addTourToList(tour);
+                });
+    }
+    
+    private void loadTourImage(Cliente_Tour tour) {
+        if (tour.getOfertaTourId() == null) return;
+        
+        db.collection("tours_ofertas")
+                .document(tour.getOfertaTourId())
+                .get()
+                .addOnSuccessListener(doc -> {
+                    String imagenUrl = doc.getString("imagenPrincipal");
+                    if (imagenUrl != null && !imagenUrl.isEmpty()) {
+                        tour.setImageUrl(imagenUrl);
+                        toursAdapter.notifyDataSetChanged();
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error cargando imagen del tour", e);
+                });
+    }
+    
+    private void addTourToList(Cliente_Tour tour) {
+        if (!allTours.contains(tour)) {
+            allTours.add(tour);
+            filteredTours.add(tour);
+            toursAdapter.notifyDataSetChanged();
+            updateEmptyState();
+        }
+    }
+    
+    private void showLoading(boolean show) {
+        if (progressBar != null) {
+            progressBar.setVisibility(show ? View.VISIBLE : View.GONE);
+        }
+        rvTours.setVisibility(show ? View.GONE : View.VISIBLE);
+    }
+    
+    private void updateEmptyState() {
+        if (tvEmptyMessage != null) {
+            tvEmptyMessage.setVisibility(filteredTours.isEmpty() ? View.VISIBLE : View.GONE);
+        }
     }
 
 

@@ -4,6 +4,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -11,6 +13,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.example.connectifyproject.adapters.Cliente_ServiciosAdapter;
 import com.example.connectifyproject.models.Cliente_ServicioAdicional;
 import com.example.connectifyproject.models.Cliente_Tour;
@@ -20,12 +23,15 @@ import com.google.android.material.card.MaterialCardView;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class cliente_tour_detalle extends AppCompatActivity implements Cliente_ServiciosAdapter.OnServiceSelectedListener {
 
     private MaterialToolbar toolbar;
+    private ImageView ivTourHero;
     private TextView tvTourLocation, tvTourPriceMain, tvStartTime, tvEndTime, tvTourCompany;
-    private TextView tvPeopleCount, tvTotalPrice;
+    private TextView tvPeopleCount, tvTotalPrice, tvIdiomas, tvConsideraciones;
+    private LinearLayout layoutConsideraciones;
     private RecyclerView rvServiciosAdicionales;
     private ImageButton btnDecreasePeople, btnIncreasePeople;
     private MaterialButton btnContinuar;
@@ -73,6 +79,7 @@ public class cliente_tour_detalle extends AppCompatActivity implements Cliente_S
 
     private void initViews() {
         toolbar = findViewById(R.id.toolbar);
+        ivTourHero = findViewById(R.id.iv_tour_hero);
         tvTourLocation = findViewById(R.id.tv_tour_location);
         tvTourPriceMain = findViewById(R.id.tv_tour_price_main);
         tvStartTime = findViewById(R.id.tv_start_time);
@@ -80,6 +87,9 @@ public class cliente_tour_detalle extends AppCompatActivity implements Cliente_S
         tvTourCompany = findViewById(R.id.tv_tour_company);
         tvPeopleCount = findViewById(R.id.tv_people_count);
         tvTotalPrice = findViewById(R.id.tv_total_price);
+        tvIdiomas = findViewById(R.id.tv_idiomas);
+        tvConsideraciones = findViewById(R.id.tv_consideraciones);
+        layoutConsideraciones = findViewById(R.id.layout_consideraciones);
         rvServiciosAdicionales = findViewById(R.id.rv_servicios_adicionales);
         btnDecreasePeople = findViewById(R.id.btn_decrease_people);
         btnIncreasePeople = findViewById(R.id.btn_increase_people);
@@ -144,27 +154,70 @@ public class cliente_tour_detalle extends AppCompatActivity implements Cliente_S
     }
 
     private void loadServiciosData() {
-        // Datos hardcodeados de servicios adicionales
-        serviciosAdicionales.add(new Cliente_ServicioAdicional("1", "Almuerzo", 
-                "Se incluye un almuerzo ubicado en el atrio.", 16.00));
+        serviciosAdicionales.clear();
         
-        serviciosAdicionales.add(new Cliente_ServicioAdicional("2", "Folleto turístico (Gratis)", 
-                "Se incluye un folleto turístico con información importante sobre...", 0.00));
+        List<Map<String, Object>> servicios = tour.getServiciosAdicionales();
+        if (servicios != null && !servicios.isEmpty()) {
+            for (int i = 0; i < servicios.size(); i++) {
+                Map<String, Object> servicio = servicios.get(i);
+                
+                String nombre = (String) servicio.get("nombre");
+                String descripcion = (String) servicio.get("descripcion");
+                Number precioNum = (Number) servicio.get("precio");
+                double precio = precioNum != null ? precioNum.doubleValue() : 0.0;
+                
+                String id = String.valueOf(i);
+                serviciosAdicionales.add(new Cliente_ServicioAdicional(id, nombre, descripcion, precio));
+            }
+        }
         
-        serviciosAdicionales.add(new Cliente_ServicioAdicional("3", "Cena", 
-                "Se incluye una cena en un restaurante ubicado en las inmediaciones.", 25.00));
-
         serviciosAdapter.notifyDataSetChanged();
     }
 
     private void updateUI() {
+        // Imagen hero
+        if (tour.getImageUrl() != null && !tour.getImageUrl().isEmpty()) {
+            Glide.with(this)
+                    .load(tour.getImageUrl())
+                    .placeholder(R.drawable.cliente_tour_lima)
+                    .error(R.drawable.cliente_tour_lima)
+                    .centerCrop()
+                    .into(ivTourHero);
+        }
+        
+        // Ubicación
         tvTourLocation.setText(tour.getUbicacion());
+        
+        // Precio
         tvTourPriceMain.setText("S/" + String.format("%.2f", tour.getPrecio()));
+        
+        // Empresa
         tvTourCompany.setText(tour.getCompanyName());
         
-        // Usar fechas y horas del objeto tour
+        // Fechas y horas
         tvStartTime.setText(tour.getDate() + " - " + tour.getStartTime());
         tvEndTime.setText(tour.getDate() + " - " + tour.getEndTime());
+        
+        // Idiomas
+        List<String> idiomas = tour.getIdiomasRequeridos();
+        if (idiomas != null && !idiomas.isEmpty()) {
+            StringBuilder idiomasText = new StringBuilder();
+            for (String idioma : idiomas) {
+                idiomasText.append("• ").append(idioma).append("\n");
+            }
+            tvIdiomas.setText(idiomasText.toString().trim());
+        } else {
+            tvIdiomas.setText("No especificado");
+        }
+        
+        // Consideraciones
+        String consideraciones = tour.getConsideraciones();
+        if (consideraciones != null && !consideraciones.isEmpty()) {
+            tvConsideraciones.setText(consideraciones);
+            layoutConsideraciones.setVisibility(View.VISIBLE);
+        } else {
+            layoutConsideraciones.setVisibility(View.GONE);
+        }
         
         updatePeopleCount();
     }
