@@ -149,7 +149,7 @@
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
-                                android:layout_marginEnd="8dp"
+                                android:layout_marginEnd="0dp"
                                 app:suffixText="S/"
                                 style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
 
@@ -163,10 +163,12 @@
                             </com.google.android.material.textfield.TextInputLayout>
 
                             <com.google.android.material.textfield.TextInputLayout
+                                android:id="@+id/til_tour_duration"
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
                                 android:layout_marginStart="8dp"
+                                android:visibility="gone"
                                 app:suffixText="hrs"
                                 app:helperText="Se calcula automáticamente"
                                 style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
@@ -629,8 +631,7 @@
                     android:layout_weight="1"
                     android:layout_marginStart="8dp"
                     android:text="Siguiente"
-                    app:backgroundTint="@color/brand_purple_dark"
-                    app:icon="@drawable/ic_arrow_forward" />
+                    app:backgroundTint="@color/brand_purple_dark" />
 
             </LinearLayout>
 

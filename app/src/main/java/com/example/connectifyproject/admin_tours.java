@@ -757,27 +757,30 @@ public class admin_tours extends AppCompatActivity {
                 // Configurar botón de acción según el tipo
                 setupActionButton(tour);
 
-                // Click listener para ir a detalles del tour
+                // Click listener - Para borradores, ir directo a editar
                 itemView.setOnClickListener(v -> {
-                    Intent intent = new Intent(admin_tours.this, admin_tour_details.class);
-                    intent.putExtra("tour_id", tour.getId());
-                    intent.putExtra("tour_titulo", tour.getTitulo());
-                    intent.putExtra("tour_estado", tour.getEstado());
-                    intent.putExtra("tour_tipo", tour.getTipo());
-                    startActivity(intent);
+                    if ("borrador".equals(tour.getTipo())) {
+                        // Para borradores, ir directo a editar
+                        Intent intent = new Intent(admin_tours.this, admin_create_tour.class);
+                        intent.putExtra("borradorId", tour.getId());
+                        startActivity(intent);
+                    } else {
+                        // Para otros tipos, ir a detalles
+                        Intent intent = new Intent(admin_tours.this, admin_tour_details.class);
+                        intent.putExtra("tour_id", tour.getId());
+                        intent.putExtra("tour_titulo", tour.getTitulo());
+                        intent.putExtra("tour_estado", tour.getEstado());
+                        intent.putExtra("tour_tipo", tour.getTipo());
+                        startActivity(intent);
+                    }
                 });
             }
             
             private void setupActionButton(TourItem tour) {
                 switch (tour.getTipo()) {
                     case "borrador":
-                        btnAction.setText("Editar");
-                        btnAction.setVisibility(View.VISIBLE);
-                        btnAction.setOnClickListener(v -> {
-                            Intent intent = new Intent(admin_tours.this, admin_create_tour.class);
-                            intent.putExtra("borradorId", tour.getId());
-                            startActivity(intent);
-                        });
+                        // Para borradores, ocultar el botón (se hace clic en el ítem completo)
+                        btnAction.setVisibility(View.GONE);
                         break;
                         
                     case "sin_guia":

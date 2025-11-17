@@ -107,6 +107,24 @@ public class admin_create_tour extends AppCompatActivity implements OnMapReadyCa
         setupAdapters();
         initializeMaps();
         updateStepVisibility();
+        
+        // Verificar si se está editando un borrador existente
+        Intent intent = getIntent();
+        if (intent.hasExtra("borradorId")) {
+            String borradorId = intent.getStringExtra("borradorId");
+            if (borradorId != null && !borradorId.isEmpty()) {
+                currentBorradorId = borradorId;
+                
+                // Cambiar título del toolbar
+                if (getSupportActionBar() != null) {
+                    getSupportActionBar().setTitle("Editar Tour");
+                }
+                binding.topAppBar.setTitle("Editar Tour");
+                
+                // Cargar datos del borrador
+                loadBorradorData(borradorId);
+            }
+        }
     }
     
     private void initializeFirebase() {
@@ -450,7 +468,7 @@ public class admin_create_tour extends AppCompatActivity implements OnMapReadyCa
             lng = -77.0428 + (Math.random() - 0.5) * 0.1;
         }
         
-        TourPlace place = new TourPlace(searchText, "Lima, Peru", lat, lng);
+        TourPlace place = new TourPlace(searchText, String.format("%.5f, %.5f", lat, lng), lat, lng);
         selectedPlaces.add(place);
         placeAdapter.notifyItemInserted(selectedPlaces.size() - 1);
         
@@ -634,10 +652,6 @@ public class admin_create_tour extends AppCompatActivity implements OnMapReadyCa
             binding.etTourPrice.setError("Ingrese el precio");
             return false;
         }
-        if (tourDuration.isEmpty()) {
-            binding.etTourDuration.setError("Ingrese la duracion");
-            return false;
-        }
         if (tourStartTime.isEmpty()) {
             binding.etTourStartTime.setError("Seleccione la hora de inicio");
             Toast.makeText(this, "Seleccione la hora de inicio del tour", Toast.LENGTH_SHORT).show();
@@ -648,7 +662,54 @@ public class admin_create_tour extends AppCompatActivity implements OnMapReadyCa
             Toast.makeText(this, "Seleccione la hora de fin del tour", Toast.LENGTH_SHORT).show();
             return false;
         }
+        
+        // Validar que la hora de fin sea al menos 1 hora después de la hora de inicio
+        if (!validateTimeRange(tourStartTime, tourEndTime)) {
+            Toast.makeText(this, "La hora de fin debe ser al menos 1 hora después de la hora de inicio", Toast.LENGTH_LONG).show();
+            return false;
+        }
+        
+        // Verificar que la duración se haya calculado (debería ser automática)
+        if (tourDuration.isEmpty()) {
+            binding.etTourDuration.setError("La duración no se calculó correctamente");
+            return false;
+        }
+        
         return true;
+    }
+    
+    /**
+     * Valida que la hora de fin sea al menos 1 hora después de la hora de inicio
+     */
+    private boolean validateTimeRange(String startTime, String endTime) {
+        try {
+            // Parse hora inicio
+            String[] startParts = startTime.split(":");
+            int startHour = Integer.parseInt(startParts[0]);
+            int startMinute = Integer.parseInt(startParts[1]);
+            
+            // Parse hora fin
+            String[] endParts = endTime.split(":");
+            int endHour = Integer.parseInt(endParts[0]);
+            int endMinute = Integer.parseInt(endParts[1]);
+            
+            // Calcular diferencia en minutos
+            int startTotalMinutes = startHour * 60 + startMinute;
+            int endTotalMinutes = endHour * 60 + endMinute;
+            int differenceMinutes = endTotalMinutes - startTotalMinutes;
+            
+            // Si la hora de fin es menor, asumir que cruza medianoche
+            if (differenceMinutes < 0) {
+                differenceMinutes += 24 * 60;
+            }
+            
+            // Validar que la diferencia sea al menos 60 minutos (1 hora)
+            return differenceMinutes >= 60;
+            
+        } catch (Exception e) {
+            Log.e("AdminCreateTour", "Error al validar rango de tiempo", e);
+            return false;
+        }
     }
 
     private boolean validateStep2() {
@@ -958,6 +1019,161 @@ public class admin_create_tour extends AppCompatActivity implements OnMapReadyCa
         borrador.setCreadoPor(auth.getCurrentUser() != null ? auth.getCurrentUser().getUid() : "");
         
         return borrador;
+    }
+    
+    /**
+     * Carga los datos de un borrador existente desde Firebase
+     */
+    private void loadBorradorData(String borradorId) {
+        showProgressDialog("Cargando datos del tour...");
+        
+        db.collection("tours_borradores").document(borradorId).get()
+            .addOnSuccessListener(documentSnapshot -> {
+                dismissProgressDialog();
+                
+                if (!documentSnapshot.exists()) {
+                    Toast.makeText(this, "No se encontró el borrador", Toast.LENGTH_SHORT).show();
+                    finish();
+                    return;
+                }
+                
+                try {
+                    TourBorrador borrador = documentSnapshot.toObject(TourBorrador.class);
+                    if (borrador == null) {
+                        Toast.makeText(this, "Error al cargar datos del borrador", Toast.LENGTH_SHORT).show();
+                        finish();
+                        return;
+                    }
+                    
+                    // Cargar campos básicos
+                    if (borrador.getTitulo() != null) {
+                        binding.etTourTitle.setText(borrador.getTitulo());
+                        tourTitle = borrador.getTitulo();
+                    }
+                    
+                    if (borrador.getDescripcion() != null) {
+                        binding.etTourDescription.setText(borrador.getDescripcion());
+                        tourDescription = borrador.getDescripcion();
+                    }
+                    
+                    if (borrador.getPrecio() > 0) {
+                        binding.etTourPrice.setText(String.valueOf(borrador.getPrecio()));
+                        tourPrice = String.valueOf(borrador.getPrecio());
+                    }
+                    
+                    if (borrador.getDuracion() != null) {
+                        binding.etTourDuration.setText(borrador.getDuracion());
+                        tourDuration = borrador.getDuracion();
+                    }
+                    
+                    // Cargar fecha
+                    if (borrador.getFechaRealizacion() != null) {
+                        try {
+                            SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+                            Date fecha = dateFormat.parse(borrador.getFechaRealizacion());
+                            if (fecha != null) {
+                                selectedCalendar.setTime(fecha);
+                                binding.etTourDate.setText(borrador.getFechaRealizacion());
+                                tourDate = borrador.getFechaRealizacion();
+                            }
+                        } catch (Exception e) {
+                            Log.e("AdminCreateTour", "Error parsing fecha", e);
+                        }
+                    }
+                    
+                    // Cargar horarios
+                    if (borrador.getHoraInicio() != null) {
+                        binding.etTourStartTime.setText(borrador.getHoraInicio());
+                        tourStartTime = borrador.getHoraInicio();
+                    }
+                    
+                    if (borrador.getHoraFin() != null) {
+                        binding.etTourEndTime.setText(borrador.getHoraFin());
+                        tourEndTime = borrador.getHoraFin();
+                    }
+                    
+                    // Cargar imágenes URLs
+                    if (borrador.getImagenesUrls() != null && !borrador.getImagenesUrls().isEmpty()) {
+                        uploadedImageUrls.clear();
+                        uploadedImageUrls.addAll(borrador.getImagenesUrls());
+                        if (binding.tvImageCount != null) {
+                            binding.tvImageCount.setText(uploadedImageUrls.size() + "/3 imágenes");
+                        }
+                    }
+                    
+                    // Cargar lugares (itinerario)
+                    if (borrador.getItinerario() != null && !borrador.getItinerario().isEmpty()) {
+                        selectedPlaces.clear();
+                        for (Map<String, Object> placeMap : borrador.getItinerario()) {
+                            String nombre = (String) placeMap.get("nombre");
+                            String direccion = (String) placeMap.get("direccion");
+                            double lat = placeMap.get("latitud") != null ? ((Number) placeMap.get("latitud")).doubleValue() : 0.0;
+                            double lng = placeMap.get("longitud") != null ? ((Number) placeMap.get("longitud")).doubleValue() : 0.0;
+                            
+                            TourPlace place = new TourPlace(nombre, direccion, lat, lng);
+                            
+                            // Cargar actividades si existen
+                            if (placeMap.containsKey("actividades")) {
+                                @SuppressWarnings("unchecked")
+                                List<String> actividades = (List<String>) placeMap.get("actividades");
+                                if (actividades != null && !actividades.isEmpty()) {
+                                    // setActivities espera un String, unimos con saltos de línea
+                                    place.setActivities(String.join("\n", actividades));
+                                }
+                            }
+                            
+                            selectedPlaces.add(place);
+                        }
+                        placeAdapter.notifyDataSetChanged();
+                    }
+                    
+                    // Cargar servicios adicionales
+                    if (borrador.getServiciosAdicionales() != null && !borrador.getServiciosAdicionales().isEmpty()) {
+                        additionalServices.clear();
+                        for (Map<String, Object> serviceMap : borrador.getServiciosAdicionales()) {
+                            String nombre = (String) serviceMap.get("nombre");
+                            boolean esPagado = serviceMap.get("esPagado") != null && (Boolean) serviceMap.get("esPagado");
+                            double precio = serviceMap.get("precio") != null ? ((Number) serviceMap.get("precio")).doubleValue() : 0.0;
+                            String descripcion = (String) serviceMap.get("descripcion");
+                            
+                            TourService service = new TourService(nombre, esPagado, precio, descripcion);
+                            additionalServices.add(service);
+                        }
+                        serviceAdapter.notifyDataSetChanged();
+                    }
+                    
+                    // Cargar idiomas requeridos
+                    if (borrador.getIdiomasRequeridos() != null && !borrador.getIdiomasRequeridos().isEmpty()) {
+                        selectedIdiomas.clear();
+                        selectedIdiomas.addAll(borrador.getIdiomasRequeridos());
+                        binding.etIdiomasRequeridos.setText(String.join(", ", selectedIdiomas));
+                    }
+                    
+                    // Cargar pago al guía
+                    if (borrador.getPagoGuia() > 0) {
+                        binding.etPagoGuia.setText(String.valueOf(borrador.getPagoGuia()));
+                        pagoGuia = String.valueOf(borrador.getPagoGuia());
+                    }
+                    
+                    // Cargar consideraciones
+                    if (borrador.getConsideraciones() != null) {
+                        binding.etConsideraciones.setText(borrador.getConsideraciones());
+                        consideraciones = borrador.getConsideraciones();
+                    }
+                    
+                    Toast.makeText(this, "Datos cargados correctamente", Toast.LENGTH_SHORT).show();
+                    
+                } catch (Exception e) {
+                    Log.e("AdminCreateTour", "Error al parsear borrador", e);
+                    Toast.makeText(this, "Error al procesar datos del borrador", Toast.LENGTH_SHORT).show();
+                }
+            })
+            .addOnFailureListener(e -> {
+                dismissProgressDialog();
+                Log.e("AdminCreateTour", "Error al cargar borrador", e);
+                Toast.makeText(this, "Error al cargar borrador: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                finish();
+            });
     }
 
     private void finishTour() {
