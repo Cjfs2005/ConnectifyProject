@@ -69,7 +69,8 @@ public class admin_perfil extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        // No necesitamos manejar el navbar manualmente ya que usa fragment
+        // Recargar datos cuando regrese de editar
+        loadUserData();
     }
 
     private void initViews() {
@@ -109,11 +110,13 @@ public class admin_perfil extends AppCompatActivity {
         });
 
         btnEditProfile.setOnClickListener(v -> {
-            Toast.makeText(this, "Funcionalidad en desarrollo", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(this, admin_editar_perfil.class);
+            startActivity(intent);
         });
 
         btnEditCompany.setOnClickListener(v -> {
-            Toast.makeText(this, "Funcionalidad en desarrollo", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(this, admin_editar_empresa.class);
+            startActivity(intent);
         });
 
         findViewById(R.id.layout_permissions).setOnClickListener(v -> {

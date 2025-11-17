@@ -98,6 +98,10 @@
         <activity android:name=".admin_payment_proposal" android:exported="false" />
         <activity android:name=".admin_create_tour" android:exported="false" />
         
+        <!-- Admin Profile Edit Activities -->
+        <activity android:name=".admin_editar_perfil" android:exported="false" />
+        <activity android:name=".admin_editar_empresa" android:exported="false" />
+        
         <!-- Importante: NO declarar .views.superadmin.SaUsersView -->
         <!-- De rol Guia -->
         <activity android:name=".guia_tour_detail" android:exported="false" />

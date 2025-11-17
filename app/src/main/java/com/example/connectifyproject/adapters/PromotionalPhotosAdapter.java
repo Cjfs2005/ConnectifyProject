@@ -10,6 +10,7 @@ import android.widget.ImageView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.example.connectifyproject.R;
 
 import java.util.ArrayList;
@@ -17,7 +18,7 @@ import java.util.List;
 
 public class PromotionalPhotosAdapter extends RecyclerView.Adapter<PromotionalPhotosAdapter.PhotoViewHolder> {
 
-    private List<Uri> photos;
+    private List<Object> photos; // Can be Uri or String (URL)
     private OnPhotoRemovedListener listener;
 
     public interface OnPhotoRemovedListener {
@@ -30,12 +31,17 @@ public class PromotionalPhotosAdapter extends RecyclerView.Adapter<PromotionalPh
     }
 
     public void setPhotos(List<Uri> photos) {
-        this.photos = photos;
+        this.photos = new ArrayList<>(photos);
         notifyDataSetChanged();
     }
 
     public void addPhoto(Uri photo) {
         this.photos.add(photo);
+        notifyItemInserted(photos.size() - 1);
+    }
+
+    public void addPhotoUrl(String photoUrl) {
+        this.photos.add(photoUrl);
         notifyItemInserted(photos.size() - 1);
     }
 
@@ -48,7 +54,13 @@ public class PromotionalPhotosAdapter extends RecyclerView.Adapter<PromotionalPh
     }
 
     public List<Uri> getPhotos() {
-        return photos;
+        List<Uri> uriPhotos = new ArrayList<>();
+        for (Object photo : photos) {
+            if (photo instanceof Uri) {
+                uriPhotos.add((Uri) photo);
+            }
+        }
+        return uriPhotos;
     }
 
     public int getPhotoCount() {
@@ -65,8 +77,16 @@ public class PromotionalPhotosAdapter extends RecyclerView.Adapter<PromotionalPh
 
     @Override
     public void onBindViewHolder(@NonNull PhotoViewHolder holder, int position) {
-        Uri photoUri = photos.get(position);
-        holder.ivPhoto.setImageURI(photoUri);
+        Object photo = photos.get(position);
+        
+        if (photo instanceof Uri) {
+            holder.ivPhoto.setImageURI((Uri) photo);
+        } else if (photo instanceof String) {
+            Glide.with(holder.itemView.getContext())
+                    .load((String) photo)
+                    .centerCrop()
+                    .into(holder.ivPhoto);
+        }
         
         holder.btnRemove.setOnClickListener(v -> {
             if (listener != null) {
