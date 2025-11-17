@@ -49,7 +49,6 @@ public class GuideAdapter extends RecyclerView.Adapter<GuideAdapter.GuideViewHol
         private final TextView tvName;
         private final TextView tvRating;
         private final TextView tvLanguages;
-        private final TextView tvLocation;
         private final TextView tvTours;
         private final Button btnSelect;
 
@@ -59,7 +58,6 @@ public class GuideAdapter extends RecyclerView.Adapter<GuideAdapter.GuideViewHol
             tvName = itemView.findViewById(R.id.tv_guide_name);
             tvRating = itemView.findViewById(R.id.tv_guide_rating);
             tvLanguages = itemView.findViewById(R.id.tv_guide_languages);
-            tvLocation = itemView.findViewById(R.id.tv_guide_location);
             tvTours = itemView.findViewById(R.id.tv_guide_tour_count);
             btnSelect = itemView.findViewById(R.id.btn_select_guide);
         }
@@ -69,7 +67,7 @@ public class GuideAdapter extends RecyclerView.Adapter<GuideAdapter.GuideViewHol
             tvRating.setText(String.format("★ %.1f", guide.rating));
             // Convertir lista de idiomas a String separado por comas
             tvLanguages.setText(guide.languages != null ? String.join(", ", guide.languages) : "");
-            tvLocation.setText("Lima, Perú"); // Ubicación por defecto
+            
             tvTours.setText(String.format("%d tours", guide.tourCount));
 
             // Cargar imagen con Glide desde URL (profileImageUrl) o placeholder

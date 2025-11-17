@@ -11,7 +11,6 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.bumptech.glide.Glide;
 import com.example.connectifyproject.adapters.AdminItinerarioAdapter;
-import com.example.connectifyproject.adapters.AdminServiciosAdapter;
 import com.example.connectifyproject.databinding.AdminTourDetailsViewBinding;
 import com.example.connectifyproject.models.Cliente_ItinerarioItem;
 import com.example.connectifyproject.ui.admin.AdminBottomNavFragment;
@@ -21,6 +20,7 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.material.tabs.TabLayout;
 import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -43,6 +43,7 @@ public class admin_tour_details extends AppCompatActivity implements OnMapReadyC
     private String tourEstado;
     private boolean tourEsPublicado;
     private LatLng tourLocation;
+    private String guiaAsignadoId;
     
     // Firebase
     private FirebaseFirestore db;
@@ -50,10 +51,8 @@ public class admin_tour_details extends AppCompatActivity implements OnMapReadyC
     
     // Adapters para las listas
     private AdminItinerarioAdapter itinerarioAdapter;
-    private AdminServiciosAdapter serviciosAdapter;
     private com.example.connectifyproject.adapters.TourImageAdapter imageAdapter;
     private List<Cliente_ItinerarioItem> itinerarioItems;
-    private List<Map<String, Object>> serviciosList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -113,6 +112,7 @@ public class admin_tour_details extends AppCompatActivity implements OnMapReadyC
                     String horaInicio = documentSnapshot.getString("horaInicio");
                     String horaFin = documentSnapshot.getString("horaFin");
                     String duracion = documentSnapshot.getString("duracion");
+                    guiaAsignadoId = documentSnapshot.getString("guiaAsignadoId");
                     
                     // Cargar imágenes en galería horizontal
                     List<String> imagenesUrls = (List<String>) documentSnapshot.get("imagenesUrls");
@@ -147,12 +147,6 @@ public class admin_tour_details extends AppCompatActivity implements OnMapReadyC
                         }
                     }
                     
-                    // Cargar servicios adicionales
-                    List<Map<String, Object>> serviciosData = (List<Map<String, Object>>) documentSnapshot.get("serviciosAdicionales");
-                    if (serviciosData != null && !serviciosData.isEmpty()) {
-                        serviciosList = new ArrayList<>(serviciosData);
-                    }
-                    
                     // Actualizar UI con los datos cargados
                     if (titulo != null) binding.tvTourNombre.setText(titulo);
                     if (descripcion != null) binding.tvTourDescripcion.setText(descripcion);
@@ -165,13 +159,6 @@ public class admin_tour_details extends AppCompatActivity implements OnMapReadyC
                     }
                     if (duracion != null) {
                         binding.tvDuracion.setText(duracion + " hrs");
-                    }
-                    
-                    // Configurar adaptador de servicios
-                    if (serviciosList != null && !serviciosList.isEmpty()) {
-                        serviciosAdapter = new AdminServiciosAdapter(serviciosList);
-                        binding.recyclerViewServicios.setLayoutManager(new LinearLayoutManager(this));
-                        binding.recyclerViewServicios.setAdapter(serviciosAdapter);
                     }
                     
                     // Configurar badge de estado
@@ -245,6 +232,11 @@ public class admin_tour_details extends AppCompatActivity implements OnMapReadyC
             // Limpiar marcadores anteriores
             mGoogleMap.clear();
             
+            // Crear polyline para conectar los puntos
+            PolylineOptions polylineOptions = new PolylineOptions()
+                    .color(getResources().getColor(R.color.brand_purple_dark))
+                    .width(8);
+            
             // Agregar marcadores para cada punto del itinerario
             for (int i = 0; i < itinerarioItems.size(); i++) {
                 Cliente_ItinerarioItem item = itinerarioItems.get(i);
@@ -254,6 +246,14 @@ public class admin_tour_details extends AppCompatActivity implements OnMapReadyC
                         .position(position)
                         .title((i + 1) + ". " + item.getPlaceName())
                         .snippet(item.getVisitTime() + " - " + item.getDescription()));
+                
+                // Agregar punto a la polilínea
+                polylineOptions.add(position);
+            }
+            
+            // Dibujar la línea conectando todos los puntos si hay más de uno
+            if (itinerarioItems.size() > 1) {
+                mGoogleMap.addPolyline(polylineOptions);
             }
         } else {
             // Si no hay itinerario, agregar marcador principal
@@ -285,7 +285,6 @@ public class admin_tour_details extends AppCompatActivity implements OnMapReadyC
         binding.tabLayoutDetails.addTab(binding.tabLayoutDetails.newTab().setText("Info"));
         binding.tabLayoutDetails.addTab(binding.tabLayoutDetails.newTab().setText("Itinerario"));
         binding.tabLayoutDetails.addTab(binding.tabLayoutDetails.newTab().setText("Guía"));
-        binding.tabLayoutDetails.addTab(binding.tabLayoutDetails.newTab().setText("Servicios"));
 
         binding.tabLayoutDetails.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
@@ -326,10 +325,6 @@ public class admin_tour_details extends AppCompatActivity implements OnMapReadyC
             case "Guía":
                 binding.layoutGuiaSection.setVisibility(View.VISIBLE);
                 setupGuiaContent();
-                break;
-            case "Servicios":
-                binding.layoutServiciosSection.setVisibility(View.VISIBLE);
-                setupServiciosContent();
                 break;
         }
     }
@@ -377,15 +372,7 @@ public class admin_tour_details extends AppCompatActivity implements OnMapReadyC
     }
 
     private void setupGuiaContent() {
-        // Verificar el estado del tour y si tiene guía asignada
-        // Posibles estados:
-        // - "Guía no seleccionado": muestra botón de buscar guía
-        // - "En espera de confirmación": muestra timeline de la propuesta
-        // - "Hay datos sin completar": muestra botón de buscar guía
-        // - Otros estados: muestra información del guía asignado
-        
-        boolean guiaNoSeleccionado = "Guía no seleccionado".equals(tourEstado) || 
-                                   "Hay datos sin completar".equals(tourEstado);
+        // Verificar si hay guía asignado usando guiaAsignadoId
         boolean enEsperaConfirmacion = "En espera de confirmación".equals(tourEstado);
         
         // Ocultar todas las secciones primero
@@ -401,64 +388,45 @@ public class admin_tour_details extends AppCompatActivity implements OnMapReadyC
             binding.tvTimelinePropuestaEnviada.setText("10:00 AM");
             binding.tvTimelineGuiaVisualizo.setText("10:30 AM");
             
-        } else if (guiaNoSeleccionado) {
-            // Mostrar mensaje de no hay guía asignado
+        } else if (guiaAsignadoId == null || guiaAsignadoId.isEmpty()) {
+            // No hay guía asignado
             binding.tvGuiaNoAsignada.setVisibility(View.VISIBLE);
             binding.tvGuiaNoAsignada.setText("No hay un guía asignado");
             
         } else {
-            // Mostrar información del guía asignado
+            // Hay guía asignado - Cargar datos desde Firebase
             binding.layoutGuiaAsignada.setVisibility(View.VISIBLE);
             
-            // TODO: Cargar datos reales del guía desde Firebase usando guiaAsignadoId
-            // Por ahora mostrar datos de ejemplo
-            binding.tvGuiaIdiomas.setText("Español, Inglés");
-            binding.tvGuiaTelefono.setText("📞 +51 987 654 321");
-            // Cargar foto del guía con Glide
-            // Glide.with(this).load(guiaFotoUrl).placeholder(R.drawable.ic_person).into(binding.ivGuiaFoto);
-        }
-    }
-
-    private void setupServiciosContent() {
-        // Configurar RecyclerView para servicios
-        if (serviciosList == null) {
-            serviciosList = new ArrayList<>();
-            // Agregar servicios con sus costos (datos de ejemplo)
-            Map<String, Object> servicio1 = new HashMap<>();
-            servicio1.put("nombre", "Guía turístico profesional");
-            servicio1.put("costo", 50.0);
-            serviciosList.add(servicio1);
-            
-            Map<String, Object> servicio2 = new HashMap<>();
-            servicio2.put("nombre", "Transporte incluido");
-            servicio2.put("costo", 30.0);
-            serviciosList.add(servicio2);
-            
-            Map<String, Object> servicio3 = new HashMap<>();
-            servicio3.put("nombre", "Almuerzo tradicional");
-            servicio3.put("costo", 25.0);
-            serviciosList.add(servicio3);
-            
-            Map<String, Object> servicio4 = new HashMap<>();
-            servicio4.put("nombre", "Entradas a museos y sitios");
-            servicio4.put("costo", 40.0);
-            serviciosList.add(servicio4);
-            
-            Map<String, Object> servicio5 = new HashMap<>();
-            servicio5.put("nombre", "Seguro de viaje");
-            servicio5.put("costo", 15.0);
-            serviciosList.add(servicio5);
-            
-            Map<String, Object> servicio6 = new HashMap<>();
-            servicio6.put("nombre", "Agua y refrigerios");
-            servicio6.put("costo", 10.0);
-            serviciosList.add(servicio6);
-        }
-        
-        if (serviciosAdapter == null) {
-            serviciosAdapter = new AdminServiciosAdapter(serviciosList);
-            binding.recyclerViewServicios.setLayoutManager(new LinearLayoutManager(this));
-            binding.recyclerViewServicios.setAdapter(serviciosAdapter);
+            // Cargar datos reales del guía desde Firebase
+            db.collection("usuarios").document(guiaAsignadoId).get()
+                .addOnSuccessListener(docGuia -> {
+                    if (docGuia.exists()) {
+                        // Cargar idiomas
+                        List<String> idiomas = (List<String>) docGuia.get("idiomas");
+                        if (idiomas != null && !idiomas.isEmpty()) {
+                            binding.tvGuiaIdiomas.setText(String.join(", ", idiomas));
+                        }
+                        
+                        // Cargar teléfono
+                        String telefono = docGuia.getString("telefono");
+                        if (telefono != null && !telefono.isEmpty()) {
+                            binding.tvGuiaTelefono.setText("📞 " + telefono);
+                        }
+                        
+                        // Cargar foto del guía
+                        String fotoUrl = docGuia.getString("fotoPerfil");
+                        if (fotoUrl != null && !fotoUrl.isEmpty()) {
+                            Glide.with(this)
+                                .load(fotoUrl)
+                                .placeholder(R.drawable.ic_person)
+                                .circleCrop()
+                                .into(binding.ivGuiaAvatar);
+                        }
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Error al cargar datos del guía", Toast.LENGTH_SHORT).show();
+                });
         }
     }
 
