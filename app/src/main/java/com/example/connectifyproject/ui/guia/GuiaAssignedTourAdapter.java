@@ -356,15 +356,7 @@ public class GuiaAssignedTourAdapter extends RecyclerView.Adapter<RecyclerView.V
 
     private void startDetailIntent(GuiaAssignedTour tour) {
         Intent intent = new Intent(context, guia_assigned_tour_detail.class);
-        intent.putExtra("tour_name", tour.getName());
-        intent.putExtra("tour_empresa", tour.getEmpresa());
-        intent.putExtra("tour_initio", tour.getInitio());
-        intent.putExtra("tour_duration", tour.getDuration());
-        intent.putExtra("tour_clients", tour.getClients());
-        intent.putExtra("tour_status", tour.getStatus());
-        intent.putExtra("tour_languages", tour.getLanguages());
-        intent.putExtra("tour_services", tour.getServices());
-        intent.putStringArrayListExtra("tour_itinerario", new ArrayList<>(tour.getItinerario()));
+        intent.putExtra("tour_id", tour.getTourId()); // ✅ ID del tour para cargar desde Firebase
         context.startActivity(intent);
     }
 

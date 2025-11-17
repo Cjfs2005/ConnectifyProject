@@ -3,6 +3,8 @@ package com.example.connectifyproject;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -48,6 +50,7 @@ public class admin_tour_details extends AppCompatActivity implements OnMapReadyC
     private String guiaAsignadoId;
     private String guiaSeleccionadoId;  // Para tours pendientes
     private Map<String, Object> guiaAsignadoData;  // Para tours confirmados
+    private List<Map<String, Object>> participantesData;  // Para tours confirmados
     
     // Firebase
     private FirebaseFirestore db;
@@ -217,6 +220,8 @@ public class admin_tour_details extends AppCompatActivity implements OnMapReadyC
                     if ("confirmado".equals(tourTipo)) {
                         // Para tours confirmados, guardar guía del campo guiaAsignado
                         guiaAsignadoData = (Map<String, Object>) documentSnapshot.get("guiaAsignado");
+                        // Guardar participantes del campo participantes
+                        participantesData = (List<Map<String, Object>>) documentSnapshot.get("participantes");
                     } else if ("pendiente".equals(tourTipo)) {
                         // Para tours pendientes, guardar ID del guía seleccionado
                         guiaSeleccionadoId = documentSnapshot.getString("guiaSeleccionadoActual");
@@ -348,6 +353,11 @@ public class admin_tour_details extends AppCompatActivity implements OnMapReadyC
         binding.tabLayoutDetails.addTab(binding.tabLayoutDetails.newTab().setText("Info"));
         binding.tabLayoutDetails.addTab(binding.tabLayoutDetails.newTab().setText("Itinerario"));
         binding.tabLayoutDetails.addTab(binding.tabLayoutDetails.newTab().setText("Guía"));
+        
+        // Agregar pestaña Participantes solo para tours confirmados
+        if ("confirmado".equals(tourTipo)) {
+            binding.tabLayoutDetails.addTab(binding.tabLayoutDetails.newTab().setText("Participantes"));
+        }
 
         binding.tabLayoutDetails.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
@@ -372,6 +382,7 @@ public class admin_tour_details extends AppCompatActivity implements OnMapReadyC
         binding.layoutInfoSection.setVisibility(View.GONE);
         binding.layoutItinerarioSection.setVisibility(View.GONE);
         binding.layoutGuiaSection.setVisibility(View.GONE);
+        binding.layoutParticipantesSection.setVisibility(View.GONE);
         binding.layoutServiciosSection.setVisibility(View.GONE);
         binding.layoutMapaSection.setVisibility(View.GONE);
 
@@ -388,6 +399,10 @@ public class admin_tour_details extends AppCompatActivity implements OnMapReadyC
             case "Guía":
                 binding.layoutGuiaSection.setVisibility(View.VISIBLE);
                 setupGuiaContent();
+                break;
+            case "Participantes":
+                binding.layoutParticipantesSection.setVisibility(View.VISIBLE);
+                setupParticipantesContent();
                 break;
         }
     }
@@ -563,6 +578,7 @@ public class admin_tour_details extends AppCompatActivity implements OnMapReadyC
         String nombresCompletos = (String) guiaAsignado.get("nombresCompletos");
         String correoElectronico = (String) guiaAsignado.get("correoElectronico");
         String numeroTelefono = (String) guiaAsignado.get("numeroTelefono");
+        String identificadorUsuario = (String) guiaAsignado.get("identificadorUsuario");
         
         android.util.Log.d("AdminTourDetails", "Nombre: " + nombresCompletos);
         android.util.Log.d("AdminTourDetails", "Correo: " + correoElectronico);
@@ -582,6 +598,32 @@ public class admin_tour_details extends AppCompatActivity implements OnMapReadyC
         if (numeroTelefono != null) {
             binding.tvGuiaTelefono.setText("📞 " + numeroTelefono);
             binding.tvGuiaTelefono.setVisibility(View.VISIBLE);
+        }
+        
+        // Cargar foto de perfil del guía desde usuarios
+        if (identificadorUsuario != null && !identificadorUsuario.isEmpty()) {
+            db.collection("usuarios").document(identificadorUsuario).get()
+                .addOnSuccessListener(docGuia -> {
+                    if (docGuia.exists()) {
+                        String photoUrl = docGuia.getString("photoUrl");
+                        if (photoUrl != null && !photoUrl.isEmpty()) {
+                            Glide.with(this)
+                                .load(photoUrl)
+                                .placeholder(R.drawable.ic_person)
+                                .circleCrop()
+                                .into(binding.ivGuiaAvatar);
+                            android.util.Log.d("AdminTourDetails", "Foto del guía confirmado cargada: " + photoUrl);
+                        } else {
+                            binding.ivGuiaAvatar.setImageResource(R.drawable.ic_person);
+                        }
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    android.util.Log.e("AdminTourDetails", "Error al cargar foto del guía: " + e.getMessage());
+                    binding.ivGuiaAvatar.setImageResource(R.drawable.ic_person);
+                });
+        } else {
+            binding.ivGuiaAvatar.setImageResource(R.drawable.ic_person);
         }
         
         // Mostrar badge de confirmado
@@ -652,6 +694,19 @@ public class admin_tour_details extends AppCompatActivity implements OnMapReadyC
                         binding.tvGuiaTelefono.setText("📞 " + telefono);
                         binding.tvGuiaTelefono.setVisibility(View.VISIBLE);
                         android.util.Log.d("AdminTourDetails", "Teléfono configurado: " + telefono);
+                    }
+                    
+                    // Cargar foto de perfil del guía
+                    String photoUrl = docGuia.getString("photoUrl");
+                    if (photoUrl != null && !photoUrl.isEmpty()) {
+                        Glide.with(this)
+                            .load(photoUrl)
+                            .placeholder(R.drawable.ic_person)
+                            .circleCrop()
+                            .into(binding.ivGuiaAvatar);
+                        android.util.Log.d("AdminTourDetails", "Foto del guía cargada: " + photoUrl);
+                    } else {
+                        binding.ivGuiaAvatar.setImageResource(R.drawable.ic_person);
                     }
                     
                     // Mostrar badge de pendiente
@@ -731,5 +786,118 @@ public class admin_tour_details extends AppCompatActivity implements OnMapReadyC
             .addOnFailureListener(e -> {
                 Toast.makeText(this, "Error al cargar datos del guía", Toast.LENGTH_SHORT).show();
             });
+    }
+    
+    /**
+     * Configurar contenido de la sección Participantes
+     */
+    private void setupParticipantesContent() {
+        binding.layoutParticipantesContainer.removeAllViews();
+        
+        if (participantesData != null && !participantesData.isEmpty()) {
+            binding.tvNoParticipantes.setVisibility(View.GONE);
+            binding.layoutParticipantesContainer.setVisibility(View.VISIBLE);
+            
+            // Crear vista para cada participante
+            for (int i = 0; i < participantesData.size(); i++) {
+                Map<String, Object> participante = participantesData.get(i);
+                
+                // Obtener datos del participante
+                String nombre = (String) participante.get("nombre");
+                String tipoDoc = (String) participante.get("tipoDocumento");
+                String numeroDoc = (String) participante.get("numeroDocumento");
+                String email = (String) participante.get("email");
+                String telefono = (String) participante.get("telefono");
+                
+                // Crear CardView para cada participante
+                com.google.android.material.card.MaterialCardView cardView = 
+                    new com.google.android.material.card.MaterialCardView(this);
+                LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                );
+                cardParams.setMargins(0, 0, 0, 16);
+                cardView.setLayoutParams(cardParams);
+                cardView.setRadius(8);
+                cardView.setCardElevation(2);
+                cardView.setContentPadding(16, 16, 16, 16);
+                
+                // Layout interno del card
+                LinearLayout cardContent = new LinearLayout(this);
+                cardContent.setOrientation(LinearLayout.VERTICAL);
+                cardContent.setLayoutParams(new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                ));
+                
+                // Número de participante
+                TextView tvNumero = new TextView(this);
+                tvNumero.setText("Participante " + (i + 1));
+                tvNumero.setTextColor(getColor(R.color.primary));
+                tvNumero.setTextSize(12);
+                tvNumero.setTypeface(null, android.graphics.Typeface.BOLD);
+                cardContent.addView(tvNumero);
+                
+                // Nombre del participante
+                TextView tvNombre = new TextView(this);
+                tvNombre.setText("👤 " + (nombre != null ? nombre : "Sin nombre"));
+                tvNombre.setTextColor(getColor(R.color.on_surface));
+                tvNombre.setTextSize(16);
+                tvNombre.setTypeface(null, android.graphics.Typeface.BOLD);
+                LinearLayout.LayoutParams nombreParams = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                );
+                nombreParams.setMargins(0, 8, 0, 8);
+                tvNombre.setLayoutParams(nombreParams);
+                cardContent.addView(tvNombre);
+                
+                // Documento
+                if (tipoDoc != null && numeroDoc != null) {
+                    TextView tvDocumento = new TextView(this);
+                    tvDocumento.setText("📄 " + tipoDoc + ": " + numeroDoc);
+                    tvDocumento.setTextColor(getColor(R.color.text_secondary));
+                    tvDocumento.setTextSize(14);
+                    LinearLayout.LayoutParams docParams = new LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT
+                    );
+                    docParams.setMargins(0, 0, 0, 4);
+                    tvDocumento.setLayoutParams(docParams);
+                    cardContent.addView(tvDocumento);
+                }
+                
+                // Email
+                if (email != null && !email.isEmpty()) {
+                    TextView tvEmail = new TextView(this);
+                    tvEmail.setText("📧 " + email);
+                    tvEmail.setTextColor(getColor(R.color.text_secondary));
+                    tvEmail.setTextSize(14);
+                    LinearLayout.LayoutParams emailParams = new LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT
+                    );
+                    emailParams.setMargins(0, 0, 0, 4);
+                    tvEmail.setLayoutParams(emailParams);
+                    cardContent.addView(tvEmail);
+                }
+                
+                // Teléfono
+                if (telefono != null && !telefono.isEmpty()) {
+                    TextView tvTelefono = new TextView(this);
+                    tvTelefono.setText("📞 " + telefono);
+                    tvTelefono.setTextColor(getColor(R.color.text_secondary));
+                    tvTelefono.setTextSize(14);
+                    cardContent.addView(tvTelefono);
+                }
+                
+                cardView.addView(cardContent);
+                binding.layoutParticipantesContainer.addView(cardView);
+            }
+        } else {
+            // No hay participantes
+            binding.tvNoParticipantes.setVisibility(View.VISIBLE);
+            binding.layoutParticipantesContainer.setVisibility(View.GONE);
+        }
     }
 }

@@ -14,15 +14,26 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.bumptech.glide.Glide;
 import com.example.connectifyproject.databinding.GuiaAssignedTourDetailBinding;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.firebase.Timestamp;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 public class guia_assigned_tour_detail extends AppCompatActivity {
     private GuiaAssignedTourDetailBinding binding;
+    private FirebaseFirestore db;
+    private String tourId;
+    private SimpleDateFormat dateFormat;
+    private SimpleDateFormat timeFormat;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,44 +47,122 @@ public class guia_assigned_tour_detail extends AppCompatActivity {
             getSupportActionBar().setTitle("Detalles del Tour");
         }
 
+        // Inicializar Firebase y formatos de fecha
+        db = FirebaseFirestore.getInstance();
+        dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+        timeFormat = new SimpleDateFormat("HH:mm", Locale.getDefault());
+
+        // Obtener tour ID del intent
         Intent intent = getIntent();
-        String tourName = intent.getStringExtra("tour_name");
-        String tourEmpresa = intent.getStringExtra("tour_empresa");
-        String tourInitio = intent.getStringExtra("tour_initio");
-        String tourDuration = intent.getStringExtra("tour_duration");
-        int tourClients = intent.getIntExtra("tour_clients", 0);
-        String tourStatus = intent.getStringExtra("tour_status");
-        String tourLanguages = intent.getStringExtra("tour_languages");
-        String tourServices = intent.getStringExtra("tour_services");
-        ArrayList<String> tourItinerario = intent.getStringArrayListExtra("tour_itinerario");
+        tourId = intent.getStringExtra("tour_id");
 
-        // ✅ NUEVA ESTRUCTURA: Configurar UI mejorada
-        setupTourHeader(tourName, tourEmpresa, tourInitio, tourDuration, tourClients, tourStatus);
-        setupParticipantes(tourClients);
-        setupItinerario(tourItinerario);
-        setupTourInfo(tourLanguages, tourServices);
-        setupActionButtons(tourStatus);
+        if (tourId != null && !tourId.isEmpty()) {
+            loadTourDataFromFirebase();
+        } else {
+            Toast.makeText(this, "Error: ID del tour no encontrado", Toast.LENGTH_SHORT).show();
+            finish();
+        }
+    }
 
-        // ✅ LÓGICA INTELIGENTE: Solo mostrar acciones si es relevante
-        boolean shouldShowActions = shouldShowActionButtons(tourStatus, tourInitio);
+    /**
+     * Cargar datos del tour desde Firebase (colección tours_asignados)
+     */
+    private void loadTourDataFromFirebase() {
+        db.collection("tours_asignados")
+            .document(tourId)
+            .get()
+            .addOnSuccessListener(documentSnapshot -> {
+                if (documentSnapshot.exists()) {
+                    setupTourFromFirebase(documentSnapshot);
+                } else {
+                    Toast.makeText(this, "Tour no encontrado", Toast.LENGTH_SHORT).show();
+                    finish();
+                }
+            })
+            .addOnFailureListener(e -> {
+                Toast.makeText(this, "Error al cargar tour: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                finish();
+            });
+    }
+
+    /**
+     * Configurar UI con datos de Firebase
+     */
+    private void setupTourFromFirebase(DocumentSnapshot doc) {
+        // Datos básicos
+        String titulo = doc.getString("titulo");
+        String nombreEmpresa = doc.getString("nombreEmpresa");
+        String descripcion = doc.getString("descripcion");
+        String duracion = doc.getString("duracion");
+        String horaInicio = doc.getString("horaInicio");
+        String horaFin = doc.getString("horaFin");
+        String estado = doc.getString("estado");
+        Double pagoGuia = doc.getDouble("pagoGuia");
+        
+        // Fecha de realización
+        Timestamp fechaRealizacion = doc.getTimestamp("fechaRealizacion");
+        String fechaFormateada = fechaRealizacion != null ? 
+            dateFormat.format(fechaRealizacion.toDate()) : "Fecha no disponible";
+        
+        // Idiomas
+        List<String> idiomasLista = (List<String>) doc.get("idiomasRequeridos");
+        String idiomas = idiomasLista != null && !idiomasLista.isEmpty() ? 
+            String.join(", ", idiomasLista) : "No especificado";
+        
+        // Servicios adicionales
+        List<String> serviciosLista = (List<String>) doc.get("serviciosAdicionales");
+        String servicios = serviciosLista != null && !serviciosLista.isEmpty() ? 
+            String.join(", ", serviciosLista) : "No especificado";
+        
+        // Itinerario
+        List<Map<String, Object>> itinerarioData = (List<Map<String, Object>>) doc.get("itinerario");
+        ArrayList<String> itinerarioTexto = new ArrayList<>();
+        if (itinerarioData != null) {
+            for (Map<String, Object> punto : itinerarioData) {
+                String nombrePunto = (String) punto.get("nombre");
+                String direccion = (String) punto.get("direccion");
+                if (nombrePunto != null) {
+                    itinerarioTexto.add(nombrePunto + (direccion != null ? " - " + direccion : ""));
+                }
+            }
+        }
+        
+        // Participantes
+        List<Map<String, Object>> participantesData = (List<Map<String, Object>>) doc.get("participantes");
+        int numParticipantes = participantesData != null ? participantesData.size() : 0;
+        
+        // Configurar UI
+        setupTourHeader(titulo, nombreEmpresa, fechaFormateada + " " + horaInicio, 
+                       duracion + " horas", numParticipantes, estado, pagoGuia);
+        setupParticipantes(participantesData);
+        setupItinerario(itinerarioTexto);
+        setupTourInfo(idiomas, servicios, descripcion);
+        setupActionButtons(estado);
+        
+        // Lógica de acciones
+        boolean shouldShowActions = shouldShowActionButtons(estado, fechaFormateada);
         binding.actionsCard.setVisibility(shouldShowActions ? View.VISIBLE : View.GONE);
-
-        setupButtonClickListeners(tourName, tourStatus, tourItinerario, tourClients);
+        
+        setupButtonClickListeners(titulo, estado, itinerarioTexto, numParticipantes);
     }
 
     /**
      * ✅ HEADER: Configurar información principal del tour
      */
     private void setupTourHeader(String tourName, String tourEmpresa, String tourInitio, 
-                                String tourDuration, int tourClients, String tourStatus) {
-        binding.tourName.setText(tourName);
-        binding.empresaBadge.setText(tourEmpresa);
-        binding.tourInitio.setText(tourInitio);
-        binding.tourDuration.setText(tourDuration);
+                                String tourDuration, int tourClients, String tourStatus, Double pagoGuia) {
+        binding.tourName.setText(tourName != null ? tourName : "Tour sin título");
+        binding.empresaBadge.setText(tourEmpresa != null ? tourEmpresa : "Empresa");
+        binding.tourInitio.setText(tourInitio != null ? tourInitio : "Fecha no disponible");
+        binding.tourDuration.setText(tourDuration != null ? tourDuration : "Duración");
         binding.tourClients.setText(tourClients + " personas");
         
-        // Pago al guía simulado (en app real vendría del intent)
-        binding.pagoGuiaAmount.setText("S/. 85");
+        // Pago al guía desde Firebase
+        if (pagoGuia != null) {
+            binding.pagoGuiaAmount.setText("S/. " + String.format(Locale.getDefault(), "%.0f", pagoGuia));
+        } else {
+            binding.pagoGuiaAmount.setText("S/. 0");
+        }
         
         // Estado del tour con color
         binding.tourStatusBadge.setText(formatearEstado(tourStatus));
@@ -81,26 +170,35 @@ public class guia_assigned_tour_detail extends AppCompatActivity {
     }
 
     /**
-     * ✅ PARTICIPANTES: Mostrar lista simulada de participantes
+     * ✅ PARTICIPANTES: Mostrar lista de participantes desde Firebase
      */
-    private void setupParticipantes(int numParticipantes) {
+    private void setupParticipantes(List<Map<String, Object>> participantesData) {
         LinearLayout container = binding.participantesContainer;
         container.removeAllViews();
         
-        // Participantes simulados para demo
-        List<String> participantesDemo = Arrays.asList(
-            "Ana Lucía Rodriguez - DNI: 70123456",
-            "Carlos Miguel Torres - Pasaporte: ARG123456789", 
-            "Sophie Chen - Pasaporte: USA987654321"
-        );
-        
-        for (int i = 0; i < Math.min(numParticipantes, participantesDemo.size()); i++) {
-            TextView participanteView = new TextView(this);
-            participanteView.setText("👤 " + participantesDemo.get(i));
-            participanteView.setTextSize(14);
-            participanteView.setTextColor(Color.parseColor("#212121"));
-            participanteView.setPadding(0, 8, 0, 8);
-            container.addView(participanteView);
+        if (participantesData != null && !participantesData.isEmpty()) {
+            for (Map<String, Object> participante : participantesData) {
+                String nombre = (String) participante.get("nombre");
+                String tipoDoc = (String) participante.get("tipoDocumento");
+                String numeroDoc = (String) participante.get("numeroDocumento");
+                
+                TextView participanteView = new TextView(this);
+                String textoCompleto = "👤 " + (nombre != null ? nombre : "Participante");
+                if (tipoDoc != null && numeroDoc != null) {
+                    textoCompleto += " - " + tipoDoc + ": " + numeroDoc;
+                }
+                participanteView.setText(textoCompleto);
+                participanteView.setTextSize(14);
+                participanteView.setTextColor(Color.parseColor("#212121"));
+                participanteView.setPadding(0, 8, 0, 8);
+                container.addView(participanteView);
+            }
+        } else {
+            TextView emptyView = new TextView(this);
+            emptyView.setText("👤 No hay participantes registrados aún");
+            emptyView.setTextSize(14);
+            emptyView.setTextColor(Color.parseColor("#757575"));
+            container.addView(emptyView);
         }
     }
 
@@ -132,9 +230,12 @@ public class guia_assigned_tour_detail extends AppCompatActivity {
     /**
      * ✅ INFO: Configurar información adicional del tour
      */
-    private void setupTourInfo(String tourLanguages, String tourServices) {
+    private void setupTourInfo(String tourLanguages, String tourServices, String descripcion) {
         binding.tourLanguages.setText("🌐 Idiomas: " + (tourLanguages != null ? tourLanguages : "No especificado"));
-        binding.tourServices.setText("🎁 " + (tourServices != null ? tourServices : "Servicios incluidos"));
+        binding.tourServices.setText("🎁 Servicios: " + (tourServices != null && !tourServices.isEmpty() ? tourServices : "No especificado"));
+        
+        // Agregar descripción si existe el campo en el layout
+        // (Asumiendo que hay un TextView para descripción en el layout)
     }
 
     /**

@@ -581,6 +581,61 @@
 
                 </LinearLayout>
 
+                <!-- Sección Participantes (solo para confirmados) -->
+                <LinearLayout
+                    android:id="@+id/layoutParticipantesSection"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="16dp"
+                        app:cardCornerRadius="8dp"
+                        app:cardElevation="2dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:padding="16dp">
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="Participantes Inscritos"
+                                android:textColor="@color/on_surface"
+                                android:textSize="18sp"
+                                android:textStyle="bold"
+                                android:layout_marginBottom="12dp" />
+
+                            <!-- Lista de participantes -->
+                            <LinearLayout
+                                android:id="@+id/layoutParticipantesContainer"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical" />
+
+                            <!-- Mensaje cuando no hay participantes -->
+                            <TextView
+                                android:id="@+id/tvNoParticipantes"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="Aún no hay participantes inscritos"
+                                android:textColor="@color/text_secondary"
+                                android:textSize="14sp"
+                                android:textAlignment="center"
+                                android:padding="24dp"
+                                android:visibility="gone" />
+
+                        </LinearLayout>
+
+                    </com.google.android.material.card.MaterialCardView>
+
+                </LinearLayout>
+
                 <!-- Sección Servicios -->
                 <LinearLayout
                     android:id="@+id/layoutServiciosSection"
