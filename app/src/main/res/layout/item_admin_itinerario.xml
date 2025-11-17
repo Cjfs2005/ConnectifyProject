@@ -7,31 +7,29 @@
     android:padding="16dp"
     android:gravity="center_vertical">
 
-    <!-- Indicador de tiempo -->
+    <!-- Indicador visual -->
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:gravity="center"
-        android:layout_marginEnd="16dp"
-        android:minWidth="60dp">
+        android:layout_marginEnd="12dp">
 
-        <TextView
-            android:id="@+id/tvTiempo"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="09:00"
-            android:textColor="@color/primary"
-            android:textSize="14sp"
-            android:textStyle="bold" />
+        <!-- Punto circular -->
+        <View
+            android:layout_width="12dp"
+            android:layout_height="12dp"
+            android:background="@drawable/ic_circle"
+            android:backgroundTint="@color/primary" />
 
-        <!-- Línea conectora (visible excepto en el último item) -->
+        <!-- Línea conectora -->
         <View
             android:id="@+id/lineaConectora"
             android:layout_width="2dp"
             android:layout_height="40dp"
-            android:layout_marginTop="8dp"
-            android:background="@color/primary_200" />
+            android:layout_marginTop="4dp"
+            android:background="@color/primary_200"
+            android:visibility="visible" />
 
     </LinearLayout>
 

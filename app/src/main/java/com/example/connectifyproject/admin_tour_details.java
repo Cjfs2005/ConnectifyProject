@@ -29,6 +29,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -50,8 +51,9 @@ public class admin_tour_details extends AppCompatActivity implements OnMapReadyC
     // Adapters para las listas
     private AdminItinerarioAdapter itinerarioAdapter;
     private AdminServiciosAdapter serviciosAdapter;
+    private com.example.connectifyproject.adapters.TourImageAdapter imageAdapter;
     private List<Cliente_ItinerarioItem> itinerarioItems;
-    private List<String> serviciosList;
+    private List<Map<String, Object>> serviciosList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -112,15 +114,15 @@ public class admin_tour_details extends AppCompatActivity implements OnMapReadyC
                     String horaFin = documentSnapshot.getString("horaFin");
                     String duracion = documentSnapshot.getString("duracion");
                     
-                    // Cargar imágenes
+                    // Cargar imágenes en galería horizontal
                     List<String> imagenesUrls = (List<String>) documentSnapshot.get("imagenesUrls");
                     if (imagenesUrls != null && !imagenesUrls.isEmpty()) {
-                        Glide.with(this)
-                            .load(imagenesUrls.get(0))
-                            .placeholder(R.drawable.placeholder_tour)
-                            .error(R.drawable.placeholder_tour)
-                            .centerCrop()
-                            .into(binding.ivTourHero);
+                        imageAdapter = new com.example.connectifyproject.adapters.TourImageAdapter();
+                        binding.recyclerViewImagenes.setLayoutManager(
+                            new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+                        );
+                        binding.recyclerViewImagenes.setAdapter(imageAdapter);
+                        imageAdapter.setImages(imagenesUrls);
                     }
                     
                     // Cargar itinerario
@@ -148,26 +150,28 @@ public class admin_tour_details extends AppCompatActivity implements OnMapReadyC
                     // Cargar servicios adicionales
                     List<Map<String, Object>> serviciosData = (List<Map<String, Object>>) documentSnapshot.get("serviciosAdicionales");
                     if (serviciosData != null && !serviciosData.isEmpty()) {
-                        serviciosList = new ArrayList<>();
-                        for (Map<String, Object> servicio : serviciosData) {
-                            String nombre = (String) servicio.get("nombre");
-                            Boolean esPagado = (Boolean) servicio.get("esPagado");
-                            if (nombre != null) {
-                                serviciosList.add(nombre + (Boolean.TRUE.equals(esPagado) ? " (Pagado)" : " (Incluido)"));
-                            }
-                        }
+                        serviciosList = new ArrayList<>(serviciosData);
                     }
                     
                     // Actualizar UI con los datos cargados
                     if (titulo != null) binding.tvTourNombre.setText(titulo);
                     if (descripcion != null) binding.tvTourDescripcion.setText(descripcion);
                     if (fechaRealizacion != null) {
-                        binding.tvFechaInicio.setText(fechaRealizacion);
-                        binding.tvFechaFin.setText(fechaRealizacion);
+                        binding.tvFecha.setText(fechaRealizacion);
                     }
-                    if (precio != null) binding.tvCostoPorPersona.setText("$" + precio.intValue());
+                    if (precio != null) binding.tvCostoPorPersona.setText("S/ " + precio.intValue());
                     if (horaInicio != null && horaFin != null) {
-                        binding.tvServicios.setText("Horario: " + horaInicio + " - " + horaFin);
+                        binding.tvHorario.setText(horaInicio + " - " + horaFin);
+                    }
+                    if (duracion != null) {
+                        binding.tvDuracion.setText(duracion + " hrs");
+                    }
+                    
+                    // Configurar adaptador de servicios
+                    if (serviciosList != null && !serviciosList.isEmpty()) {
+                        serviciosAdapter = new AdminServiciosAdapter(serviciosList);
+                        binding.recyclerViewServicios.setLayoutManager(new LinearLayoutManager(this));
+                        binding.recyclerViewServicios.setAdapter(serviciosAdapter);
                     }
                     
                     // Configurar badge de estado
@@ -370,9 +374,6 @@ public class admin_tour_details extends AppCompatActivity implements OnMapReadyC
             binding.recyclerViewItinerario.setLayoutManager(new LinearLayoutManager(this));
             binding.recyclerViewItinerario.setAdapter(itinerarioAdapter);
         }
-        
-        // Verificar si el tour está en curso
-        checkTourStatus();
     }
 
     private void setupGuiaContent() {
@@ -389,7 +390,7 @@ public class admin_tour_details extends AppCompatActivity implements OnMapReadyC
         
         // Ocultar todas las secciones primero
         binding.layoutGuiaAsignada.setVisibility(View.GONE);
-        binding.layoutGuiaNoAsignada.setVisibility(View.GONE);
+        binding.tvGuiaNoAsignada.setVisibility(View.GONE);
         binding.layoutTimelineGuia.setVisibility(View.GONE);
         
         if (enEsperaConfirmacion) {
@@ -401,25 +402,20 @@ public class admin_tour_details extends AppCompatActivity implements OnMapReadyC
             binding.tvTimelineGuiaVisualizo.setText("10:30 AM");
             
         } else if (guiaNoSeleccionado) {
-            // Mostrar botón de seleccionar guía
-            binding.layoutGuiaNoAsignada.setVisibility(View.VISIBLE);
+            // Mostrar mensaje de no hay guía asignado
+            binding.tvGuiaNoAsignada.setVisibility(View.VISIBLE);
+            binding.tvGuiaNoAsignada.setText("No hay un guía asignado");
             
-            // Configurar botón para ir a selección de guías
-            binding.btnSeleccionarGuia.setOnClickListener(v -> {
-                Intent intent = new Intent(this, admin_select_guide.class);
-                intent.putExtra("tour_titulo", tourTitulo);
-                intent.putExtra("tour_estado", tourEstado);
-                startActivity(intent);
-            });
         } else {
             // Mostrar información del guía asignado
             binding.layoutGuiaAsignada.setVisibility(View.VISIBLE);
             
-            // Configurar datos del guía (datos de ejemplo)
-            binding.tvGuiaNombre.setText("Carlos Mendoza");
-            binding.tvGuiaExperiencia.setText("5 años de experiencia");
+            // TODO: Cargar datos reales del guía desde Firebase usando guiaAsignadoId
+            // Por ahora mostrar datos de ejemplo
             binding.tvGuiaIdiomas.setText("Español, Inglés");
             binding.tvGuiaTelefono.setText("📞 +51 987 654 321");
+            // Cargar foto del guía con Glide
+            // Glide.with(this).load(guiaFotoUrl).placeholder(R.drawable.ic_person).into(binding.ivGuiaFoto);
         }
     }
 
@@ -427,12 +423,36 @@ public class admin_tour_details extends AppCompatActivity implements OnMapReadyC
         // Configurar RecyclerView para servicios
         if (serviciosList == null) {
             serviciosList = new ArrayList<>();
-            serviciosList.add("Guía turístico profesional");
-            serviciosList.add("Transporte incluido");
-            serviciosList.add("Almuerzo tradicional");
-            serviciosList.add("Entradas a museos y sitios");
-            serviciosList.add("Seguro de viaje");
-            serviciosList.add("Agua y refrigerios");
+            // Agregar servicios con sus costos (datos de ejemplo)
+            Map<String, Object> servicio1 = new HashMap<>();
+            servicio1.put("nombre", "Guía turístico profesional");
+            servicio1.put("costo", 50.0);
+            serviciosList.add(servicio1);
+            
+            Map<String, Object> servicio2 = new HashMap<>();
+            servicio2.put("nombre", "Transporte incluido");
+            servicio2.put("costo", 30.0);
+            serviciosList.add(servicio2);
+            
+            Map<String, Object> servicio3 = new HashMap<>();
+            servicio3.put("nombre", "Almuerzo tradicional");
+            servicio3.put("costo", 25.0);
+            serviciosList.add(servicio3);
+            
+            Map<String, Object> servicio4 = new HashMap<>();
+            servicio4.put("nombre", "Entradas a museos y sitios");
+            servicio4.put("costo", 40.0);
+            serviciosList.add(servicio4);
+            
+            Map<String, Object> servicio5 = new HashMap<>();
+            servicio5.put("nombre", "Seguro de viaje");
+            servicio5.put("costo", 15.0);
+            serviciosList.add(servicio5);
+            
+            Map<String, Object> servicio6 = new HashMap<>();
+            servicio6.put("nombre", "Agua y refrigerios");
+            servicio6.put("costo", 10.0);
+            serviciosList.add(servicio6);
         }
         
         if (serviciosAdapter == null) {
@@ -448,18 +468,6 @@ public class admin_tour_details extends AppCompatActivity implements OnMapReadyC
         if (mGoogleMap != null) {
             LatLng location = new LatLng(item.getLatitude(), item.getLongitude());
             mGoogleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(location, 16f));
-        }
-    }
-
-    private void checkTourStatus() {
-        // TODO: Verificar el estado del tour (en curso, programado, finalizado)
-        // Por ahora simular que está en curso
-        boolean tourEnCurso = true; // Esto debería venir de la base de datos
-        
-        if (tourEnCurso) {
-            binding.layoutEstadoEnCurso.setVisibility(View.VISIBLE);
-        } else {
-            binding.layoutEstadoEnCurso.setVisibility(View.GONE);
         }
     }
 

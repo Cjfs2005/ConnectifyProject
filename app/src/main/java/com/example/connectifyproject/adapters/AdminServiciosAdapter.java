@@ -12,12 +12,13 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.connectifyproject.R;
 
 import java.util.List;
+import java.util.Map;
 
 public class AdminServiciosAdapter extends RecyclerView.Adapter<AdminServiciosAdapter.ServicioViewHolder> {
 
-    private List<String> servicios;
+    private List<Map<String, Object>> servicios;
 
-    public AdminServiciosAdapter(List<String> servicios) {
+    public AdminServiciosAdapter(List<Map<String, Object>> servicios) {
         this.servicios = servicios;
     }
 
@@ -31,8 +32,19 @@ public class AdminServiciosAdapter extends RecyclerView.Adapter<AdminServiciosAd
 
     @Override
     public void onBindViewHolder(@NonNull ServicioViewHolder holder, int position) {
-        String servicio = servicios.get(position);
-        holder.tvServiceName.setText(servicio);
+        Map<String, Object> servicio = servicios.get(position);
+        String nombre = (String) servicio.get("nombre");
+        Object costoObj = servicio.get("costo");
+        
+        holder.tvServiceName.setText(nombre != null ? nombre : "");
+        
+        if (costoObj != null) {
+            double costo = costoObj instanceof Long ? 
+                ((Long) costoObj).doubleValue() : (Double) costoObj;
+            holder.tvServiceCost.setText(String.format("S/ %.0f", costo));
+        } else {
+            holder.tvServiceCost.setText("S/ 0");
+        }
     }
 
     @Override
@@ -40,18 +52,20 @@ public class AdminServiciosAdapter extends RecyclerView.Adapter<AdminServiciosAd
         return servicios != null ? servicios.size() : 0;
     }
 
-    public void updateList(List<String> newServicios) {
+    public void updateList(List<Map<String, Object>> newServicios) {
         this.servicios = newServicios;
         notifyDataSetChanged();
     }
 
     public static class ServicioViewHolder extends RecyclerView.ViewHolder {
         TextView tvServiceName;
+        TextView tvServiceCost;
         ImageView ivServiceIcon;
 
         public ServicioViewHolder(@NonNull View itemView) {
             super(itemView);
             tvServiceName = itemView.findViewById(R.id.tvServiceName);
+            tvServiceCost = itemView.findViewById(R.id.tvServiceCost);
             ivServiceIcon = itemView.findViewById(R.id.ivServiceIcon);
         }
     }

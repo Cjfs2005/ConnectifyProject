@@ -40,7 +40,6 @@ public class AdminItinerarioAdapter extends RecyclerView.Adapter<AdminItinerario
     public void onBindViewHolder(@NonNull ItinerarioViewHolder holder, int position) {
         Cliente_ItinerarioItem item = itinerarioItems.get(position);
         
-        holder.tvTiempo.setText(item.getVisitTime());
         holder.tvNombreLugar.setText(item.getPlaceName());
         holder.tvDescripcion.setText(item.getDescription());
         
@@ -52,12 +51,8 @@ public class AdminItinerarioAdapter extends RecyclerView.Adapter<AdminItinerario
             holder.tvDuracion.setVisibility(View.GONE);
         }
 
-        // Ocultar línea conectora en el último item
-        if (position == itinerarioItems.size() - 1) {
-            holder.lineaConectora.setVisibility(View.GONE);
-        } else {
-            holder.lineaConectora.setVisibility(View.VISIBLE);
-        }
+        // Mantener línea visible en todos los items
+        holder.lineaConectora.setVisibility(View.VISIBLE);
 
         // Click listener
         holder.itemView.setOnClickListener(v -> {
@@ -78,13 +73,12 @@ public class AdminItinerarioAdapter extends RecyclerView.Adapter<AdminItinerario
     }
 
     public static class ItinerarioViewHolder extends RecyclerView.ViewHolder {
-        TextView tvTiempo, tvNombreLugar, tvDescripcion, tvDuracion;
+        TextView tvNombreLugar, tvDescripcion, tvDuracion;
         View lineaConectora;
         ImageView ivLocationIcon;
 
         public ItinerarioViewHolder(@NonNull View itemView) {
             super(itemView);
-            tvTiempo = itemView.findViewById(R.id.tvTiempo);
             tvNombreLugar = itemView.findViewById(R.id.tvNombreLugar);
             tvDescripcion = itemView.findViewById(R.id.tvDescripcion);
             tvDuracion = itemView.findViewById(R.id.tvDuracion);

@@ -36,7 +36,7 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <!-- Imagen hero del tour -->
+            <!-- Galería de imágenes del tour -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="240dp"
@@ -48,12 +48,13 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent">
 
-                    <ImageView
-                        android:id="@+id/ivTourHero"
+                    <!-- RecyclerView horizontal para galería de imágenes -->
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/recyclerViewImagenes"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:scaleType="centerCrop"
-                        android:contentDescription="Imagen del tour" />
+                        android:orientation="horizontal"
+                        android:clipToPadding="false" />
 
                     <!-- Badge de estado -->
                     <TextView
@@ -173,7 +174,7 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:orientation="horizontal"
-                                android:layout_marginBottom="8dp">
+                                android:layout_marginBottom="16dp">
 
                                 <TextView
                                     android:layout_width="0dp"
@@ -187,41 +188,33 @@
                                     android:id="@+id/tvCostoPorPersona"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="$499"
+                                    android:text="S/ 499"
                                     android:textColor="@color/on_surface"
                                     android:textSize="16sp"
                                     android:textStyle="bold" />
 
                             </LinearLayout>
 
-                            <LinearLayout
+                            <TextView
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:orientation="horizontal">
+                                android:text="Servicios adicionales:"
+                                android:textColor="@color/text_secondary"
+                                android:textSize="14sp"
+                                android:layout_marginBottom="8dp" />
 
-                                <TextView
-                                    android:layout_width="0dp"
-                                    android:layout_height="wrap_content"
-                                    android:layout_weight="1"
-                                    android:text="Servicios incluidos:"
-                                    android:textColor="@color/text_secondary"
-                                    android:textSize="14sp" />
-
-                                <TextView
-                                    android:id="@+id/tvServicios"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="Guía, equipamiento"
-                                    android:textColor="@color/on_surface"
-                                    android:textSize="14sp" />
-
-                            </LinearLayout>
+                            <!-- RecyclerView para servicios adicionales -->
+                            <androidx.recyclerview.widget.RecyclerView
+                                android:id="@+id/recyclerViewServicios"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:nestedScrollingEnabled="false" />
 
                         </LinearLayout>
 
                     </com.google.android.material.card.MaterialCardView>
 
-                    <!-- Información de fechas -->
+                    <!-- Información de fechas y duración -->
                     <com.google.android.material.card.MaterialCardView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -254,15 +247,40 @@
                                     android:layout_width="0dp"
                                     android:layout_height="wrap_content"
                                     android:layout_weight="1"
-                                    android:text="Fecha de inicio:"
+                                    android:text="Fecha:"
                                     android:textColor="@color/text_secondary"
                                     android:textSize="14sp" />
 
                                 <TextView
-                                    android:id="@+id/tvFechaInicio"
+                                    android:id="@+id/tvFecha"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="15 de julio, 2024"
+                                    android:textColor="@color/on_surface"
+                                    android:textSize="14sp"
+                                    android:textStyle="bold" />
+
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal"
+                                android:layout_marginBottom="8dp">
+
+                                <TextView
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:text="Horario:"
+                                    android:textColor="@color/text_secondary"
+                                    android:textSize="14sp" />
+
+                                <TextView
+                                    android:id="@+id/tvHorario"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="09:00 - 18:00"
                                     android:textColor="@color/on_surface"
                                     android:textSize="14sp"
                                     android:textStyle="bold" />
@@ -278,15 +296,15 @@
                                     android:layout_width="0dp"
                                     android:layout_height="wrap_content"
                                     android:layout_weight="1"
-                                    android:text="Fecha de fin:"
+                                    android:text="Duración:"
                                     android:textColor="@color/text_secondary"
                                     android:textSize="14sp" />
 
                                 <TextView
-                                    android:id="@+id/tvFechaFin"
+                                    android:id="@+id/tvDuracion"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="20 de julio, 2024"
+                                    android:text="9 horas"
                                     android:textColor="@color/on_surface"
                                     android:textSize="14sp"
                                     android:textStyle="bold" />
@@ -380,12 +398,12 @@
                                 android:layout_height="wrap_content"
                                 android:orientation="horizontal"
                                 android:gravity="center_vertical"
-                                android:visibility="visible">
+                                android:visibility="gone">
 
                                 <com.google.android.material.imageview.ShapeableImageView
                                     android:id="@+id/ivGuiaAvatar"
-                                    android:layout_width="64dp"
-                                    android:layout_height="64dp"
+                                    android:layout_width="80dp"
+                                    android:layout_height="80dp"
                                     android:layout_marginEnd="16dp"
                                     android:scaleType="centerCrop"
                                     android:src="@drawable/ic_avatar_male_1"
@@ -398,29 +416,13 @@
                                     android:orientation="vertical">
 
                                     <TextView
-                                        android:id="@+id/tvGuiaNombre"
-                                        android:layout_width="match_parent"
-                                        android:layout_height="wrap_content"
-                                        android:text="Carlos Mendoza"
-                                        android:textColor="@color/on_surface"
-                                        android:textSize="16sp"
-                                        android:textStyle="bold" />
-
-                                    <TextView
-                                        android:id="@+id/tvGuiaExperiencia"
-                                        android:layout_width="match_parent"
-                                        android:layout_height="wrap_content"
-                                        android:text="5 años de experiencia"
-                                        android:textColor="@color/text_secondary"
-                                        android:textSize="14sp" />
-
-                                    <TextView
                                         android:id="@+id/tvGuiaIdiomas"
                                         android:layout_width="match_parent"
                                         android:layout_height="wrap_content"
-                                        android:text="Español, Inglés"
+                                        android:text="Idiomas: Español, Inglés"
                                         android:textColor="@color/text_secondary"
-                                        android:textSize="14sp" />
+                                        android:textSize="14sp"
+                                        android:layout_marginBottom="4dp" />
 
                                     <TextView
                                         android:id="@+id/tvGuiaTelefono"
@@ -428,44 +430,23 @@
                                         android:layout_height="wrap_content"
                                         android:text="📞 +51 987 654 321"
                                         android:textColor="@color/text_secondary"
-                                        android:textSize="14sp"
-                                        android:layout_marginTop="4dp" />
+                                        android:textSize="14sp" />
 
                                 </LinearLayout>
 
                             </LinearLayout>
 
                             <!-- Contenido cuando no hay guía asignada -->
-                            <LinearLayout
-                                android:id="@+id/layoutGuiaNoAsignada"
+                            <TextView
+                                android:id="@+id/tvGuiaNoAsignada"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:orientation="vertical"
-                                android:gravity="center"
+                                android:text="No hay un guía asignado a este tour aún"
+                                android:textColor="@color/text_secondary"
+                                android:textSize="14sp"
+                                android:textAlignment="center"
                                 android:padding="24dp"
-                                android:visibility="gone">
-
-                                <TextView
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:text="Este tour necesita un guía asignado"
-                                    android:textColor="@color/text_secondary"
-                                    android:textSize="16sp"
-                                    android:textAlignment="center"
-                                    android:layout_marginBottom="16dp" />
-
-                                <com.google.android.material.button.MaterialButton
-                                    android:id="@+id/btnSeleccionarGuia"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="Buscar guía"
-                                    android:textColor="@android:color/white"
-                                    app:backgroundTint="@color/brand_purple_dark"
-                                    app:cornerRadius="8dp"
-                                    app:icon="@drawable/ic_person_add"
-                                    app:iconTint="@android:color/white" />
-
-                            </LinearLayout>
+                                android:visibility="visible" />
 
                             <!-- Timeline cuando está en espera de confirmación -->
                             <LinearLayout
@@ -604,9 +585,9 @@
                                 android:textStyle="bold"
                                 android:layout_marginBottom="12dp" />
 
-                            <!-- RecyclerView para servicios -->
+                            <!-- RecyclerView para servicios del mapa -->
                             <androidx.recyclerview.widget.RecyclerView
-                                android:id="@+id/recyclerViewServicios"
+                                android:id="@+id/recyclerViewServiciosMapa"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:nestedScrollingEnabled="false" />
@@ -624,27 +605,6 @@
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
                     android:visibility="gone">
-
-                    <!-- Indicador "En curso" (solo visible si el tour está en curso) -->
-                    <LinearLayout
-                        android:id="@+id/layoutEstadoEnCurso"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="8dp"
-                        android:background="@drawable/bg_success_rounded"
-                        android:gravity="center"
-                        android:padding="8dp"
-                        android:visibility="gone">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="🟢 En curso"
-                            android:textColor="@color/success_700"
-                            android:textSize="14sp"
-                            android:textStyle="bold" />
-
-                    </LinearLayout>
 
                     <!-- Información de ubicación con mapa -->
                     <com.google.android.material.card.MaterialCardView

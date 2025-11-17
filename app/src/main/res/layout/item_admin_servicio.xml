@@ -25,4 +25,14 @@
         android:textColor="@color/on_surface"
         android:textSize="14sp" />
 
+    <!-- Costo del servicio -->
+    <TextView
+        android:id="@+id/tvServiceCost"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="S/ 50"
+        android:textColor="@color/primary"
+        android:textSize="14sp"
+        android:textStyle="bold" />
+
 </LinearLayout>
