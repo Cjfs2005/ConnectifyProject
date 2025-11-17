@@ -2,92 +2,31 @@
 <androidx.coordinatorlayout.widget.CoordinatorLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@color/surface_soft">
+    android:layout_height="match_parent">
 
-    <!-- AppBar -->
     <com.google.android.material.appbar.AppBarLayout
-        android:id="@+id/appBarLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/brand_purple_dark"
-        app:elevation="0dp">
+        android:background="@color/brand_purple_dark">
 
         <com.google.android.material.appbar.MaterialToolbar
-            android:id="@+id/topAppBar"
+            android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="@color/brand_purple_dark"
-            android:theme="@style/ThemeOverlay.Material3.Dark.ActionBar"
-            app:title="Dashboard"
-            app:titleTextColor="@android:color/white"
-            app:titleCentered="false"/>
+            android:theme="@style/ThemeOverlay.Material3.Dark.ActionBar" />
     </com.google.android.material.appbar.AppBarLayout>
 
-    <!-- Contenido scrolleable -->
-    <androidx.core.widget.NestedScrollView
-        android:id="@+id/scroll"
+    <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:fillViewport="true"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingHorizontal="20dp"
-            android:paddingTop="24dp"
-            android:paddingBottom="100dp">
-
-            <!-- Encabezado (se mantiene) -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="24dp"
-                android:background="@color/brand_purple_dark"
-                android:orientation="horizontal"
-                android:padding="16dp">
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:id="@+id/tvCompanyHeader"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Mundo Tours"
-                        android:textColor="@android:color/white"
-                        android:textSize="18sp"
-                        android:textStyle="bold"/>
-
-                    <TextView
-                        android:id="@+id/tvAdminHeader"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Administrador: Tony Flores"
-                        android:textColor="@color/brand_lilac"
-                        android:textSize="14sp"/>
-                </LinearLayout>
-
-                <ImageView
-                    android:id="@+id/ivNotification"
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:layout_gravity="center_vertical"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="Notificaciones"
-                    android:padding="4dp"
-                    android:src="@drawable/ic_notifications"
-                    app:tint="@android:color/white"/>
-            </LinearLayout>
-
-            <!-- ====== NUEVO CONTENIDO IGUAL AL REPORTE POR EMPRESA ====== -->
+            android:padding="16dp">
 
             <!-- Filtro: Mes -->
             <com.google.android.material.textfield.TextInputLayout
@@ -96,11 +35,12 @@
                 android:layout_height="wrap_content"
                 android:hint="Mes"
                 app:boxBackgroundColor="@android:color/white">
+
                 <AutoCompleteTextView
-                    android:id="@+id/adminAutoMonth"
+                    android:id="@+id/autoMonth"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="none"/>
+                    android:inputType="none" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <!-- Total (mes) -->
@@ -109,11 +49,12 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
                 app:cardCornerRadius="16dp">
+
                 <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:padding="12dp"
                     android:orientation="vertical"
-                    android:padding="12dp">
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -122,7 +63,7 @@
                         android:textAppearance="@style/TextAppearance.Material3.BodySmall"/>
 
                     <TextView
-                        android:id="@+id/adminTvTotalMonth"
+                        android:id="@+id/tvTotalMonth"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="0"
@@ -133,38 +74,39 @@
 
             <!-- Reservas por día de semana -->
             <TextView
-                android:id="@+id/adminTvSectionDow"
+                android:id="@+id/tvSectionDow"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
                 android:text="Reservas por día de semana (mes)"
                 android:textStyle="bold"/>
 
+            <!-- 7 barras -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:orientation="vertical">
+                android:orientation="vertical"
+                android:layout_marginTop="8dp">
 
                 <!-- Lunes -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
                     android:orientation="horizontal"
+                    android:gravity="center_vertical"
                     android:paddingVertical="4dp">
                     <TextView
                         android:layout_width="40dp"
                         android:layout_height="wrap_content"
-                        android:text="Lun"/>
+                        android:text="Lun" />
                     <com.google.android.material.progressindicator.LinearProgressIndicator
-                        android:id="@+id/adminBarMon"
+                        android:id="@+id/barMon"
                         android:layout_width="0dp"
                         android:layout_height="12dp"
                         android:layout_weight="1"
                         app:trackColor="@color/gray_300"/>
                     <TextView
-                        android:id="@+id/adminTvMon"
+                        android:id="@+id/tvMon"
                         android:layout_width="48dp"
                         android:layout_height="wrap_content"
                         android:gravity="end"
@@ -175,21 +117,21 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
                     android:orientation="horizontal"
+                    android:gravity="center_vertical"
                     android:paddingVertical="4dp">
                     <TextView
                         android:layout_width="40dp"
                         android:layout_height="wrap_content"
-                        android:text="Mar"/>
+                        android:text="Mar" />
                     <com.google.android.material.progressindicator.LinearProgressIndicator
-                        android:id="@+id/adminBarTue"
+                        android:id="@+id/barTue"
                         android:layout_width="0dp"
                         android:layout_height="12dp"
                         android:layout_weight="1"
                         app:trackColor="@color/gray_300"/>
                     <TextView
-                        android:id="@+id/adminTvTue"
+                        android:id="@+id/tvTue"
                         android:layout_width="48dp"
                         android:layout_height="wrap_content"
                         android:gravity="end"
@@ -200,21 +142,21 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
                     android:orientation="horizontal"
+                    android:gravity="center_vertical"
                     android:paddingVertical="4dp">
                     <TextView
                         android:layout_width="40dp"
                         android:layout_height="wrap_content"
-                        android:text="Mié"/>
+                        android:text="Mié" />
                     <com.google.android.material.progressindicator.LinearProgressIndicator
-                        android:id="@+id/adminBarWed"
+                        android:id="@+id/barWed"
                         android:layout_width="0dp"
                         android:layout_height="12dp"
                         android:layout_weight="1"
                         app:trackColor="@color/gray_300"/>
                     <TextView
-                        android:id="@+id/adminTvWed"
+                        android:id="@+id/tvWed"
                         android:layout_width="48dp"
                         android:layout_height="wrap_content"
                         android:gravity="end"
@@ -225,21 +167,21 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
                     android:orientation="horizontal"
+                    android:gravity="center_vertical"
                     android:paddingVertical="4dp">
                     <TextView
                         android:layout_width="40dp"
                         android:layout_height="wrap_content"
-                        android:text="Jue"/>
+                        android:text="Jue" />
                     <com.google.android.material.progressindicator.LinearProgressIndicator
-                        android:id="@+id/adminBarThu"
+                        android:id="@+id/barThu"
                         android:layout_width="0dp"
                         android:layout_height="12dp"
                         android:layout_weight="1"
                         app:trackColor="@color/gray_300"/>
                     <TextView
-                        android:id="@+id/adminTvThu"
+                        android:id="@+id/tvThu"
                         android:layout_width="48dp"
                         android:layout_height="wrap_content"
                         android:gravity="end"
@@ -250,21 +192,21 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
                     android:orientation="horizontal"
+                    android:gravity="center_vertical"
                     android:paddingVertical="4dp">
                     <TextView
                         android:layout_width="40dp"
                         android:layout_height="wrap_content"
-                        android:text="Vie"/>
+                        android:text="Vie" />
                     <com.google.android.material.progressindicator.LinearProgressIndicator
-                        android:id="@+id/adminBarFri"
+                        android:id="@+id/barFri"
                         android:layout_width="0dp"
                         android:layout_height="12dp"
                         android:layout_weight="1"
                         app:trackColor="@color/gray_300"/>
                     <TextView
-                        android:id="@+id/adminTvFri"
+                        android:id="@+id/tvFri"
                         android:layout_width="48dp"
                         android:layout_height="wrap_content"
                         android:gravity="end"
@@ -275,21 +217,21 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
                     android:orientation="horizontal"
+                    android:gravity="center_vertical"
                     android:paddingVertical="4dp">
                     <TextView
                         android:layout_width="40dp"
                         android:layout_height="wrap_content"
-                        android:text="Sáb"/>
+                        android:text="Sáb" />
                     <com.google.android.material.progressindicator.LinearProgressIndicator
-                        android:id="@+id/adminBarSat"
+                        android:id="@+id/barSat"
                         android:layout_width="0dp"
                         android:layout_height="12dp"
                         android:layout_weight="1"
                         app:trackColor="@color/gray_300"/>
                     <TextView
-                        android:id="@+id/adminTvSat"
+                        android:id="@+id/tvSat"
                         android:layout_width="48dp"
                         android:layout_height="wrap_content"
                         android:gravity="end"
@@ -300,21 +242,21 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
                     android:orientation="horizontal"
+                    android:gravity="center_vertical"
                     android:paddingVertical="4dp">
                     <TextView
                         android:layout_width="40dp"
                         android:layout_height="wrap_content"
-                        android:text="Dom"/>
+                        android:text="Dom" />
                     <com.google.android.material.progressindicator.LinearProgressIndicator
-                        android:id="@+id/adminBarSun"
+                        android:id="@+id/barSun"
                         android:layout_width="0dp"
                         android:layout_height="12dp"
                         android:layout_weight="1"
                         app:trackColor="@color/gray_300"/>
                     <TextView
-                        android:id="@+id/adminTvSun"
+                        android:id="@+id/tvSun"
                         android:layout_width="48dp"
                         android:layout_height="wrap_content"
                         android:gravity="end"
@@ -324,7 +266,7 @@
 
             <!-- Pie de estados -->
             <TextView
-                android:id="@+id/adminTvSectionPie"
+                android:id="@+id/tvSectionPie"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
@@ -335,14 +277,15 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
 
                 <com.example.connectifyproject.views.superadmin.reports.SimplePieView
-                    android:id="@+id/adminPie"
+                    android:id="@+id/pie"
                     android:layout_width="180dp"
-                    android:layout_height="180dp"/>
+                    android:layout_height="180dp" />
 
+                <!-- Leyenda con puntos de color -->
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
@@ -354,26 +297,22 @@
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
                         android:gravity="center_vertical"
+                        android:orientation="horizontal"
                         android:paddingVertical="4dp">
-
                         <View
                             android:layout_width="12dp"
                             android:layout_height="12dp"
+                            android:layout_marginEnd="8dp"
                             android:background="@drawable/legend_dot"
-                            android:backgroundTint="@color/legend_finished"
-                            android:layout_marginEnd="8dp"/>
-
+                            android:backgroundTint="@color/legend_finished"/>
                         <TextView
-                            android:id="@+id/adminLegendLabelFinished"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="Finalizadas"/>
-
                         <TextView
-                            android:id="@+id/adminLegendFinished"
+                            android:id="@+id/legendFinished"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="0"
@@ -384,26 +323,22 @@
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
                         android:gravity="center_vertical"
+                        android:orientation="horizontal"
                         android:paddingVertical="4dp">
-
                         <View
                             android:layout_width="12dp"
                             android:layout_height="12dp"
+                            android:layout_marginEnd="8dp"
                             android:background="@drawable/legend_dot"
-                            android:backgroundTint="@color/legend_active"
-                            android:layout_marginEnd="8dp"/>
-
+                            android:backgroundTint="@color/legend_active"/>
                         <TextView
-                            android:id="@+id/adminLegendLabelActive"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="Activas"/>
-
                         <TextView
-                            android:id="@+id/adminLegendActive"
+                            android:id="@+id/legendActive"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="0"
@@ -414,38 +349,33 @@
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
                         android:gravity="center_vertical"
+                        android:orientation="horizontal"
                         android:paddingVertical="4dp">
-
                         <View
                             android:layout_width="12dp"
                             android:layout_height="12dp"
+                            android:layout_marginEnd="8dp"
                             android:background="@drawable/legend_dot"
-                            android:backgroundTint="@color/legend_cancelled"
-                            android:layout_marginEnd="8dp"/>
-
+                            android:backgroundTint="@color/legend_cancelled"/>
                         <TextView
-                            android:id="@+id/adminLegendLabelCancelled"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="Canceladas"/>
-
                         <TextView
-                            android:id="@+id/adminLegendCancelled"
+                            android:id="@+id/legendCancelled"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="0"
                             android:textStyle="bold"/>
                     </LinearLayout>
                 </LinearLayout>
-
             </LinearLayout>
 
             <!-- Top-3 tours -->
             <TextView
-                android:id="@+id/adminTvSectionTop"
+                android:id="@+id/tvSectionTop"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
@@ -455,31 +385,31 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:orientation="vertical">
+                android:orientation="vertical"
+                android:layout_marginTop="8dp">
 
                 <!-- Item 1 -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
                     android:orientation="horizontal"
+                    android:gravity="center_vertical"
                     android:paddingVertical="6dp">
                     <TextView
-                        android:id="@+id/adminTop1Name"
+                        android:id="@+id/tvTop1Name"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="Tour 1"/>
                     <TextView
-                        android:id="@+id/adminTop1Val"
+                        android:id="@+id/tvTop1Val"
                         android:layout_width="48dp"
                         android:layout_height="wrap_content"
                         android:gravity="end"
                         android:text="0"/>
                 </LinearLayout>
                 <com.google.android.material.progressindicator.LinearProgressIndicator
-                    android:id="@+id/adminBarTop1"
+                    android:id="@+id/barTop1"
                     android:layout_width="match_parent"
                     android:layout_height="12dp"
                     app:trackColor="@color/gray_300"/>
@@ -488,25 +418,25 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:gravity="center_vertical"
                     android:orientation="horizontal"
-                    android:paddingVertical="6dp">
+                    android:gravity="center_vertical"
+                    android:paddingVertical="6dp"
+                    android:layout_marginTop="8dp">
                     <TextView
-                        android:id="@+id/adminTop2Name"
+                        android:id="@+id/tvTop2Name"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="Tour 2"/>
                     <TextView
-                        android:id="@+id/adminTop2Val"
+                        android:id="@+id/tvTop2Val"
                         android:layout_width="48dp"
                         android:layout_height="wrap_content"
                         android:gravity="end"
                         android:text="0"/>
                 </LinearLayout>
                 <com.google.android.material.progressindicator.LinearProgressIndicator
-                    android:id="@+id/adminBarTop2"
+                    android:id="@+id/barTop2"
                     android:layout_width="match_parent"
                     android:layout_height="12dp"
                     app:trackColor="@color/gray_300"/>
@@ -515,37 +445,30 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:gravity="center_vertical"
                     android:orientation="horizontal"
-                    android:paddingVertical="6dp">
+                    android:gravity="center_vertical"
+                    android:paddingVertical="6dp"
+                    android:layout_marginTop="8dp">
                     <TextView
-                        android:id="@+id/adminTop3Name"
+                        android:id="@+id/tvTop3Name"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="Tour 3"/>
                     <TextView
-                        android:id="@+id/adminTop3Val"
+                        android:id="@+id/tvTop3Val"
                         android:layout_width="48dp"
                         android:layout_height="wrap_content"
                         android:gravity="end"
                         android:text="0"/>
                 </LinearLayout>
                 <com.google.android.material.progressindicator.LinearProgressIndicator
-                    android:id="@+id/adminBarTop3"
+                    android:id="@+id/barTop3"
                     android:layout_width="match_parent"
                     android:layout_height="12dp"
                     app:trackColor="@color/gray_300"/>
             </LinearLayout>
 
         </LinearLayout>
-    </androidx.core.widget.NestedScrollView>
-
-    <!-- Bottom Nav container -->
-    <FrameLayout
-        android:id="@+id/bottomNavContainer"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom"/>
+    </ScrollView>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -25,7 +25,13 @@
         android:id="@+id/saReportsFragment"
         android:name="com.example.connectifyproject.views.superadmin.reports.SaReportsFragment"
         android:label="Reportes"
-        tools:layout="@layout/fragment_sa_reports" />
+        tools:layout="@layout/fragment_sa_reports">
+
+        <!-- NUEVO: navegar al reporte de una empresa -->
+        <action
+            android:id="@+id/action_saReports_to_saCompanyReport"
+            app:destination="@id/saCompanyReportFragment" />
+    </fragment>
 
     <!-- Logs -->
     <fragment
@@ -78,11 +84,23 @@
         android:name="com.example.connectifyproject.views.superadmin.profile.SaEditProfileFragment"
         android:label="Editar perfil"
         tools:layout="@layout/fragment_sa_edit_profile" />
+
     <fragment
         android:id="@+id/saNotificationsFragment"
         android:name="com.example.connectifyproject.views.superadmin.notifications.SaNotificationsFragment"
         android:label="Notificaciones"
         tools:layout="@layout/fragment_sa_notifications" />
 
+    <!-- NUEVO DESTINO: Reporte por empresa -->
+    <fragment
+        android:id="@+id/saCompanyReportFragment"
+        android:name="com.example.connectifyproject.views.superadmin.reports.SaCompanyReportFragment"
+        android:label="Reporte de empresa"
+        tools:layout="@layout/fragment_sa_company_report">
+
+        <argument
+            android:name="companyName"
+            app:argType="string" />
+    </fragment>
 
 </navigation>

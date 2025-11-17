@@ -19,7 +19,7 @@
     <!-- KPI -->
     <color name="kpi_icon_bg">#F2ECFF</color>
     <color name="kpi_text">#1C1B1F</color>
-    
+
     <!-- Colores para mapa y ubicación -->
     <color name="brand_green_light">#E8F5E8</color>
     <color name="brand_green">#4CAF50</color>
@@ -28,26 +28,26 @@
     <!-- Badges -->
     <color name="badge_bg">#FF3D00</color>
     <color name="badge_text">#FFFFFF</color>
-    
+
     <!-- Grises para texto -->
     <color name="gray">#6D6D6D</color>
     <color name="gray_dark">#424242</color>
     <color name="gray_600">#666666</color>
     <color name="gray_400">#999999</color>
     <color name="gray_300">#CCCCCC</color>
-    
+
     <!-- Transparente -->
     <color name="transparent">#00000000</color>
-    
+
     <!-- Colores básicos adicionales -->
     <color name="red">#F44336</color>
-    
+
     <!-- Cliente colors -->
     <color name="cliente_progress_active">#7C4DFF</color>
     <color name="cliente_progress_inactive">#BDBDBD</color>
     <color name="cliente_qr_bg">#E8F5E8</color>
     <color name="cliente_qr_border">#4CAF50</color>
-    
+
     <!-- UI colors -->
     <color name="primary_color">#7C4DFF</color>
     <color name="text_color">#1C1B1F</color>
@@ -108,5 +108,25 @@
     <!-- Estados de habilitación -->
     <color name="status_enabled">#4CAF50</color>   <!-- Verde para habilitado -->
     <color name="status_disabled">#F44336</color>  <!-- Rojo para deshabilitado -->
+    <color name="legend_cancelled">#D20D20</color>  <!-- Canceladas -->
+    <color name="legend_finished">#F1A20B</color>   <!-- Finalizadas -->
+    <color name="legend_active">#8D9C09</color>     <!-- Activas -->
 
+    <!-- Alias para compatibilidad con el código -->
+    <color name="teal_700">@color/avatar_teal</color>
+
+
+    <!-- ======================= -->
+    <!-- NUEVOS COLORES (Top 5) -->
+    <!-- ======================= -->
+    <!-- Orden de mayor a menor -->
+    <color name="sa_top1">#3B234A</color>
+    <color name="sa_top2">#523961</color>
+    <color name="sa_top3">#BAAFC4</color>
+    <color name="sa_top4">#C3BBC9</color>
+    <color name="sa_top5">#D4C7BF</color>
+
+    <!-- Utilitarios extra -->
+    <color name="grey_300">#E0E0E0</color>
+    <color name="red_600">#E53935</color>
 </resources>

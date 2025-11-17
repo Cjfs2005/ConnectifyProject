@@ -1,5 +1,6 @@
 package com.example.connectifyproject.views.superadmin.reports;
 
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -27,14 +28,34 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+/**
+ * Reportes de Reservas – SuperAdmin
+ * - Filtros Mes/Empresa
+ * - KPIs (Total mes, Activas, Promedio/día) SIEMPRE sobre TODAS las empresas
+ * - Si Empresa="Todas": Top-5 (barras) + lista completa
+ * - Si Empresa específica: oculta Top-5 y muestra solo esa empresa
+ */
 public class SaReportsFragment extends Fragment {
 
     private FragmentSaReportsBinding binding;
+
+    // data: nombreEmpresa -> vector[12] con reservas por mes
     private final Map<String, int[]> data = new LinkedHashMap<>();
+
     private int selectedMonth;
     private String selectedCompany = "Todas";
 
-    @Nullable @Override
+    // Paleta para Top-5 (del mayor al menor)
+    private static final int[] TOP5_COLORS = new int[]{
+            Color.parseColor("#FF9B8F"),
+            Color.parseColor("#EF7689"),
+            Color.parseColor("#9E6A90"),
+            Color.parseColor("#766788"),
+            Color.parseColor("#71556B")
+    };
+
+    @Nullable
+    @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
@@ -42,22 +63,26 @@ public class SaReportsFragment extends Fragment {
         return binding.getRoot();
     }
 
-    @Override public void onViewCreated(@NonNull View v, @Nullable Bundle s) {
+    @Override
+    public void onViewCreated(@NonNull View v, @Nullable Bundle s) {
         super.onViewCreated(v, s);
 
         final NavController nav = NavHostFragment.findNavController(this);
 
-        // 🔔 Campanita → Notificaciones (enviamos fromDestId)
+        // 🔔 Campanita → Notificaciones
         View bell = v.findViewById(R.id.btnNotifications);
         if (bell != null) {
             bell.setOnClickListener(x -> {
                 Bundle args = new Bundle();
-                args.putInt("fromDestId", nav.getCurrentDestination() != null ? nav.getCurrentDestination().getId() : 0);
+                args.putInt("fromDestId",
+                        nav.getCurrentDestination() != null ? nav.getCurrentDestination().getId() : 0);
                 nav.navigate(R.id.saNotificationsFragment, args);
             });
         }
 
+        // Datos demo
         seedMock();
+
         Calendar cal = Calendar.getInstance();
         selectedMonth = cal.get(Calendar.MONTH);
 
@@ -68,6 +93,7 @@ public class SaReportsFragment extends Fragment {
             selectedMonth = s.getInt("month", selectedMonth);
             selectedCompany = s.getString("company", "Todas");
         }
+
         binding.autoMonth.setText(monthLabel(selectedMonth), false);
         binding.autoCompany.setText(selectedCompany, false);
 
@@ -75,6 +101,7 @@ public class SaReportsFragment extends Fragment {
             selectedMonth = position;
             rebuildDashboard();
         });
+
         binding.autoCompany.setOnItemClickListener((parent, view, position, id) -> {
             selectedCompany = (String) parent.getItemAtPosition(position);
             rebuildDashboard();
@@ -83,70 +110,149 @@ public class SaReportsFragment extends Fragment {
         rebuildDashboard();
     }
 
+    /** Reconstruye KPIs + Top-5 (si aplica) + lista completa. */
     private void rebuildDashboard() {
-        List<String> companies = new ArrayList<>(data.keySet());
-        if (!"Todas".equals(selectedCompany)) {
-            companies.clear();
-            companies.add(selectedCompany);
+        // KPIs SIEMPRE con TODAS las empresas
+        int totalMes = 0;
+        int activas = 0;
+        for (Map.Entry<String, int[]> e : data.entrySet()) {
+            int v = e.getValue()[selectedMonth];
+            totalMes += v;
+            if (v > 0) activas++;
         }
-
-        int total = 0, active = 0, max = 0;
-        for (String c : companies) {
-            int v = data.get(c)[selectedMonth];
-            total += v;
-            if (v > 0) active++;
-            if (v > max) max = v;
-        }
-
-        binding.tvTotalMonth.setText(String.valueOf(total));
-        binding.tvActiveCompanies.setText(String.valueOf(active));
         int days = daysInMonth(selectedMonth);
-        binding.tvAvgPerDay.setText(days == 0 ? "0" : String.valueOf(Math.round(total / (double) days)));
+        int promedio = days == 0 ? 0 : (int) Math.round(totalMes / (double) days);
 
+        binding.tvTotalMonth.setText(String.valueOf(totalMes));
+        binding.tvActiveCompanies.setText(String.valueOf(activas));
+        binding.tvAvgPerDay.setText(String.valueOf(promedio));
+
+        // Reset contenedor
         binding.listContainer.removeAllViews();
-        if (companies.isEmpty() || max == 0) {
-            binding.tvEmpty.setVisibility(View.VISIBLE);
-            return;
-        } else {
-            binding.tvEmpty.setVisibility(View.GONE);
-        }
+
+        boolean hayDatos = totalMes > 0;
+        binding.tvEmpty.setVisibility(hayDatos ? View.GONE : View.VISIBLE);
+        if (!hayDatos) return;
 
         LayoutInflater inf = LayoutInflater.from(requireContext());
-        for (String c : companies) {
-            int value = data.get(c)[selectedMonth];
 
-            View row = inf.inflate(R.layout.item_report_company_bar, binding.listContainer, false);
-            TextView tvCompany = row.findViewById(R.id.tvCompany);
-            Chip chip = row.findViewById(R.id.chipCount);
-            LinearProgressIndicator prog = row.findViewById(R.id.progress);
+        if ("Todas".equals(selectedCompany)) {
+            // ---------- Top-5 (orden desc) ----------
+            List<ItemVal> vals = new ArrayList<>();
+            for (Map.Entry<String, int[]> e : data.entrySet()) {
+                vals.add(new ItemVal(e.getKey(), e.getValue()[selectedMonth]));
+            }
+            vals.sort((a, b) -> Integer.compare(b.value, a.value));
+            List<ItemVal> top5 = vals.size() > 5 ? vals.subList(0, 5) : vals;
 
-            tvCompany.setText(c);
-            chip.setText(String.valueOf(value));
+            int maxTop = 0;
+            for (ItemVal it : top5) if (it.value > maxTop) maxTop = it.value;
 
-            int percent = max == 0 ? 0 : Math.round(value * 100f / max);
-            if (percent < 2 && value > 0) percent = 2;
-            prog.setProgress(percent);
+            // Título grande
+            binding.listContainer.addView(makeSectionTitle(inf,
+                    "Top 5 empresas — " + monthLabel(selectedMonth), 25f));
+
+            // Barra por empresa (usa sa_item_company_bar.xml)
+            for (int i = 0; i < top5.size(); i++) {
+                ItemVal it = top5.get(i);
+                View row = inf.inflate(R.layout.sa_item_company_bar, binding.listContainer, false);
+
+                TextView tvCompany = row.findViewById(R.id.tvCompany);
+                Chip chip = row.findViewById(R.id.chipCount);
+                LinearProgressIndicator prog = row.findViewById(R.id.progress);
+
+                tvCompany.setText(it.name);
+                chip.setText(String.valueOf(it.value));
+
+                int percent = maxTop == 0 ? 0 : Math.round(it.value * 100f / maxTop);
+                if (percent < 2 && it.value > 0) percent = 2;
+                prog.setProgress(percent);
+
+                // Color por ranking (0 = mayor → primer color)
+                int color = TOP5_COLORS[Math.min(i, TOP5_COLORS.length - 1)];
+                prog.setIndicatorColor(color);
+                prog.setTrackColor(Color.parseColor("#E6E6E6"));
+
+                // → tocar una barra también navega al detalle de esa empresa
+                row.setOnClickListener(v -> navigateToCompanyReport(it.name));
+
+                binding.listContainer.addView(row);
+            }
+
+            // ---------- Lista completa ----------
+            binding.listContainer.addView(makeSectionTitle(inf, "Empresas (todas)", 25f));
+
+            for (Map.Entry<String, int[]> e : data.entrySet()) {
+                String company = e.getKey();
+                int value = e.getValue()[selectedMonth];
+
+                View row = inf.inflate(R.layout.sa_item_company_row, binding.listContainer, false);
+                TextView tvName = row.findViewById(R.id.tvName);
+                TextView tvBadge = row.findViewById(R.id.tvBadge);
+
+                tvName.setText(company);
+                tvBadge.setText(String.valueOf(value));
+
+                // ✅ NUEVO: al tocar la fila, ir al detalle de esa empresa
+                row.setOnClickListener(v -> navigateToCompanyReport(company));
+
+                binding.listContainer.addView(row);
+            }
+
+        } else {
+            // Empresa específica → solo esa
+            int[] vector = data.get(selectedCompany);
+            int valor = vector == null ? 0 : vector[selectedMonth];
+
+            binding.listContainer.addView(makeSectionTitle(inf, selectedCompany, 25f));
+
+            View row = inf.inflate(R.layout.sa_item_company_row, binding.listContainer, false);
+            ((TextView) row.findViewById(R.id.tvName)).setText(selectedCompany);
+            ((TextView) row.findViewById(R.id.tvBadge)).setText(String.valueOf(valor));
+
+            // ✅ NUEVO: también navegamos desde la vista filtrada
+            row.setOnClickListener(v -> navigateToCompanyReport(selectedCompany));
 
             binding.listContainer.addView(row);
         }
+    }
+
+    /** Navega al fragmento de reporte por empresa, pasando el nombre como argumento. */
+    private void navigateToCompanyReport(String companyName) {
+        NavController nav = NavHostFragment.findNavController(this);
+        Bundle args = new Bundle();
+        args.putString("companyName", companyName);
+        nav.navigate(R.id.action_saReports_to_saCompanyReport, args);
+    }
+
+    // ---------- helpers UI ----------
+    private TextView makeSectionTitle(LayoutInflater inf, String text, float sizeSp) {
+        TextView tv = new TextView(requireContext());
+        tv.setLayoutParams(new ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        int padTop = Math.round(12 * getResources().getDisplayMetrics().density);
+        int padBottom = Math.round(8 * getResources().getDisplayMetrics().density);
+        tv.setPadding(0, padTop, 0, padBottom);
+        tv.setText(text);
+        tv.setTextSize(sizeSp); // tamaño grande
+        tv.setTypeface(tv.getTypeface(), android.graphics.Typeface.BOLD);
+        return tv;
     }
 
     private void setupMonthDropdown(AutoCompleteTextView view) {
         String[] months = new DateFormatSymbols(new Locale("es")).getMonths();
         List<String> list = new ArrayList<>();
         for (int i = 0; i < 12; i++) list.add(capitalize(months[i]));
-        ArrayAdapter<String> ad = new ArrayAdapter<>(requireContext(),
-                android.R.layout.simple_list_item_1, list);
-        view.setAdapter(ad);
+        view.setAdapter(new ArrayAdapter<>(requireContext(),
+                android.R.layout.simple_list_item_1, list));
     }
 
     private void setupCompanyDropdown(AutoCompleteTextView view) {
         List<String> items = new ArrayList<>();
         items.add("Todas");
         items.addAll(data.keySet());
-        ArrayAdapter<String> ad = new ArrayAdapter<>(requireContext(),
-                android.R.layout.simple_list_item_1, items);
-        view.setAdapter(ad);
+        view.setAdapter(new ArrayAdapter<>(requireContext(),
+                android.R.layout.simple_list_item_1, items));
     }
 
     private String monthLabel(int monthIndex) {
@@ -156,13 +262,19 @@ public class SaReportsFragment extends Fragment {
 
     private String capitalize(String s) {
         if (s == null || s.isEmpty()) return s;
-        return s.substring(0,1).toUpperCase(new Locale("es")) + s.substring(1);
+        return s.substring(0, 1).toUpperCase(new Locale("es")) + s.substring(1);
+    }
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt("month", selectedMonth);
+        outState.putString("company", selectedCompany);
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        // Limpiar referencias para evitar memory leaks
         binding = null;
     }
 
@@ -171,6 +283,12 @@ public class SaReportsFragment extends Fragment {
         c.set(Calendar.MONTH, monthIndex);
         c.set(Calendar.DAY_OF_MONTH, 1);
         return c.getActualMaximum(Calendar.DAY_OF_MONTH);
+    }
+
+    // ====== DEMO DATA ======
+    private static class ItemVal {
+        final String name; final int value;
+        ItemVal(String n, int v) { name = n; value = v; }
     }
 
     private void seedMock() {

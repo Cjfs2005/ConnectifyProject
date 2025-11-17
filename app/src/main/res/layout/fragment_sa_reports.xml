@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- AppBar morado con la MISMA campana que 'Usuarios' -->
+    <!-- AppBar morado con campana -->
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appBar"
         android:layout_width="0dp"
@@ -77,7 +77,6 @@
                     android:layout_marginEnd="12dp"
                     android:hint="Mes"
                     app:boxBackgroundColor="@android:color/white"
-                    app:layout_constraintWidth_default="wrap"
                     android:layout_weight="1">
 
                     <AutoCompleteTextView
@@ -85,7 +84,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:inputType="none"
-                        android:importantForAutofill="no" />
+                        android:importantForAutofill="no"/>
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <!-- Empresa -->
@@ -103,7 +102,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:inputType="none"
-                        android:importantForAutofill="no" />
+                        android:importantForAutofill="no"/>
                 </com.google.android.material.textfield.TextInputLayout>
             </LinearLayout>
 
@@ -195,22 +194,15 @@
                 </com.google.android.material.card.MaterialCardView>
             </LinearLayout>
 
-            <!-- Título de la sección -->
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:text="Reservas por empresa (mes)"
-                android:textStyle="bold"
-                android:textAppearance="@style/TextAppearance.Material3.TitleMedium"/>
-
-            <!-- Contenedor de barras por empresa -->
+            <!-- Contenedor donde el Fragment inserta:
+                 - Título "Top 5..." + filas barra
+                 - Título "Empresas (todas)" + lista completa -->
             <LinearLayout
                 android:id="@+id/listContainer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:layout_marginTop="8dp"/>
+                android:layout_marginTop="20dp"/>
 
             <!-- Placeholder si no hay datos -->
             <TextView
