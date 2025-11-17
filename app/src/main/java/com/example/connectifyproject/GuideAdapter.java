@@ -67,7 +67,7 @@ public class GuideAdapter extends RecyclerView.Adapter<GuideAdapter.GuideViewHol
             tvRating.setText(String.format("★ %.1f", guide.rating));
             // Convertir lista de idiomas a String separado por comas
             tvLanguages.setText(guide.languages != null ? String.join(", ", guide.languages) : "");
-            
+
             tvTours.setText(String.format("%d tours", guide.tourCount));
 
             // Cargar imagen con Glide desde URL (profileImageUrl) o placeholder

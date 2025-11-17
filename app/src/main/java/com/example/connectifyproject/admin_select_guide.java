@@ -541,7 +541,7 @@ public class admin_select_guide extends AppCompatActivity {
             public void bind(GuideItem guide, OnGuideClickListener listener) {
                 tvName.setText(guide.name);
                 tvRating.setText(String.format(Locale.getDefault(), "%.1f", guide.rating));
-                tvTourCount.setText("("+guide.tourCount+")" + " tours");
+                tvTourCount.setText("("+guide.tourCount + " reseñas)");
                 tvLanguages.setText(guide.getLanguagesText());
                 
                 // Cargar imagen de perfil con Glide

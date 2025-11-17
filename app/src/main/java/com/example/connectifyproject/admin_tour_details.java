@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.bumptech.glide.Glide;
 import com.example.connectifyproject.adapters.AdminItinerarioAdapter;
+import com.example.connectifyproject.adapters.AdminServiciosAdapter;
 import com.example.connectifyproject.databinding.AdminTourDetailsViewBinding;
 import com.example.connectifyproject.models.Cliente_ItinerarioItem;
 import com.example.connectifyproject.ui.admin.AdminBottomNavFragment;
@@ -19,6 +20,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.material.tabs.TabLayout;
@@ -51,8 +53,10 @@ public class admin_tour_details extends AppCompatActivity implements OnMapReadyC
     
     // Adapters para las listas
     private AdminItinerarioAdapter itinerarioAdapter;
+    private com.example.connectifyproject.adapters.AdminServiciosAdapter serviciosAdapter;
     private com.example.connectifyproject.adapters.TourImageAdapter imageAdapter;
     private List<Cliente_ItinerarioItem> itinerarioItems;
+    private List<Map<String, Object>> serviciosList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -147,6 +151,12 @@ public class admin_tour_details extends AppCompatActivity implements OnMapReadyC
                         }
                     }
                     
+                    // Cargar servicios adicionales
+                    List<Map<String, Object>> serviciosData = (List<Map<String, Object>>) documentSnapshot.get("serviciosAdicionales");
+                    if (serviciosData != null && !serviciosData.isEmpty()) {
+                        serviciosList = new ArrayList<>(serviciosData);
+                    }
+                    
                     // Actualizar UI con los datos cargados
                     if (titulo != null) binding.tvTourNombre.setText(titulo);
                     if (descripcion != null) binding.tvTourDescripcion.setText(descripcion);
@@ -161,6 +171,13 @@ public class admin_tour_details extends AppCompatActivity implements OnMapReadyC
                         binding.tvDuracion.setText(duracion + " hrs");
                     }
                     
+                    // Configurar adaptador de servicios en Info
+                    if (serviciosList != null && !serviciosList.isEmpty()) {
+                        serviciosAdapter = new AdminServiciosAdapter(serviciosList);
+                        binding.recyclerViewServicios.setLayoutManager(new LinearLayoutManager(this));
+                        binding.recyclerViewServicios.setAdapter(serviciosAdapter);
+                    }
+                    
                     // Configurar badge de estado
                     binding.tvEstadoBadge.setText(tourEstado);
                     if (tourEsPublicado) {
@@ -172,11 +189,15 @@ public class admin_tour_details extends AppCompatActivity implements OnMapReadyC
                     // Configurar botón "Seleccionar Guía"
                     setupButtons();
                     
-                    // Si hay itinerario, establecer ubicación en el mapa
+                    // Si hay itinerario, actualizar el mapa
                     if (itinerarioItems != null && !itinerarioItems.isEmpty()) {
                         Cliente_ItinerarioItem primerPunto = itinerarioItems.get(0);
                         tourLocation = new LatLng(primerPunto.getLatitude(), primerPunto.getLongitude());
-                        binding.tvTourLocation.setText(primerPunto.getPlaceName() + ", " + primerPunto.getDescription());
+                        
+                        // Actualizar el mapa si ya está listo
+                        if (mGoogleMap != null) {
+                            addItinerarioMarkersToMap();
+                        }
                     }
                 }
             })
@@ -209,21 +230,16 @@ public class admin_tour_details extends AppCompatActivity implements OnMapReadyC
     private void setTourLocationOnMap() {
         // Usar el primer punto del itinerario si está disponible
         if (itinerarioItems != null && !itinerarioItems.isEmpty()) {
-            Cliente_ItinerarioItem primerPunto = itinerarioItems.get(0);
-            tourLocation = new LatLng(primerPunto.getLatitude(), primerPunto.getLongitude());
-            // La ubicación ya se estableció en loadTourData()
+            // Agregar marcadores del itinerario
+            addItinerarioMarkersToMap();
         } else {
             // Ubicación por defecto si no hay itinerario
-            tourLocation = new LatLng(-12.046374, -77.042754); // Lima por defecto
-            binding.tvTourLocation.setText("Lima, Perú");
-        }
-        
-        if (mGoogleMap != null) {
-            // Mover cámara a la ubicación del tour
-            mGoogleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(tourLocation, 14));
-            
-            // Agregar marcadores del itinerario si está disponible
-            addItinerarioMarkersToMap();
+            if (mGoogleMap != null && tourLocation != null) {
+                mGoogleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(tourLocation, 14));
+                mGoogleMap.addMarker(new MarkerOptions()
+                        .position(tourLocation)
+                        .title(tourTitulo != null ? tourTitulo : "Ubicación del tour"));
+            }
         }
     }
     
@@ -237,6 +253,9 @@ public class admin_tour_details extends AppCompatActivity implements OnMapReadyC
                     .color(getResources().getColor(R.color.brand_purple_dark))
                     .width(8);
             
+            // Builder para ajustar la cámara a todos los puntos
+            LatLngBounds.Builder boundsBuilder = new LatLngBounds.Builder();
+            
             // Agregar marcadores para cada punto del itinerario
             for (int i = 0; i < itinerarioItems.size(); i++) {
                 Cliente_ItinerarioItem item = itinerarioItems.get(i);
@@ -245,22 +264,30 @@ public class admin_tour_details extends AppCompatActivity implements OnMapReadyC
                 mGoogleMap.addMarker(new MarkerOptions()
                         .position(position)
                         .title((i + 1) + ". " + item.getPlaceName())
-                        .snippet(item.getVisitTime() + " - " + item.getDescription()));
+                        .snippet(item.getDescription()));
                 
                 // Agregar punto a la polilínea
                 polylineOptions.add(position);
+                
+                // Agregar punto al bounds
+                boundsBuilder.include(position);
             }
             
             // Dibujar la línea conectando todos los puntos si hay más de uno
             if (itinerarioItems.size() > 1) {
                 mGoogleMap.addPolyline(polylineOptions);
             }
-        } else {
-            // Si no hay itinerario, agregar marcador principal
-            mGoogleMap.addMarker(new MarkerOptions()
-                    .position(tourLocation)
-                    .title(tourTitulo)
-                    .snippet("Ubicación del tour"));
+            
+            // Ajustar la cámara para mostrar todos los puntos
+            try {
+                LatLngBounds bounds = boundsBuilder.build();
+                int padding = 150; // padding en píxeles
+                mGoogleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, padding));
+            } catch (Exception e) {
+                // Si hay un error, centrar en el primer punto
+                LatLng firstPoint = new LatLng(itinerarioItems.get(0).getLatitude(), itinerarioItems.get(0).getLongitude());
+                mGoogleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(firstPoint, 12));
+            }
         }
     }
 

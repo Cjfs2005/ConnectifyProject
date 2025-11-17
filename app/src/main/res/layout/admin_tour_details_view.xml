@@ -195,6 +195,22 @@
 
                             </LinearLayout>
 
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="Servicios adicionales:"
+                                android:textColor="@color/text_secondary"
+                                android:textSize="14sp"
+                                android:layout_marginTop="8dp"
+                                android:layout_marginBottom="8dp" />
+
+                            <!-- RecyclerView para servicios adicionales -->
+                            <androidx.recyclerview.widget.RecyclerView
+                                android:id="@+id/recyclerViewServicios"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:nestedScrollingEnabled="false" />
+
                         </LinearLayout>
 
                     </com.google.android.material.card.MaterialCardView>
@@ -629,14 +645,6 @@
                                     android:layout_height="match_parent" />
 
                             </com.google.android.material.card.MaterialCardView>
-
-                            <TextView
-                                android:id="@+id/tvTourLocation"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:text="Centro Histórico de Lima, Perú"
-                                android:textColor="@color/text_secondary"
-                                android:textSize="14sp" />
 
                         </LinearLayout>
 
