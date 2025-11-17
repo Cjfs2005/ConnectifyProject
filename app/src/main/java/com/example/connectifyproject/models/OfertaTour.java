@@ -29,14 +29,20 @@ public class OfertaTour implements Serializable {
     private Timestamp fechaActualizacion;
     private boolean habilitado;
     private boolean perfilCompleto;
-    
+
     // 🆕 Campos de imágenes
     private List<String> imagenesUrls;
     private String imagenPrincipal;
-    
+    private Integer cantidadImagenes2; // ✅ AGREGAR ESTE
+
     // 🆕 Campos de tracking de guías
-    private String guiaSeleccionadoActual; // Guía al que se le ofreció actualmente
+    private String guiaSeleccionadoActual;
     private Timestamp fechaUltimoOfrecimiento;
+
+    // ✅ AGREGAR ESTOS - Campos calculados que Firebase también guarda
+    private String idiomasTexto;
+    private String serviciosResumen;
+    private String resumenItinerario;
 
     // Constructor vacío requerido por Firebase
     public OfertaTour() {}
@@ -63,11 +69,11 @@ public class OfertaTour implements Serializable {
     }
 
     // Métodos helper para obtener información del itinerario
-    public String getResumenItinerario() {
+    public String calcularResumenItinerario() { // ✅ Renombré para no confundir con getter
         if (itinerario == null || itinerario.isEmpty()) {
             return "Sin itinerario definido";
         }
-        
+
         StringBuilder sb = new StringBuilder();
         for (Map<String, Object> punto : itinerario) {
             String lugar = (String) punto.get("lugar");
@@ -79,12 +85,12 @@ public class OfertaTour implements Serializable {
         }
         return sb.toString();
     }
-    
-    public String getServiciosResumen() {
+
+    public String calcularServiciosResumen() { // ✅ Renombré para no confundir con getter
         if (serviciosAdicionales == null || serviciosAdicionales.isEmpty()) {
             return "Sin servicios adicionales";
         }
-        
+
         StringBuilder sb = new StringBuilder();
         for (Map<String, Object> servicio : serviciosAdicionales) {
             String nombre = (String) servicio.get("nombre");
@@ -99,8 +105,8 @@ public class OfertaTour implements Serializable {
         }
         return sb.toString();
     }
-    
-    public String getIdiomasTexto() {
+
+    public String calcularIdiomasTexto() { // ✅ Renombré para no confundir con getter
         if (idiomasRequeridos == null || idiomasRequeridos.isEmpty()) {
             return "No especificado";
         }
@@ -110,103 +116,126 @@ public class OfertaTour implements Serializable {
     // Getters y Setters
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
-    
+
     public String getTitulo() { return titulo; }
     public void setTitulo(String titulo) { this.titulo = titulo; }
-    
+
     public String getDescripcion() { return descripcion; }
     public void setDescripcion(String descripcion) { this.descripcion = descripcion; }
-    
+
     public double getPrecio() { return precio; }
     public void setPrecio(double precio) { this.precio = precio; }
-    
+
     public String getDuracion() { return duracion; }
     public void setDuracion(String duracion) { this.duracion = duracion; }
-    
+
     public String getFechaRealizacion() { return fechaRealizacion; }
     public void setFechaRealizacion(String fechaRealizacion) { this.fechaRealizacion = fechaRealizacion; }
-    
+
     public String getHoraInicio() { return horaInicio; }
     public void setHoraInicio(String horaInicio) { this.horaInicio = horaInicio; }
-    
+
     public String getHoraFin() { return horaFin; }
     public void setHoraFin(String horaFin) { this.horaFin = horaFin; }
-    
+
     public List<Map<String, Object>> getItinerario() { return itinerario; }
     public void setItinerario(List<Map<String, Object>> itinerario) { this.itinerario = itinerario; }
-    
+
     public List<Map<String, Object>> getServiciosAdicionales() { return serviciosAdicionales; }
-    public void setServiciosAdicionales(List<Map<String, Object>> serviciosAdicionales) { 
-        this.serviciosAdicionales = serviciosAdicionales; 
+    public void setServiciosAdicionales(List<Map<String, Object>> serviciosAdicionales) {
+        this.serviciosAdicionales = serviciosAdicionales;
     }
-    
+
     public String getEmpresaId() { return empresaId; }
     public void setEmpresaId(String empresaId) { this.empresaId = empresaId; }
-    
+
     public String getNombreEmpresa() { return nombreEmpresa; }
     public void setNombreEmpresa(String nombreEmpresa) { this.nombreEmpresa = nombreEmpresa; }
-    
+
     public String getCorreoEmpresa() { return correoEmpresa; }
     public void setCorreoEmpresa(String correoEmpresa) { this.correoEmpresa = correoEmpresa; }
-    
+
     public double getPagoGuia() { return pagoGuia; }
     public void setPagoGuia(double pagoGuia) { this.pagoGuia = pagoGuia; }
-    
+
     public List<String> getIdiomasRequeridos() { return idiomasRequeridos; }
     public void setIdiomasRequeridos(List<String> idiomasRequeridos) { this.idiomasRequeridos = idiomasRequeridos; }
-    
+
     public String getConsideraciones() { return consideraciones; }
     public void setConsideraciones(String consideraciones) { this.consideraciones = consideraciones; }
-    
+
     public String getEstado() { return estado; }
     public void setEstado(String estado) { this.estado = estado; }
-    
+
     public String getGuiaAsignadoId() { return guiaAsignadoId; }
     public void setGuiaAsignadoId(String guiaAsignadoId) { this.guiaAsignadoId = guiaAsignadoId; }
-    
+
     public Timestamp getFechaAsignacion() { return fechaAsignacion; }
     public void setFechaAsignacion(Timestamp fechaAsignacion) { this.fechaAsignacion = fechaAsignacion; }
-    
+
     public Timestamp getFechaCreacion() { return fechaCreacion; }
     public void setFechaCreacion(Timestamp fechaCreacion) { this.fechaCreacion = fechaCreacion; }
-    
+
     public Timestamp getFechaActualizacion() { return fechaActualizacion; }
     public void setFechaActualizacion(Timestamp fechaActualizacion) { this.fechaActualizacion = fechaActualizacion; }
-    
+
     public boolean isHabilitado() { return habilitado; }
     public void setHabilitado(boolean habilitado) { this.habilitado = habilitado; }
-    
+
     public boolean isPerfilCompleto() { return perfilCompleto; }
     public void setPerfilCompleto(boolean perfilCompleto) { this.perfilCompleto = perfilCompleto; }
-    
+
     // 🆕 Getters y Setters para campos de imágenes
     public List<String> getImagenesUrls() { return imagenesUrls; }
-    public void setImagenesUrls(List<String> imagenesUrls) { 
+    public void setImagenesUrls(List<String> imagenesUrls) {
         this.imagenesUrls = imagenesUrls;
         if (imagenesUrls != null && !imagenesUrls.isEmpty() && imagenPrincipal == null) {
             this.imagenPrincipal = imagenesUrls.get(0);
         }
     }
-    
+
     public String getImagenPrincipal() { return imagenPrincipal; }
     public void setImagenPrincipal(String imagenPrincipal) { this.imagenPrincipal = imagenPrincipal; }
-    
+
+    // ✅ NUEVO - Getter/Setter para cantidadImagenes2
+    public Integer getCantidadImagenes2() { return cantidadImagenes2; }
+    public void setCantidadImagenes2(Integer cantidadImagenes2) { this.cantidadImagenes2 = cantidadImagenes2; }
+
     // 🆕 Getters y Setters para tracking de guías
     public String getGuiaSeleccionadoActual() { return guiaSeleccionadoActual; }
-    public void setGuiaSeleccionadoActual(String guiaSeleccionadoActual) { 
-        this.guiaSeleccionadoActual = guiaSeleccionadoActual; 
+    public void setGuiaSeleccionadoActual(String guiaSeleccionadoActual) {
+        this.guiaSeleccionadoActual = guiaSeleccionadoActual;
     }
-    
+
     public Timestamp getFechaUltimoOfrecimiento() { return fechaUltimoOfrecimiento; }
-    public void setFechaUltimoOfrecimiento(Timestamp fechaUltimoOfrecimiento) { 
-        this.fechaUltimoOfrecimiento = fechaUltimoOfrecimiento; 
+    public void setFechaUltimoOfrecimiento(Timestamp fechaUltimoOfrecimiento) {
+        this.fechaUltimoOfrecimiento = fechaUltimoOfrecimiento;
     }
-    
+
+    // ✅ NUEVOS - Getters/Setters para campos calculados
+    public String getIdiomasTexto() {
+        // Si el campo existe en Firebase, usarlo; si no, calcularlo
+        return idiomasTexto != null ? idiomasTexto : calcularIdiomasTexto();
+    }
+    public void setIdiomasTexto(String idiomasTexto) { this.idiomasTexto = idiomasTexto; }
+
+    public String getServiciosResumen() {
+        // Si el campo existe en Firebase, usarlo; si no, calcularlo
+        return serviciosResumen != null ? serviciosResumen : calcularServiciosResumen();
+    }
+    public void setServiciosResumen(String serviciosResumen) { this.serviciosResumen = serviciosResumen; }
+
+    public String getResumenItinerario() {
+        // Si el campo existe en Firebase, usarlo; si no, calcularlo
+        return resumenItinerario != null ? resumenItinerario : calcularResumenItinerario();
+    }
+    public void setResumenItinerario(String resumenItinerario) { this.resumenItinerario = resumenItinerario; }
+
     // 🆕 Helper methods para imágenes
     public int getCantidadImagenes() {
         return imagenesUrls != null ? imagenesUrls.size() : 0;
     }
-    
+
     public boolean tieneImagenes() {
         return imagenesUrls != null && !imagenesUrls.isEmpty();
     }
