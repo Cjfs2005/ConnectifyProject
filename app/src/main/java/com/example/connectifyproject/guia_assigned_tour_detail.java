@@ -56,9 +56,12 @@ public class guia_assigned_tour_detail extends AppCompatActivity {
         Intent intent = getIntent();
         tourId = intent.getStringExtra("tour_id");
 
+        android.util.Log.d("GuiaAssignedTour", "onCreate - tourId: " + tourId);
+
         if (tourId != null && !tourId.isEmpty()) {
             loadTourDataFromFirebase();
         } else {
+            android.util.Log.e("GuiaAssignedTour", "Error: ID del tour no encontrado o vacío");
             Toast.makeText(this, "Error: ID del tour no encontrado", Toast.LENGTH_SHORT).show();
             finish();
         }
@@ -68,18 +71,25 @@ public class guia_assigned_tour_detail extends AppCompatActivity {
      * Cargar datos del tour desde Firebase (colección tours_asignados)
      */
     private void loadTourDataFromFirebase() {
+        android.util.Log.d("GuiaAssignedTour", "loadTourDataFromFirebase - Consultando tourId: " + tourId);
+        
         db.collection("tours_asignados")
             .document(tourId)
             .get()
             .addOnSuccessListener(documentSnapshot -> {
+                android.util.Log.d("GuiaAssignedTour", "loadTourDataFromFirebase - Success. Existe: " + documentSnapshot.exists());
+                
                 if (documentSnapshot.exists()) {
+                    android.util.Log.d("GuiaAssignedTour", "Tour encontrado, llamando setupTourFromFirebase");
                     setupTourFromFirebase(documentSnapshot);
                 } else {
+                    android.util.Log.e("GuiaAssignedTour", "Tour no existe en Firebase");
                     Toast.makeText(this, "Tour no encontrado", Toast.LENGTH_SHORT).show();
                     finish();
                 }
             })
             .addOnFailureListener(e -> {
+                android.util.Log.e("GuiaAssignedTour", "Error al cargar tour: " + e.getMessage(), e);
                 Toast.makeText(this, "Error al cargar tour: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 finish();
             });
@@ -89,6 +99,8 @@ public class guia_assigned_tour_detail extends AppCompatActivity {
      * Configurar UI con datos de Firebase
      */
     private void setupTourFromFirebase(DocumentSnapshot doc) {
+        android.util.Log.d("GuiaAssignedTour", "setupTourFromFirebase - Iniciando configuración UI");
+        
         // Datos básicos
         String titulo = doc.getString("titulo");
         String nombreEmpresa = doc.getString("nombreEmpresa");
@@ -98,6 +110,8 @@ public class guia_assigned_tour_detail extends AppCompatActivity {
         String horaFin = doc.getString("horaFin");
         String estado = doc.getString("estado");
         Double pagoGuia = doc.getDouble("pagoGuia");
+        
+        android.util.Log.d("GuiaAssignedTour", "Datos cargados - Titulo: " + titulo + ", Estado: " + estado);
         
         // Fecha de realización
         Timestamp fechaRealizacion = doc.getTimestamp("fechaRealizacion");

@@ -31,8 +31,10 @@ public class cliente_tour_detalle extends AppCompatActivity implements Cliente_S
     private MaterialToolbar toolbar;
     private ImageView ivTourHero;
     private TextView tvTourLocation, tvTourPriceMain, tvStartTime, tvEndTime, tvTourCompany;
-    private TextView tvPeopleCount, tvTotalPrice, tvIdiomas, tvConsideraciones;
-    private LinearLayout layoutConsideraciones;
+    private TextView tvPeopleCount, tvTotalPrice, tvIdiomas;
+    private TextView tvGuiaNombre, tvGuiaTelefono;
+    private ImageView ivGuiaFoto;
+    private LinearLayout layoutGuiaInfo;
     private RecyclerView rvServiciosAdicionales;
     private TextView tvNoServicios;
     private ImageButton btnDecreasePeople, btnIncreasePeople;
@@ -83,7 +85,6 @@ public class cliente_tour_detalle extends AppCompatActivity implements Cliente_S
         if (idiomas != null) {
             tour.setIdiomasRequeridos(idiomas);
         }
-        tour.setConsideraciones(intent.getStringExtra("consideraciones"));
         
         // Recargar servicios e itinerario desde Firebase
         loadTourDetailsFromFirebase();
@@ -118,6 +119,15 @@ public class cliente_tour_detalle extends AppCompatActivity implements Cliente_S
                             }
                         }
                         
+                        // Cargar información del guía
+                        Map<String, Object> guiaAsignado = 
+                            (Map<String, Object>) doc.get("guiaAsignado");
+                        if (guiaAsignado != null) {
+                            loadGuiaInfo(guiaAsignado);
+                        } else {
+                            layoutGuiaInfo.setVisibility(View.GONE);
+                        }
+                        
                         // Actualizar servicios
                         loadServiciosData();
                     }
@@ -125,6 +135,42 @@ public class cliente_tour_detalle extends AppCompatActivity implements Cliente_S
                 .addOnFailureListener(e -> {
                     Toast.makeText(this, "Error cargando detalles del tour", Toast.LENGTH_SHORT).show();
                 });
+    }
+    
+    private void loadGuiaInfo(Map<String, Object> guiaAsignado) {
+        String nombresCompletos = (String) guiaAsignado.get("nombresCompletos");
+        String numeroTelefono = (String) guiaAsignado.get("numeroTelefono");
+        String identificadorUsuario = (String) guiaAsignado.get("identificadorUsuario");
+        
+        if (nombresCompletos != null) {
+            tvGuiaNombre.setText(nombresCompletos);
+        }
+        
+        if (numeroTelefono != null) {
+            tvGuiaTelefono.setText("📞 " + numeroTelefono);
+        }
+        
+        // Cargar foto del guía desde usuarios
+        if (identificadorUsuario != null && !identificadorUsuario.isEmpty()) {
+            FirebaseFirestore.getInstance()
+                .collection("usuarios")
+                .document(identificadorUsuario)
+                .get()
+                .addOnSuccessListener(doc -> {
+                    if (doc.exists()) {
+                        String photoUrl = doc.getString("photoUrl");
+                        if (photoUrl != null && !photoUrl.isEmpty()) {
+                            Glide.with(this)
+                                .load(photoUrl)
+                                .placeholder(R.drawable.ic_person)
+                                .circleCrop()
+                                .into(ivGuiaFoto);
+                        }
+                    }
+                });
+        }
+        
+        layoutGuiaInfo.setVisibility(View.VISIBLE);
     }
 
     private void initViews() {
@@ -138,8 +184,10 @@ public class cliente_tour_detalle extends AppCompatActivity implements Cliente_S
         tvPeopleCount = findViewById(R.id.tv_people_count);
         tvTotalPrice = findViewById(R.id.tv_total_price);
         tvIdiomas = findViewById(R.id.tv_idiomas);
-        tvConsideraciones = findViewById(R.id.tv_consideraciones);
-        layoutConsideraciones = findViewById(R.id.layout_consideraciones);
+        tvGuiaNombre = findViewById(R.id.tv_guia_nombre);
+        tvGuiaTelefono = findViewById(R.id.tv_guia_telefono);
+        ivGuiaFoto = findViewById(R.id.iv_guia_foto);
+        layoutGuiaInfo = findViewById(R.id.layout_guia_info);
         rvServiciosAdicionales = findViewById(R.id.rv_servicios_adicionales);
         tvNoServicios = findViewById(R.id.tv_no_servicios);
         btnDecreasePeople = findViewById(R.id.btn_decrease_people);
@@ -266,15 +314,6 @@ public class cliente_tour_detalle extends AppCompatActivity implements Cliente_S
             tvIdiomas.setText(idiomasText.toString().trim());
         } else {
             tvIdiomas.setText("No especificado");
-        }
-        
-        // Consideraciones
-        String consideraciones = tour.getConsideraciones();
-        if (consideraciones != null && !consideraciones.isEmpty()) {
-            tvConsideraciones.setText(consideraciones);
-            layoutConsideraciones.setVisibility(View.VISIBLE);
-        } else {
-            layoutConsideraciones.setVisibility(View.GONE);
         }
         
         updatePeopleCount();

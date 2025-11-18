@@ -25,6 +25,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import com.example.connectifyproject.adapters.Cliente_ReviewsAdapter;
 import com.example.connectifyproject.models.Cliente_Review;
 
@@ -158,37 +159,133 @@ public class cliente_empresa_info extends AppCompatActivity {
 
     private void setupReviews() {
         reviewsList = new ArrayList<>();
-        reviewsList.add(new Cliente_Review("María González", "5.0", "5", "15 Sep 2024",
-                "Excelente experiencia! El tour fue increíble, el guía muy conocedor y los lugares visitados superaron mis expectativas. Definitivamente lo recomiendo."));
-        reviewsList.add(new Cliente_Review("Carlos Mendoza", "4.8", "4.5", "12 Sep 2024",
-                "Muy buen servicio, puntuales y organizados. Los lugares que visitamos fueron hermosos y aprendimos mucho sobre la historia de Lima."));
-        reviewsList.add(new Cliente_Review("Ana Rodríguez", "5.0", "5", "10 Sep 2024",
-                "Perfecto! Todo salió como estaba planeado. El transporte cómodo, el guía excelente y la comida deliciosa. Volveré a contratar sus servicios."));
-
         reviewsAdapter = new Cliente_ReviewsAdapter(reviewsList);
         rvReviews.setLayoutManager(new LinearLayoutManager(this));
         rvReviews.setAdapter(reviewsAdapter);
+        
+        // Cargar reseñas desde Firebase
+        loadReviewsFromFirebase();
+    }
+    
+    private void loadReviewsFromFirebase() {
+        if (empresaId == null) return;
+        
+        db.collection("usuarios")
+                .document(empresaId)
+                .collection("resenas")
+                .orderBy("fecha", com.google.firebase.firestore.Query.Direction.DESCENDING)
+                .limit(3) // Mostrar solo las 3 más recientes
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    reviewsList.clear();
+                    
+                    for (com.google.firebase.firestore.QueryDocumentSnapshot document : queryDocumentSnapshots) {
+                        try {
+                            Cliente_Review review = document.toObject(Cliente_Review.class);
+                            if (review != null) {
+                                review.setId(document.getId());
+                                reviewsList.add(review);
+                            }
+                        } catch (Exception e) {
+                            android.util.Log.e("EmpresaInfo", "Error parsing review: " + document.getId(), e);
+                        }
+                    }
+                    
+                    reviewsAdapter.notifyDataSetChanged();
+                    
+                    // Mostrar u ocultar el botón "Ver más" según la cantidad de reseñas
+                    if (reviewsList.size() >= 3) {
+                        tvVerMasReviews.setVisibility(View.VISIBLE);
+                    } else {
+                        tvVerMasReviews.setVisibility(View.GONE);
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    android.util.Log.e("EmpresaInfo", "Error loading reviews", e);
+                    Toast.makeText(this, "Error al cargar reseñas", Toast.LENGTH_SHORT).show();
+                });
     }
 
     private void setupToursGallery() {
         toursGalleryList = new ArrayList<>();
-        toursGalleryList.add(new Cliente_Tour("1", "City Tour Lima",
-            "Descubre la historia de Lima visitando sus lugares más emblemáticos",
-            "Todo el día", 80.0, "Lima Histórica", 4.5f, "Lima Tours"));
-        toursGalleryList.add(new Cliente_Tour("2", "Tour Gastronómico",
-            "Experiencia culinaria única por los mejores restaurantes de la ciudad",
-            "4 horas", 120.0, "Miraflores", 4.8f, "Lima Tours"));
-        toursGalleryList.add(new Cliente_Tour("3", "Circuito Mágico",
-            "Espectáculo de fuentes danzantes con luces y música",
-            "3 horas", 60.0, "Parque de las Aguas", 4.3f, "Lima Tours"));
-        toursGalleryList.add(new Cliente_Tour("4", "Barranco Bohemio",
-            "Recorre el distrito más artístico y cultural de Lima",
-            "5 horas", 90.0, "Barranco", 4.6f, "Lima Tours"));
-
         toursGalleryAdapter = new Cliente_GalleryTourAdapter(this, toursGalleryList);
         LinearLayoutManager layoutManager = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
         rvToursGallery.setLayoutManager(layoutManager);
         rvToursGallery.setAdapter(toursGalleryAdapter);
+        
+        // Cargar tours reales desde Firebase
+        loadToursFromFirebase();
+    }
+    
+    private void loadToursFromFirebase() {
+        if (empresaId == null) return;
+        
+        // Calcular fecha de mañana
+        java.util.Calendar calendar = java.util.Calendar.getInstance();
+        calendar.add(java.util.Calendar.DAY_OF_YEAR, 1);
+        calendar.set(java.util.Calendar.HOUR_OF_DAY, 0);
+        calendar.set(java.util.Calendar.MINUTE, 0);
+        calendar.set(java.util.Calendar.SECOND, 0);
+        calendar.set(java.util.Calendar.MILLISECOND, 0);
+        com.google.firebase.Timestamp tomorrow = new com.google.firebase.Timestamp(calendar.getTime());
+        
+        db.collection("tours_asignados")
+                .whereEqualTo("empresaId", empresaId)
+                .whereEqualTo("estado", "confirmado")
+                .whereGreaterThanOrEqualTo("fechaRealizacion", tomorrow)
+                .limit(10) // Mostrar máximo 10 tours
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    toursGalleryList.clear();
+                    
+                    for (com.google.firebase.firestore.QueryDocumentSnapshot document : queryDocumentSnapshots) {
+                        try {
+                            // Extraer datos del tour
+                            String tourId = document.getId();
+                            String titulo = document.getString("tituloTour");
+                            String descripcion = document.getString("descripcion");
+                            String duracion = document.getString("duracion");
+                            Number precioNum = (Number) document.get("precio");
+                            double precio = precioNum != null ? precioNum.doubleValue() : 0.0;
+                            
+                            // Obtener ubicación del primer punto del itinerario
+                            String ubicacion = "No especificado";
+                            List<Map<String, Object>> itinerario = (List<Map<String, Object>>) document.get("itinerario");
+                            if (itinerario != null && !itinerario.isEmpty()) {
+                                Map<String, Object> primerPunto = itinerario.get(0);
+                                String nombrePunto = (String) primerPunto.get("nombre");
+                                if (nombrePunto != null && !nombrePunto.isEmpty()) {
+                                    ubicacion = nombrePunto;
+                                }
+                            }
+                            
+                            // Obtener calificación de la empresa (no del tour individual)
+                            // Esto se podría cargar desde el documento de empresa, pero por ahora usamos 0
+                            float calificacion = 0f;
+                            
+                            String nombreEmpresa = empresaNombre != null ? empresaNombre : "Empresa";
+                            
+                            Cliente_Tour tour = new Cliente_Tour(tourId, titulo, descripcion, 
+                                    duracion, precio, ubicacion, calificacion, nombreEmpresa);
+                            
+                            // Obtener URL de la primera imagen
+                            List<String> imagenesUrls = (List<String>) document.get("imagenesUrls");
+                            if (imagenesUrls != null && !imagenesUrls.isEmpty()) {
+                                tour.setImageUrl(imagenesUrls.get(0));
+                            }
+                            
+                            toursGalleryList.add(tour);
+                        } catch (Exception e) {
+                            android.util.Log.e("EmpresaInfo", "Error parsing tour: " + document.getId(), e);
+                        }
+                    }
+                    
+                    toursGalleryAdapter.notifyDataSetChanged();
+                })
+                .addOnFailureListener(e -> {
+                    android.util.Log.e("EmpresaInfo", "Error loading tours", e);
+                    Toast.makeText(this, "Error al cargar tours disponibles", Toast.LENGTH_SHORT).show();
+                });
     }
 
     private void setupClickListeners() {
@@ -287,9 +384,9 @@ public class cliente_empresa_info extends AppCompatActivity {
     
     private void openChatConversation(String chatId) {
         Intent intent = new Intent(this, cliente_chat_conversation.class);
-        intent.putExtra("chat_id", chatId);
-        intent.putExtra("empresa_id", empresaId);
-        intent.putExtra("empresa_nombre", empresaNombre);
+        intent.putExtra("admin_id", empresaId);
+        intent.putExtra("admin_name", empresaNombre);
+        // admin_photo_url se carga desde Firebase en cliente_chat_conversation
         startActivity(intent);
     }
 }

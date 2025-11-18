@@ -45,8 +45,10 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
-                android:layout_marginTop="6dp">
+                android:layout_marginTop="6dp"
+                android:visibility="gone">
 
+                <!-- Calificación eliminada - Se usa la calificación de la empresa en general -->
                 <RatingBar
                     android:id="@+id/rating_bar"
                     style="?android:attr/ratingBarStyleSmall"
