@@ -2,6 +2,7 @@ package com.example.connectifyproject;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.ImageButton;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -15,11 +16,21 @@ import com.example.connectifyproject.models.Cliente_ServicioAdicional;
 import com.example.connectifyproject.models.Cliente_PaymentMethod;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.Timestamp;
 
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 public class cliente_reservas extends AppCompatActivity {
+
+    private static final String TAG = "ClienteReservas";
 
     private ImageButton btnNotifications;
     private TabLayout tabLayoutReservas;
@@ -29,6 +40,10 @@ public class cliente_reservas extends AppCompatActivity {
     private List<Cliente_Reserva> filteredReservas;
     private boolean showingProximas = true;
     private BottomNavigationView bottomNavigation;
+    
+    private FirebaseFirestore db;
+    private FirebaseAuth mAuth;
+    private String currentUserId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,6 +71,14 @@ public class cliente_reservas extends AppCompatActivity {
         tabLayoutReservas = findViewById(R.id.tab_layout_reservas);
         rvReservas = findViewById(R.id.rv_reservas);
         bottomNavigation = findViewById(R.id.bottom_navigation);
+        
+        // Initialize Firebase
+        db = FirebaseFirestore.getInstance();
+        mAuth = FirebaseAuth.getInstance();
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser != null) {
+            currentUserId = currentUser.getUid();
+        }
     }
 
     private void setupBottomNavigation() {
@@ -136,72 +159,136 @@ public class cliente_reservas extends AppCompatActivity {
     }
 
     private void loadReservasData() {
-        // Construir reservas ejemplo con servicios y método de pago
+        if (currentUserId == null) {
+            Log.e(TAG, "Usuario no autenticado");
+            return;
+        }
         
-        // Reservas próximas (2 reservas futuras)
-        allReservas.add(crearReservaEjemplo(
-                new Cliente_Tour("1", "Tour histórico por Lima", "Lima Tours",
-                        "5 hrs 30 min", "23/12/2025", 160.00, "Lima, Perú",
-                        "Explora el centro histórico de Lima y sus principales atractivos"),
-                2, "23/12/2025", "13:10", "18:40", "Próxima"));
+        Log.d(TAG, "Cargando reservas para usuario: " + currentUserId);
         
-        allReservas.add(crearReservaEjemplo(
-                new Cliente_Tour("2", "Tour gastronómico por Lima", "Lima Food Tours",
-                        "4 hrs", "15/01/2026", 120.00, "Lima, Perú",
-                        "Descubre los sabores de la gastronomía peruana"),
-                1, "15/01/2026", "18:00", "22:00", "Próxima"));
-
-        // Reservas pasadas (7 reservas pasadas)
-        allReservas.add(crearReservaEjemplo(
-                new Cliente_Tour("3", "Tour histórico por Lima", "Lima Tours",
-                        "5 hrs 30 min", "15/08/2024", 160.00, "Lima, Perú",
-                        "Explora el centro histórico de Lima"),
-                2, "15/08/2024", "09:00", "14:30", "Pasada"));
-                
-        allReservas.add(crearReservaEjemplo(
-                new Cliente_Tour("4", "Tour por Arequipa", "Arequipa Tours",
-                        "6 hrs", "10/07/2024", 180.00, "Arequipa, Perú",
-                        "Descubre la ciudad blanca y su arquitectura colonial"),
-                3, "10/07/2024", "08:00", "14:00", "Pasada"));
-                
-        allReservas.add(crearReservaEjemplo(
-                new Cliente_Tour("5", "Tour por Cusco", "Cusco Adventures",
-                        "7 hrs", "25/06/2024", 200.00, "Cusco, Perú",
-                        "Explora la capital del imperio Inca"),
-                2, "25/06/2024", "07:30", "14:30", "Pasada"));
-                
-        allReservas.add(crearReservaEjemplo(
-                new Cliente_Tour("6", "Tour por las Líneas de Nazca", "Nazca Flights",
-                        "3 hrs", "12/05/2024", 280.00, "Nazca, Perú",
-                        "Sobrevuela las misteriosas líneas de Nazca"),
-                1, "12/05/2024", "10:00", "13:00", "Pasada"));
-                
-        allReservas.add(crearReservaEjemplo(
-                new Cliente_Tour("7", "Tour por Machu Picchu", "Inca Trails",
-                        "8 hrs", "20/04/2024", 350.00, "Cusco, Perú",
-                        "Visita la maravilla del mundo"),
-                2, "20/04/2024", "06:00", "14:00", "Pasada"));
-                
-        allReservas.add(crearReservaEjemplo(
-                new Cliente_Tour("8", "Tour por Trujillo", "Norte Tours",
-                        "5 hrs", "08/03/2024", 140.00, "Trujillo, Perú",
-                        "Descubre la ciudad de la eterna primavera"),
-                2, "08/03/2024", "09:00", "14:00", "Pasada"));
-                
-        allReservas.add(crearReservaEjemplo(
-                new Cliente_Tour("9", "Tour por Paracas", "Costa Tours",
-                        "4 hrs", "15/02/2024", 170.00, "Paracas, Perú",
-                        "Observa la fauna marina en las Islas Ballestas"),
-                3, "15/02/2024", "08:30", "12:30", "Pasada"));
-
-        // Mostrar próximas por defecto
-        filterReservas();
-    }    private void filterReservas() {
+        // Obtener todos los tours asignados (confirmados)
+        db.collection("tours_asignados")
+                .whereEqualTo("estado", "confirmado")
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    allReservas.clear();
+                    Log.d(TAG, "Total tours confirmados encontrados: " + queryDocumentSnapshots.size());
+                    
+                    for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
+                        // Obtener array de participantes
+                        List<Map<String, Object>> participantes = (List<Map<String, Object>>) doc.get("participantes");
+                        
+                        if (participantes != null) {
+                            // Buscar si el usuario actual está en los participantes
+                            for (Map<String, Object> participante : participantes) {
+                                String usuarioId = (String) participante.get("usuarioId");
+                                
+                                if (currentUserId.equals(usuarioId)) {
+                                    // Este usuario tiene una reserva en este tour
+                                    Log.d(TAG, "Reserva encontrada en tour: " + doc.getId());
+                                    
+                                    // Crear objeto Cliente_Reserva con datos reales
+                                    Cliente_Reserva reserva = crearReservaDesdeFirebase(doc, participante);
+                                    if (reserva != null) {
+                                        allReservas.add(reserva);
+                                    }
+                                    break; // Solo necesitamos procesar este participante una vez
+                                }
+                            }
+                        }
+                    }
+                    
+                    Log.d(TAG, "Total reservas del usuario: " + allReservas.size());
+                    filterReservas();
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error al cargar reservas: " + e.getMessage(), e);
+                });
+    }    private Cliente_Reserva crearReservaDesdeFirebase(QueryDocumentSnapshot tourDoc, Map<String, Object> participanteData) {
+        try {
+            // Extraer datos del tour
+            String tourId = tourDoc.getId();
+            String titulo = tourDoc.getString("titulo");
+            String empresaNombre = tourDoc.getString("empresaNombre");
+            String ubicacion = tourDoc.getString("ubicacion");
+            String descripcion = tourDoc.getString("descripcion");
+            Double precioPorPersona = tourDoc.getDouble("precioPorPersona");
+            String duracion = tourDoc.getString("duracion");
+            
+            // Fecha de realización del tour
+            Timestamp fechaRealizacion = tourDoc.getTimestamp("fechaRealizacion");
+            String horaInicio = tourDoc.getString("horaInicio");
+            String horaFin = tourDoc.getString("horaFin");
+            
+            // Datos del participante
+            Integer numeroPersonas = participanteData.get("numeroPersonas") != null ? 
+                    ((Long) participanteData.get("numeroPersonas")).intValue() : 1;
+            Double montoTotal = participanteData.get("montoTotal") != null ? 
+                    (Double) participanteData.get("montoTotal") : 0.0;
+            String metodoPagoId = (String) participanteData.get("metodoPagoId");
+            
+            // Formatear fecha
+            String fechaFormateada = "";
+            if (fechaRealizacion != null) {
+                java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault());
+                fechaFormateada = sdf.format(fechaRealizacion.toDate());
+            }
+            
+            // Determinar si es próxima o pasada
+            boolean esFutura = false;
+            if (fechaRealizacion != null) {
+                Calendar today = Calendar.getInstance();
+                today.set(Calendar.HOUR_OF_DAY, 0);
+                today.set(Calendar.MINUTE, 0);
+                today.set(Calendar.SECOND, 0);
+                today.set(Calendar.MILLISECOND, 0);
+                esFutura = fechaRealizacion.toDate().after(today.getTime());
+            }
+            String estado = esFutura ? "Próxima" : "Pasada";
+            
+            // Crear objeto Cliente_Tour
+            Cliente_Tour tour = new Cliente_Tour(
+                    tourId,
+                    titulo != null ? titulo : "Tour sin título",
+                    empresaNombre != null ? empresaNombre : "Empresa",
+                    duracion != null ? duracion : "N/A",
+                    fechaFormateada,
+                    precioPorPersona != null ? precioPorPersona : 0.0,
+                    ubicacion != null ? ubicacion : "",
+                    descripcion != null ? descripcion : ""
+            );
+            
+            // Crear objeto Cliente_Reserva
+            Cliente_Reserva reserva = new Cliente_Reserva();
+            reserva.setId(tourId);
+            reserva.setTour(tour);
+            reserva.setPersonas(numeroPersonas);
+            reserva.setFecha(fechaFormateada);
+            reserva.setHoraInicio(horaInicio != null ? horaInicio : "");
+            reserva.setHoraFin(horaFin != null ? horaFin : "");
+            reserva.setTotal(montoTotal);
+            reserva.setEstado(estado);
+            
+            // Método de pago (se cargará más adelante si es necesario)
+            // Por ahora dejamos null o creamos uno básico
+            reserva.setMetodoPago(null);
+            
+            // Servicios adicionales (por ahora lista vacía)
+            reserva.setServicios(new ArrayList<>());
+            
+            return reserva;
+            
+        } catch (Exception e) {
+            Log.e(TAG, "Error al crear reserva desde Firebase: " + e.getMessage(), e);
+            return null;
+        }
+    }
+    
+    private void filterReservas() {
         filteredReservas.clear();
         
-    for (Cliente_Reserva reserva : allReservas) {
-        String fecha = reserva.getFecha();
-        boolean esFutura = isFutureDate(fecha);
+        for (Cliente_Reserva reserva : allReservas) {
+            boolean esFutura = "Próxima".equals(reserva.getEstado());
             
             if (showingProximas && esFutura) {
                 filteredReservas.add(reserva);
@@ -210,70 +297,8 @@ public class cliente_reservas extends AppCompatActivity {
             }
         }
         
+        Log.d(TAG, "Mostrando " + (showingProximas ? "próximas" : "pasadas") + ": " + filteredReservas.size() + " reservas");
         reservasAdapter.notifyDataSetChanged();
-    }
-    
-    private boolean isFutureDate(String dateString) {
-        // Lógica simple: fechas 2025 en adelante son futuras, 2024 y anteriores son pasadas
-        // En una app real, aquí se compararía con la fecha actual
-        return dateString.contains("2025") || dateString.contains("2026") || 
-               dateString.contains("2027") || dateString.contains("2028");
-    }
-
-    private Cliente_Reserva crearReservaEjemplo(Cliente_Tour tour, int personas,
-                                                String fecha, String horaInicio, String horaFin,
-                                                String estado) {
-        // Servicios disponibles para ese tour (variar según el tour)
-        List<Cliente_ServicioAdicional> servicios = new ArrayList<>();
-        
-        // Servicios base que siempre están disponibles
-        Cliente_ServicioAdicional folleto = new Cliente_ServicioAdicional("sa1", "Folleto turístico", "Guía impresa con información del tour", 0.0);
-        Cliente_ServicioAdicional almuerzo = new Cliente_ServicioAdicional("sa2", "Almuerzo", "Menú turístico en restaurante local", 16.0);
-        Cliente_ServicioAdicional traslado = new Cliente_ServicioAdicional("sa3", "Traslado hotel", "Recojo y retorno al hotel", 10.0);
-        
-        // Variar la selección según el ID del tour para tener diversidad
-        int tourIdNum = Integer.parseInt(tour.getId());
-        if (tourIdNum % 3 == 0) {
-            // Solo folleto y traslado
-            folleto.setSelected(true);
-            almuerzo.setSelected(false);
-            traslado.setSelected(true);
-        } else if (tourIdNum % 3 == 1) {
-            // Todos los servicios
-            folleto.setSelected(true);
-            almuerzo.setSelected(true);
-            traslado.setSelected(false);
-        } else {
-            // Solo almuerzo
-            folleto.setSelected(false);
-            almuerzo.setSelected(true);
-            traslado.setSelected(false);
-        }
-        
-        servicios.add(folleto);
-        servicios.add(almuerzo);
-        servicios.add(traslado);
-
-        // Alternar método de pago
-        Cliente_PaymentMethod metodoPago = tourIdNum % 2 == 0 ? 
-            Cliente_PaymentMethod.crearEjemploVisa() : 
-            Cliente_PaymentMethod.crearEjemploMastercard();
-
-        Cliente_Reserva reserva = new Cliente_Reserva();
-        reserva.setId(tour.getId());
-        reserva.setTour(tour);
-        reserva.setPersonas(personas);
-        reserva.setFecha(fecha);
-        reserva.setHoraInicio(horaInicio);
-        reserva.setHoraFin(horaFin);
-        reserva.setServicios(servicios);
-        reserva.setMetodoPago(metodoPago);
-        // Calcular totales
-        double totalServiciosPorPersona = reserva.calcularTotalServiciosSeleccionadosPorPersona();
-        reserva.setTotalServicios(totalServiciosPorPersona * personas);
-        reserva.setTotal((tour.getPrecio() + totalServiciosPorPersona) * personas);
-        reserva.setEstado(estado);
-        return reserva;
     }
 
 

@@ -2,6 +2,7 @@ package com.example.connectifyproject;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -11,18 +12,24 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.viewpager2.widget.ViewPager2;
 
 import com.example.connectifyproject.adapters.Cliente_ServiciosAdapter;
+import com.example.connectifyproject.adapters.ImageSliderAdapter;
 import com.example.connectifyproject.models.Cliente_Reserva;
 import com.example.connectifyproject.models.Cliente_ServicioAdicional;
 import com.example.connectifyproject.models.Cliente_Tour;
 import com.example.connectifyproject.utils.Cliente_FileStorageManager;
 import com.google.android.material.appbar.MaterialToolbar;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class cliente_reserva_detalle extends AppCompatActivity {
+
+    private static final String TAG = "ClienteReservaDetalle";
 
     private MaterialToolbar toolbar;
     private RecyclerView rvServicios;
@@ -31,10 +38,13 @@ public class cliente_reserva_detalle extends AppCompatActivity {
     private TextView tvTourLocation, tvTourPriceMain, tvStartTime, tvEndTime;
     private TextView tvMetodoPago, tvResumenTarjeta, tvMontoTour, tvTotal;
     private TextView tvServicioLinea1, tvMontoLinea1, tvServicioLinea2, tvMontoLinea2;
-    private ImageView ivHero;
+    private ViewPager2 vpTourImages;
     
     // Botones y tarjetas interactivas
     private View layoutItinerario, cardEmpresa, cardChat, cardDescargar, cardCancelar;
+    
+    private FirebaseFirestore db;
+    private FirebaseAuth mAuth;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -59,7 +69,7 @@ public class cliente_reserva_detalle extends AppCompatActivity {
     private void initViews() {
         toolbar = findViewById(R.id.toolbar);
         rvServicios = findViewById(R.id.rv_servicios_adicionales);
-        ivHero = findViewById(R.id.iv_tour_hero);
+        vpTourImages = findViewById(R.id.vp_tour_images);
 
         tvTourLocation = findViewById(R.id.tv_tour_location);
         tvTourPriceMain = findViewById(R.id.tv_tour_price_main);
@@ -82,6 +92,10 @@ public class cliente_reserva_detalle extends AppCompatActivity {
         cardChat = findViewById(R.id.card_chat);
         cardDescargar = findViewById(R.id.card_descargar);
         cardCancelar = findViewById(R.id.card_cancelar);
+        
+        // Initialize Firebase
+        db = FirebaseFirestore.getInstance();
+        mAuth = FirebaseAuth.getInstance();
     }
 
     private void setupToolbar(Cliente_Reserva reserva) {
@@ -102,31 +116,26 @@ public class cliente_reserva_detalle extends AppCompatActivity {
             if (tour != null) {
                 if (tvTourLocation != null) tvTourLocation.setText(tour.getUbicacion());
                 if (tvTourPriceMain != null) tvTourPriceMain.setText(String.format("S/%.2f", tour.getPrecio()));
-                // Hero: por ahora imagen por defecto
-                if (ivHero != null) ivHero.setImageResource(R.drawable.cliente_tour_lima);
+                
+                // Cargar imágenes del tour desde Firebase
+                loadTourImages(tour.getId());
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.e(TAG, "Error en bindData - tour info", e);
         }
 
         try {
             if (tvStartTime != null) tvStartTime.setText(reserva.getFecha() + " - " + reserva.getHoraInicio());
             if (tvEndTime != null) tvEndTime.setText(reserva.getFecha() + " - " + reserva.getHoraFin());
 
-            if (reserva.getMetodoPago() != null) {
-                if (tvMetodoPago != null) tvMetodoPago.setText("Método de pago");
-                if (tvResumenTarjeta != null) {
-                    tvResumenTarjeta.setText(
-                            (reserva.getMetodoPago().getCardType() != null ? "Tarjeta " + reserva.getMetodoPago().getCardType() + " " : "Tarjeta ")
-                                    + reserva.getMetodoPago().getMaskedCardNumber());
-                }
-            }
+            // Cargar método de pago desde Firebase
+            loadPaymentMethodInfo(reserva);
 
             Cliente_Tour tour = reserva.getTour();
-            if (tvMontoTour != null) tvMontoTour.setText(String.format("S/%.2f", (tour != null ? tour.getPrecio() : 0.0)));
+            if (tvMontoTour != null) tvMontoTour.setText(String.format("S/%.2f", (tour != null ? tour.getPrecio() * reserva.getPersonas() : 0.0)));
             if (tvTotal != null) tvTotal.setText(String.format("S/%.2f", reserva.getTotal()));
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.e(TAG, "Error en bindData - payment/times", e);
         }
 
         try {
@@ -172,6 +181,95 @@ public class cliente_reserva_detalle extends AppCompatActivity {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+    
+    private void loadTourImages(String tourId) {
+        if (tourId == null || tourId.isEmpty()) {
+            setupTourImageSlider(new ArrayList<>());
+            return;
+        }
+        
+        db.collection("tours_asignados")
+                .document(tourId)
+                .get()
+                .addOnSuccessListener(doc -> {
+                    if (doc.exists()) {
+                        List<String> imageUrls = (List<String>) doc.get("imagenesUrls");
+                        if (imageUrls != null && !imageUrls.isEmpty()) {
+                            setupTourImageSlider(imageUrls);
+                        } else {
+                            setupTourImageSlider(new ArrayList<>());
+                        }
+                    } else {
+                        setupTourImageSlider(new ArrayList<>());
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error loading tour images: " + e.getMessage());
+                    setupTourImageSlider(new ArrayList<>());
+                });
+    }
+    
+    private void setupTourImageSlider(List<String> imageUrls) {
+        ImageSliderAdapter adapter = new ImageSliderAdapter(this, imageUrls, R.drawable.cliente_tour_lima);
+        vpTourImages.setAdapter(adapter);
+    }
+    
+    private void loadPaymentMethodInfo(Cliente_Reserva reserva) {
+        if (reserva == null || mAuth.getCurrentUser() == null) {
+            return;
+        }
+        
+        String userId = mAuth.getCurrentUser().getUid();
+        
+        // Buscar el método de pago del usuario en el tour
+        db.collection("tours_asignados")
+                .document(reserva.getId())
+                .get()
+                .addOnSuccessListener(doc -> {
+                    if (doc.exists()) {
+                        List<java.util.Map<String, Object>> participantes = 
+                                (List<java.util.Map<String, Object>>) doc.get("participantes");
+                        
+                        if (participantes != null) {
+                            for (java.util.Map<String, Object> participante : participantes) {
+                                String participanteUserId = (String) participante.get("usuarioId");
+                                if (userId.equals(participanteUserId)) {
+                                    String metodoPagoId = (String) participante.get("metodoPagoId");
+                                    if (metodoPagoId != null && !metodoPagoId.isEmpty()) {
+                                        loadPaymentMethodDetails(userId, metodoPagoId);
+                                    }
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error loading payment method info: " + e.getMessage());
+                });
+    }
+    
+    private void loadPaymentMethodDetails(String userId, String metodoPagoId) {
+        db.collection("usuarios")
+                .document(userId)
+                .collection("payment_methods")
+                .document(metodoPagoId)
+                .get()
+                .addOnSuccessListener(doc -> {
+                    if (doc.exists()) {
+                        String cardType = doc.getString("cardType");
+                        String last4 = doc.getString("last4Digits");
+                        
+                        if (tvMetodoPago != null) tvMetodoPago.setText("Método de pago");
+                        if (tvResumenTarjeta != null && cardType != null && last4 != null) {
+                            tvResumenTarjeta.setText("Tarjeta " + cardType + " •••• " + last4);
+                        }
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error loading payment method details: " + e.getMessage());
+                });
     }
     
     private void setupClickListeners(Cliente_Reserva reserva) {

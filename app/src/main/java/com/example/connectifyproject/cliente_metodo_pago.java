@@ -264,6 +264,8 @@ public class cliente_metodo_pago extends AppCompatActivity {
         Intent intent = new Intent(this, cliente_reserva_realizada.class);
         intent.putExtra("total_price", totalPrice);
         intent.putExtra("tour_title", tourTitle);
+        intent.putExtra("tour_id", tourId);
+        intent.putExtra("people_count", peopleCount);
         intent.putExtra("payment_method_id", selectedPaymentMethod.getId());
         intent.putExtra("payment_method_last4", selectedPaymentMethod.getLast4Digits());
         intent.putExtra("payment_method_brand", selectedPaymentMethod.getCardBrand());

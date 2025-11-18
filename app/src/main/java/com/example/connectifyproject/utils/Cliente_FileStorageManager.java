@@ -137,7 +137,11 @@ public class Cliente_FileStorageManager {
         
         content.append("INFORMACIÓN DE PAGO:\n");
         content.append("───────────────────────\n");
-        content.append("Método de pago: ").append(reserva.getMetodoPago().getCardType()).append("\n");
+        if (reserva.getMetodoPago() != null) {
+            content.append("Método de pago: ").append(reserva.getMetodoPago().getCardType()).append("\n");
+        } else {
+            content.append("Método de pago: Información no disponible\n");
+        }
         content.append("Subtotal: S/").append(reserva.getSubtotal()).append("\n");
         content.append("IGV (18%): S/").append(reserva.getIgv()).append("\n");
         content.append("TOTAL: S/").append(reserva.getTotal()).append("\n\n");
@@ -280,9 +284,13 @@ public class Cliente_FileStorageManager {
         // Información de pago
         canvas.drawText("INFORMACIÓN DE PAGO", x, y, headerPaint);
         y += lineHeight;
-        canvas.drawText("Método de pago: " + reserva.getMetodoPago().getCardType(), x, y, bodyPaint);
-        y += lineHeight;
-        canvas.drawText("Tarjeta: " + reserva.getMetodoPago().getMaskedCardNumber(), x, y, bodyPaint);
+        if (reserva.getMetodoPago() != null) {
+            canvas.drawText("Método de pago: " + reserva.getMetodoPago().getCardType(), x, y, bodyPaint);
+            y += lineHeight;
+            canvas.drawText("Tarjeta: " + reserva.getMetodoPago().getMaskedCardNumber(), x, y, bodyPaint);
+        } else {
+            canvas.drawText("Método de pago: Información no disponible", x, y, bodyPaint);
+        }
         y += lineHeight * 2;
         
         // Totales

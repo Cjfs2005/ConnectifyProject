@@ -22,33 +22,11 @@
             app:toolbarId="@+id/toolbar">
 
             <!-- Company Images Slider -->
-            <FrameLayout
+            <androidx.viewpager2.widget.ViewPager2
+                android:id="@+id/vp_empresa_fotos"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                app:layout_collapseMode="parallax">
-
-                <androidx.viewpager2.widget.ViewPager2
-                    android:id="@+id/vp_empresa_fotos"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent" />
-
-                <!-- Indicador de páginas -->
-                <com.google.android.material.tabs.TabLayout
-                    android:id="@+id/tab_indicator"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="bottom|center_horizontal"
-                    android:layout_marginBottom="16dp"
-                    android:background="@android:color/transparent"
-                    app:tabBackground="@drawable/tab_indicator_selector"
-                    app:tabGravity="center"
-                    app:tabIndicatorHeight="0dp"
-                    app:tabMaxWidth="8dp"
-                    app:tabMinWidth="8dp"
-                    app:tabPaddingEnd="4dp"
-                    app:tabPaddingStart="4dp" />
-
-            </FrameLayout>
+                app:layout_collapseMode="parallax" />
 
             <!-- Toolbar -->
             <com.google.android.material.appbar.MaterialToolbar

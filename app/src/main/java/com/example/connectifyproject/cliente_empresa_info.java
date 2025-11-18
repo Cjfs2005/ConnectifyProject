@@ -39,7 +39,6 @@ public class cliente_empresa_info extends AppCompatActivity {
     private TextView tvVerMasReviews, tvReviewsTitle, tvNoReviews;
     private TextView tvCompanyAddress, tvCompanyDescription, tvCompanyEmail, tvCompanyPhone;
     private ViewPager2 viewPagerEmpresaFotos;
-    private TabLayout tabLayoutIndicators;
     private Button btnChatEmpresa;
     
     private FirebaseFirestore db;
@@ -84,9 +83,8 @@ public class cliente_empresa_info extends AppCompatActivity {
         tvCompanyEmail = findViewById(R.id.tv_company_email);
         tvCompanyPhone = findViewById(R.id.tv_company_phone);
         
-        // ViewPager y TabLayout para fotos
+        // ViewPager para fotos
         viewPagerEmpresaFotos = findViewById(R.id.vp_empresa_fotos);
-        tabLayoutIndicators = findViewById(R.id.tab_indicator);
     }
 
     private void setupToolbar() {
@@ -163,19 +161,6 @@ public class cliente_empresa_info extends AppCompatActivity {
             new com.example.connectifyproject.adapters.ImageSliderAdapter(this, fotosUrls, 
                 R.drawable.cliente_tour_lima);
         viewPagerEmpresaFotos.setAdapter(adapter);
-        
-        // Conectar con TabLayout para indicadores
-        if (tabLayoutIndicators != null && fotosUrls.size() > 1) {
-            new com.google.android.material.tabs.TabLayoutMediator(
-                tabLayoutIndicators, viewPagerEmpresaFotos,
-                (tab, position) -> {
-                    // Los indicadores se muestran automáticamente
-                }
-            ).attach();
-            tabLayoutIndicators.setVisibility(View.VISIBLE);
-        } else if (tabLayoutIndicators != null) {
-            tabLayoutIndicators.setVisibility(View.GONE);
-        }
     }
 
     private void setupReviews() {
@@ -284,24 +269,23 @@ public class cliente_empresa_info extends AppCompatActivity {
             return;
         }
         
-        android.util.Log.d("EmpresaInfo", "Loading tours for empresaId: " + empresaId);
+        android.util.Log.d("EmpresaInfo", "Loading ALL tours for empresaId: " + empresaId);
         
-        // Calcular fecha de mañana
+        // Calcular fecha de mañana para filtrar localmente
         java.util.Calendar calendar = java.util.Calendar.getInstance();
         calendar.add(java.util.Calendar.DAY_OF_YEAR, 1);
         calendar.set(java.util.Calendar.HOUR_OF_DAY, 0);
         calendar.set(java.util.Calendar.MINUTE, 0);
         calendar.set(java.util.Calendar.SECOND, 0);
         calendar.set(java.util.Calendar.MILLISECOND, 0);
-        com.google.firebase.Timestamp tomorrow = new com.google.firebase.Timestamp(calendar.getTime());
+        java.util.Date tomorrow = calendar.getTime();
         
-        android.util.Log.d("EmpresaInfo", "Filtering tours from: " + tomorrow.toDate());
+        android.util.Log.d("EmpresaInfo", "Filtering tours from: " + tomorrow);
         
+        // Obtener TODOS los tours de la empresa sin filtro de fecha en Firebase
         db.collection("tours_asignados")
                 .whereEqualTo("empresaId", empresaId)
                 .whereEqualTo("estado", "confirmado")
-                .whereGreaterThanOrEqualTo("fechaRealizacion", tomorrow)
-                .limit(10)
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     android.util.Log.d("EmpresaInfo", "Tours query successful, found: " + queryDocumentSnapshots.size());
@@ -309,46 +293,50 @@ public class cliente_empresa_info extends AppCompatActivity {
                     
                     for (com.google.firebase.firestore.QueryDocumentSnapshot document : queryDocumentSnapshots) {
                         try {
-                            // Extraer datos del tour
-                            String tourId = document.getId();
-                            String titulo = document.getString("tituloTour");
-                            String descripcion = document.getString("descripcion");
-                            String duracion = document.getString("duracion");
-                            Number precioNum = (Number) document.get("precio");
-                            double precio = precioNum != null ? precioNum.doubleValue() : 0.0;
-                            
-                            // Obtener ubicación del primer punto del itinerario
-                            String ubicacion = "No especificado";
-                            List<Map<String, Object>> itinerario = (List<Map<String, Object>>) document.get("itinerario");
-                            if (itinerario != null && !itinerario.isEmpty()) {
-                                Map<String, Object> primerPunto = itinerario.get(0);
-                                String nombrePunto = (String) primerPunto.get("nombre");
-                                if (nombrePunto != null && !nombrePunto.isEmpty()) {
-                                    ubicacion = nombrePunto;
+                            // Filtrar por fecha localmente
+                            com.google.firebase.Timestamp fechaRealizacion = document.getTimestamp("fechaRealizacion");
+                            if (fechaRealizacion != null && fechaRealizacion.toDate().after(tomorrow)) {
+                                // Extraer datos del tour
+                                String tourId = document.getId();
+                                String titulo = document.getString("titulo");
+                                String descripcion = document.getString("descripcion");
+                                String duracion = document.getString("duracion");
+                                Number precioNum = (Number) document.get("precio");
+                                double precio = precioNum != null ? precioNum.doubleValue() : 0.0;
+                                
+                                // Obtener ubicación del primer punto del itinerario
+                                String ubicacion = "No especificado";
+                                List<Map<String, Object>> itinerario = (List<Map<String, Object>>) document.get("itinerario");
+                                if (itinerario != null && !itinerario.isEmpty()) {
+                                    Map<String, Object> primerPunto = itinerario.get(0);
+                                    String nombrePunto = (String) primerPunto.get("nombre");
+                                    if (nombrePunto != null && !nombrePunto.isEmpty()) {
+                                        ubicacion = nombrePunto;
+                                    }
                                 }
+                                
+                                // Obtener calificación de la empresa (no del tour individual)
+                                float calificacion = 0f;
+                                
+                                String nombreEmpresa = empresaNombre != null ? empresaNombre : "Empresa";
+                                
+                                Cliente_Tour tour = new Cliente_Tour(tourId, titulo, descripcion, 
+                                        duracion, precio, ubicacion, calificacion, nombreEmpresa);
+                                
+                                // Obtener URL de la primera imagen
+                                List<String> imagenesUrls = (List<String>) document.get("imagenesUrls");
+                                if (imagenesUrls != null && !imagenesUrls.isEmpty()) {
+                                    tour.setImageUrl(imagenesUrls.get(0));
+                                }
+                                
+                                toursGalleryList.add(tour);
                             }
-                            
-                            // Obtener calificación de la empresa (no del tour individual)
-                            // Esto se podría cargar desde el documento de empresa, pero por ahora usamos 0
-                            float calificacion = 0f;
-                            
-                            String nombreEmpresa = empresaNombre != null ? empresaNombre : "Empresa";
-                            
-                            Cliente_Tour tour = new Cliente_Tour(tourId, titulo, descripcion, 
-                                    duracion, precio, ubicacion, calificacion, nombreEmpresa);
-                            
-                            // Obtener URL de la primera imagen
-                            List<String> imagenesUrls = (List<String>) document.get("imagenesUrls");
-                            if (imagenesUrls != null && !imagenesUrls.isEmpty()) {
-                                tour.setImageUrl(imagenesUrls.get(0));
-                            }
-                            
-                            toursGalleryList.add(tour);
                         } catch (Exception e) {
                             android.util.Log.e("EmpresaInfo", "Error parsing tour: " + document.getId(), e);
                         }
                     }
                     
+                    android.util.Log.d("EmpresaInfo", "Tours filtered and added: " + toursGalleryList.size());
                     toursGalleryAdapter.notifyDataSetChanged();
                 })
                 .addOnFailureListener(e -> {

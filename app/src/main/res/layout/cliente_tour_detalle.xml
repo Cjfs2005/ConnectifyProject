@@ -21,13 +21,11 @@
             app:titleEnabled="false"
             app:toolbarId="@+id/toolbar">
 
-            <!-- Hero Image -->
-            <ImageView
-                android:id="@+id/iv_tour_hero"
+            <!-- Tour Images Slider -->
+            <androidx.viewpager2.widget.ViewPager2
+                android:id="@+id/vp_tour_images"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:scaleType="centerCrop"
-                android:src="@drawable/cliente_tour_lima"
                 app:layout_collapseMode="parallax" />
 
             <!-- Toolbar -->

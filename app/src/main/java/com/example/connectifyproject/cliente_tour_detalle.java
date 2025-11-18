@@ -29,7 +29,7 @@ import java.util.Map;
 public class cliente_tour_detalle extends AppCompatActivity implements Cliente_ServiciosAdapter.OnServiceSelectedListener {
 
     private MaterialToolbar toolbar;
-    private ImageView ivTourHero;
+    private androidx.viewpager2.widget.ViewPager2 vpTourImages;
     private TextView tvTourLocation, tvTourPriceMain, tvStartTime, tvEndTime, tvTourCompany;
     private TextView tvPeopleCount, tvTotalPrice, tvIdiomas;
     private TextView tvGuiaNombre, tvGuiaTelefono;
@@ -47,6 +47,7 @@ public class cliente_tour_detalle extends AppCompatActivity implements Cliente_S
     
     private Cliente_Tour tour;
     private int peopleCount = 1;
+    private FirebaseFirestore db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -174,8 +175,9 @@ public class cliente_tour_detalle extends AppCompatActivity implements Cliente_S
     }
 
     private void initViews() {
+        db = FirebaseFirestore.getInstance();
         toolbar = findViewById(R.id.toolbar);
-        ivTourHero = findViewById(R.id.iv_tour_hero);
+        vpTourImages = findViewById(R.id.vp_tour_images);
         tvTourLocation = findViewById(R.id.tv_tour_location);
         tvTourPriceMain = findViewById(R.id.tv_tour_price_main);
         tvStartTime = findViewById(R.id.tv_start_time);
@@ -195,6 +197,39 @@ public class cliente_tour_detalle extends AppCompatActivity implements Cliente_S
         btnContinuar = findViewById(R.id.btn_continuar);
         cardEmpresa = findViewById(R.id.card_empresa);
         layoutItinerario = findViewById(R.id.layout_itinerario);
+        
+        // Cargar imágenes del tour desde Firebase
+        loadTourImages();
+    }
+    
+    private void loadTourImages() {
+        if (tour == null || tour.getId() == null) return;
+        
+        db.collection("tours_asignados")
+            .document(tour.getId())
+            .get()
+            .addOnSuccessListener(doc -> {
+                if (doc.exists()) {
+                    List<String> imagenesUrls = (List<String>) doc.get("imagenesUrls");
+                    if (imagenesUrls != null && !imagenesUrls.isEmpty()) {
+                        setupTourImageSlider(imagenesUrls);
+                    } else {
+                        // Usar placeholder si no hay imágenes
+                        setupTourImageSlider(java.util.Arrays.asList("placeholder"));
+                    }
+                }
+            })
+            .addOnFailureListener(e -> {
+                android.util.Log.e("TourDetalle", "Error loading images", e);
+                setupTourImageSlider(java.util.Arrays.asList("placeholder"));
+            });
+    }
+    
+    private void setupTourImageSlider(List<String> imageUrls) {
+        com.example.connectifyproject.adapters.ImageSliderAdapter adapter = 
+            new com.example.connectifyproject.adapters.ImageSliderAdapter(this, imageUrls, 
+                R.drawable.cliente_tour_lima);
+        vpTourImages.setAdapter(adapter);
     }
 
     private void setupToolbar() {
@@ -282,15 +317,7 @@ public class cliente_tour_detalle extends AppCompatActivity implements Cliente_S
     }
 
     private void updateUI() {
-        // Imagen hero
-        if (tour.getImageUrl() != null && !tour.getImageUrl().isEmpty()) {
-            Glide.with(this)
-                    .load(tour.getImageUrl())
-                    .placeholder(R.drawable.cliente_tour_lima)
-                    .error(R.drawable.cliente_tour_lima)
-                    .centerCrop()
-                    .into(ivTourHero);
-        }
+        // Imagen hero se carga con el slider (ya no se usa)
         
         // Ubicación
         tvTourLocation.setText(tour.getUbicacion());
