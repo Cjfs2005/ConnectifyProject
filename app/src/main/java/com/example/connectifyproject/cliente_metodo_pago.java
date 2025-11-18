@@ -33,6 +33,9 @@ public class cliente_metodo_pago extends AppCompatActivity {
     private FloatingActionButton fabAddMethod;
     private Cliente_TarjetaAdapter tarjetaAdapter;
     private String totalPrice;
+    private String tourTitle;
+    private String tourId;
+    private int peopleCount;
     
     // Firebase
     private FirebaseFirestore db;
@@ -104,6 +107,10 @@ public class cliente_metodo_pago extends AppCompatActivity {
 
     private void getTotalPriceFromIntent() {
         totalPrice = getIntent().getStringExtra("total_price");
+        tourTitle = getIntent().getStringExtra("tour_title");
+        tourId = getIntent().getStringExtra("tour_id");
+        peopleCount = getIntent().getIntExtra("people_count", 1);
+        
         if (totalPrice != null) {
             tvTotalPrice.setText(totalPrice);
         }
@@ -184,18 +191,90 @@ public class cliente_metodo_pago extends AppCompatActivity {
                 return;
             }
             
-            // Navegar a la pantalla de reserva realizada
-            Intent intent = new Intent(this, cliente_reserva_realizada.class);
-            intent.putExtra("total_price", totalPrice);
-            intent.putExtra("payment_method_id", selectedPaymentMethod.getId());
-            intent.putExtra("payment_method_last4", selectedPaymentMethod.getLast4Digits());
-            intent.putExtra("payment_method_brand", selectedPaymentMethod.getCardBrand());
-            startActivity(intent);
+            // Guardar reserva en Firebase
+            saveReservationToFirebase();
         });
         
         fabAddMethod.setOnClickListener(v -> {
-            Intent intent = new Intent(this, cliente_nuevo_metodo_pago.class);
+            Intent intent = new Intent(this, cliente_agregar_metodo_pago.class);
             startActivity(intent);
         });
+    }
+    
+    private void saveReservationToFirebase() {
+        if (tourId == null || currentUser == null) {
+            Toast.makeText(this, "Error: Información incompleta", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
+        btnReservar.setEnabled(false);
+        btnReservar.setText("Procesando...");
+        
+        // Primero obtener datos del usuario
+        db.collection("usuarios")
+                .document(currentUser.getUid())
+                .get()
+                .addOnSuccessListener(userDoc -> {
+                    if (userDoc.exists()) {
+                        String nombreCompleto = userDoc.getString("nombresApellidos");
+                        String email = userDoc.getString("email");
+                        String telefono = userDoc.getString("telefono");
+                        String tipoDocumento = userDoc.getString("tipoDocumento");
+                        String numeroDocumento = userDoc.getString("numeroDocumento");
+                        
+                        // Crear objeto participante
+                        java.util.Map<String, Object> participante = new java.util.HashMap<>();
+                        participante.put("usuarioId", currentUser.getUid());
+                        participante.put("nombre", nombreCompleto != null ? nombreCompleto : "Cliente");
+                        participante.put("email", email != null ? email : "");
+                        participante.put("telefono", telefono != null ? telefono : "");
+                        participante.put("tipoDocumento", tipoDocumento != null ? tipoDocumento : "DNI");
+                        participante.put("numeroDocumento", numeroDocumento != null ? numeroDocumento : "");
+                        participante.put("numeroPersonas", peopleCount);
+                        participante.put("fechaInscripcion", com.google.firebase.Timestamp.now());
+                        participante.put("metodoPagoId", selectedPaymentMethod.getId());
+                        participante.put("montoTotal", totalPrice);
+                        
+                        // Agregar participante al tour
+                        addParticipantToTour(participante);
+                    } else {
+                        showError("No se encontró información del usuario");
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    showError("Error al obtener datos del usuario: " + e.getMessage());
+                });
+    }
+    
+    private void addParticipantToTour(java.util.Map<String, Object> participante) {
+        db.collection("tours_asignados")
+                .document(tourId)
+                .update("participantes", com.google.firebase.firestore.FieldValue.arrayUnion(participante),
+                       "numeroParticipantesTotal", com.google.firebase.firestore.FieldValue.increment(peopleCount))
+                .addOnSuccessListener(aVoid -> {
+                    // Reserva guardada exitosamente
+                    navigateToConfirmation();
+                })
+                .addOnFailureListener(e -> {
+                    showError("Error al guardar reserva: " + e.getMessage());
+                });
+    }
+    
+    private void navigateToConfirmation() {
+        Intent intent = new Intent(this, cliente_reserva_realizada.class);
+        intent.putExtra("total_price", totalPrice);
+        intent.putExtra("tour_title", tourTitle);
+        intent.putExtra("payment_method_id", selectedPaymentMethod.getId());
+        intent.putExtra("payment_method_last4", selectedPaymentMethod.getLast4Digits());
+        intent.putExtra("payment_method_brand", selectedPaymentMethod.getCardBrand());
+        startActivity(intent);
+        finish();
+    }
+    
+    private void showError(String message) {
+        android.util.Log.e("MetodoPago", message);
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+        btnReservar.setEnabled(true);
+        btnReservar.setText("Reservar");
     }
 }

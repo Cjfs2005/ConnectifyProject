@@ -234,6 +234,7 @@ public class cliente_tour_detalle extends AppCompatActivity implements Cliente_S
             Intent intent = new Intent(this, cliente_metodo_pago.class);
             intent.putExtra("total_price", tvTotalPrice.getText().toString());
             intent.putExtra("tour_title", tour.getTitulo());
+            intent.putExtra("tour_id", tour.getId());
             intent.putExtra("people_count", peopleCount);
             startActivity(intent);
         });

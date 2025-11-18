@@ -36,7 +36,7 @@ public class cliente_empresa_info extends AppCompatActivity {
     private Cliente_GalleryTourAdapter toursGalleryAdapter;
     private List<Cliente_Review> reviewsList;
     private List<Cliente_Tour> toursGalleryList;
-    private TextView tvVerMasReviews;
+    private TextView tvVerMasReviews, tvReviewsTitle, tvNoReviews;
     private TextView tvCompanyAddress, tvCompanyDescription, tvCompanyEmail, tvCompanyPhone;
     private ViewPager2 viewPagerEmpresaFotos;
     private TabLayout tabLayoutIndicators;
@@ -77,15 +77,16 @@ public class cliente_empresa_info extends AppCompatActivity {
         rvReviews = findViewById(R.id.rv_reviews);
         rvToursGallery = findViewById(R.id.rv_tours_disponibles);
         tvVerMasReviews = findViewById(R.id.tv_ver_mas_reviews);
+        tvReviewsTitle = findViewById(R.id.tv_reviews_title);
+        tvNoReviews = findViewById(R.id.tv_no_reviews);
         tvCompanyAddress = findViewById(R.id.tv_company_address);
         tvCompanyDescription = findViewById(R.id.tv_company_description);
         tvCompanyEmail = findViewById(R.id.tv_company_email);
         tvCompanyPhone = findViewById(R.id.tv_company_phone);
         
-        // Buscar ViewPager y TabLayout para fotos (si existen en el layout)
-        // TODO: Descomentar cuando se agreguen al layout
-        // viewPagerEmpresaFotos = findViewById(R.id.view_pager_empresa_fotos);
-        // tabLayoutIndicators = findViewById(R.id.tab_layout_indicators);
+        // ViewPager y TabLayout para fotos
+        viewPagerEmpresaFotos = findViewById(R.id.vp_empresa_fotos);
+        tabLayoutIndicators = findViewById(R.id.tab_indicator);
     }
 
     private void setupToolbar() {
@@ -149,12 +150,32 @@ public class cliente_empresa_info extends AppCompatActivity {
         List<String> fotosEmpresa = (List<String>) doc.get("fotosEmpresa");
         if (fotosEmpresa != null && !fotosEmpresa.isEmpty() && viewPagerEmpresaFotos != null) {
             setupEmpresaPhotosGallery(fotosEmpresa);
+        } else {
+            // Si no hay fotos, mostrar placeholder
+            setupEmpresaPhotosGallery(java.util.Arrays.asList("placeholder"));
         }
     }
     
     private void setupEmpresaPhotosGallery(List<String> fotosUrls) {
-        // TODO: Implementar adaptador de ViewPager2 para fotos
-        // Por ahora dejamos esto pendiente hasta implementar el slider
+        if (viewPagerEmpresaFotos == null) return;
+        
+        com.example.connectifyproject.adapters.ImageSliderAdapter adapter = 
+            new com.example.connectifyproject.adapters.ImageSliderAdapter(this, fotosUrls, 
+                R.drawable.cliente_tour_lima);
+        viewPagerEmpresaFotos.setAdapter(adapter);
+        
+        // Conectar con TabLayout para indicadores
+        if (tabLayoutIndicators != null && fotosUrls.size() > 1) {
+            new com.google.android.material.tabs.TabLayoutMediator(
+                tabLayoutIndicators, viewPagerEmpresaFotos,
+                (tab, position) -> {
+                    // Los indicadores se muestran automáticamente
+                }
+            ).attach();
+            tabLayoutIndicators.setVisibility(View.VISIBLE);
+        } else if (tabLayoutIndicators != null) {
+            tabLayoutIndicators.setVisibility(View.GONE);
+        }
     }
 
     private void setupReviews() {
@@ -170,11 +191,41 @@ public class cliente_empresa_info extends AppCompatActivity {
     private void loadReviewsFromFirebase() {
         if (empresaId == null) return;
         
+        // Primero obtener el total de reseñas para el contador
+        db.collection("usuarios")
+                .document(empresaId)
+                .collection("resenas")
+                .get()
+                .addOnSuccessListener(totalSnapshot -> {
+                    int totalReviews = totalSnapshot.size();
+                    
+                    // Actualizar título con contador
+                    if (tvReviewsTitle != null) {
+                        tvReviewsTitle.setText("Reseñas (" + totalReviews + ")");
+                    }
+                    
+                    if (totalReviews == 0) {
+                        // Mostrar empty state
+                        showReviewsEmptyState();
+                    } else {
+                        // Cargar las 3 más recientes
+                        loadTopReviews(totalReviews);
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    android.util.Log.e("EmpresaInfo", "Error counting reviews", e);
+                    if (tvReviewsTitle != null) {
+                        tvReviewsTitle.setText("Reseñas");
+                    }
+                });
+    }
+    
+    private void loadTopReviews(int totalCount) {
         db.collection("usuarios")
                 .document(empresaId)
                 .collection("resenas")
                 .orderBy("fecha", com.google.firebase.firestore.Query.Direction.DESCENDING)
-                .limit(3) // Mostrar solo las 3 más recientes
+                .limit(3)
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     reviewsList.clear();
@@ -192,18 +243,28 @@ public class cliente_empresa_info extends AppCompatActivity {
                     }
                     
                     reviewsAdapter.notifyDataSetChanged();
+                    hideReviewsEmptyState();
                     
-                    // Mostrar u ocultar el botón "Ver más" según la cantidad de reseñas
-                    if (reviewsList.size() >= 3) {
-                        tvVerMasReviews.setVisibility(View.VISIBLE);
-                    } else {
-                        tvVerMasReviews.setVisibility(View.GONE);
+                    // Mostrar "Ver más" solo si hay más de 3 reseñas
+                    if (tvVerMasReviews != null) {
+                        tvVerMasReviews.setVisibility(totalCount > 3 ? View.VISIBLE : View.GONE);
                     }
                 })
                 .addOnFailureListener(e -> {
                     android.util.Log.e("EmpresaInfo", "Error loading reviews", e);
                     Toast.makeText(this, "Error al cargar reseñas", Toast.LENGTH_SHORT).show();
                 });
+    }
+    
+    private void showReviewsEmptyState() {
+        if (rvReviews != null) rvReviews.setVisibility(View.GONE);
+        if (tvNoReviews != null) tvNoReviews.setVisibility(View.VISIBLE);
+        if (tvVerMasReviews != null) tvVerMasReviews.setVisibility(View.GONE);
+    }
+    
+    private void hideReviewsEmptyState() {
+        if (rvReviews != null) rvReviews.setVisibility(View.VISIBLE);
+        if (tvNoReviews != null) tvNoReviews.setVisibility(View.GONE);
     }
 
     private void setupToursGallery() {
@@ -218,7 +279,12 @@ public class cliente_empresa_info extends AppCompatActivity {
     }
     
     private void loadToursFromFirebase() {
-        if (empresaId == null) return;
+        if (empresaId == null) {
+            android.util.Log.w("EmpresaInfo", "empresaId is null, cannot load tours");
+            return;
+        }
+        
+        android.util.Log.d("EmpresaInfo", "Loading tours for empresaId: " + empresaId);
         
         // Calcular fecha de mañana
         java.util.Calendar calendar = java.util.Calendar.getInstance();
@@ -229,13 +295,16 @@ public class cliente_empresa_info extends AppCompatActivity {
         calendar.set(java.util.Calendar.MILLISECOND, 0);
         com.google.firebase.Timestamp tomorrow = new com.google.firebase.Timestamp(calendar.getTime());
         
+        android.util.Log.d("EmpresaInfo", "Filtering tours from: " + tomorrow.toDate());
+        
         db.collection("tours_asignados")
                 .whereEqualTo("empresaId", empresaId)
                 .whereEqualTo("estado", "confirmado")
                 .whereGreaterThanOrEqualTo("fechaRealizacion", tomorrow)
-                .limit(10) // Mostrar máximo 10 tours
+                .limit(10)
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
+                    android.util.Log.d("EmpresaInfo", "Tours query successful, found: " + queryDocumentSnapshots.size());
                     toursGalleryList.clear();
                     
                     for (com.google.firebase.firestore.QueryDocumentSnapshot document : queryDocumentSnapshots) {
@@ -283,8 +352,8 @@ public class cliente_empresa_info extends AppCompatActivity {
                     toursGalleryAdapter.notifyDataSetChanged();
                 })
                 .addOnFailureListener(e -> {
-                    android.util.Log.e("EmpresaInfo", "Error loading tours", e);
-                    Toast.makeText(this, "Error al cargar tours disponibles", Toast.LENGTH_SHORT).show();
+                    android.util.Log.e("EmpresaInfo", "Error loading tours: " + e.getMessage(), e);
+                    // No mostrar Toast para evitar confusión, solo log
                 });
     }
 
