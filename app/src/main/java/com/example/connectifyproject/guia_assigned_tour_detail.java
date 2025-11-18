@@ -98,67 +98,86 @@ public class guia_assigned_tour_detail extends AppCompatActivity {
     /**
      * Configurar UI con datos de Firebase
      */
-    private void setupTourFromFirebase(DocumentSnapshot doc) {
-        android.util.Log.d("GuiaAssignedTour", "setupTourFromFirebase - Iniciando configuración UI");
-        
-        // Datos básicos
-        String titulo = doc.getString("titulo");
-        String nombreEmpresa = doc.getString("nombreEmpresa");
-        String descripcion = doc.getString("descripcion");
-        String duracion = doc.getString("duracion");
-        String horaInicio = doc.getString("horaInicio");
-        String horaFin = doc.getString("horaFin");
-        String estado = doc.getString("estado");
-        Double pagoGuia = doc.getDouble("pagoGuia");
-        
-        android.util.Log.d("GuiaAssignedTour", "Datos cargados - Titulo: " + titulo + ", Estado: " + estado);
-        
-        // Fecha de realización
-        Timestamp fechaRealizacion = doc.getTimestamp("fechaRealizacion");
-        String fechaFormateada = fechaRealizacion != null ? 
-            dateFormat.format(fechaRealizacion.toDate()) : "Fecha no disponible";
-        
-        // Idiomas
-        List<String> idiomasLista = (List<String>) doc.get("idiomasRequeridos");
-        String idiomas = idiomasLista != null && !idiomasLista.isEmpty() ? 
-            String.join(", ", idiomasLista) : "No especificado";
-        
-        // Servicios adicionales
-        List<String> serviciosLista = (List<String>) doc.get("serviciosAdicionales");
-        String servicios = serviciosLista != null && !serviciosLista.isEmpty() ? 
-            String.join(", ", serviciosLista) : "No especificado";
-        
-        // Itinerario
-        List<Map<String, Object>> itinerarioData = (List<Map<String, Object>>) doc.get("itinerario");
-        ArrayList<String> itinerarioTexto = new ArrayList<>();
-        if (itinerarioData != null) {
-            for (Map<String, Object> punto : itinerarioData) {
-                String nombrePunto = (String) punto.get("nombre");
-                String direccion = (String) punto.get("direccion");
-                if (nombrePunto != null) {
-                    itinerarioTexto.add(nombrePunto + (direccion != null ? " - " + direccion : ""));
-                }
+    /**
+ * Configurar UI con datos de Firebase
+ */
+private void setupTourFromFirebase(DocumentSnapshot doc) {
+    android.util.Log.d("GuiaAssignedTour", "setupTourFromFirebase - Iniciando configuración UI");
+    
+    // Datos básicos
+    String titulo = doc.getString("titulo");
+    String nombreEmpresa = doc.getString("nombreEmpresa");
+    String descripcion = doc.getString("descripcion");
+    String duracion = doc.getString("duracion");
+    String horaInicio = doc.getString("horaInicio");
+    String horaFin = doc.getString("horaFin");
+    String estado = doc.getString("estado");
+    Double pagoGuia = doc.getDouble("pagoGuia");
+    
+    android.util.Log.d("GuiaAssignedTour", "Datos cargados - Titulo: " + titulo + ", Estado: " + estado);
+    
+    // Fecha de realización
+    Timestamp fechaRealizacion = doc.getTimestamp("fechaRealizacion");
+    String fechaFormateada = fechaRealizacion != null ? 
+        dateFormat.format(fechaRealizacion.toDate()) : "Fecha no disponible";
+    
+    // ✅ IDIOMAS - Ya es List<String>, está correcto
+    List<String> idiomasLista = (List<String>) doc.get("idiomasRequeridos");
+    String idiomas = idiomasLista != null && !idiomasLista.isEmpty() ? 
+        String.join(", ", idiomasLista) : "No especificado";
+    
+    // ✅ SERVICIOS ADICIONALES - Corregir cast y extracción
+    List<Map<String, Object>> serviciosData = (List<Map<String, Object>>) doc.get("serviciosAdicionales");
+    List<String> nombresServicios = new ArrayList<>();
+    if (serviciosData != null) {
+        for (Map<String, Object> servicio : serviciosData) {
+            String nombre = (String) servicio.get("nombre");
+            if (nombre != null && !nombre.isEmpty()) {
+                nombresServicios.add(nombre);
             }
         }
-        
-        // Participantes
-        List<Map<String, Object>> participantesData = (List<Map<String, Object>>) doc.get("participantes");
-        int numParticipantes = participantesData != null ? participantesData.size() : 0;
-        
-        // Configurar UI
-        setupTourHeader(titulo, nombreEmpresa, fechaFormateada + " " + horaInicio, 
-                       duracion + " horas", numParticipantes, estado, pagoGuia);
-        setupParticipantes(participantesData);
-        setupItinerario(itinerarioTexto);
-        setupTourInfo(idiomas, servicios, descripcion);
-        setupActionButtons(estado);
-        
-        // Lógica de acciones
-        boolean shouldShowActions = shouldShowActionButtons(estado, fechaFormateada);
-        binding.actionsCard.setVisibility(shouldShowActions ? View.VISIBLE : View.GONE);
-        
-        setupButtonClickListeners(titulo, estado, itinerarioTexto, numParticipantes);
     }
+    String servicios = !nombresServicios.isEmpty() ? 
+        String.join(", ", nombresServicios) : "Sin servicios adicionales";
+    
+    // ✅ ITINERARIO - Ya está correcto
+    List<Map<String, Object>> itinerarioData = (List<Map<String, Object>>) doc.get("itinerario");
+    ArrayList<String> itinerarioTexto = new ArrayList<>();
+    if (itinerarioData != null) {
+        for (Map<String, Object> punto : itinerarioData) {
+            String nombrePunto = (String) punto.get("nombre");
+            String direccion = (String) punto.get("direccion");
+            if (nombrePunto != null) {
+                itinerarioTexto.add(nombrePunto + (direccion != null ? " - " + direccion : ""));
+            }
+        }
+    }
+    
+    // Participantes
+    List<Map<String, Object>> participantesData = (List<Map<String, Object>>) doc.get("participantes");
+    int numParticipantes = participantesData != null ? participantesData.size() : 0;
+    
+    // Cargar imagen principal si existe
+    String imagenPrincipal = doc.getString("imagenPrincipal");
+    if (imagenPrincipal != null && !imagenPrincipal.isEmpty()) {
+        // Si tienes un ImageView para la imagen principal en el layout
+        // Glide.with(this).load(imagenPrincipal).into(binding.tourImage);
+    }
+    
+    // Configurar UI
+    setupTourHeader(titulo, nombreEmpresa, fechaFormateada + " " + horaInicio, 
+                   duracion + " horas", numParticipantes, estado, pagoGuia);
+    setupParticipantes(participantesData);
+    setupItinerario(itinerarioTexto);
+    setupTourInfo(idiomas, servicios, descripcion);
+    setupActionButtons(estado);
+    
+    // Lógica de acciones
+    boolean shouldShowActions = shouldShowActionButtons(estado, fechaFormateada);
+    binding.actionsCard.setVisibility(shouldShowActions ? View.VISIBLE : View.GONE);
+    
+    setupButtonClickListeners(titulo, estado, itinerarioTexto, numParticipantes);
+}
 
     /**
      * ✅ HEADER: Configurar información principal del tour
