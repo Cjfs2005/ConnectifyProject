@@ -240,14 +240,15 @@
                 android:textColor="?attr/colorOnSurfaceVariant"
                 android:visibility="gone" />
 
-            <!-- Available Tours Section -->
+            <!-- Available Tours Section (Hidden for now) -->
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
                 android:text="Tours disponibles"
                 android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                android:visibility="gone" />
 
             <!-- Tours Gallery RecyclerView -->
             <androidx.recyclerview.widget.RecyclerView
@@ -258,6 +259,7 @@
                 android:paddingBottom="8dp"
                 android:clipToPadding="false"
                 android:nestedScrollingEnabled="false"
+                android:visibility="gone"
                 tools:listitem="@layout/cliente_item_tour_gallery" />
 
         </LinearLayout>

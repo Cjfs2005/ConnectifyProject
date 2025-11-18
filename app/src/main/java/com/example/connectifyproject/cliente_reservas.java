@@ -209,10 +209,19 @@ public class cliente_reservas extends AppCompatActivity {
             // Extraer datos del tour
             String tourId = tourDoc.getId();
             String titulo = tourDoc.getString("titulo");
-            String empresaNombre = tourDoc.getString("empresaNombre");
+            String empresaNombre = tourDoc.getString("nombreEmpresa"); // Campo correcto en Firebase
             String ubicacion = tourDoc.getString("ubicacion");
             String descripcion = tourDoc.getString("descripcion");
-            Double precioPorPersona = tourDoc.getDouble("precioPorPersona");
+            
+            // Precio puede venir como Double o Long (número en Firebase)
+            Double precioPorPersona = 0.0;
+            Object precioObj = tourDoc.get("precio");
+            if (precioObj instanceof Double) {
+                precioPorPersona = (Double) precioObj;
+            } else if (precioObj instanceof Long) {
+                precioPorPersona = ((Long) precioObj).doubleValue();
+            }
+            
             String duracion = tourDoc.getString("duracion");
             
             // Fecha de realización del tour
@@ -223,8 +232,26 @@ public class cliente_reservas extends AppCompatActivity {
             // Datos del participante
             Integer numeroPersonas = participanteData.get("numeroPersonas") != null ? 
                     ((Long) participanteData.get("numeroPersonas")).intValue() : 1;
-            Double montoTotal = participanteData.get("montoTotal") != null ? 
-                    (Double) participanteData.get("montoTotal") : 0.0;
+            
+            // montoTotal viene como String "S/330.00", necesitamos parsearlo
+            Double montoTotal = 0.0;
+            Object montoObj = participanteData.get("montoTotal");
+            if (montoObj instanceof String) {
+                String montoStr = (String) montoObj;
+                // Remover "S/" y espacios, luego parsear
+                montoStr = montoStr.replace("S/", "").replace(" ", "").trim();
+                try {
+                    montoTotal = Double.parseDouble(montoStr);
+                } catch (NumberFormatException e) {
+                    Log.e(TAG, "Error parseando montoTotal: " + montoStr, e);
+                    montoTotal = precioPorPersona * numeroPersonas; // Calcular como fallback
+                }
+            } else if (montoObj instanceof Double) {
+                montoTotal = (Double) montoObj;
+            } else if (montoObj instanceof Long) {
+                montoTotal = ((Long) montoObj).doubleValue();
+            }
+            
             String metodoPagoId = (String) participanteData.get("metodoPagoId");
             
             // Formatear fecha
