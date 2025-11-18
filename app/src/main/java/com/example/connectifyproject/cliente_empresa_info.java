@@ -4,13 +4,25 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.viewpager2.widget.ViewPager2;
+
+import com.bumptech.glide.Glide;
 import com.example.connectifyproject.models.Cliente_Tour;
 import com.example.connectifyproject.adapters.Cliente_GalleryTourAdapter;
 import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.tabs.TabLayout;
+import com.google.android.material.tabs.TabLayoutMediator;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+
 import java.util.ArrayList;
 import java.util.List;
 import com.example.connectifyproject.adapters.Cliente_ReviewsAdapter;
@@ -24,17 +36,37 @@ public class cliente_empresa_info extends AppCompatActivity {
     private List<Cliente_Review> reviewsList;
     private List<Cliente_Tour> toursGalleryList;
     private TextView tvVerMasReviews;
-    private TextView tvCompanyAddress, tvCompanyDescription, tvCompanyEmail, tvCompanyPhone; // removed tvCompanyName
+    private TextView tvCompanyAddress, tvCompanyDescription, tvCompanyEmail, tvCompanyPhone;
+    private ViewPager2 viewPagerEmpresaFotos;
+    private TabLayout tabLayoutIndicators;
     private Button btnChatEmpresa;
+    
+    private FirebaseFirestore db;
+    private FirebaseAuth auth;
+    private String empresaId;
+    private String empresaNombre;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.cliente_empresa_info);
 
+        db = FirebaseFirestore.getInstance();
+        auth = FirebaseAuth.getInstance();
+        
+        empresaId = getIntent().getStringExtra("empresa_id");
+        empresaNombre = getIntent().getStringExtra("company_name");
+        
         initViews();
         setupToolbar();
-        loadCompanyInfo();
+        
+        if (empresaId != null && !empresaId.isEmpty()) {
+            loadCompanyInfoFromFirebase();
+        } else {
+            Toast.makeText(this, "Error: ID de empresa no encontrado", Toast.LENGTH_SHORT).show();
+            finish();
+        }
+        
         setupReviews();
         setupToursGallery();
         setupClickListeners();
@@ -44,11 +76,15 @@ public class cliente_empresa_info extends AppCompatActivity {
         rvReviews = findViewById(R.id.rv_reviews);
         rvToursGallery = findViewById(R.id.rv_tours_disponibles);
         tvVerMasReviews = findViewById(R.id.tv_ver_mas_reviews);
-        // tv_company_name removed from layout; title goes in toolbar now
         tvCompanyAddress = findViewById(R.id.tv_company_address);
         tvCompanyDescription = findViewById(R.id.tv_company_description);
         tvCompanyEmail = findViewById(R.id.tv_company_email);
         tvCompanyPhone = findViewById(R.id.tv_company_phone);
+        
+        // Buscar ViewPager y TabLayout para fotos (si existen en el layout)
+        // TODO: Descomentar cuando se agreguen al layout
+        // viewPagerEmpresaFotos = findViewById(R.id.view_pager_empresa_fotos);
+        // tabLayoutIndicators = findViewById(R.id.tab_layout_indicators);
     }
 
     private void setupToolbar() {
@@ -56,29 +92,68 @@ public class cliente_empresa_info extends AppCompatActivity {
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            if (empresaNombre != null) {
+                getSupportActionBar().setTitle(empresaNombre);
+            }
         }
         toolbar.setNavigationOnClickListener(v -> onBackPressed());
     }
 
-    private void loadCompanyInfo() {
-        String companyName = getIntent().getStringExtra("company_name");
-        if (companyName == null) {
-            companyName = "Lima Tours & Adventures";
+    private void loadCompanyInfoFromFirebase() {
+        db.collection("usuarios")
+            .document(empresaId)
+            .get()
+            .addOnSuccessListener(doc -> {
+                if (doc.exists()) {
+                    processEmpresaData(doc);
+                } else {
+                    Toast.makeText(this, "Empresa no encontrada", Toast.LENGTH_SHORT).show();
+                    finish();
+                }
+            })
+            .addOnFailureListener(e -> {
+                Toast.makeText(this, "Error al cargar información: " + e.getMessage(), 
+                    Toast.LENGTH_SHORT).show();
+                finish();
+            });
+    }
+    
+    private void processEmpresaData(DocumentSnapshot doc) {
+        // Nombre de empresa
+        String nombreEmpresa = doc.getString("nombreEmpresa");
+        if (nombreEmpresa != null) {
+            empresaNombre = nombreEmpresa;
+            if (getSupportActionBar() != null) {
+                getSupportActionBar().setTitle(nombreEmpresa);
+            }
         }
-        // Prefer ActionBar title to avoid showing app name fallback
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().setTitle(companyName);
-        } else {
-            MaterialToolbar toolbar = findViewById(R.id.toolbar);
-            toolbar.setTitle(companyName);
+        
+        // Descripción
+        String descripcion = doc.getString("descripcionEmpresa");
+        tvCompanyDescription.setText(descripcion != null ? descripcion : "Sin descripción disponible");
+        
+        // Ubicación
+        String ubicacion = doc.getString("ubicacionEmpresa");
+        tvCompanyAddress.setText(ubicacion != null ? ubicacion : "Ubicación no disponible");
+        
+        // Email
+        String correoEmpresa = doc.getString("correoEmpresa");
+        tvCompanyEmail.setText(correoEmpresa != null ? correoEmpresa : "No disponible");
+        
+        // Teléfono
+        String telefonoEmpresa = doc.getString("telefonoEmpresa");
+        tvCompanyPhone.setText(telefonoEmpresa != null ? telefonoEmpresa : "No disponible");
+        
+        // Cargar galería de fotos
+        List<String> fotosEmpresa = (List<String>) doc.get("fotosEmpresa");
+        if (fotosEmpresa != null && !fotosEmpresa.isEmpty() && viewPagerEmpresaFotos != null) {
+            setupEmpresaPhotosGallery(fotosEmpresa);
         }
-        // Title text color is handled via XML theme/tint on the toolbar
-
-        // Establecer información de la empresa
-        tvCompanyAddress.setText("Av. José Larco 1232, Miraflores, Lima");
-        tvCompanyDescription.setText("Somos una empresa especializada en tours culturales y gastronómicos por Lima. Con más de 10 años de experiencia, ofrecemos experiencias únicas que combinan historia, cultura y gastronomía peruana. Nuestros guías certificados te llevarán a descubrir los secretos mejor guardados de la capital del Perú.");
-        tvCompanyEmail.setText("contacto@limatours.com");
-        tvCompanyPhone.setText("+51 1 234-5678");
+    }
+    
+    private void setupEmpresaPhotosGallery(List<String> fotosUrls) {
+        // TODO: Implementar adaptador de ViewPager2 para fotos
+        // Por ahora dejamos esto pendiente hasta implementar el slider
     }
 
     private void setupReviews() {
@@ -122,11 +197,100 @@ public class cliente_empresa_info extends AppCompatActivity {
         });
 
         findViewById(R.id.layout_chat).setOnClickListener(v -> {
-            Intent intent = new Intent(cliente_empresa_info.this, cliente_chat_conversation.class);
-            intent.putExtra("empresa_nombre", "Lima Tours & Adventures");
-            intent.putExtra("empresa_tipo", "empresa");
-            startActivity(intent);
+            if (empresaId != null && empresaNombre != null) {
+                openOrCreateChat();
+            } else {
+                Toast.makeText(this, "Error: No se puede iniciar el chat", Toast.LENGTH_SHORT).show();
+            }
         });
+    }
+    
+    private void openOrCreateChat() {
+        String currentUserId = auth.getCurrentUser() != null ? auth.getCurrentUser().getUid() : null;
+        if (currentUserId == null) {
+            Toast.makeText(this, "Debes iniciar sesión para chatear", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
+        // El chatId se forma concatenando clientId_adminId
+        String chatId = currentUserId + "_" + empresaId;
+        
+        // Verificar si ya existe un chat
+        db.collection("chats")
+            .document(chatId)
+            .get()
+            .addOnSuccessListener(doc -> {
+                if (doc.exists()) {
+                    // El chat ya existe, abrirlo
+                    openChatConversation(chatId);
+                } else {
+                    // El chat no existe, crearlo
+                    createAndOpenChat(chatId, currentUserId);
+                }
+            })
+            .addOnFailureListener(e -> {
+                Toast.makeText(this, "Error al verificar chat: " + e.getMessage(), 
+                    Toast.LENGTH_SHORT).show();
+            });
+    }
+    
+    private void createAndOpenChat(String chatId, String clientId) {
+        // Obtener datos del cliente actual
+        db.collection("usuarios")
+            .document(clientId)
+            .get()
+            .addOnSuccessListener(clientDoc -> {
+                if (clientDoc.exists()) {
+                    String clientName = clientDoc.getString("nombresApellidos");
+                    String clientPhoto = clientDoc.getString("photoUrl");
+                    
+                    // Obtener datos de la empresa (ya los tenemos cargados)
+                    db.collection("usuarios")
+                        .document(empresaId)
+                        .get()
+                        .addOnSuccessListener(adminDoc -> {
+                            if (adminDoc.exists()) {
+                                String adminName = adminDoc.getString("nombreEmpresa");
+                                String adminPhoto = adminDoc.getString("photoUrl");
+                                
+                                // Crear documento del chat
+                                java.util.Map<String, Object> chatData = new java.util.HashMap<>();
+                                chatData.put("chatId", chatId);
+                                chatData.put("clientId", clientId);
+                                chatData.put("clientName", clientName != null ? clientName : "Cliente");
+                                chatData.put("clientPhotoUrl", clientPhoto != null ? clientPhoto : "");
+                                chatData.put("adminId", empresaId);
+                                chatData.put("adminName", adminName != null ? adminName : empresaNombre);
+                                chatData.put("adminPhotoUrl", adminPhoto != null ? adminPhoto : "");
+                                chatData.put("active", true);
+                                chatData.put("lastMessage", "");
+                                chatData.put("lastMessageTime", com.google.firebase.Timestamp.now());
+                                chatData.put("lastSenderId", "");
+                                chatData.put("unreadCountClient", 0);
+                                chatData.put("unreadCountAdmin", 0);
+                                
+                                db.collection("chats")
+                                    .document(chatId)
+                                    .set(chatData)
+                                    .addOnSuccessListener(aVoid -> {
+                                        openChatConversation(chatId);
+                                    })
+                                    .addOnFailureListener(e -> {
+                                        Toast.makeText(this, "Error al crear chat: " + e.getMessage(), 
+                                            Toast.LENGTH_SHORT).show();
+                                    });
+                            }
+                        });
+                }
+            });
+    }
+    
+    private void openChatConversation(String chatId) {
+        Intent intent = new Intent(this, cliente_chat_conversation.class);
+        intent.putExtra("chat_id", chatId);
+        intent.putExtra("empresa_id", empresaId);
+        intent.putExtra("empresa_nombre", empresaNombre);
+        startActivity(intent);
     }
 }
 

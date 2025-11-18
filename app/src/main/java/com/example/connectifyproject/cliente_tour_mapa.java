@@ -3,6 +3,8 @@ package com.example.connectifyproject;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.widget.Toast;
+
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -15,11 +17,15 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.material.appbar.MaterialToolbar;
+import com.google.firebase.firestore.FirebaseFirestore;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class cliente_tour_mapa extends AppCompatActivity implements Cliente_ItinerarioAdapter.OnItinerarioItemClickListener, OnMapReadyCallback {
 
@@ -28,26 +34,25 @@ public class cliente_tour_mapa extends AppCompatActivity implements Cliente_Itin
     private Cliente_ItinerarioAdapter itinerarioAdapter;
     private List<Cliente_ItinerarioItem> itinerarioItems;
     private GoogleMap mMap;
+    private FirebaseFirestore db;
     
     private String tourId, tourTitle;
-    
-    // Coordenadas para el tour de Lima
-    private final LatLng PLAZA_MAYOR = new LatLng(-12.0464, -77.0428);
-    private final LatLng CATEDRAL_LIMA = new LatLng(-12.0464, -77.0425);
-    private final LatLng PALACIO_GOBIERNO = new LatLng(-12.0462, -77.0431);
-    private final LatLng CASA_ALIAGA = new LatLng(-12.0465, -77.0429);
-    private final LatLng MIRAFLORES = new LatLng(-12.1203, -77.0287);
+    private List<LatLng> routePoints;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.cliente_tour_mapa);
 
+        db = FirebaseFirestore.getInstance();
+        itinerarioItems = new ArrayList<>();
+        routePoints = new ArrayList<>();
+        
         getIntentData();
         initViews();
         setupToolbar();
         setupMapFragment();
-        setupItinerario();
+        loadItinerarioFromFirebase();
     }
 
     private void getIntentData() {
@@ -81,6 +86,82 @@ public class cliente_tour_mapa extends AppCompatActivity implements Cliente_Itin
         }
     }
 
+    private void loadItinerarioFromFirebase() {
+        if (tourId == null || tourId.isEmpty()) {
+            Toast.makeText(this, "Error: ID del tour no encontrado", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+        
+        db.collection("tours_asignados")
+            .document(tourId)
+            .get()
+            .addOnSuccessListener(doc -> {
+                if (doc.exists()) {
+                    List<Map<String, Object>> itinerario = 
+                        (List<Map<String, Object>>) doc.get("itinerario");
+                    
+                    if (itinerario != null && !itinerario.isEmpty()) {
+                        processItinerario(itinerario);
+                    } else {
+                        Toast.makeText(this, "No hay itinerario disponible", Toast.LENGTH_SHORT).show();
+                        finish();
+                    }
+                } else {
+                    Toast.makeText(this, "Tour no encontrado", Toast.LENGTH_SHORT).show();
+                    finish();
+                }
+            })
+            .addOnFailureListener(e -> {
+                Toast.makeText(this, "Error al cargar itinerario: " + e.getMessage(), 
+                    Toast.LENGTH_SHORT).show();
+                finish();
+            });
+    }
+    
+    private void processItinerario(List<Map<String, Object>> itinerario) {
+        itinerarioItems.clear();
+        routePoints.clear();
+        
+        for (int i = 0; i < itinerario.size(); i++) {
+            Map<String, Object> punto = itinerario.get(i);
+            
+            String nombre = (String) punto.get("nombre");
+            String direccion = (String) punto.get("direccion");
+            Double latitud = (Double) punto.get("latitud");
+            Double longitud = (Double) punto.get("longitud");
+            
+            if (nombre != null && latitud != null && longitud != null) {
+                // Agregar a la lista de puntos para el RecyclerView
+                itinerarioItems.add(new Cliente_ItinerarioItem(
+                    "", // hora vacía ya que no la tenemos en la estructura
+                    nombre,
+                    direccion != null ? direccion : "",
+                    latitud,
+                    longitud
+                ));
+                
+                // Agregar coordenadas para la ruta
+                routePoints.add(new LatLng(latitud, longitud));
+            }
+        }
+        
+        // Configurar RecyclerView
+        setupRecyclerView();
+        
+        // Si el mapa ya está listo, actualizar marcadores y ruta
+        if (mMap != null) {
+            updateMapWithItinerario();
+        }
+    }
+    
+    private void setupRecyclerView() {
+        itinerarioAdapter = new Cliente_ItinerarioAdapter(this, itinerarioItems);
+        itinerarioAdapter.setOnItinerarioItemClickListener(this);
+        rvItinerario.setLayoutManager(new LinearLayoutManager(this));
+        rvItinerario.setAdapter(itinerarioAdapter);
+    }
+
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
@@ -89,87 +170,61 @@ public class cliente_tour_mapa extends AppCompatActivity implements Cliente_Itin
         mMap.getUiSettings().setZoomControlsEnabled(true);
         mMap.getUiSettings().setMapToolbarEnabled(false);
         
+        // Si ya tenemos datos del itinerario, actualizar el mapa
+        if (!routePoints.isEmpty()) {
+            updateMapWithItinerario();
+        }
+    }
+    
+    private void updateMapWithItinerario() {
+        if (mMap == null || routePoints.isEmpty()) return;
+        
+        // Limpiar marcadores y polilíneas existentes
+        mMap.clear();
+        
         // Agregar marcadores
-        addMapMarkers();
+        for (int i = 0; i < itinerarioItems.size(); i++) {
+            Cliente_ItinerarioItem item = itinerarioItems.get(i);
+            LatLng position = new LatLng(item.getLatitude(), item.getLongitude());
+            
+            float markerColor;
+            if (i == 0) {
+                markerColor = BitmapDescriptorFactory.HUE_GREEN; // Inicio
+            } else if (i == itinerarioItems.size() - 1) {
+                markerColor = BitmapDescriptorFactory.HUE_RED; // Fin
+            } else {
+                markerColor = BitmapDescriptorFactory.HUE_AZURE; // Puntos intermedios
+            }
+            
+            mMap.addMarker(new MarkerOptions()
+                .position(position)
+                .title(item.getTitle())
+                .snippet(item.getDescription())
+                .icon(BitmapDescriptorFactory.defaultMarker(markerColor)));
+        }
         
-        // Dibujar ruta
-        drawRoute();
-        
-        // Centrar el mapa en Lima
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(PLAZA_MAYOR, 13));
-    }
-
-    private void addMapMarkers() {
-        // Marcador de inicio - Plaza Mayor
-        mMap.addMarker(new MarkerOptions()
-                .position(PLAZA_MAYOR)
-                .title("Plaza Mayor")
-                .snippet("Punto de inicio del tour")
-                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
-
-        // Marcador - Catedral de Lima
-        mMap.addMarker(new MarkerOptions()
-                .position(CATEDRAL_LIMA)
-                .title("Catedral de Lima")
-                .snippet("Visita a la catedral histórica")
-                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)));
-
-        // Marcador - Palacio de Gobierno
-        mMap.addMarker(new MarkerOptions()
-                .position(PALACIO_GOBIERNO)
-                .title("Palacio de Gobierno")
-                .snippet("Sede del gobierno peruano")
-                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE)));
-
-        // Marcador - Casa Aliaga
-        mMap.addMarker(new MarkerOptions()
-                .position(CASA_ALIAGA)
-                .title("Casa Aliaga")
-                .snippet("Casa colonial histórica")
-                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW)));
-
-        // Marcador de fin - Miraflores
-        mMap.addMarker(new MarkerOptions()
-                .position(MIRAFLORES)
-                .title("Miraflores")
-                .snippet("Punto final del tour")
-                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
-    }
-
-    private void drawRoute() {
-        // Crear una polilínea que conecte todos los puntos
-        PolylineOptions polylineOptions = new PolylineOptions()
-                .add(PLAZA_MAYOR)
-                .add(CATEDRAL_LIMA)
-                .add(PALACIO_GOBIERNO)
-                .add(CASA_ALIAGA)
-                .add(MIRAFLORES)
+        // Dibujar ruta conectando todos los puntos
+        if (routePoints.size() > 1) {
+            PolylineOptions polylineOptions = new PolylineOptions()
+                .addAll(routePoints)
                 .width(8)
                 .color(Color.parseColor("#7C4DFF"))
                 .geodesic(true);
-
-        mMap.addPolyline(polylineOptions);
-    }
-
-    private void setupItinerario() {
-        itinerarioItems = new ArrayList<>();
+            
+            mMap.addPolyline(polylineOptions);
+        }
         
-        // Datos hardcodeados del itinerario con coordenadas
-        itinerarioItems.add(new Cliente_ItinerarioItem("09:00", "Plaza Mayor", "Inicio del tour en el corazón de Lima colonial", 
-                PLAZA_MAYOR.latitude, PLAZA_MAYOR.longitude));
-        itinerarioItems.add(new Cliente_ItinerarioItem("09:30", "Catedral de Lima", "Visita a la catedral metropolitana", 
-                CATEDRAL_LIMA.latitude, CATEDRAL_LIMA.longitude));
-        itinerarioItems.add(new Cliente_ItinerarioItem("10:30", "Palacio de Gobierno", "Tour por la Casa de Pizarro", 
-                PALACIO_GOBIERNO.latitude, PALACIO_GOBIERNO.longitude));
-        itinerarioItems.add(new Cliente_ItinerarioItem("11:30", "Casa Aliaga", "Mansión colonial más antigua de América", 
-                CASA_ALIAGA.latitude, CASA_ALIAGA.longitude));
-        itinerarioItems.add(new Cliente_ItinerarioItem("15:00", "Miraflores", "Malecón y parques de Miraflores", 
-                MIRAFLORES.latitude, MIRAFLORES.longitude));
-
-        itinerarioAdapter = new Cliente_ItinerarioAdapter(this, itinerarioItems);
-        itinerarioAdapter.setOnItinerarioItemClickListener(this);
-        rvItinerario.setLayoutManager(new LinearLayoutManager(this));
-        rvItinerario.setAdapter(itinerarioAdapter);
+        // Ajustar cámara para mostrar todos los puntos
+        if (!routePoints.isEmpty()) {
+            LatLngBounds.Builder boundsBuilder = new LatLngBounds.Builder();
+            for (LatLng point : routePoints) {
+                boundsBuilder.include(point);
+            }
+            LatLngBounds bounds = boundsBuilder.build();
+            
+            int padding = 100; // píxeles
+            mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, padding));
+        }
     }
 
     @Override

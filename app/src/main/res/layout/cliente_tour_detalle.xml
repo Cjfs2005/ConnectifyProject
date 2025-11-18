@@ -379,6 +379,18 @@
                 android:nestedScrollingEnabled="false"
                 tools:listitem="@layout/cliente_item_servicio" />
 
+            <!-- Mensaje cuando no hay servicios -->
+            <TextView
+                android:id="@+id/tv_no_servicios"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="No hay servicios adicionales disponibles"
+                android:textColor="@color/text_secondary"
+                android:textSize="14sp"
+                android:textAlignment="center"
+                android:padding="16dp"
+                android:visibility="gone" />
+
         </LinearLayout>
 
     </androidx.core.widget.NestedScrollView>

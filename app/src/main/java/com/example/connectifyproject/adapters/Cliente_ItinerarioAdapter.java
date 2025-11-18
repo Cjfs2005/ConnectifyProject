@@ -46,7 +46,7 @@ public class Cliente_ItinerarioAdapter extends RecyclerView.Adapter<Cliente_Itin
     public void onBindViewHolder(@NonNull ItinerarioViewHolder holder, int position) {
         Cliente_ItinerarioItem item = itinerarioItems.get(position);
         
-        holder.tvPlaceName.setText(item.getPlaceName() + " (" + item.getDuration() + ")");
+        holder.tvPlaceName.setText(item.getPlaceName());
         holder.tvVisitTime.setText(item.getVisitTime());
         holder.tvPlaceDescription.setText(item.getDescription());
         

@@ -34,6 +34,7 @@ public class cliente_tour_detalle extends AppCompatActivity implements Cliente_S
     private TextView tvPeopleCount, tvTotalPrice, tvIdiomas, tvConsideraciones;
     private LinearLayout layoutConsideraciones;
     private RecyclerView rvServiciosAdicionales;
+    private TextView tvNoServicios;
     private ImageButton btnDecreasePeople, btnIncreasePeople;
     private MaterialButton btnContinuar;
     private MaterialCardView cardEmpresa;
@@ -107,6 +108,16 @@ public class cliente_tour_detalle extends AppCompatActivity implements Cliente_S
                             (List<Map<String, Object>>) doc.get("itinerario");
                         tour.setItinerario(itinerario);
                         
+                        // Extraer nombre del primer punto del itinerario para la ubicación
+                        if (itinerario != null && !itinerario.isEmpty()) {
+                            Map<String, Object> primerPunto = itinerario.get(0);
+                            String nombrePunto = (String) primerPunto.get("nombre");
+                            if (nombrePunto != null && !nombrePunto.isEmpty()) {
+                                tour.setLocation(nombrePunto);
+                                tvTourLocation.setText(nombrePunto);
+                            }
+                        }
+                        
                         // Actualizar servicios
                         loadServiciosData();
                     }
@@ -130,6 +141,7 @@ public class cliente_tour_detalle extends AppCompatActivity implements Cliente_S
         tvConsideraciones = findViewById(R.id.tv_consideraciones);
         layoutConsideraciones = findViewById(R.id.layout_consideraciones);
         rvServiciosAdicionales = findViewById(R.id.rv_servicios_adicionales);
+        tvNoServicios = findViewById(R.id.tv_no_servicios);
         btnDecreasePeople = findViewById(R.id.btn_decrease_people);
         btnIncreasePeople = findViewById(R.id.btn_increase_people);
         btnContinuar = findViewById(R.id.btn_continuar);
@@ -180,6 +192,7 @@ public class cliente_tour_detalle extends AppCompatActivity implements Cliente_S
 
         cardEmpresa.setOnClickListener(v -> {
             Intent intent = new Intent(this, cliente_empresa_info.class);
+            intent.putExtra("empresa_id", tour.getEmpresaId());
             intent.putExtra("company_name", tour.getCompanyName());
             startActivity(intent);
         });
@@ -197,6 +210,9 @@ public class cliente_tour_detalle extends AppCompatActivity implements Cliente_S
         
         List<Map<String, Object>> servicios = tour.getServiciosAdicionales();
         if (servicios != null && !servicios.isEmpty()) {
+            rvServiciosAdicionales.setVisibility(View.VISIBLE);
+            tvNoServicios.setVisibility(View.GONE);
+            
             for (int i = 0; i < servicios.size(); i++) {
                 Map<String, Object> servicio = servicios.get(i);
                 
@@ -208,6 +224,9 @@ public class cliente_tour_detalle extends AppCompatActivity implements Cliente_S
                 String id = String.valueOf(i);
                 serviciosAdicionales.add(new Cliente_ServicioAdicional(id, nombre, descripcion, precio));
             }
+        } else {
+            rvServiciosAdicionales.setVisibility(View.GONE);
+            tvNoServicios.setVisibility(View.VISIBLE);
         }
         
         serviciosAdapter.notifyDataSetChanged();
