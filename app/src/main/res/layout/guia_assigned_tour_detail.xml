@@ -91,7 +91,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
-                        android:padding="16dp">
+                        android:padding="20dp">
 
                         <TextView
                             android:id="@+id/tour_name"
@@ -99,95 +99,118 @@
                             android:layout_height="wrap_content"
                             android:text="City Tour Lima Centro Histórico"
                             android:textStyle="bold"
-                            android:textSize="20sp"
-                            android:textColor="@android:color/black" />
+                            android:textSize="22sp"
+                            android:textColor="#212121" />
 
                         <TextView
                             android:id="@+id/tour_initio"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="📅 05/11/2025 - 09:00"
-                            android:textSize="14sp"
-                            android:textColor="#FF9800"
+                            android:text="05/11/2025 - 09:00"
+                            android:textSize="15sp"
+                            android:textColor="#FF6F00"
                             android:textStyle="bold"
-                            android:layout_marginTop="4dp" />
+                            android:layout_marginTop="8dp" />
 
                         <!-- Información rápida en grid -->
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:orientation="horizontal"
-                            android:layout_marginTop="12dp">
+                            android:layout_marginTop="20dp"
+                            android:paddingVertical="12dp"
+                            android:background="#F5F5F5">
 
                             <LinearLayout
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
                                 android:orientation="vertical"
-                                android:gravity="center">
+                                android:gravity="center"
+                                android:paddingVertical="8dp">
 
                                 <TextView
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="⏰"
-                                    android:textSize="24sp" />
+                                    android:text="Duración"
+                                    android:textSize="11sp"
+                                    android:textColor="#757575"
+                                    android:textStyle="bold" />
 
                                 <TextView
                                     android:id="@+id/tour_duration"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="4 horas"
-                                    android:textSize="12sp"
-                                    android:textColor="#757575"
+                                    android:textSize="15sp"
+                                    android:textColor="#212121"
+                                    android:textStyle="bold"
                                     android:layout_marginTop="4dp" />
 
                             </LinearLayout>
+
+                            <View
+                                android:layout_width="1dp"
+                                android:layout_height="match_parent"
+                                android:background="#E0E0E0" />
 
                             <LinearLayout
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
                                 android:orientation="vertical"
-                                android:gravity="center">
+                                android:gravity="center"
+                                android:paddingVertical="8dp">
 
                                 <TextView
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="👥"
-                                    android:textSize="24sp" />
+                                    android:text="Participantes"
+                                    android:textSize="11sp"
+                                    android:textColor="#757575"
+                                    android:textStyle="bold" />
 
                                 <TextView
                                     android:id="@+id/tour_clients"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="3 personas"
-                                    android:textSize="12sp"
-                                    android:textColor="#757575"
+                                    android:text="3"
+                                    android:textSize="15sp"
+                                    android:textColor="#212121"
+                                    android:textStyle="bold"
                                     android:layout_marginTop="4dp" />
 
                             </LinearLayout>
+
+                            <View
+                                android:layout_width="1dp"
+                                android:layout_height="match_parent"
+                                android:background="#E0E0E0" />
 
                             <LinearLayout
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
                                 android:orientation="vertical"
-                                android:gravity="center">
+                                android:gravity="center"
+                                android:paddingVertical="8dp">
 
                                 <TextView
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="💰"
-                                    android:textSize="24sp" />
+                                    android:text="Tu pago"
+                                    android:textSize="11sp"
+                                    android:textColor="#757575"
+                                    android:textStyle="bold" />
 
                                 <TextView
                                     android:id="@+id/pago_guia_amount"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="S/. 85"
-                                    android:textSize="14sp"
+                                    android:textSize="15sp"
                                     android:textStyle="bold"
-                                    android:textColor="#4CAF50"
+                                    android:textColor="#2E7D32"
                                     android:layout_marginTop="4dp" />
 
                             </LinearLayout>
@@ -296,114 +319,111 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="ℹ️ Información del Tour"
+                        android:text="Información del Tour"
                         android:textStyle="bold"
-                        android:textSize="16sp"
-                        android:textColor="@android:color/black"
-                        android:layout_marginBottom="8dp" />
+                        android:textSize="18sp"
+                        android:textColor="#212121"
+                        android:layout_marginBottom="12dp" />
 
                     <TextView
                         android:id="@+id/tour_languages"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="🌐 Idiomas: Español, Inglés"
+                        android:text="Idiomas: Español, Inglés"
                         android:textSize="14sp"
-                        android:textColor="#212121"
-                        android:layout_marginBottom="4dp" />
+                        android:textColor="#616161"
+                        android:layout_marginBottom="8dp" />
 
                     <TextView
                         android:id="@+id/tour_services"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="🎁 Servicios incluidos"
+                        android:text="Servicios incluidos"
                         android:textSize="14sp"
-                        android:textColor="#212121"
-                        android:layout_marginBottom="4dp" />
+                        android:textColor="#616161"
+                        android:layout_marginBottom="8dp" />
 
                 </LinearLayout>
 
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Acciones del Tour (solo visible si está en curso o próximo) -->
+            <!-- Card de Acciones -->
             <com.google.android.material.card.MaterialCardView
-                android:id="@+id/actions_card"
+                android:id="@+id/actionsCard"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                app:cardCornerRadius="12dp"
+                app:cardCornerRadius="16dp"
                 app:cardElevation="4dp"
-                android:backgroundTint="#E3F2FD">
+                android:visibility="visible">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="16dp">
+                    android:padding="20dp">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="🎯 Acciones del Tour"
+                        android:text="Acciones"
+                        android:textSize="18sp"
                         android:textStyle="bold"
-                        android:textSize="16sp"
-                        android:textColor="#1976D2"
-                        android:layout_marginBottom="12dp" />
+                        android:textColor="#212121"
+                        android:layout_marginBottom="16dp" />
 
-                    <LinearLayout
+                    <!-- Botón Check-in -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/check_in_button"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center">
+                        android:layout_height="56dp"
+                        android:text="Habilitar Check-in"
+                        style="@style/Widget.Material3.Button.ElevatedButton"
+                        app:backgroundTint="#6200EA"
+                        android:textColor="@android:color/white"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        app:cornerRadius="12dp"
+                        app:icon="@drawable/ic_check_circle"
+                        app:iconTint="@android:color/white"
+                        app:iconGravity="start"
+                        android:visibility="gone" />
 
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/check_in_button"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="Check-in"
-                            android:backgroundTint="#4CAF50"
-                            android:textColor="@android:color/white"
-                            android:layout_marginEnd="4dp"
-                            app:cornerRadius="8dp"
-                            app:icon="@drawable/ic_check_in"
-                            app:iconTint="@android:color/white" />
+                    <!-- Botón Mapa -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/map_button"
+                        android:layout_width="match_parent"
+                        android:layout_height="56dp"
+                        android:text="Ver Mapa"
+                        style="@style/Widget.Material3.Button.ElevatedButton"
+                        app:backgroundTint="#1976D2"
+                        android:textColor="@android:color/white"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        app:cornerRadius="12dp"
+                        app:icon="@drawable/ic_map"
+                        app:iconTint="@android:color/white"
+                        app:iconGravity="start"
+                        android:layout_marginTop="12dp"
+                        android:visibility="gone" />
 
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/map_button"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="Mapa"
-                            android:backgroundTint="#3F51B5"
-                            android:textColor="@android:color/white"
-                            android:layout_marginHorizontal="4dp"
-                            app:cornerRadius="8dp"
-                            app:icon="@drawable/ic_map"
-                            app:iconTint="@android:color/white" />
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/check_out_button"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="Check-out"
-                            android:backgroundTint="#F44336"
-                            android:textColor="@android:color/white"
-                            android:layout_marginStart="4dp"
-                            app:cornerRadius="8dp"
-                            app:icon="@drawable/ic_check_out"
-                            app:iconTint="@android:color/white" />
-
-                    </LinearLayout>
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="💡 Los botones están disponibles porque este tour está en curso o es para hoy/mañana"
-                        android:textSize="12sp"
-                        android:textColor="#1976D2"
-                        android:layout_marginTop="8dp"
-                        android:gravity="center_horizontal" />
+                    <!-- Botón Check-out -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/check_out_button"
+                        android:layout_width="match_parent"
+                        android:layout_height="56dp"
+                        android:text="Finalizar Tour"
+                        style="@style/Widget.Material3.Button.ElevatedButton"
+                        app:backgroundTint="#D32F2F"
+                        android:textColor="@android:color/white"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        app:cornerRadius="12dp"
+                        app:icon="@drawable/ic_check_circle"
+                        app:iconTint="@android:color/white"
+                        app:iconGravity="start"
+                        android:layout_marginTop="12dp"
+                        android:visibility="gone" />
 
                 </LinearLayout>
 

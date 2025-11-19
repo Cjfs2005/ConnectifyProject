@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="12dp"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="2dp"
+    app:cardUseCompatPadding="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:gravity="center_vertical">
+
+        <!-- Checkbox -->
+        <CheckBox
+            android:id="@+id/checkbox_punto"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="12dp"
+            android:buttonTint="@color/primary" />
+
+        <!-- Información del Punto -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <!-- Lugar -->
+            <TextView
+                android:id="@+id/tv_lugar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="1. Plaza de Armas"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"
+                android:layout_marginBottom="4dp" />
+
+            <!-- Hora Estimada -->
+            <TextView
+                android:id="@+id/tv_hora_estimada"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="10:00"
+                android:textSize="14sp"
+                android:textColor="@color/text_secondary"
+                android:drawableStart="@drawable/ic_time"
+                android:drawablePadding="4dp"
+                android:layout_marginBottom="4dp" />
+
+            <!-- Actividad -->
+            <TextView
+                android:id="@+id/tv_actividad"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Visita guiada a la plaza principal"
+                android:textSize="13sp"
+                android:textColor="@color/text_secondary"
+                android:maxLines="2"
+                android:ellipsize="end" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+</androidx.cardview.widget.CardView>

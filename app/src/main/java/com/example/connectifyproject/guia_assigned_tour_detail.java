@@ -24,6 +24,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -34,6 +35,16 @@ public class guia_assigned_tour_detail extends AppCompatActivity {
     private String tourId;
     private SimpleDateFormat dateFormat;
     private SimpleDateFormat timeFormat;
+    
+    // Variables para almacenar datos del tour
+    private String tourName;
+    private String tourStatus;
+    private int tourClients;
+    private ArrayList<String> tourItinerario;
+    private List<Map<String, Object>> tourItinerarioCompleto; // Con coordenadas
+    private Timestamp fechaRealizacion;
+    private String horaInicio;
+    private String duracionHoras;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -165,6 +176,16 @@ private void setupTourFromFirebase(DocumentSnapshot doc) {
     }
     
     // Configurar UI
+    // Guardar datos en variables de clase
+    this.tourName = titulo;
+    this.tourStatus = estado;
+    this.tourClients = numParticipantes;
+    this.tourItinerario = itinerarioTexto;
+    this.tourItinerarioCompleto = itinerarioData;
+    this.fechaRealizacion = fechaRealizacion;
+    this.horaInicio = horaInicio;
+    this.duracionHoras = duracion;
+    
     setupTourHeader(titulo, nombreEmpresa, fechaFormateada + " " + horaInicio, 
                    duracion + " horas", numParticipantes, estado, pagoGuia);
     setupParticipantes(participantesData);
@@ -272,28 +293,195 @@ private void setupTourFromFirebase(DocumentSnapshot doc) {
     }
 
     /**
-     * ✅ BOTONES: Configurar listeners para acciones
+     * ✅ BOTONES: Configurar listeners para acciones según estado del tour
      */
     private void setupButtonClickListeners(String tourName, String tourStatus, 
                                          ArrayList<String> tourItinerario, int tourClients) {
+        
+        String estadoLower = tourStatus != null ? tourStatus.toLowerCase() : "";
+        
+        // BOTÓN CHECK-IN: Cambia función según estado
         binding.checkInButton.setOnClickListener(v -> {
-            startActivity(new Intent(this, guia_check_in.class));
-            Toast.makeText(this, "Check-in iniciado", Toast.LENGTH_SHORT).show();
+            if (estadoLower.equals("pendiente") || estadoLower.equals("programado") || estadoLower.equals("confirmado")) {
+                // Habilitar check-in (cambiar estado de pendiente a check_in)
+                habilitarCheckIn();
+            } else if (estadoLower.equals("check_in") || estadoLower.equals("check-in disponible")) {
+                // Mostrar QR de check-in
+                mostrarQRCheckIn();
+            }
         });
 
+        // BOTÓN MAPA: Siempre navega al mapa
         binding.mapButton.setOnClickListener(v -> {
             Intent mapIntent = new Intent(this, guia_tour_map.class);
-            mapIntent.putExtra("tour_name", tourName);
-            mapIntent.putExtra("tour_status", tourStatus);
-            mapIntent.putStringArrayListExtra("tour_itinerario", tourItinerario);
-            mapIntent.putExtra("tour_clients", tourClients);
+            mapIntent.putExtra("tour_id", tourId);
+            mapIntent.putExtra("tour_name", this.tourName);
+            mapIntent.putExtra("tour_status", this.tourStatus);
+            mapIntent.putStringArrayListExtra("tour_itinerario", this.tourItinerario);
+            mapIntent.putExtra("tour_clients", this.tourClients);
             startActivity(mapIntent);
         });
 
+        // BOTÓN CHECK-OUT: Cambia función según estado
         binding.checkOutButton.setOnClickListener(v -> {
-            startActivity(new Intent(this, guia_check_out.class));
-            Toast.makeText(this, "Check-out iniciado", Toast.LENGTH_SHORT).show();
+            if (estadoLower.equals("en_curso") || estadoLower.equals("en curso") || estadoLower.equals("en_progreso")) {
+                // Habilitar check-out (cambiar estado de en_curso a check_out)
+                habilitarCheckOut();
+            } else if (estadoLower.equals("check_out") || estadoLower.equals("check-out disponible")) {
+                // Mostrar QR de check-out
+                mostrarQRCheckOut();
+            }
         });
+    }
+    
+    /**
+     * Habilitar check-in: Cambiar estado del tour de "pendiente" a "check_in"
+     */
+    private void habilitarCheckIn() {
+        db.collection("tours_asignados")
+            .document(tourId)
+            .update("estado", "check_in")
+            .addOnSuccessListener(aVoid -> {
+                Toast.makeText(this, "✅ Check-in habilitado. Ahora puedes mostrar el QR.", Toast.LENGTH_LONG).show();
+                // Recargar datos para actualizar UI
+                loadTourDataFromFirebase();
+            })
+            .addOnFailureListener(e -> {
+                Toast.makeText(this, "❌ Error al habilitar check-in: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            });
+    }
+    
+    /**
+     * Mostrar QR de check-in
+     * Validación: Solo disponible 10 minutos antes y hasta el fin del tour
+     */
+    private void mostrarQRCheckIn() {
+        // Validar ventana temporal
+        if (!esVentanaValidaParaCheckIn()) {
+            long minutosParaInicio = calcularMinutosParaInicio();
+            
+            if (minutosParaInicio > 10) {
+                Toast.makeText(this, 
+                    "⏰ El check-in estará disponible 10 minutos antes del inicio del tour (faltan " + minutosParaInicio + " minutos)", 
+                    Toast.LENGTH_LONG).show();
+                return;
+            } else if (minutosParaInicio < 0 && yaPasoHoraFin()) {
+                Toast.makeText(this, 
+                    "⏰ El check-in ya no está disponible. El tour ha finalizado.", 
+                    Toast.LENGTH_LONG).show();
+                return;
+            }
+        }
+        
+        Intent intent = new Intent(this, guia_show_qr_checkin.class);
+        intent.putExtra("tourId", tourId);
+        intent.putExtra("tourTitulo", tourName);
+        intent.putExtra("numeroParticipantes", tourClients);
+        startActivity(intent);
+    }
+    
+    /**
+     * ⏰ VALIDAR VENTANA TEMPORAL PARA CHECK-IN
+     * Check-in solo disponible: 10 minutos antes del inicio hasta hora_inicio + duración
+     */
+    private boolean esVentanaValidaParaCheckIn() {
+        long minutosParaInicio = calcularMinutosParaInicio();
+        
+        // Check-in disponible desde 10 minutos antes hasta el final del tour
+        return minutosParaInicio >= -1000 && minutosParaInicio <= 10 && !yaPasoHoraFin();
+    }
+    
+    /**
+     * ⏰ CALCULAR MINUTOS QUE FALTAN PARA EL INICIO
+     * @return minutos (positivo = falta tiempo, negativo = ya pasó)
+     */
+    private long calcularMinutosParaInicio() {
+        try {
+            if (fechaRealizacion == null || horaInicio == null) {
+                return Long.MAX_VALUE;
+            }
+            
+            // Combinar fecha con hora de inicio
+            Date fechaTour = fechaRealizacion.toDate();
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault());
+            SimpleDateFormat dateOnlyFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+            
+            String fechaStr = dateOnlyFormat.format(fechaTour);
+            Date fechaHoraInicio = sdf.parse(fechaStr + " " + horaInicio);
+            
+            if (fechaHoraInicio == null) {
+                return Long.MAX_VALUE;
+            }
+            
+            Date ahora = new Date();
+            long diffMs = fechaHoraInicio.getTime() - ahora.getTime();
+            return diffMs / (60 * 1000); // Convertir a minutos
+            
+        } catch (Exception e) {
+            android.util.Log.e("GuiaAssignedTour", "Error calculando minutos para inicio", e);
+            return Long.MAX_VALUE;
+        }
+    }
+    
+    /**
+     * ⏰ VERIFICAR SI YA PASÓ LA HORA DE FIN DEL TOUR
+     * hora_fin = hora_inicio + duración
+     */
+    private boolean yaPasoHoraFin() {
+        try {
+            if (fechaRealizacion == null || horaInicio == null || duracionHoras == null) {
+                return false;
+            }
+            
+            // Combinar fecha con hora de inicio
+            Date fechaTour = fechaRealizacion.toDate();
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault());
+            SimpleDateFormat dateOnlyFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+            
+            String fechaStr = dateOnlyFormat.format(fechaTour);
+            Date fechaHoraInicio = sdf.parse(fechaStr + " " + horaInicio);
+            
+            if (fechaHoraInicio == null) {
+                return false;
+            }
+            
+            // Agregar duración del tour
+            int duracionMinutos = (int)(Double.parseDouble(duracionHoras) * 60);
+            Date fechaHoraFin = new Date(fechaHoraInicio.getTime() + (duracionMinutos * 60 * 1000));
+            
+            Date ahora = new Date();
+            return ahora.after(fechaHoraFin);
+            
+        } catch (Exception e) {
+            android.util.Log.e("GuiaAssignedTour", "Error verificando hora fin", e);
+            return false;
+        }
+    }
+    
+    /**
+     * Habilitar check-out: Cambiar estado del tour de "en_curso" a "check_out"
+     */
+    private void habilitarCheckOut() {
+        db.collection("tours_asignados")
+            .document(tourId)
+            .update("estado", "check_out")
+            .addOnSuccessListener(aVoid -> {
+                Toast.makeText(this, "✅ Check-out habilitado. Ahora puedes mostrar el QR.", Toast.LENGTH_LONG).show();
+                // Recargar datos para actualizar UI
+                loadTourDataFromFirebase();
+            })
+            .addOnFailureListener(e -> {
+                Toast.makeText(this, "❌ Error al habilitar check-out: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            });
+    }
+    
+    /**
+     * Mostrar QR de check-out
+     */
+    private void mostrarQRCheckOut() {
+        Intent intent = new Intent(this, guia_show_qr_checkout.class);
+        intent.putExtra("tour_id", tourId);
+        startActivity(intent);
     }
 
     /**
@@ -365,24 +553,94 @@ private void setupTourFromFirebase(DocumentSnapshot doc) {
     }
 
     /**
-     * ✅ LÓGICA: Determinar si mostrar botones de acción
+     * ✅ LÓGICA: Determinar si mostrar botones de acción según estado del tour
      */
     private boolean shouldShowActionButtons(String status, String fechaHora) {
-        // Misma lógica que en el adapter pero simplificada para demo
-        if (status != null && (status.equalsIgnoreCase("en curso") || 
-                              status.equalsIgnoreCase("en_curso") ||
-                              status.equalsIgnoreCase("en_progreso"))) {
-            return true;
-        }
+        if (status == null) return false;
         
-        // Para tours programados, podríamos verificar la fecha pero 
-        // por simplicidad en demo, solo mostramos para estado "en curso"
-        return false;
+        String estadoLower = status.toLowerCase();
+        
+        // Mostrar botones para estos estados:
+        // - pendiente: Botón "Habilitar Check-in"
+        // - check_in: Botones "Mostrar QR Check-in" + "Ver Mapa"
+        // - en_curso: Botones "Ver Mapa" + "Marcar Progreso" + "Check-out"
+        // - check_out: Botón "Mostrar QR Check-out"
+        
+        return estadoLower.equals("pendiente") ||
+               estadoLower.equals("check_in") ||
+               estadoLower.equals("check-in disponible") ||
+               estadoLower.equals("en_curso") ||
+               estadoLower.equals("en curso") ||
+               estadoLower.equals("en_progreso") ||
+               estadoLower.equals("check_out") ||
+               estadoLower.equals("check-out disponible") ||
+               estadoLower.equals("programado") ||
+               estadoLower.equals("confirmado");
     }
 
+    /**
+     * ✅ CONFIGURAR BOTONES DE ACCIÓN SEGÚN ESTADO DEL TOUR
+     */
     private void setupActionButtons(String tourStatus) {
-        // Esta función mantendrá la compatibilidad con código existente
-        // pero la lógica real está en shouldShowActionButtons
+        if (tourStatus == null) {
+            binding.actionsCard.setVisibility(View.GONE);
+            return;
+        }
+        
+        String estadoLower = tourStatus.toLowerCase();
+        
+        // Ocultar todos los botones primero
+        binding.checkInButton.setVisibility(View.GONE);
+        binding.mapButton.setVisibility(View.GONE);
+        binding.checkOutButton.setVisibility(View.GONE);
+        
+        // Configurar botones según estado
+        switch (estadoLower) {
+            case "pendiente":
+            case "programado":
+            case "confirmado":
+                // 📌 PENDIENTE/PROGRAMADO: Solo botón para habilitar check-in
+                binding.checkInButton.setVisibility(View.VISIBLE);
+                binding.checkInButton.setText("Habilitar Check-in");
+                binding.checkInButton.setIconResource(R.drawable.ic_check_circle);
+                break;
+                
+            case "check_in":
+            case "check-in disponible":
+                // ✅ CHECK-IN DISPONIBLE: Mostrar QR + Mapa
+                binding.checkInButton.setVisibility(View.VISIBLE);
+                binding.checkInButton.setText("Mostrar QR Check-in");
+                binding.checkInButton.setIconResource(R.drawable.ic_check_circle);
+                
+                binding.mapButton.setVisibility(View.VISIBLE);
+                binding.mapButton.setText("Ver Mapa");
+                break;
+                
+            case "en_curso":
+            case "en curso":
+            case "en_progreso":
+                // 🚀 EN CURSO: Mapa + Progreso + Check-out
+                binding.mapButton.setVisibility(View.VISIBLE);
+                binding.mapButton.setText("Ver Mapa y Progreso");
+                
+                binding.checkOutButton.setVisibility(View.VISIBLE);
+                binding.checkOutButton.setText("Finalizar Tour");
+                binding.checkOutButton.setIconResource(R.drawable.ic_check_circle);
+                break;
+                
+            case "check_out":
+            case "check-out disponible":
+                // 🏁 CHECK-OUT DISPONIBLE: Solo mostrar QR
+                binding.checkOutButton.setVisibility(View.VISIBLE);
+                binding.checkOutButton.setText("Mostrar QR Check-out");
+                binding.checkOutButton.setIconResource(R.drawable.ic_check_circle);
+                break;
+                
+            default:
+                // Estados completado, cancelado, etc: No mostrar botones
+                binding.actionsCard.setVisibility(View.GONE);
+                break;
+        }
     }
 
     @Override

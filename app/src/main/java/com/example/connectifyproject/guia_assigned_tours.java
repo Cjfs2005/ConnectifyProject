@@ -696,10 +696,10 @@ public class guia_assigned_tours extends AppCompatActivity implements GuiaDateFi
         // Simular notificación de check-in
         simulateCheckInNotification(tour.getTitulo());
         
-        Intent intent = new Intent(this, guia_check_in.class);
-        intent.putExtra("tour_id", tour.getId());
-        intent.putExtra("tour_name", tour.getTitulo());
-        intent.putExtra("participants_count", tour.getNumeroParticipantesTotal());
+        Intent intent = new Intent(this, guia_show_qr_checkin.class);
+        intent.putExtra("tourId", tour.getId());
+        intent.putExtra("tourTitulo", tour.getTitulo());
+        intent.putExtra("numeroParticipantes", tour.getNumeroParticipantesTotal());
         startActivity(intent);
     }
     
@@ -710,10 +710,10 @@ public class guia_assigned_tours extends AppCompatActivity implements GuiaDateFi
         // Simular notificación de check-out
         simulateCheckOutNotification(tour.getTitulo());
         
-        Intent intent = new Intent(this, guia_check_out.class);
-        intent.putExtra("tour_id", tour.getId());
-        intent.putExtra("tour_name", tour.getTitulo());
-        intent.putExtra("participants_count", tour.getNumeroParticipantesTotal());
+        Intent intent = new Intent(this, guia_show_qr_checkout.class);
+        intent.putExtra("tourId", tour.getId());
+        intent.putExtra("tourTitulo", tour.getTitulo());
+        intent.putExtra("numeroParticipantes", tour.getNumeroParticipantesTotal());
         startActivity(intent);
     }
     
@@ -724,6 +724,7 @@ public class guia_assigned_tours extends AppCompatActivity implements GuiaDateFi
         GuiaAssignedTour guiaAssignedTour = convertToGuiaAssignedTour(tour);
         
         Intent intent = new Intent(this, guia_assigned_tour_detail.class);
+        intent.putExtra("tour_id", tour.getId()); // ✅ CRÍTICO: Pasar ID del tour
         intent.putExtra("tour_name", guiaAssignedTour.getName());
         intent.putExtra("tour_empresa", guiaAssignedTour.getEmpresa());
         intent.putExtra("tour_initio", guiaAssignedTour.getInitio());

@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background_color"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp"
+        android:gravity="center_horizontal">
+
+        <!-- Título -->
+        <TextView
+            android:id="@+id/tv_titulo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Check-In de Participantes"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:textColor="@color/primary"
+            android:layout_marginBottom="8dp"
+            android:textAlignment="center" />
+
+        <!-- Instrucciones -->
+        <TextView
+            android:id="@+id/tv_instrucciones"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Muestra este código QR a cada participante"
+            android:textSize="16sp"
+            android:textColor="@color/text_secondary"
+            android:textAlignment="center"
+            android:layout_marginBottom="32dp" />
+
+        <!-- Código QR -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="8dp"
+            android:layout_marginBottom="24dp">
+
+            <ImageView
+                android:id="@+id/iv_qr_code"
+                android:layout_width="300dp"
+                android:layout_height="300dp"
+                android:padding="16dp"
+                android:scaleType="fitCenter"
+                android:contentDescription="Código QR para check-in"
+                android:background="@android:color/white" />
+        </androidx.cardview.widget.CardView>
+
+        <!-- Progress Bar -->
+        <ProgressBar
+            android:id="@+id/progress_bar"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="8dp"
+            android:max="100"
+            android:progress="0"
+            android:progressTint="@color/success_500"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Contador de participantes -->
+        <TextView
+            android:id="@+id/tv_contador"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0 de 0 participantes registrados"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@color/success_500"
+            android:layout_marginBottom="32dp" />
+
+        <!-- Espacio flexible -->
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+        <!-- Botón empezar tour -->
+        <Button
+            android:id="@+id/btn_empezar_tour"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:text="Esperando check-in..."
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:backgroundTint="@color/primary"
+            android:textColor="@android:color/white"
+            android:enabled="false"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Botón cancelar -->
+        <Button
+            android:id="@+id/btn_cancelar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Cancelar"
+            android:textSize="14sp"
+            android:backgroundTint="@android:color/transparent"
+            android:textColor="@color/error_500"
+            style="?android:attr/borderlessButtonStyle" />
+
+    </LinearLayout>
+</ScrollView>

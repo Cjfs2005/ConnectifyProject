@@ -16,6 +16,10 @@ import com.example.connectifyproject.databinding.AdminDashboardViewBinding;
 import com.example.connectifyproject.ui.admin.AdminBottomNavFragment;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.progressindicator.LinearProgressIndicator;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.text.DateFormatSymbols;
 import java.util.ArrayList;
@@ -28,9 +32,14 @@ public class admin_dashboard extends AppCompatActivity {
 
     private AdminDashboardViewBinding binding;
 
-    // empresa/administrador que ya muestras en el header
-    private String companyName = "Mundo Tours";
-    private String adminName   = "Tony Flores";
+    // Firebase
+    private FirebaseAuth mAuth;
+    private FirebaseFirestore db;
+    private FirebaseUser currentUser;
+
+    // empresa/administrador - se cargan dinámicamente desde Firebase
+    private String companyName = "Cargando...";
+    private String adminName   = "Cargando...";
 
     private int selectedMonth;
 
@@ -40,13 +49,21 @@ public class admin_dashboard extends AppCompatActivity {
         binding = AdminDashboardViewBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
+        // Inicializar Firebase
+        mAuth = FirebaseAuth.getInstance();
+        db = FirebaseFirestore.getInstance();
+        currentUser = mAuth.getCurrentUser();
+
         // AppBar
         MaterialToolbar tb = binding.topAppBar;
         setSupportActionBar(tb);
 
-        // Header
+        // Header - mostrar texto temporal mientras carga
         binding.tvCompanyHeader.setText(companyName);
         binding.tvAdminHeader.setText("Administrador: " + adminName);
+
+        // Cargar datos del usuario desde Firebase
+        loadUserData();
 
         // Menú de notificaciones
         binding.ivNotification.setOnClickListener(v -> {
@@ -217,6 +234,63 @@ public class admin_dashboard extends AppCompatActivity {
             }
         }
         return m;
+    }
+
+    /**
+     * Carga los datos del usuario desde Firebase (nombre empresa y administrador)
+     */
+    private void loadUserData() {
+        if (currentUser == null) {
+            return;
+        }
+
+        db.collection("usuarios")
+                .document(currentUser.getUid())
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        updateHeaderWithUserData(documentSnapshot);
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    // Si falla, mantener los valores por defecto
+                    companyName = "Empresa";
+                    adminName = "Administrador";
+                    binding.tvCompanyHeader.setText(companyName);
+                    binding.tvAdminHeader.setText("Administrador: " + adminName);
+                });
+    }
+
+    /**
+     * Actualiza el header con los datos cargados de Firebase
+     */
+    private void updateHeaderWithUserData(DocumentSnapshot document) {
+        try {
+            String nombreEmpresa = document.getString("nombreEmpresa");
+            String nombreCompleto = document.getString("nombreCompleto");
+
+            if (nombreEmpresa != null && !nombreEmpresa.isEmpty()) {
+                companyName = nombreEmpresa;
+            } else {
+                companyName = "Mi Empresa";
+            }
+
+            if (nombreCompleto != null && !nombreCompleto.isEmpty()) {
+                adminName = nombreCompleto;
+            } else {
+                adminName = "Administrador";
+            }
+
+            // Actualizar UI
+            binding.tvCompanyHeader.setText(companyName);
+            binding.tvAdminHeader.setText("Administrador: " + adminName);
+
+            // Regenerar datos mock con el nuevo nombre de empresa
+            rebuild();
+
+        } catch (Exception e) {
+            // Mantener valores por defecto en caso de error
+        }
     }
 
     private static class MockData {

@@ -94,4 +94,8 @@ dependencies {
     
     // Country Code Picker for international phone numbers
     implementation("com.hbb20:ccp:2.7.3")
+    
+    // QR Code generation and scanning
+    implementation("com.journeyapps:zxing-android-embedded:4.3.0")
+    implementation("com.google.zxing:core:3.5.3")
 }

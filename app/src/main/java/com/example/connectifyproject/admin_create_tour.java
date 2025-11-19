@@ -50,6 +50,9 @@ import java.util.Map;
 
 public class admin_create_tour extends AppCompatActivity implements OnMapReadyCallback {
     
+    // ⚠️ MODO PRUEBA: Cambiar a true para permitir crear tours en el mismo día (solo para testing)
+    private static final boolean TEST_MODE = true;
+    
     private AdminCreateTourViewBinding binding;
     private GoogleMap mMap;
     private GoogleMap mMapPlaces;
@@ -694,10 +697,17 @@ public class admin_create_tour extends AppCompatActivity implements OnMapReadyCa
     
     /**
      * Valida que la fecha seleccionada sea al menos al día siguiente
+     * ⚠️ En modo TEST_MODE=true, permite crear tours para el mismo día
      */
     private boolean validateFechaMinima() {
         if (selectedCalendar == null) {
             return false;
+        }
+        
+        // 🧪 MODO PRUEBA: Si TEST_MODE está activo, no validar fecha mínima
+        if (TEST_MODE) {
+            Log.d("AdminCreateTour", "⚠️ TEST_MODE ACTIVO - Validación de fecha deshabilitada");
+            return true;
         }
         
         // Obtener el inicio del día de mañana (00:00:00)

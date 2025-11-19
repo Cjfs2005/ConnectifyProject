@@ -674,7 +674,10 @@ private void crearTourAsignadoDesdeDocumento(DocumentSnapshot ofertaDoc, Documen
                 }
                 
                 TourAsignado tourPrioritario = null;
-                TourAsignado tourPendienteMasCercano = null;
+                TourAsignado tourCheckInDisponible = null;
+                TourAsignado tourProximoInicio = null;
+                
+                Date ahora = new Date();
                 
                 for (TourAsignado tour : tours) {
                     String estado = tour.getEstado();
@@ -691,35 +694,79 @@ private void crearTourAsignadoDesdeDocumento(DocumentSnapshot ofertaDoc, Documen
                         return;
                     }
                     
-                    // ✅ PRIORIDAD 3: Tours listos para check-in (sin importar fecha)
+                    // ✅ PRIORIDAD 3: Tours con check-in habilitado
                     if ("check_in".equals(estado)) {
-                        if (tourPrioritario == null) tourPrioritario = tour;
+                        if (tourCheckInDisponible == null) {
+                            tourCheckInDisponible = tour;
+                        }
                     }
                     
-                    // 📅 PRIORIDAD 4: Tour pendiente más próximo (solo si no hay tours activos)
-                    if ("confirmado".equals(estado) && (esTourDeHoy(tour) || esTourFuturo(tour))) {
-                        if (tourPendienteMasCercano == null || 
-                            tour.getFechaRealizacion().compareTo(tourPendienteMasCercano.getFechaRealizacion()) < 0) {
-                            tourPendienteMasCercano = tour;
+                    // ⏰ PRIORIDAD 4: Tours confirmados que faltan 10 minutos o menos para iniciar
+                    if ("confirmado".equals(estado) || "pendiente".equals(estado) || "programado".equals(estado)) {
+                        long minutosParaInicio = calcularMinutosParaInicio(tour, ahora);
+                        
+                        // Solo considerar tours que faltan 10 minutos o menos para iniciar
+                        if (minutosParaInicio >= 0 && minutosParaInicio <= 10) {
+                            if (tourProximoInicio == null || minutosParaInicio < calcularMinutosParaInicio(tourProximoInicio, ahora)) {
+                                tourProximoInicio = tour;
+                            }
                         }
                     }
                 }
                 
-                // 🎯 LÓGICA DE SELECCIÓN CORREGIDA:
-                // 1. Si hay tour con check-in habilitado, ESE tiene prioridad
-                // 2. Si no hay tours activos, entonces el pendiente más cercano
-                if (tourPrioritario != null) {
-                    callback.onSuccess(tourPrioritario);
-                } else if (tourPendienteMasCercano != null) {
-                    callback.onSuccess(tourPendienteMasCercano);
+                // 🎯 LÓGICA DE SELECCIÓN:
+                // 1. Tour con check-in habilitado
+                // 2. Tour que falta <= 10 minutos para iniciar
+                // 3. No hay tours prioritarios
+                if (tourCheckInDisponible != null) {
+                    callback.onSuccess(tourCheckInDisponible);
+                } else if (tourProximoInicio != null) {
+                    callback.onSuccess(tourProximoInicio);
                 } else {
-                    callback.onError("No hay tours asignados");
+                    callback.onError("No hay tours prioritarios en este momento");
                 }
             })
             .addOnFailureListener(e -> {
                 Log.e(TAG, "Error obteniendo tour prioritario", e);
                 callback.onError("Error cargando tours: " + e.getMessage());
             });
+    }
+    
+    /**
+     * ⏰ CALCULAR MINUTOS QUE FALTAN PARA EL INICIO DEL TOUR
+     * @return minutos (positivo = falta tiempo, negativo = ya pasó la hora)
+     */
+    private long calcularMinutosParaInicio(TourAsignado tour, Date ahora) {
+        try {
+            if (tour.getFechaRealizacion() == null || tour.getHoraInicio() == null) {
+                return Long.MAX_VALUE; // Retornar valor alto si no hay datos
+            }
+            
+            // Obtener fecha del tour
+            Date fechaTour = tour.getFechaRealizacion().toDate();
+            
+            // Combinar fecha con hora de inicio
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+            SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm", Locale.getDefault());
+            SimpleDateFormat fullFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault());
+            
+            String fechaStr = dateFormat.format(fechaTour);
+            String horaStr = tour.getHoraInicio();
+            
+            Date fechaHoraInicio = fullFormat.parse(fechaStr + " " + horaStr);
+            
+            if (fechaHoraInicio == null) {
+                return Long.MAX_VALUE;
+            }
+            
+            // Calcular diferencia en milisegundos y convertir a minutos
+            long diffMs = fechaHoraInicio.getTime() - ahora.getTime();
+            return diffMs / (60 * 1000);
+            
+        } catch (Exception e) {
+            Log.e(TAG, "Error calculando minutos para inicio", e);
+            return Long.MAX_VALUE;
+        }
     }
     
     /**
@@ -1359,5 +1406,132 @@ private void crearTourAsignadoDesdeDocumento(DocumentSnapshot ofertaDoc, Documen
     public interface AccionOfertaCallback {
         void onSuccess(String mensaje);
         void onError(String error);
+    }
+    
+    /**
+     * 🚫 AUTO-CANCELACIÓN DE TOURS SIN PARTICIPANTES
+     * Verificar a la hora de inicio si hay participantes inscritos.
+     * Si no hay, cancelar el tour y ajustar el pago del guía al 15%
+     */
+    public void verificarYCancelarTourSinParticipantes(String tourId, OperationCallback callback) {
+        db.collection(COLLECTION_ASIGNADOS)
+            .document(tourId)
+            .get()
+            .addOnSuccessListener(doc -> {
+                if (!doc.exists()) {
+                    callback.onError("Tour no encontrado");
+                    return;
+                }
+                
+                String estado = doc.getString("estado");
+                List<Map<String, Object>> participantes = (List<Map<String, Object>>) doc.get("participantes");
+                
+                // Solo cancelar si está en estado pendiente/confirmado/programado
+                if (estado != null && (estado.equals("pendiente") || estado.equals("confirmado") || estado.equals("programado"))) {
+                    
+                    // Verificar si hay participantes
+                    if (participantes == null || participantes.isEmpty()) {
+                        // Obtener pago original del guía
+                        Double pagoOriginal = doc.getDouble("pagoGuia");
+                        double pagoReducido = pagoOriginal != null ? pagoOriginal * 0.15 : 0;
+                        
+                        // Actualizar estado y pago
+                        Map<String, Object> updates = new HashMap<>();
+                        updates.put("estado", "cancelado");
+                        updates.put("pagoGuia", pagoReducido);
+                        updates.put("motivoCancelacion", "Sin participantes inscritos a la hora de inicio");
+                        updates.put("fechaCancelacion", Timestamp.now());
+                        updates.put("fechaActualizacion", Timestamp.now());
+                        
+                        db.collection(COLLECTION_ASIGNADOS)
+                            .document(tourId)
+                            .update(updates)
+                            .addOnSuccessListener(aVoid -> {
+                                Log.d(TAG, "Tour cancelado automáticamente por falta de participantes. Pago reducido a 15%");
+                                callback.onSuccess("Tour cancelado automáticamente. Pago del guía: S/. " + String.format("%.2f", pagoReducido));
+                            })
+                            .addOnFailureListener(e -> {
+                                Log.e(TAG, "Error cancelando tour", e);
+                                callback.onError("Error al cancelar tour: " + e.getMessage());
+                            });
+                    } else {
+                        callback.onSuccess("El tour tiene participantes inscritos, no se cancela");
+                    }
+                } else {
+                    callback.onSuccess("El tour no está en estado válido para cancelación automática");
+                }
+            })
+            .addOnFailureListener(e -> {
+                Log.e(TAG, "Error verificando tour", e);
+                callback.onError("Error al verificar tour: " + e.getMessage());
+            });
+    }
+    
+    /**
+     * 🔍 VERIFICAR TOURS A PUNTO DE INICIAR (PARA CRON/SCHEDULER)
+     * Obtener todos los tours que deben iniciar en los próximos minutos
+     * y verificar si tienen participantes
+     */
+    public void verificarToursParaAutoCancelacion(OperationCallback callback) {
+        Date ahora = new Date();
+        Date hace5Minutos = new Date(ahora.getTime() - (5 * 60 * 1000)); // 5 minutos atrás
+        
+        db.collection(COLLECTION_ASIGNADOS)
+            .whereIn("estado", java.util.Arrays.asList("pendiente", "confirmado", "programado"))
+            .whereEqualTo("habilitado", true)
+            .get()
+            .addOnSuccessListener(querySnapshot -> {
+                int toursVerificados = 0;
+                int toursCancelados = 0;
+                
+                for (DocumentSnapshot doc : querySnapshot.getDocuments()) {
+                    try {
+                        Timestamp fechaRealizacion = doc.getTimestamp("fechaRealizacion");
+                        String horaInicio = doc.getString("horaInicio");
+                        
+                        if (fechaRealizacion != null && horaInicio != null) {
+                            // Combinar fecha con hora
+                            Date fechaTour = fechaRealizacion.toDate();
+                            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+                            SimpleDateFormat fullFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault());
+                            
+                            String fechaStr = dateFormat.format(fechaTour);
+                            Date fechaHoraInicio = fullFormat.parse(fechaStr + " " + horaInicio);
+                            
+                            // Verificar si la hora de inicio ya pasó (hace menos de 5 minutos)
+                            if (fechaHoraInicio != null && 
+                                fechaHoraInicio.after(hace5Minutos) && 
+                                fechaHoraInicio.before(ahora)) {
+                                
+                                // Este tour debería haber iniciado, verificar participantes
+                                String tourId = doc.getId();
+                                toursVerificados++;
+                                
+                                verificarYCancelarTourSinParticipantes(tourId, new OperationCallback() {
+                                    @Override
+                                    public void onSuccess(String message) {
+                                        if (message.contains("cancelado automáticamente")) {
+                                            Log.d(TAG, "Tour " + tourId + " cancelado: " + message);
+                                        }
+                                    }
+                                    
+                                    @Override
+                                    public void onError(String error) {
+                                        Log.e(TAG, "Error verificando tour " + tourId + ": " + error);
+                                    }
+                                });
+                            }
+                        }
+                    } catch (Exception e) {
+                        Log.e(TAG, "Error procesando tour: " + doc.getId(), e);
+                    }
+                }
+                
+                callback.onSuccess("Verificados " + toursVerificados + " tours");
+            })
+            .addOnFailureListener(e -> {
+                Log.e(TAG, "Error verificando tours para auto-cancelación", e);
+                callback.onError("Error: " + e.getMessage());
+            });
     }
 }

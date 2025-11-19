@@ -62,11 +62,13 @@
             android:maxLines="2"
             android:ellipsize="end" />
 
-        <!-- Información básica en grid (igual que ofertas) -->
+        <!-- Información básica en grid -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
+            android:background="#FAFAFA"
+            android:paddingVertical="8dp"
             android:layout_marginBottom="8dp">
 
             <!-- Duración -->
@@ -74,69 +76,73 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:orientation="horizontal"
-                android:gravity="center_vertical">
+                android:orientation="vertical"
+                android:gravity="center">
 
                 <TextView
-                    android:layout_width="16dp"
-                    android:layout_height="16dp"
-                    android:text="⏰"
-                    android:textSize="12sp"
-                    android:layout_marginEnd="4dp" />
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Duración"
+                    android:textSize="10sp"
+                    android:textColor="#9E9E9E"
+                    android:textStyle="bold" />
 
                 <TextView
                     android:id="@+id/tour_duration"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="4 horas"
-                    android:textSize="12sp"
-                    android:textColor="#757575" />
+                    android:textSize="13sp"
+                    android:textColor="#212121"
+                    android:textStyle="bold"
+                    android:layout_marginTop="2dp" />
 
             </LinearLayout>
 
-            <!-- Participantes (en lugar de idiomas) -->
+            <View
+                android:layout_width="1dp"
+                android:layout_height="match_parent"
+                android:background="#E0E0E0" />
+
+            <!-- Participantes -->
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:orientation="horizontal"
-                android:gravity="center_vertical">
+                android:orientation="vertical"
+                android:gravity="center">
 
                 <TextView
-                    android:layout_width="16dp"
-                    android:layout_height="16dp"
-                    android:text="👥"
-                    android:textSize="12sp"
-                    android:layout_marginEnd="4dp" />
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Participantes"
+                    android:textSize="10sp"
+                    android:textColor="#9E9E9E"
+                    android:textStyle="bold" />
 
                 <TextView
                     android:id="@+id/tour_clients"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="2 personas"
-                    android:textSize="12sp"
-                    android:textColor="#757575" />
+                    android:text="2"
+                    android:textSize="13sp"
+                    android:textColor="#212121"
+                    android:textStyle="bold"
+                    android:layout_marginTop="2dp" />
 
             </LinearLayout>
 
         </LinearLayout>
 
-        <!-- Fecha y hora del tour (igual que ofertas) -->
+        <!-- Fecha y hora del tour -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:layout_marginBottom="8dp"
-            android:background="#F3E5F5"
-            android:padding="8dp"
+            android:background="#FFF3E0"
+            android:padding="10dp"
             android:gravity="center_vertical">
-
-            <TextView
-                android:layout_width="18dp"
-                android:layout_height="18dp"
-                android:text="📅"
-                android:textSize="14sp"
-                android:layout_marginEnd="6dp" />
 
             <TextView
                 android:id="@+id/dateText"
@@ -146,7 +152,7 @@
                 android:text="15/11/2025"
                 android:textSize="14sp"
                 android:textStyle="bold"
-                android:textColor="#FF9800" />
+                android:textColor="#E65100" />
 
             <TextView
                 android:id="@+id/tour_start_time"
@@ -155,43 +161,37 @@
                 android:text="09:00 - 13:00"
                 android:textSize="14sp"
                 android:textStyle="bold"
-                android:textColor="#FF9800" />
+                android:textColor="#E65100" />
 
         </LinearLayout>
 
-        <!-- Pago al guía (igual que ofertas) -->
+        <!-- Pago al guía -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:background="#E8F5E8"
-            android:padding="8dp"
+            android:background="#E8F5E9"
+            android:padding="10dp"
             android:layout_marginBottom="8dp">
-
-            <TextView
-                android:layout_width="20dp"
-                android:layout_height="20dp"
-                android:text="💰"
-                android:textSize="16sp"
-                android:layout_marginEnd="6dp" />
 
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="Tu pago:"
-                android:textSize="12sp"
-                android:textColor="#757575" />
+                android:textSize="13sp"
+                android:textColor="#616161"
+                android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/pagoGuiaText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="S/. 85"
-                android:textSize="14sp"
+                android:textSize="16sp"
                 android:textStyle="bold"
-                android:textColor="#4CAF50" />
+                android:textColor="#2E7D32" />
 
         </LinearLayout>
 

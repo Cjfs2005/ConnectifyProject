@@ -103,39 +103,17 @@ public class guia_tour_map extends AppCompatActivity implements OnMapReadyCallba
 
         isTourOngoing = "En Curso".equals(tourStatus);
 
-        // Hardcoded coordinates for Lima historic center (example)
-        itineraryPoints.add(new LatLng(-12.046374, -77.042793)); // Plaza de Armas
-        itineraryPoints.add(new LatLng(-12.045581, -77.030476)); // Catedral de Lima
-        itineraryPoints.add(new LatLng(-12.043333, -77.028333)); // Convento San Francisco
-        itineraryPoints.add(new LatLng(-12.123611, -77.030278)); // Museo Larco
-
-        // Extract names from itinerario
-        if (itinerario != null) {
-            for (String item : itinerario) {
-                String[] parts = item.split(" – ");
-                if (parts.length > 0) {
-                    itineraryNames.add(parts[0].substring(3)); // Remove "1. "
-                }
-            }
-        }
-
         binding.tourName.setText(tourName);
-
-        // Setup UI based on status
-        setupUIBasedOnStatus(clients);
-
-        // Setup map
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
-        if (mapFragment != null) {
-            mapFragment.getMapAsync(this);
-        }
-
+        
         // Button listeners
         binding.startTourButton.setOnClickListener(v -> startTour());
         binding.scanQrStart.setOnClickListener(v -> scanQrStart());
         binding.registerPosition.setOnClickListener(v -> registerPosition());
         binding.endTourButton.setOnClickListener(v -> endTour());
         binding.scanQrEnd.setOnClickListener(v -> scanQrEnd());
+        
+        // Cargar itinerario con coordenadas desde Firebase (esto configura UI y mapa)
+        loadItinerarioFromFirebase(clients, tourStatus);
 
         /*
         // Nuevo Bottom Navigation con Toast
@@ -158,6 +136,65 @@ public class guia_tour_map extends AppCompatActivity implements OnMapReadyCallba
             return false;
         });
          */
+    }
+
+    /**
+     * Cargar itinerario con coordenadas desde Firebase
+     */
+    private void loadItinerarioFromFirebase(int clients, String tourStatus) {
+        com.google.firebase.firestore.FirebaseFirestore db = com.google.firebase.firestore.FirebaseFirestore.getInstance();
+        
+        db.collection("tours_asignados")
+            .document(tourId)
+            .get()
+            .addOnSuccessListener(documentSnapshot -> {
+                if (documentSnapshot.exists()) {
+                    // Obtener itinerario con coordenadas
+                    java.util.List<java.util.Map<String, Object>> itinerarioData = 
+                        (java.util.List<java.util.Map<String, Object>>) documentSnapshot.get("itinerario");
+                    
+                    if (itinerarioData != null && !itinerarioData.isEmpty()) {
+                        itineraryPoints.clear();
+                        itineraryNames.clear();
+                        
+                        for (java.util.Map<String, Object> punto : itinerarioData) {
+                            // Extraer coordenadas
+                            Object latObj = punto.get("latitud");
+                            Object lngObj = punto.get("longitud");
+                            String nombre = (String) punto.get("nombre");
+                            
+                            if (latObj != null && lngObj != null) {
+                                double lat = latObj instanceof Double ? (Double) latObj : ((Number) latObj).doubleValue();
+                                double lng = lngObj instanceof Double ? (Double) lngObj : ((Number) lngObj).doubleValue();
+                                
+                                itineraryPoints.add(new LatLng(lat, lng));
+                                itineraryNames.add(nombre != null ? nombre : "Punto " + (itineraryPoints.size()));
+                            }
+                        }
+                        
+                        android.util.Log.d("GuiaTourMap", "Itinerario cargado: " + itineraryPoints.size() + " puntos");
+                    } else {
+                        Toast.makeText(this, "No hay puntos en el itinerario", Toast.LENGTH_SHORT).show();
+                    }
+                    
+                    // Setup UI después de cargar datos
+                    setupUIBasedOnStatus(clients);
+                    
+                    // Setup map
+                    SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                        .findFragmentById(R.id.map);
+                    if (mapFragment != null) {
+                        mapFragment.getMapAsync(this);
+                    }
+                } else {
+                    Toast.makeText(this, "Tour no encontrado", Toast.LENGTH_SHORT).show();
+                    finish();
+                }
+            })
+            .addOnFailureListener(e -> {
+                Toast.makeText(this, "Error al cargar itinerario: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                android.util.Log.e("GuiaTourMap", "Error al cargar itinerario", e);
+            });
     }
 
     @Override

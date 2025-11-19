@@ -2,6 +2,7 @@ package com.example.connectifyproject;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -14,8 +15,16 @@ import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.example.connectifyproject.models.Cliente_Tour;
 import com.example.connectifyproject.adapters.Cliente_GalleryTourAdapter;
+import com.google.firebase.Timestamp;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Locale;
+import java.util.Map;
 
 /**
  * Actividad principal para Cliente
@@ -23,11 +32,15 @@ import java.util.ArrayList;
  */
 public class cliente_inicio extends AppCompatActivity {
     
-    // Datos hardcodeados del tour activo
+    private static final String TAG = "ClienteInicio";
+    
+    // Datos hardcodeados del tour activo (será reemplazado con Firebase)
     private static final String TOUR_TITLE = "Tour histórico por Lima";
     private static final String TOUR_COMPANY = "Lima Tours";
     private static final String TOUR_DURATION = "Duración: 5 hrs 30 min. Fecha: 23/09/2025.";
     private static final int TOUR_PROGRESS = 10; // 10% completado - Estado inicial
+    
+    private FirebaseFirestore db;
     
     // Views
     private TextView tvTourTitle;
@@ -55,11 +68,14 @@ public class cliente_inicio extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.cliente_inicio);
         
+        db = FirebaseFirestore.getInstance();
+        
         initViews();
         setupToolbar();
         setupTourData();
         setupRecyclerViews();
         setupBottomNavigation();
+        loadToursFromFirebase();
         setupClickListeners();
     }
 
@@ -120,13 +136,27 @@ public class cliente_inicio extends AppCompatActivity {
         LinearLayoutManager layoutManagerRecientes = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
         rvToursRecientes.setLayoutManager(layoutManagerRecientes);
         
-        // Obtener datos de tours recientes y configurar adapter
-        List<Cliente_Tour> toursRecientes = generarToursRecientes();
-        adapterToursRecientes = new Cliente_GalleryTourAdapter(this, toursRecientes);
+        // Inicializar con lista vacía - se llenará desde Firebase
+        adapterToursRecientes = new Cliente_GalleryTourAdapter(this, new ArrayList<>());
         adapterToursRecientes.setOnTourClickListener(tour -> {
-            // Navegar al detalle del tour pasando el objeto completo
+            // Navegar al detalle del tour pasando datos individuales
             Intent intent = new Intent(this, cliente_tour_detalle.class);
-            intent.putExtra("tour_object", tour);
+            intent.putExtra("tour_id", tour.getId());
+            intent.putExtra("tour_title", tour.getTitulo());
+            intent.putExtra("tour_description", tour.getDescription());
+            intent.putExtra("tour_company", tour.getCompanyName());
+            intent.putExtra("tour_location", tour.getUbicacion());
+            intent.putExtra("tour_price", tour.getPrecio());
+            intent.putExtra("tour_duration", tour.getDuracion());
+            intent.putExtra("tour_date", tour.getDate());
+            intent.putExtra("tour_start_time", tour.getStartTime());
+            intent.putExtra("tour_end_time", tour.getEndTime());
+            intent.putExtra("tour_image_url", tour.getImageUrl());
+            intent.putExtra("oferta_tour_id", tour.getOfertaTourId());
+            intent.putExtra("empresa_id", tour.getEmpresaId());
+            if (tour.getIdiomasRequeridos() != null) {
+                intent.putStringArrayListExtra("idiomas", new ArrayList<>(tour.getIdiomasRequeridos()));
+            }
             startActivity(intent);
         });
         rvToursRecientes.setAdapter(adapterToursRecientes);
@@ -135,13 +165,27 @@ public class cliente_inicio extends AppCompatActivity {
         LinearLayoutManager layoutManagerCercanos = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
         rvToursCercanos.setLayoutManager(layoutManagerCercanos);
         
-        // Obtener datos de tours cercanos y configurar adapter
-        List<Cliente_Tour> toursCercanos = generarToursCercanos();
-        adapterToursCercanos = new Cliente_GalleryTourAdapter(this, toursCercanos);
+        // Inicializar con lista vacía - se llenará desde Firebase
+        adapterToursCercanos = new Cliente_GalleryTourAdapter(this, new ArrayList<>());
         adapterToursCercanos.setOnTourClickListener(tour -> {
-            // Navegar al detalle del tour pasando el objeto completo
+            // Navegar al detalle del tour pasando datos individuales
             Intent intent = new Intent(this, cliente_tour_detalle.class);
-            intent.putExtra("tour_object", tour);
+            intent.putExtra("tour_id", tour.getId());
+            intent.putExtra("tour_title", tour.getTitulo());
+            intent.putExtra("tour_description", tour.getDescription());
+            intent.putExtra("tour_company", tour.getCompanyName());
+            intent.putExtra("tour_location", tour.getUbicacion());
+            intent.putExtra("tour_price", tour.getPrecio());
+            intent.putExtra("tour_duration", tour.getDuracion());
+            intent.putExtra("tour_date", tour.getDate());
+            intent.putExtra("tour_start_time", tour.getStartTime());
+            intent.putExtra("tour_end_time", tour.getEndTime());
+            intent.putExtra("tour_image_url", tour.getImageUrl());
+            intent.putExtra("oferta_tour_id", tour.getOfertaTourId());
+            intent.putExtra("empresa_id", tour.getEmpresaId());
+            if (tour.getIdiomasRequeridos() != null) {
+                intent.putStringArrayListExtra("idiomas", new ArrayList<>(tour.getIdiomasRequeridos()));
+            }
             startActivity(intent);
         });
         rvToursCercanos.setAdapter(adapterToursCercanos);
@@ -250,6 +294,176 @@ public class cliente_inicio extends AppCompatActivity {
             "6 horas", 120.00, "Islas Palomino", 4.7f, "Lima Tours"));
             
         return tours;
+    }
+    
+    /**
+     * NUEVOS MÉTODOS: Carga tours desde Firebase
+     */
+    private void loadToursFromFirebase() {
+        Log.d(TAG, "🔄 Cargando tours desde Firebase...");
+        
+        db.collection("tours_asignados")
+                .whereEqualTo("habilitado", true)
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    Log.d(TAG, "✅ Tours encontrados: " + querySnapshot.size());
+                    
+                    List<Cliente_Tour> toursRecientes = new ArrayList<>();
+                    List<Cliente_Tour> toursCercanos = new ArrayList<>();
+                    
+                    for (DocumentSnapshot doc : querySnapshot.getDocuments()) {
+                        processTourDocument(doc, toursRecientes, toursCercanos);
+                    }
+                    
+                    // Actualizar RecyclerViews
+                    updateRecyclerViews(toursRecientes, toursCercanos);
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "❌ Error cargando tours", e);
+                    Toast.makeText(this, "Error al cargar tours: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+    }
+    
+    private void processTourDocument(DocumentSnapshot doc, List<Cliente_Tour> toursRecientes, List<Cliente_Tour> toursCercanos) {
+        try {
+            Timestamp fechaRealizacion = doc.getTimestamp("fechaRealizacion");
+            if (!isTourAvailable(fechaRealizacion)) {
+                return;
+            }
+            
+            Cliente_Tour tour = new Cliente_Tour();
+            tour.setId(doc.getId());
+            tour.setTitle(doc.getString("titulo"));
+            tour.setDescription(doc.getString("descripcion"));
+            tour.setOfertaTourId(doc.getString("ofertaTourId"));
+            tour.setEmpresaId(doc.getString("empresaId"));
+            tour.setFechaRealizacion(fechaRealizacion);
+            
+            String duracion = doc.getString("duracion");
+            tour.setDuration(duracion != null ? duracion + " horas" : "");
+            
+            Number precio = (Number) doc.get("precio");
+            tour.setPrice(precio != null ? precio.doubleValue() : 0.0);
+            
+            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+            tour.setDate(sdf.format(fechaRealizacion.toDate()));
+            
+            String horaInicio = doc.getString("horaInicio");
+            String horaFin = doc.getString("horaFin");
+            tour.setStartTime(horaInicio != null ? horaInicio : "Por confirmar");
+            tour.setEndTime(horaFin != null ? horaFin : "Por confirmar");
+            
+            List<Map<String, Object>> itinerario = (List<Map<String, Object>>) doc.get("itinerario");
+            if (itinerario != null && !itinerario.isEmpty()) {
+                String direccion = (String) itinerario.get(0).get("direccion");
+                tour.setLocation(direccion != null ? direccion : "");
+            }
+            
+            List<String> idiomas = (List<String>) doc.get("idiomasRequeridos");
+            tour.setIdiomasRequeridos(idiomas);
+            
+            String nombreEmpresa = doc.getString("nombreEmpresa");
+            tour.setCompanyName(nombreEmpresa != null ? nombreEmpresa : "Empresa");
+            
+            loadTourImage(tour);
+            
+            // Primeros 5 a recientes, resto a cercanos
+            if (toursRecientes.size() < 5) {
+                toursRecientes.add(tour);
+            } else {
+                toursCercanos.add(tour);
+            }
+            
+        } catch (Exception e) {
+            Log.e(TAG, "Error procesando tour: " + doc.getId(), e);
+        }
+    }
+    
+    private boolean isTourAvailable(Timestamp fechaRealizacion) {
+        if (fechaRealizacion == null) return false;
+        
+        Calendar today = Calendar.getInstance();
+        today.set(Calendar.HOUR_OF_DAY, 0);
+        today.set(Calendar.MINUTE, 0);
+        today.set(Calendar.SECOND, 0);
+        today.set(Calendar.MILLISECOND, 0);
+        
+        Calendar minDate = (Calendar) today.clone();
+        minDate.add(Calendar.DAY_OF_MONTH, 1);
+        
+        Date tourDate = fechaRealizacion.toDate();
+        return tourDate.compareTo(minDate.getTime()) >= 0;
+    }
+    
+    private void loadTourImage(Cliente_Tour tour) {
+        if (tour.getOfertaTourId() == null) return;
+        
+        db.collection("tours_ofertas")
+                .document(tour.getOfertaTourId())
+                .get()
+                .addOnSuccessListener(doc -> {
+                    String imagenUrl = doc.getString("imagenPrincipal");
+                    if (imagenUrl != null && !imagenUrl.isEmpty()) {
+                        tour.setImageUrl(imagenUrl);
+                        if (adapterToursRecientes != null) adapterToursRecientes.notifyDataSetChanged();
+                        if (adapterToursCercanos != null) adapterToursCercanos.notifyDataSetChanged();
+                    }
+                })
+                .addOnFailureListener(e -> Log.e(TAG, "Error cargando imagen", e));
+    }
+    
+    private void updateRecyclerViews(List<Cliente_Tour> toursRecientes, List<Cliente_Tour> toursCercanos) {
+        if (adapterToursRecientes != null && !toursRecientes.isEmpty()) {
+            adapterToursRecientes = new Cliente_GalleryTourAdapter(this, toursRecientes);
+            adapterToursRecientes.setOnTourClickListener(tour -> {
+                Intent intent = new Intent(this, cliente_tour_detalle.class);
+                intent.putExtra("tour_id", tour.getId());
+                intent.putExtra("tour_title", tour.getTitulo());
+                intent.putExtra("tour_description", tour.getDescription());
+                intent.putExtra("tour_company", tour.getCompanyName());
+                intent.putExtra("tour_location", tour.getUbicacion());
+                intent.putExtra("tour_price", tour.getPrecio());
+                intent.putExtra("tour_duration", tour.getDuracion());
+                intent.putExtra("tour_date", tour.getDate());
+                intent.putExtra("tour_start_time", tour.getStartTime());
+                intent.putExtra("tour_end_time", tour.getEndTime());
+                intent.putExtra("tour_image_url", tour.getImageUrl());
+                intent.putExtra("oferta_tour_id", tour.getOfertaTourId());
+                intent.putExtra("empresa_id", tour.getEmpresaId());
+                if (tour.getIdiomasRequeridos() != null) {
+                    intent.putStringArrayListExtra("idiomas", new ArrayList<>(tour.getIdiomasRequeridos()));
+                }
+                startActivity(intent);
+            });
+            rvToursRecientes.setAdapter(adapterToursRecientes);
+        }
+        
+        if (adapterToursCercanos != null && !toursCercanos.isEmpty()) {
+            adapterToursCercanos = new Cliente_GalleryTourAdapter(this, toursCercanos);
+            adapterToursCercanos.setOnTourClickListener(tour -> {
+                Intent intent = new Intent(this, cliente_tour_detalle.class);
+                intent.putExtra("tour_id", tour.getId());
+                intent.putExtra("tour_title", tour.getTitulo());
+                intent.putExtra("tour_description", tour.getDescription());
+                intent.putExtra("tour_company", tour.getCompanyName());
+                intent.putExtra("tour_location", tour.getUbicacion());
+                intent.putExtra("tour_price", tour.getPrecio());
+                intent.putExtra("tour_duration", tour.getDuracion());
+                intent.putExtra("tour_date", tour.getDate());
+                intent.putExtra("tour_start_time", tour.getStartTime());
+                intent.putExtra("tour_end_time", tour.getEndTime());
+                intent.putExtra("tour_image_url", tour.getImageUrl());
+                intent.putExtra("oferta_tour_id", tour.getOfertaTourId());
+                intent.putExtra("empresa_id", tour.getEmpresaId());
+                if (tour.getIdiomasRequeridos() != null) {
+                    intent.putStringArrayListExtra("idiomas", new ArrayList<>(tour.getIdiomasRequeridos()));
+                }
+                startActivity(intent);
+            });
+            rvToursCercanos.setAdapter(adapterToursCercanos);
+        }
+        
+        Log.d(TAG, "📊 RecyclerViews actualizados - Recientes: " + toursRecientes.size() + ", Cercanos: " + toursCercanos.size());
     }
 
 }

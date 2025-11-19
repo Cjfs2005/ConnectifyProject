@@ -11,6 +11,8 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
@@ -111,7 +113,29 @@
         <activity android:name=".guia_check_in" android:exported="false" />
         <activity android:name=".guia_check_out" android:exported="false" />
         <activity android:name=".guia_tour_map" android:exported="false" />
+        
+        <!-- ✅ Nuevas actividades para check-in/check-out/tracking -->
+        <activity 
+            android:name=".guia_show_qr_checkin" 
+            android:exported="false"
+            android:screenOrientation="portrait" />
+        <activity 
+            android:name=".guia_show_qr_checkout" 
+            android:exported="false"
+            android:screenOrientation="portrait" />
+        <activity 
+            android:name=".guia_tour_progress" 
+            android:exported="false"
+            android:screenOrientation="portrait" />
+        
+        <!-- Servicios de ubicación -->
         <service android:name=".service.GuiaLocationService" android:enabled="true" android:exported="true" android:foregroundServiceType="location" />
+        <service 
+            android:name=".services.LocationTrackingService" 
+            android:enabled="true" 
+            android:exported="false" 
+            android:foregroundServiceType="location" />
+        
         <activity android:name=".guia_perfil" android:exported="false" />
         <activity android:name=".guia_editar_perfil" android:exported="false" />
         <activity android:name=".guia_notificaciones" android:exported="false" />
@@ -151,7 +175,13 @@
         <activity android:name=".cliente_servicio_detalle" android:exported="false" />
         <activity android:name=".cliente_metodo_pago" android:exported="false" />
         <activity android:name=".cliente_reserva_realizada" android:exported="false" />
-    <activity android:name=".cliente_reserva_detalle" android:exported="false" />
+        <activity android:name=".cliente_reserva_detalle" android:exported="false" />
+        
+        <!-- ✅ Cliente - Escáner QR para check-in/check-out -->
+        <activity 
+            android:name=".cliente_scan_qr" 
+            android:exported="false"
+            android:screenOrientation="portrait" />
 
     </application>
 </manifest>
