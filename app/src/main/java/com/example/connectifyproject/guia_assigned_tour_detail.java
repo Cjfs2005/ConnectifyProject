@@ -300,15 +300,13 @@ private void setupTourFromFirebase(DocumentSnapshot doc) {
         
         String estadoLower = tourStatus != null ? tourStatus.toLowerCase() : "";
         
-        // BOTÓN CHECK-IN: Cambia función según estado
+        // BOTÓN CHECK-IN: Solo para habilitar check-in desde estado pendiente
         binding.checkInButton.setOnClickListener(v -> {
             if (estadoLower.equals("pendiente") || estadoLower.equals("programado") || estadoLower.equals("confirmado")) {
                 // Habilitar check-in (cambiar estado de pendiente a check_in)
                 habilitarCheckIn();
-            } else if (estadoLower.equals("check_in") || estadoLower.equals("check-in disponible")) {
-                // Mostrar QR de check-in
-                mostrarQRCheckIn();
             }
+            // Ya no se muestra QR desde aquí, el guía debe ir al mapa para escanear
         });
 
         // BOTÓN MAPA: Siempre navega al mapa
@@ -322,15 +320,13 @@ private void setupTourFromFirebase(DocumentSnapshot doc) {
             startActivity(mapIntent);
         });
 
-        // BOTÓN CHECK-OUT: Cambia función según estado
+        // BOTÓN CHECK-OUT: Solo para habilitar check-out desde en_curso
         binding.checkOutButton.setOnClickListener(v -> {
             if (estadoLower.equals("en_curso") || estadoLower.equals("en curso") || estadoLower.equals("en_progreso")) {
                 // Habilitar check-out (cambiar estado de en_curso a check_out)
                 habilitarCheckOut();
-            } else if (estadoLower.equals("check_out") || estadoLower.equals("check-out disponible")) {
-                // Mostrar QR de check-out
-                mostrarQRCheckOut();
             }
+            // Ya no se muestra QR desde aquí, el guía debe ir al mapa para escanear
         });
     }
     
@@ -353,11 +349,15 @@ private void setupTourFromFirebase(DocumentSnapshot doc) {
     
     /**
      * Mostrar QR de check-in
-     * Validación: Solo disponible 10 minutos antes y hasta el fin del tour
+     * Si el estado ya es check_in, mostrar directamente sin validar
      */
     private void mostrarQRCheckIn() {
-        // Validar ventana temporal
-        if (!esVentanaValidaParaCheckIn()) {
+        // Si el estado es check_in, mostrar QR directamente (ya fue habilitado)
+        String estadoLower = tourStatus != null ? tourStatus.toLowerCase() : "";
+        boolean checkInYaHabilitado = estadoLower.equals("check_in") || estadoLower.equals("check-in disponible");
+        
+        // Si no está habilitado, validar ventana temporal
+        if (!checkInYaHabilitado && !esVentanaValidaParaCheckIn()) {
             long minutosParaInicio = calcularMinutosParaInicio();
             
             if (minutosParaInicio > 10) {
@@ -373,10 +373,12 @@ private void setupTourFromFirebase(DocumentSnapshot doc) {
             }
         }
         
-        Intent intent = new Intent(this, guia_show_qr_checkin.class);
+        // 📱 CORRECTO: Guía ESCANEA QR del cliente
+        Intent intent = new Intent(this, guia_scan_qr_participants.class);
         intent.putExtra("tourId", tourId);
         intent.putExtra("tourTitulo", tourName);
         intent.putExtra("numeroParticipantes", tourClients);
+        intent.putExtra("scanMode", "check_in"); // ✅ Modo check-in
         startActivity(intent);
     }
     
@@ -476,11 +478,15 @@ private void setupTourFromFirebase(DocumentSnapshot doc) {
     }
     
     /**
-     * Mostrar QR de check-out
+     * 📱 ESCANEAR QR DE CHECK-OUT
+     * Guía ESCANEA el QR de cada cliente al finalizar
      */
     private void mostrarQRCheckOut() {
-        Intent intent = new Intent(this, guia_show_qr_checkout.class);
-        intent.putExtra("tour_id", tourId);
+        Intent intent = new Intent(this, guia_scan_qr_participants.class);
+        intent.putExtra("tourId", tourId);
+        intent.putExtra("tourTitulo", tourName);
+        intent.putExtra("numeroParticipantes", tourClients);
+        intent.putExtra("scanMode", "check_out"); // ✅ Modo check-out
         startActivity(intent);
     }
 
@@ -562,9 +568,9 @@ private void setupTourFromFirebase(DocumentSnapshot doc) {
         
         // Mostrar botones para estos estados:
         // - pendiente: Botón "Habilitar Check-in"
-        // - check_in: Botones "Mostrar QR Check-in" + "Ver Mapa"
-        // - en_curso: Botones "Ver Mapa" + "Marcar Progreso" + "Check-out"
-        // - check_out: Botón "Mostrar QR Check-out"
+        // - check_in: Botón "Ver Mapa y Escanear Check-in"
+        // - en_curso: Botones "Ver Mapa" + "Finalizar Tour"
+        // - check_out: Botón "Ver Mapa y Escanear Check-out"
         
         return estadoLower.equals("pendiente") ||
                estadoLower.equals("check_in") ||
@@ -607,13 +613,10 @@ private void setupTourFromFirebase(DocumentSnapshot doc) {
                 
             case "check_in":
             case "check-in disponible":
-                // ✅ CHECK-IN DISPONIBLE: Mostrar QR + Mapa
-                binding.checkInButton.setVisibility(View.VISIBLE);
-                binding.checkInButton.setText("Mostrar QR Check-in");
-                binding.checkInButton.setIconResource(R.drawable.ic_check_circle);
-                
+                // ✅ CHECK-IN DISPONIBLE: Solo mostrar botón de mapa
+                // El guía debe ir al mapa para escanear QR de clientes
                 binding.mapButton.setVisibility(View.VISIBLE);
-                binding.mapButton.setText("Ver Mapa");
+                binding.mapButton.setText("Ver Mapa y Escanear Check-in");
                 break;
                 
             case "en_curso":
@@ -630,10 +633,9 @@ private void setupTourFromFirebase(DocumentSnapshot doc) {
                 
             case "check_out":
             case "check-out disponible":
-                // 🏁 CHECK-OUT DISPONIBLE: Solo mostrar QR
-                binding.checkOutButton.setVisibility(View.VISIBLE);
-                binding.checkOutButton.setText("Mostrar QR Check-out");
-                binding.checkOutButton.setIconResource(R.drawable.ic_check_circle);
+                // 🏁 CHECK-OUT DISPONIBLE: Mostrar mapa para escanear check-out
+                binding.mapButton.setVisibility(View.VISIBLE);
+                binding.mapButton.setText("Ver Mapa y Escanear Check-out");
                 break;
                 
             default:

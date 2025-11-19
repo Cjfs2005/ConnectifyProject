@@ -42,6 +42,7 @@ public class cliente_reserva_detalle extends AppCompatActivity {
     
     // Botones y tarjetas interactivas
     private View layoutItinerario, cardEmpresa, cardChat, cardDescargar, cardCancelar;
+    private View cardQrCheckin, cardQrCheckout;
     
     private FirebaseFirestore db;
     private FirebaseAuth mAuth;
@@ -92,6 +93,8 @@ public class cliente_reserva_detalle extends AppCompatActivity {
         cardChat = findViewById(R.id.card_chat);
         cardDescargar = findViewById(R.id.card_descargar);
         cardCancelar = findViewById(R.id.card_cancelar);
+        cardQrCheckin = findViewById(R.id.card_qr_checkin);
+        cardQrCheckout = findViewById(R.id.card_qr_checkout);
         
         // Initialize Firebase
         db = FirebaseFirestore.getInstance();
@@ -318,6 +321,23 @@ public class cliente_reserva_detalle extends AppCompatActivity {
                 mostrarDialogoCancelarReserva();
             });
         }
+        
+        // Mostrar QR Check-in
+        if (cardQrCheckin != null) {
+            cardQrCheckin.setOnClickListener(v -> {
+                mostrarQRCliente("check_in", reserva);
+            });
+        }
+        
+        // Mostrar QR Check-out
+        if (cardQrCheckout != null) {
+            cardQrCheckout.setOnClickListener(v -> {
+                mostrarQRCliente("check_out", reserva);
+            });
+        }
+        
+        // Gestionar visibilidad de botones QR según el estado del tour
+        gestionarVisibilidadBotonesQR(reserva);
     }
     
     private void mostrarDialogoCancelarReserva() {
@@ -353,5 +373,56 @@ public class cliente_reserva_detalle extends AppCompatActivity {
             e.printStackTrace();
             Toast.makeText(this, "Error al descargar el recibo: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         }
+    }
+    
+    private void mostrarQRCliente(String tipoQR, Cliente_Reserva reserva) {
+        if (reserva == null || reserva.getTour() == null) {
+            Toast.makeText(this, "Error: No hay información del tour disponible", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
+        Intent intent = new Intent(this, cliente_show_qr.class);
+        intent.putExtra("tourId", reserva.getTour().getId());
+        intent.putExtra("reservaId", reserva.getId());
+        intent.putExtra("tipoQR", tipoQR);
+        intent.putExtra("tourTitulo", reserva.getTour().getTitulo());
+        startActivity(intent);
+    }
+    
+    private void gestionarVisibilidadBotonesQR(Cliente_Reserva reserva) {
+        if (reserva == null) return;
+        
+        // Obtener estado del tour desde Firebase para determinar qué botones mostrar
+        String tourId = reserva.getTour() != null ? reserva.getTour().getId() : null;
+        if (tourId == null || tourId.isEmpty()) return;
+        
+        db.collection("tours_asignados").document(tourId).get()
+            .addOnSuccessListener(documentSnapshot -> {
+                if (documentSnapshot.exists()) {
+                    String estado = documentSnapshot.getString("estado");
+                    if (estado != null) {
+                        String estadoLower = estado.toLowerCase();
+                        
+                        // Mostrar botón check-in si el estado es "check_in" o "confirmado"
+                        if (estadoLower.equals("check_in") || estadoLower.equals("confirmado") || 
+                            estadoLower.equals("check-in disponible")) {
+                            if (cardQrCheckin != null) {
+                                cardQrCheckin.setVisibility(View.VISIBLE);
+                            }
+                        }
+                        
+                        // Mostrar botón check-out si el estado es "en progreso" o "check_out"
+                        if (estadoLower.equals("en progreso") || estadoLower.equals("check_out") || 
+                            estadoLower.equals("check-out disponible")) {
+                            if (cardQrCheckout != null) {
+                                cardQrCheckout.setVisibility(View.VISIBLE);
+                            }
+                        }
+                    }
+                }
+            })
+            .addOnFailureListener(e -> {
+                Log.e(TAG, "Error al obtener estado del tour: " + e.getMessage());
+            });
     }
 }

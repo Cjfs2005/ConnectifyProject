@@ -336,12 +336,15 @@ public class guia_tour_progress extends AppCompatActivity {
     }
     
     /**
-     * Navegar a pantalla de check-out con QR
+     * 📱 ESCANEAR QR DE CHECK-OUT
+     * Guía ESCANEA el QR de cada cliente al finalizar el tour
      */
     private void navegarACheckOut() {
-        Intent intent = new Intent(this, guia_show_qr_checkout.class);
+        Intent intent = new Intent(this, guia_scan_qr_participants.class);
         intent.putExtra("tourId", tourId);
         intent.putExtra("tourTitulo", tourTitulo);
+        intent.putExtra("numeroParticipantes", 0); // El escaner cargará el número real desde Firebase
+        intent.putExtra("scanMode", "check_out"); // ✅ Modo check-out
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
         startActivity(intent);
         finish();

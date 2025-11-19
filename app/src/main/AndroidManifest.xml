@@ -116,6 +116,10 @@
         
         <!-- ✅ Nuevas actividades para check-in/check-out/tracking -->
         <activity 
+            android:name=".guia_scan_qr_participants" 
+            android:exported="false"
+            android:screenOrientation="portrait" />
+        <activity 
             android:name=".guia_show_qr_checkin" 
             android:exported="false"
             android:screenOrientation="portrait" />
@@ -180,6 +184,12 @@
         <!-- ✅ Cliente - Escáner QR para check-in/check-out -->
         <activity 
             android:name=".cliente_scan_qr" 
+            android:exported="false"
+            android:screenOrientation="portrait" />
+            
+        <!-- ✅ Cliente - Mostrar QR personal para check-in/check-out -->
+        <activity 
+            android:name=".cliente_show_qr" 
             android:exported="false"
             android:screenOrientation="portrait" />
 

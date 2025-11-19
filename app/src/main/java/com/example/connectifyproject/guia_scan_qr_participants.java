@@ -1,0 +1,507 @@
+package com.example.connectifyproject;
+
+import android.Manifest;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.ProgressBar;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.camera.core.CameraSelector;
+import androidx.camera.core.ImageAnalysis;
+import androidx.camera.core.ImageProxy;
+import androidx.camera.core.Preview;
+import androidx.camera.lifecycle.ProcessCameraProvider;
+import androidx.camera.view.PreviewView;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FieldValue;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.ListenerRegistration;
+import com.google.mlkit.vision.barcode.BarcodeScanner;
+import com.google.mlkit.vision.barcode.BarcodeScannerOptions;
+import com.google.mlkit.vision.barcode.BarcodeScanning;
+import com.google.mlkit.vision.barcode.common.Barcode;
+import com.google.mlkit.vision.common.InputImage;
+
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
+
+/**
+ * 📷 GUÍA ESCANEA QR DE CADA CLIENTE
+ * 
+ * El guía usa la cámara para escanear los códigos QR individuales que cada cliente
+ * muestra en su dispositivo (generados por cliente_show_qr.java).
+ * 
+ * Por cada QR escaneado:
+ * - Valida que sea del tour correcto
+ * - Marca participante.checkIn = true en Firebase
+ * - Actualiza contador en tiempo real
+ * - Permite iniciar tour cuando todos hayan hecho check-in
+ */
+public class guia_scan_qr_participants extends AppCompatActivity {
+    
+    private static final String TAG = "GuiaScanQRParticipants";
+    private static final int CAMERA_PERMISSION_CODE = 1001;
+    
+    private String tourId;
+    private String tourTitulo;
+    private int numeroParticipantes;
+    private String scanMode; // "check_in" o "check_out"
+    
+    private PreviewView previewView;
+    private TextView tvInstrucciones;
+    private TextView tvContador;
+    private ProgressBar progressBar;
+    private Button btnIniciarTour;
+    private Button btnCancelar;
+    
+    private FirebaseFirestore db;
+    private ListenerRegistration snapshotListener;
+    private ProcessCameraProvider cameraProvider;
+    private BarcodeScanner scanner;
+    
+    private List<String> clientesEscaneados = new ArrayList<>();
+    private boolean isScanning = true;
+    
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.guia_scan_qr_participants_view);
+        
+        // Obtener datos del tour
+        tourId = getIntent().getStringExtra("tourId");
+        tourTitulo = getIntent().getStringExtra("tourTitulo");
+        numeroParticipantes = getIntent().getIntExtra("numeroParticipantes", 0);
+        scanMode = getIntent().getStringExtra("scanMode"); // "check_in" o "check_out"
+        
+        if (scanMode == null) scanMode = "check_in";
+        
+        if (tourId == null || tourId.isEmpty()) {
+            Toast.makeText(this, "Error: ID de tour no válido", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+        
+        // Inicializar Firebase
+        db = FirebaseFirestore.getInstance();
+        
+        // Inicializar vistas
+        initViews();
+        
+        // Configurar UI
+        setupUI();
+        
+        // Escuchar actualizaciones en tiempo real
+        escucharActualizaciones();
+        
+        // Solicitar permisos de cámara
+        if (checkCameraPermission()) {
+            startCamera();
+        } else {
+            requestCameraPermission();
+        }
+    }
+    
+    private void initViews() {
+        previewView = findViewById(R.id.preview_view);
+        tvInstrucciones = findViewById(R.id.tv_instrucciones);
+        tvContador = findViewById(R.id.tv_contador);
+        progressBar = findViewById(R.id.progress_bar);
+        btnIniciarTour = findViewById(R.id.btn_iniciar_tour);
+        btnCancelar = findViewById(R.id.btn_cancelar);
+        
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setTitle(scanMode.equals("check_in") ? "Check-In de Participantes" : "Check-Out de Participantes");
+        }
+    }
+    
+    private void setupUI() {
+        String tituloModo = scanMode.equals("check_in") ? "Check-In" : "Check-Out";
+        tvInstrucciones.setText("Escanea el código QR de " + tituloModo + " de cada participante");
+        tvContador.setText("0 de " + numeroParticipantes + " participantes escaneados");
+        
+        if (numeroParticipantes > 0) {
+            progressBar.setMax(numeroParticipantes);
+            progressBar.setProgress(0);
+        }
+        
+        btnIniciarTour.setEnabled(false);
+        btnIniciarTour.setAlpha(0.5f);
+        
+        if (scanMode.equals("check_in")) {
+            btnIniciarTour.setText("Iniciar Tour");
+        } else {
+            btnIniciarTour.setText("Finalizar Tour");
+        }
+        
+        btnIniciarTour.setOnClickListener(v -> {
+            if (scanMode.equals("check_in")) {
+                iniciarTour();
+            } else {
+                finalizarTour();
+            }
+        });
+        
+        btnCancelar.setOnClickListener(v -> finish());
+    }
+    
+    private boolean checkCameraPermission() {
+        return ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) 
+                == PackageManager.PERMISSION_GRANTED;
+    }
+    
+    private void requestCameraPermission() {
+        ActivityCompat.requestPermissions(this, 
+            new String[]{Manifest.permission.CAMERA}, 
+            CAMERA_PERMISSION_CODE);
+    }
+    
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == CAMERA_PERMISSION_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                startCamera();
+            } else {
+                Toast.makeText(this, "Permiso de cámara denegado", Toast.LENGTH_SHORT).show();
+                finish();
+            }
+        }
+    }
+    
+    private void startCamera() {
+        com.google.common.util.concurrent.ListenableFuture<ProcessCameraProvider> cameraProviderFuture = 
+            ProcessCameraProvider.getInstance(this);
+        
+        cameraProviderFuture.addListener(() -> {
+            try {
+                cameraProvider = cameraProviderFuture.get();
+                bindCameraPreview(cameraProvider);
+            } catch (Exception e) {
+                android.util.Log.e(TAG, "Error al iniciar cámara", e);
+                Toast.makeText(this, "Error al iniciar cámara", Toast.LENGTH_SHORT).show();
+            }
+        }, ContextCompat.getMainExecutor(this));
+    }
+    
+    private void bindCameraPreview(@NonNull ProcessCameraProvider cameraProvider) {
+        Preview preview = new Preview.Builder().build();
+        preview.setSurfaceProvider(previewView.getSurfaceProvider());
+        
+        CameraSelector cameraSelector = new CameraSelector.Builder()
+            .requireLensFacing(CameraSelector.LENS_FACING_BACK)
+            .build();
+        
+        ImageAnalysis imageAnalysis = new ImageAnalysis.Builder()
+            .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+            .build();
+        
+        // Configurar escáner de QR usando ML Kit
+        BarcodeScannerOptions options = new BarcodeScannerOptions.Builder()
+            .setBarcodeFormats(Barcode.FORMAT_QR_CODE)
+            .build();
+        scanner = BarcodeScanning.getClient(options);
+        
+        imageAnalysis.setAnalyzer(ContextCompat.getMainExecutor(this), imageProxy -> {
+            processImageProxy(imageProxy);
+        });
+        
+        cameraProvider.unbindAll();
+        cameraProvider.bindToLifecycle(this, cameraSelector, preview, imageAnalysis);
+    }
+    
+    @androidx.camera.core.ExperimentalGetImage
+    private void processImageProxy(ImageProxy imageProxy) {
+        if (!isScanning) {
+            imageProxy.close();
+            return;
+        }
+        
+        android.media.Image mediaImage = imageProxy.getImage();
+        if (mediaImage != null) {
+            InputImage image = InputImage.fromMediaImage(
+                mediaImage, 
+                imageProxy.getImageInfo().getRotationDegrees()
+            );
+            
+            scanner.process(image)
+                .addOnSuccessListener(barcodes -> {
+                    for (Barcode barcode : barcodes) {
+                        String qrData = barcode.getRawValue();
+                        if (qrData != null) {
+                            processQRCode(qrData);
+                        }
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error al escanear QR", e);
+                })
+                .addOnCompleteListener(task -> {
+                    imageProxy.close();
+                });
+        } else {
+            imageProxy.close();
+        }
+    }
+    
+    private void processQRCode(String qrData) {
+        try {
+            JSONObject qrJson = new JSONObject(qrData);
+            
+            String qrTourId = qrJson.getString("tourId");
+            String qrClienteId = qrJson.getString("clienteId");
+            String qrType = qrJson.getString("type");
+            
+            // Validar que sea del tour correcto
+            if (!qrTourId.equals(tourId)) {
+                runOnUiThread(() -> Toast.makeText(this, 
+                    "⚠️ Este QR pertenece a otro tour", 
+                    Toast.LENGTH_SHORT).show());
+                return;
+            }
+            
+            // Validar que sea del tipo correcto
+            if (!qrType.equals(scanMode)) {
+                runOnUiThread(() -> Toast.makeText(this, 
+                    "⚠️ QR incorrecto. Esperando QR de " + scanMode, 
+                    Toast.LENGTH_SHORT).show());
+                return;
+            }
+            
+            // Evitar escaneos duplicados
+            if (clientesEscaneados.contains(qrClienteId)) {
+                runOnUiThread(() -> Toast.makeText(this, 
+                    "✅ Cliente ya escaneado", 
+                    Toast.LENGTH_SHORT).show());
+                return;
+            }
+            
+            // Pausar escaneo mientras se procesa
+            isScanning = false;
+            
+            // Registrar check-in/check-out en Firebase
+            registrarEscaneo(qrClienteId);
+            
+        } catch (Exception e) {
+            Log.e(TAG, "Error al procesar QR", e);
+            runOnUiThread(() -> Toast.makeText(this, 
+                "❌ QR inválido", 
+                Toast.LENGTH_SHORT).show());
+        }
+    }
+    
+    private void registrarEscaneo(String clienteId) {
+        DocumentReference tourRef = db.collection("tours_asignados").document(tourId);
+        
+        tourRef.get().addOnSuccessListener(documentSnapshot -> {
+            if (documentSnapshot.exists()) {
+                List<Map<String, Object>> participantes = 
+                    (List<Map<String, Object>>) documentSnapshot.get("participantes");
+                
+                if (participantes != null) {
+                    boolean encontrado = false;
+                    
+                    for (Map<String, Object> participante : participantes) {
+                        String participanteId = (String) participante.get("clienteId");
+                        
+                        if (participanteId != null && participanteId.equals(clienteId)) {
+                            // Actualizar check-in o check-out
+                            String campo = scanMode.equals("check_in") ? "checkIn" : "checkOut";
+                            participante.put(campo, true);
+                            participante.put(campo + "Timestamp", System.currentTimeMillis());
+                            
+                            encontrado = true;
+                            break;
+                        }
+                    }
+                    
+                    if (encontrado) {
+                        // Actualizar Firebase
+                        tourRef.update("participantes", participantes)
+                            .addOnSuccessListener(aVoid -> {
+                                clientesEscaneados.add(clienteId);
+                                runOnUiThread(() -> {
+                                    Toast.makeText(this, 
+                                        "✅ Cliente registrado exitosamente", 
+                                        Toast.LENGTH_SHORT).show();
+                                    
+                                    // Reanudar escaneo después de 1 segundo
+                                    previewView.postDelayed(() -> isScanning = true, 1000);
+                                });
+                            })
+                            .addOnFailureListener(e -> {
+                                Log.e(TAG, "Error al actualizar Firebase", e);
+                                runOnUiThread(() -> {
+                                    Toast.makeText(this, 
+                                        "❌ Error al registrar: " + e.getMessage(), 
+                                        Toast.LENGTH_SHORT).show();
+                                    isScanning = true;
+                                });
+                            });
+                    } else {
+                        runOnUiThread(() -> {
+                            Toast.makeText(this, 
+                                "⚠️ Cliente no inscrito en este tour", 
+                                Toast.LENGTH_SHORT).show();
+                            isScanning = true;
+                        });
+                    }
+                }
+            }
+        }).addOnFailureListener(e -> {
+            Log.e(TAG, "Error al consultar tour", e);
+            runOnUiThread(() -> {
+                Toast.makeText(this, 
+                    "❌ Error de conexión", 
+                    Toast.LENGTH_SHORT).show();
+                isScanning = true;
+            });
+        });
+    }
+    
+    private void escucharActualizaciones() {
+        snapshotListener = db.collection("tours_asignados")
+            .document(tourId)
+            .addSnapshotListener((documentSnapshot, error) -> {
+                if (error != null) {
+                    Log.e(TAG, "Error al escuchar actualizaciones", error);
+                    return;
+                }
+                
+                if (documentSnapshot != null && documentSnapshot.exists()) {
+                    List<Map<String, Object>> participantes = 
+                        (List<Map<String, Object>>) documentSnapshot.get("participantes");
+                    
+                    if (participantes != null) {
+                        int escaneadosCount = 0;
+                        String campo = scanMode.equals("check_in") ? "checkIn" : "checkOut";
+                        
+                        for (Map<String, Object> participante : participantes) {
+                            Boolean escaneado = (Boolean) participante.get(campo);
+                            if (escaneado != null && escaneado) {
+                                escaneadosCount++;
+                            }
+                        }
+                        
+                        actualizarContador(escaneadosCount);
+                    }
+                }
+            });
+    }
+    
+    private void actualizarContador(int escaneadosCount) {
+        tvContador.setText(escaneadosCount + " de " + numeroParticipantes + " participantes escaneados");
+        progressBar.setProgress(escaneadosCount);
+        
+        // Calcular porcentaje de asistencia
+        double porcentajeAsistencia = numeroParticipantes > 0 ? 
+            (double) escaneadosCount / numeroParticipantes : 0.0;
+        int porcentajeInt = (int) (porcentajeAsistencia * 100);
+        
+        // Cambiar color según progreso
+        if (escaneadosCount == 0) {
+            tvContador.setTextColor(getColor(R.color.text_secondary));
+        } else if (porcentajeAsistencia < 0.5) {
+            tvContador.setTextColor(getColor(R.color.avatar_red)); // Menos del 50%
+        } else if (escaneadosCount < numeroParticipantes) {
+            tvContador.setTextColor(getColor(R.color.avatar_amber)); // Entre 50% y 100%
+        } else {
+            tvContador.setTextColor(getColor(R.color.brand_green)); // 100%
+        }
+        
+        // ✅ HABILITAR BOTÓN SI AL MENOS 50% ESCANEARON
+        if (numeroParticipantes > 0 && porcentajeAsistencia >= 0.5) {
+            btnIniciarTour.setEnabled(true);
+            btnIniciarTour.setAlpha(1.0f);
+            if ("check_in".equals(scanMode)) {
+                btnIniciarTour.setText("Iniciar Tour (" + porcentajeInt + "% asistencia)");
+            } else {
+                btnIniciarTour.setText("Finalizar Tour (" + porcentajeInt + "% check-out)");
+            }
+        } else {
+            btnIniciarTour.setEnabled(false);
+            btnIniciarTour.setAlpha(0.5f);
+            if ("check_in".equals(scanMode)) {
+                btnIniciarTour.setText("Requiere mínimo 50% de asistencia (" + porcentajeInt + "%)");
+            } else {
+                btnIniciarTour.setText("Requiere mínimo 50% de check-out (" + porcentajeInt + "%)");
+            }
+        }
+    }
+    
+    private void iniciarTour() {
+        // Cambiar estado a "en_curso" y abrir mapa
+        db.collection("tours_asignados")
+            .document(tourId)
+            .update("estado", "en_curso", "tourStarted", true)
+            .addOnSuccessListener(aVoid -> {
+                Toast.makeText(this, "🚀 Tour iniciado exitosamente", Toast.LENGTH_SHORT).show();
+                
+                Intent intent = new Intent(this, guia_tour_map.class);
+                intent.putExtra("tour_id", tourId);
+                intent.putExtra("tour_name", tourTitulo);
+                intent.putExtra("tour_clients", numeroParticipantes);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                startActivity(intent);
+                finish();
+            })
+            .addOnFailureListener(e -> {
+                Toast.makeText(this, "❌ Error al iniciar tour: " + e.getMessage(), 
+                    Toast.LENGTH_SHORT).show();
+            });
+    }
+    
+    private void finalizarTour() {
+        // Cambiar estado a "finalizado"
+        db.collection("tours_asignados")
+            .document(tourId)
+            .update("estado", "finalizado")
+            .addOnSuccessListener(aVoid -> {
+                Toast.makeText(this, "✅ Tour finalizado exitosamente", Toast.LENGTH_SHORT).show();
+                
+                Intent intent = new Intent(this, guia_assigned_tours.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
+                finish();
+            })
+            .addOnFailureListener(e -> {
+                Toast.makeText(this, "❌ Error al finalizar tour: " + e.getMessage(), 
+                    Toast.LENGTH_SHORT).show();
+            });
+    }
+    
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (snapshotListener != null) {
+            snapshotListener.remove();
+        }
+        if (cameraProvider != null) {
+            cameraProvider.unbindAll();
+        }
+        if (scanner != null) {
+            scanner.close();
+        }
+    }
+    
+    @Override
+    public boolean onSupportNavigateUp() {
+        finish();
+        return true;
+    }
+}

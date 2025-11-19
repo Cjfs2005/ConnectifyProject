@@ -133,4 +133,8 @@
     <!-- Utilitarios extra -->
     <color name="grey_300">#E0E0E0</color>
     <color name="red_600">#E53935</color>
+    
+    <!-- Colores para QR check-in/check-out -->
+    <color name="green_500">#4CAF50</color>
+    <color name="orange_500">#FF9800</color>
 </resources>

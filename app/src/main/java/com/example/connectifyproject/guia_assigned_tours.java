@@ -172,16 +172,20 @@ public class guia_assigned_tours extends AppCompatActivity implements GuiaDateFi
                 // ✅ FILTRAR TOURS COMPLETADOS - No mostrarlos en la lista
                 allAssignedTours.clear();
                 for (TourAsignado tourAsignado : tours) {
-                    // No mostrar tours completados/finalizados en la lista principal
+                    // ✅ AUTO-CANCELAR TOURS SIN INSCRIPCIONES QUE YA PASARON
+                    autoCancelarTourSinInscripcionesVencido(tourAsignado);
+                    
+                    // No mostrar tours completados/finalizados/cancelados en la lista principal
                     if (tourAsignado.getEstado() == null || 
                         (!tourAsignado.getEstado().equalsIgnoreCase("completado") && 
-                         !tourAsignado.getEstado().equalsIgnoreCase("finalizado"))) {
+                         !tourAsignado.getEstado().equalsIgnoreCase("finalizado") &&
+                         !tourAsignado.getEstado().equalsIgnoreCase("cancelado"))) {
                         
                         GuiaAssignedTour guiaAssignedTour = convertToGuiaAssignedTour(tourAsignado);
                         allAssignedTours.add(guiaAssignedTour);
                         Log.d(TAG, "Tour agregado: " + tourAsignado.getTitulo() + " - Estado: " + tourAsignado.getEstado());
                     } else {
-                        Log.d(TAG, "Tour completado omitido: " + tourAsignado.getTitulo() + " - Estado: " + tourAsignado.getEstado());
+                        Log.d(TAG, "Tour completado/cancelado omitido: " + tourAsignado.getTitulo() + " - Estado: " + tourAsignado.getEstado());
                     }
                 }
                 
@@ -691,29 +695,34 @@ public class guia_assigned_tours extends AppCompatActivity implements GuiaDateFi
     
     /**
      * ✅ ABRIR CHECK-IN DEL TOUR PRIORITARIO
+     * El guía ESCANEA los QR individuales de cada cliente
      */
     private void abrirCheckInTour(TourAsignado tour) {
         // Simular notificación de check-in
         simulateCheckInNotification(tour.getTitulo());
         
-        Intent intent = new Intent(this, guia_show_qr_checkin.class);
+        // CORREGIDO: Abrir escáner de QR en vez de mostrar QR del guía
+        Intent intent = new Intent(this, guia_scan_qr_participants.class);
         intent.putExtra("tourId", tour.getId());
         intent.putExtra("tourTitulo", tour.getTitulo());
         intent.putExtra("numeroParticipantes", tour.getNumeroParticipantesTotal());
+        intent.putExtra("scanMode", "check_in");
         startActivity(intent);
     }
     
     /**
-     * ✅ ABRIR CHECK-OUT DEL TOUR PRIORITARIO
+     * 🏁 ESCANEAR QR DE CHECK-OUT
+     * Guía ESCANEA el QR de cada cliente al finalizar el tour
      */
     private void abrirCheckOutTour(TourAsignado tour) {
         // Simular notificación de check-out
         simulateCheckOutNotification(tour.getTitulo());
         
-        Intent intent = new Intent(this, guia_show_qr_checkout.class);
+        Intent intent = new Intent(this, guia_scan_qr_participants.class);
         intent.putExtra("tourId", tour.getId());
         intent.putExtra("tourTitulo", tour.getTitulo());
         intent.putExtra("numeroParticipantes", tour.getNumeroParticipantesTotal());
+        intent.putExtra("scanMode", "check_out"); // ✅ Modo check-out
         startActivity(intent);
     }
     
@@ -813,6 +822,74 @@ public class guia_assigned_tours extends AppCompatActivity implements GuiaDateFi
                 });
             }
         });
+    }
+    
+    /**
+     * 🚫 AUTO-CANCELAR TOURS SIN INSCRIPCIONES QUE YA PASARON
+     * Verifica si un tour tiene 0 participantes y ya pasó su fecha/hora de finalización
+     * Si ambas condiciones se cumplen, cambia automáticamente el estado a "cancelado"
+     */
+    private void autoCancelarTourSinInscripcionesVencido(TourAsignado tour) {
+        try {
+            // Verificar si ya está cancelado
+            if ("cancelado".equalsIgnoreCase(tour.getEstado())) {
+                return;
+            }
+            
+            // Verificar número de participantes
+            int numParticipantes = 0;
+            if (tour.getParticipantes() != null) {
+                numParticipantes = tour.getParticipantes().size();
+            }
+            if (tour.getNumeroParticipantesTotal() != null && tour.getNumeroParticipantesTotal() > 0) {
+                numParticipantes = tour.getNumeroParticipantesTotal();
+            }
+            
+            // Si tiene participantes, no cancelar
+            if (numParticipantes > 0) {
+                return;
+            }
+            
+            // Verificar si ya pasó la fecha/hora de finalización
+            if (tour.getFechaRealizacion() == null || tour.getHoraFin() == null) {
+                return;
+            }
+            
+            // Convertir fecha y hora de fin a Date
+            SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+            Date fechaTour = tour.getFechaRealizacion().toDate();
+            
+            // Combinar fecha con hora de fin
+            SimpleDateFormat dateTimeFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault());
+            String fechaHoraFinStr = dateFormat.format(fechaTour) + " " + tour.getHoraFin();
+            Date fechaHoraFin = dateTimeFormat.parse(fechaHoraFinStr);
+            
+            // Comparar con fecha/hora actual
+            Date ahora = new Date();
+            
+            if (ahora.after(fechaHoraFin)) {
+                // El tour ya pasó y no tiene inscripciones -> CANCELAR
+                Log.w(TAG, "🚫 Auto-cancelando tour sin inscripciones: " + tour.getTitulo() + " (ID: " + tour.getId() + ")");
+                
+                tourFirebaseService.actualizarEstadoTour(tour.getId(), "cancelado", new TourFirebaseService.OperationCallback() {
+                    @Override
+                    public void onSuccess(String message) {
+                        Log.d(TAG, "✅ Tour cancelado automáticamente: " + tour.getTitulo());
+                    }
+                    
+                    @Override
+                    public void onError(String error) {
+                        Log.e(TAG, "❌ Error al cancelar tour automáticamente: " + error);
+                    }
+                });
+                
+                // Actualizar estado en memoria para no mostrarlo
+                tour.setEstado("cancelado");
+            }
+            
+        } catch (Exception e) {
+            Log.e(TAG, "Error al verificar auto-cancelación: " + e.getMessage(), e);
+        }
     }
     
     /**

@@ -166,31 +166,36 @@ public class cliente_reservas extends AppCompatActivity {
         
         Log.d(TAG, "Cargando reservas para usuario: " + currentUserId);
         
-        // Obtener todos los tours asignados (confirmados)
+        // Obtener todos los tours donde el cliente esté inscrito
+        // No filtrar por estado específico - mostrar todos (pendiente, check_in, en_curso, etc.)
         db.collection("tours_asignados")
-                .whereEqualTo("estado", "confirmado")
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     allReservas.clear();
-                    Log.d(TAG, "Total tours confirmados encontrados: " + queryDocumentSnapshots.size());
+                    Log.d(TAG, "Total tours encontrados: " + queryDocumentSnapshots.size());
                     
                     for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
                         // Obtener array de participantes
                         List<Map<String, Object>> participantes = (List<Map<String, Object>>) doc.get("participantes");
                         
-                        if (participantes != null) {
+                        if (participantes != null && !participantes.isEmpty()) {
                             // Buscar si el usuario actual está en los participantes
                             for (Map<String, Object> participante : participantes) {
-                                String usuarioId = (String) participante.get("usuarioId");
+                                // ✅ CORRECCIÓN: Buscar por "clienteId" (no "usuarioId")
+                                String clienteId = (String) participante.get("clienteId");
                                 
-                                if (currentUserId.equals(usuarioId)) {
+                                if (currentUserId.equals(clienteId)) {
                                     // Este usuario tiene una reserva en este tour
-                                    Log.d(TAG, "Reserva encontrada en tour: " + doc.getId());
+                                    String estado = doc.getString("estado");
+                                    Log.d(TAG, "Reserva encontrada en tour: " + doc.getId() + " (estado: " + estado + ")");
                                     
-                                    // Crear objeto Cliente_Reserva con datos reales
-                                    Cliente_Reserva reserva = crearReservaDesdeFirebase(doc, participante);
-                                    if (reserva != null) {
-                                        allReservas.add(reserva);
+                                    // No mostrar tours cancelados o completados hace más de 30 días
+                                    if (!"cancelado".equalsIgnoreCase(estado)) {
+                                        // Crear objeto Cliente_Reserva con datos reales
+                                        Cliente_Reserva reserva = crearReservaDesdeFirebase(doc, participante);
+                                        if (reserva != null) {
+                                            allReservas.add(reserva);
+                                        }
                                     }
                                     break; // Solo necesitamos procesar este participante una vez
                                 }
@@ -210,6 +215,7 @@ public class cliente_reservas extends AppCompatActivity {
             String tourId = tourDoc.getId();
             String titulo = tourDoc.getString("titulo");
             String empresaNombre = tourDoc.getString("nombreEmpresa"); // Campo correcto en Firebase
+            String empresaId = tourDoc.getString("empresaId"); // ID de la empresa para chat e info
             String ubicacion = tourDoc.getString("ubicacion");
             String descripcion = tourDoc.getString("descripcion");
             
@@ -229,12 +235,19 @@ public class cliente_reservas extends AppCompatActivity {
             String horaInicio = tourDoc.getString("horaInicio");
             String horaFin = tourDoc.getString("horaFin");
             
-            // Datos del participante
-            Integer numeroPersonas = participanteData.get("numeroPersonas") != null ? 
-                    ((Long) participanteData.get("numeroPersonas")).intValue() : 1;
+            // Datos del participante (pueden no existir si solo se inscribió sin pagar)
+            Integer numeroPersonas = 1; // Por defecto 1 persona
+            if (participanteData.get("numeroPersonas") != null) {
+                Object numPersonasObj = participanteData.get("numeroPersonas");
+                if (numPersonasObj instanceof Long) {
+                    numeroPersonas = ((Long) numPersonasObj).intValue();
+                } else if (numPersonasObj instanceof Integer) {
+                    numeroPersonas = (Integer) numPersonasObj;
+                }
+            }
             
-            // montoTotal viene como String "S/330.00", necesitamos parsearlo
-            Double montoTotal = 0.0;
+            // montoTotal puede venir como String "S/330.00" o no existir
+            Double montoTotal = precioPorPersona * numeroPersonas; // Valor por defecto
             Object montoObj = participanteData.get("montoTotal");
             if (montoObj instanceof String) {
                 String montoStr = (String) montoObj;
@@ -244,15 +257,12 @@ public class cliente_reservas extends AppCompatActivity {
                     montoTotal = Double.parseDouble(montoStr);
                 } catch (NumberFormatException e) {
                     Log.e(TAG, "Error parseando montoTotal: " + montoStr, e);
-                    montoTotal = precioPorPersona * numeroPersonas; // Calcular como fallback
                 }
             } else if (montoObj instanceof Double) {
                 montoTotal = (Double) montoObj;
             } else if (montoObj instanceof Long) {
                 montoTotal = ((Long) montoObj).doubleValue();
             }
-            
-            String metodoPagoId = (String) participanteData.get("metodoPagoId");
             
             // Formatear fecha
             String fechaFormateada = "";
@@ -284,6 +294,9 @@ public class cliente_reservas extends AppCompatActivity {
                     ubicacion != null ? ubicacion : "",
                     descripcion != null ? descripcion : ""
             );
+            
+            // Asignar empresaId para que esté disponible en detalle
+            tour.setEmpresaId(empresaId);
             
             // Crear objeto Cliente_Reserva
             Cliente_Reserva reserva = new Cliente_Reserva();

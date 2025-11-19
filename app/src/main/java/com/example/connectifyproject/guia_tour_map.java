@@ -51,6 +51,10 @@ public class guia_tour_map extends AppCompatActivity implements OnMapReadyCallba
     private boolean isTourOngoing = false;
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
     private static final int BACKGROUND_LOCATION_PERMISSION_REQUEST_CODE = 2;
+    private static final float PROXIMITY_RADIUS_METERS = 50.0f; // Radio aceptable: 50 metros
+    
+    // Cliente para obtener ubicación en tiempo real
+    private com.google.android.gms.location.FusedLocationProviderClient fusedLocationClient;
     
     // 🚀 FIREBASE SERVICE PARA MANEJAR ESTADOS
     private com.example.connectifyproject.services.TourFirebaseService tourFirebaseService;
@@ -94,6 +98,9 @@ public class guia_tour_map extends AppCompatActivity implements OnMapReadyCallba
         // 🔧 INICIALIZAR FIREBASE SERVICE
         tourFirebaseService = new com.example.connectifyproject.services.TourFirebaseService();
         
+        // 📍 INICIALIZAR CLIENTE DE UBICACIÓN
+        fusedLocationClient = com.google.android.gms.location.LocationServices.getFusedLocationProviderClient(this);
+        
         // 📋 OBTENER DATOS DEL TOUR DESDE INTENT
         tourId = getIntent().getStringExtra("tour_id");
         tourName = getIntent().getStringExtra("tour_name");
@@ -101,7 +108,8 @@ public class guia_tour_map extends AppCompatActivity implements OnMapReadyCallba
         ArrayList<String> itinerario = getIntent().getStringArrayListExtra("tour_itinerario");
         int clients = getIntent().getIntExtra("tour_clients", 0);
 
-        isTourOngoing = "En Curso".equals(tourStatus);
+        // 🔄 RECUPERAR ESTADO PERSISTENTE DESDE FIREBASE
+        recuperarEstadoTour();
 
         binding.tourName.setText(tourName);
         
@@ -202,6 +210,9 @@ public class guia_tour_map extends AppCompatActivity implements OnMapReadyCallba
         super.onResume();
         LocalBroadcastManager.getInstance(this).registerReceiver(locationReceiver, new IntentFilter("LOCATION_UPDATE"));
         LocalBroadcastManager.getInstance(this).registerReceiver(arrivedReceiver, new IntentFilter("ARRIVED_POINT"));
+        
+        // 🔄 RECUPERAR ESTADO AL VOLVER A LA PANTALLA
+        recuperarEstadoTour();
     }
 
     @Override
@@ -217,7 +228,8 @@ public class guia_tour_map extends AppCompatActivity implements OnMapReadyCallba
             binding.preTourLayout.setVisibility(View.VISIBLE);
             binding.ongoingTourLayout.setVisibility(View.GONE);
             binding.postTourLayout.setVisibility(View.GONE);
-            binding.clientsCheckIn.setText("Clientes que realizaron el Check-in: 4/12"); // Simulated
+            // CORREGIDO: Cargar contador real desde Firebase
+            cargarContadorCheckIn();
             binding.importantNotePre.setText("¡Importante!\nAntes de iniciar el tour, es necesario escanear el código QR que todos los pasajeros te mostrarán en su dispositivo. Este paso confirma que este ha presentado al tour. Se valida nuevamente al cierre del viaje.");
         } else {
             // Ongoing
@@ -233,13 +245,14 @@ public class guia_tour_map extends AppCompatActivity implements OnMapReadyCallba
         if (currentPointIndex < itineraryNames.size()) {
             binding.currentEvent.setText("Evento Actual del Tour: " + itineraryNames.get(currentPointIndex));
             binding.nextStop.setText("Próxima parada: " + (currentPointIndex + 1 < itineraryNames.size() ? itineraryNames.get(currentPointIndex + 1) : "Fin del tour") + " - 09:30 am");
+            
+            // Mostrar progreso de puntos visitados
+            binding.clientsRegistered.setText(String.format("Puntos visitados: %d/%d", currentPointIndex, itineraryNames.size()));
         } else {
-            binding.currentEvent.setText("Tour completado");
-            binding.nextStop.setText("");
-            binding.ongoingTourLayout.setVisibility(View.GONE);
-            binding.postTourLayout.setVisibility(View.VISIBLE);
-            binding.clientsCheckOut.setText("Clientes que realizaron el Check-out: 4/12"); // Simulated
-            binding.importantNotePost.setText("¡Importante!\nAntes de finalizar el tour, es necesario escanear el código QR-Fin que todos los pasajeros te mostrarán en su dispositivo. Este paso confirma que este ha realizado el tour.");
+            // Todos los puntos completados
+            binding.currentEvent.setText("✅ Todos los puntos del itinerario completados");
+            binding.nextStop.setText("🏁 Ahora puedes finalizar el tour");
+            binding.clientsRegistered.setText(String.format("Puntos visitados: %d/%d (✅ Completo)", itineraryNames.size(), itineraryNames.size()));
         }
     }
 
@@ -332,14 +345,78 @@ public class guia_tour_map extends AppCompatActivity implements OnMapReadyCallba
         updateOngoingUI();
     }
 
+    /**
+     * 📍 REGISTRAR POSICIÓN DEL GUÍA
+     * Obtiene ubicación GPS actual, verifica permisos y valida proximidad al punto del itinerario
+     */
     private void registerPosition() {
-        if (currentLocation != null) {
-            Toast.makeText(this, "Posición registrada: Lat " + String.format("%.6f", currentLocation.latitude) +
-                    ", Lng " + String.format("%.6f", currentLocation.longitude), Toast.LENGTH_LONG).show();
-            checkProximityToNextPoint();
-        } else {
-            Toast.makeText(this, "Obteniendo posición... Asegúrate de tener GPS activado.", Toast.LENGTH_SHORT).show();
+        // 1. Verificar permisos de ubicación
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            Toast.makeText(this, "⚠️ Permisos de ubicación no concedidos. Solicitando...", Toast.LENGTH_SHORT).show();
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
+            return;
         }
+        
+        // 2. Verificar que hay puntos en el itinerario
+        if (itineraryPoints.isEmpty()) {
+            Toast.makeText(this, "❌ No hay puntos en el itinerario para validar.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
+        // 3. Verificar que no hemos completado todos los puntos
+        if (currentPointIndex >= itineraryPoints.size()) {
+            Toast.makeText(this, "✅ Ya completaste todos los puntos del itinerario.", Toast.LENGTH_LONG).show();
+            return;
+        }
+        
+        Toast.makeText(this, "📍 Obteniendo ubicación GPS...", Toast.LENGTH_SHORT).show();
+        
+        // 4. Obtener ubicación actual en tiempo real
+        fusedLocationClient.getLastLocation()
+            .addOnSuccessListener(this, location -> {
+                if (location != null) {
+                    // Actualizar ubicación actual
+                    currentLocation = new LatLng(location.getLatitude(), location.getLongitude());
+                    updateCurrentLocationMarker();
+                    
+                    // Validar proximidad al siguiente punto
+                    LatLng nextPoint = itineraryPoints.get(currentPointIndex);
+                    String nextPointName = itineraryNames.get(currentPointIndex);
+                    
+                    float[] distance = new float[1];
+                    Location.distanceBetween(
+                        currentLocation.latitude, currentLocation.longitude,
+                        nextPoint.latitude, nextPoint.longitude,
+                        distance
+                    );
+                    
+                    float distanceMeters = distance[0];
+                    
+                    if (distanceMeters <= PROXIMITY_RADIUS_METERS) {
+                        // ✅ DENTRO DEL RADIO - Registrar posición exitosa
+                        Toast.makeText(this, 
+                            String.format("✅ Posición registrada en %s\n📏 Distancia: %.1f metros", 
+                                nextPointName, distanceMeters), 
+                            Toast.LENGTH_LONG).show();
+                        
+                        // Marcar punto como visitado y avanzar al siguiente
+                        currentPointIndex++;
+                        updateOngoingUI();
+                    } else {
+                        // ❌ FUERA DEL RADIO - Mostrar distancia
+                        Toast.makeText(this, 
+                            String.format("⚠️ Estás a %.1f metros de %s\n🎯 Debes estar a menos de %.0f metros", 
+                                distanceMeters, nextPointName, PROXIMITY_RADIUS_METERS), 
+                            Toast.LENGTH_LONG).show();
+                    }
+                } else {
+                    // No se pudo obtener ubicación
+                    Toast.makeText(this, "❌ No se pudo obtener la ubicación.\n🔧 Verifica que el GPS esté activado.", Toast.LENGTH_LONG).show();
+                }
+            })
+            .addOnFailureListener(e -> {
+                Toast.makeText(this, "❌ Error obteniendo ubicación: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            });
     }
 
     private void startTour() {
@@ -385,13 +462,32 @@ public class guia_tour_map extends AppCompatActivity implements OnMapReadyCallba
     }
 
     private void scanQrStart() {
-        startActivity(new Intent(this, guia_check_in.class));
-        Toast.makeText(this, "Escaneando QR-Inicio", Toast.LENGTH_SHORT).show();
+        // CORREGIDO: Guía ESCANEA QR de cada cliente
+        Intent intent = new Intent(this, guia_scan_qr_participants.class);
+        intent.putExtra("tourId", tourId);
+        intent.putExtra("tourTitulo", tourName);
+        int clients = getIntent().getIntExtra("tour_clients", 0);
+        intent.putExtra("numeroParticipantes", clients);
+        intent.putExtra("scanMode", "check_in");
+        startActivity(intent);
     }
 
+    /**
+     * 🏁 FINALIZAR TOUR
+     * Solo permite finalizar si todos los puntos del itinerario fueron visitados
+     */
     private void endTour() {
         if (tourId == null || tourId.isEmpty()) {
             Toast.makeText(this, "❌ Error: ID de tour no disponible", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
+        // ✅ VALIDAR QUE TODOS LOS PUNTOS FUERON COMPLETADOS
+        if (currentPointIndex < itineraryPoints.size()) {
+            int puntosRestantes = itineraryPoints.size() - currentPointIndex;
+            Toast.makeText(this, 
+                String.format("⚠️ No puedes finalizar aún.\n📏 Faltan %d punto(s) por visitar.\n📍 Usa 'Registrar Posición' en cada punto.", puntosRestantes),
+                Toast.LENGTH_LONG).show();
             return;
         }
         
@@ -402,7 +498,7 @@ public class guia_tour_map extends AppCompatActivity implements OnMapReadyCallba
         
         // Deshabilitar botón para evitar clicks múltiples
         binding.endTourButton.setEnabled(false);
-        binding.endTourButton.setText("Terminando...");
+        binding.endTourButton.setText("Habilitando Check-out...");
         
         // Habilitar check-out (en_curso → check_out)
         tourFirebaseService.habilitarCheckOut(tourId, new com.example.connectifyproject.services.TourFirebaseService.OperationCallback() {
@@ -410,11 +506,18 @@ public class guia_tour_map extends AppCompatActivity implements OnMapReadyCallba
             public void onSuccess(String message) {
                 runOnUiThread(() -> {
                     Toast.makeText(guia_tour_map.this, 
-                        "🏁 Tour terminado. Check-out habilitado.", Toast.LENGTH_LONG).show();
+                        "✅ Check-out habilitado.\n📱 Ahora escanea el QR de cada cliente.", Toast.LENGTH_LONG).show();
                     
                     // Detener servicio de ubicación
                     Intent serviceIntent = new Intent(guia_tour_map.this, com.example.connectifyproject.service.GuiaLocationService.class);
                     stopService(serviceIntent);
+                    
+                    // Mostrar layout de post-tour para escanear QR de check-out
+                    isTourOngoing = false;
+                    binding.ongoingTourLayout.setVisibility(View.GONE);
+                    binding.postTourLayout.setVisibility(View.VISIBLE);
+                    cargarContadorCheckOut();
+                    binding.importantNotePost.setText("¡Importante!\nAhora debes escanear el código QR de Check-out de cada cliente. Presiona 'Escanear QR Fin' para comenzar.");
                     
                     // Regresar a tours asignados
                     Intent intent = new Intent(guia_tour_map.this, guia_assigned_tours.class);
@@ -428,9 +531,9 @@ public class guia_tour_map extends AppCompatActivity implements OnMapReadyCallba
             public void onError(String error) {
                 runOnUiThread(() -> {
                     Toast.makeText(guia_tour_map.this, 
-                        "❌ Error: " + error, Toast.LENGTH_LONG).show();
+                        "❌ Error al habilitar check-out: " + error, Toast.LENGTH_LONG).show();
                     
-                    // Restaurar botón
+                    // Re-habilitar botón
                     binding.endTourButton.setEnabled(true);
                     binding.endTourButton.setText("Finalizar Tour");
                 });
@@ -439,10 +542,127 @@ public class guia_tour_map extends AppCompatActivity implements OnMapReadyCallba
     }
 
     private void scanQrEnd() {
-        startActivity(new Intent(this, guia_check_out.class));
-        Toast.makeText(this, "Escaneando QR-Fin", Toast.LENGTH_SHORT).show();
+        // CORREGIDO: Guía ESCANEA QR de cada cliente al finalizar
+        Intent intent = new Intent(this, guia_scan_qr_participants.class);
+        intent.putExtra("tourId", tourId);
+        intent.putExtra("tourTitulo", tourName);
+        int clients = getIntent().getIntExtra("tour_clients", 0);
+        intent.putExtra("numeroParticipantes", clients);
+        intent.putExtra("scanMode", "check_out");
+        startActivity(intent);
     }
 
+    /**
+     * 🔄 RECUPERAR ESTADO DEL TOUR DESDE FIREBASE
+     * Para mantener consistencia al salir y volver a entrar
+     */
+    private void recuperarEstadoTour() {
+        if (tourId == null || tourId.isEmpty()) return;
+        
+        com.google.firebase.firestore.FirebaseFirestore.getInstance()
+            .collection("tours_asignados")
+            .document(tourId)
+            .get()
+            .addOnSuccessListener(documentSnapshot -> {
+                if (documentSnapshot.exists()) {
+                    Boolean tourStarted = documentSnapshot.getBoolean("tourStarted");
+                    String estado = documentSnapshot.getString("estado");
+                    
+                    if (tourStarted != null && tourStarted) {
+                        // El tour ya fue iniciado
+                        isTourOngoing = true;
+                        
+                        // Recuperar progreso del itinerario
+                        Long progressIndex = documentSnapshot.getLong("currentPointIndex");
+                        if (progressIndex != null) {
+                            currentPointIndex = progressIndex.intValue();
+                        }
+                    }
+                    
+                    // Actualizar UI según estado
+                    if ("en_curso".equals(estado)) {
+                        binding.preTourLayout.setVisibility(View.GONE);
+                        binding.ongoingTourLayout.setVisibility(View.VISIBLE);
+                        binding.postTourLayout.setVisibility(View.GONE);
+                        updateOngoingUI();
+                    }
+                }
+            })
+            .addOnFailureListener(e -> {
+                android.util.Log.e("GuiaTourMap", "Error al recuperar estado", e);
+            });
+    }
+    
+    /**
+     * 📊 CARGAR CONTADOR REAL DE CHECK-IN DESDE FIREBASE
+     */
+    private void cargarContadorCheckIn() {
+        if (tourId == null || tourId.isEmpty()) return;
+        
+        com.google.firebase.firestore.FirebaseFirestore.getInstance()
+            .collection("tours_asignados")
+            .document(tourId)
+            .get()
+            .addOnSuccessListener(documentSnapshot -> {
+                if (documentSnapshot.exists()) {
+                    List<java.util.Map<String, Object>> participantes = 
+                        (List<java.util.Map<String, Object>>) documentSnapshot.get("participantes");
+                    
+                    if (participantes != null) {
+                        int checkInsRealizados = 0;
+                        for (java.util.Map<String, Object> participante : participantes) {
+                            Boolean checkIn = (Boolean) participante.get("checkIn");
+                            if (checkIn != null && checkIn) {
+                                checkInsRealizados++;
+                            }
+                        }
+                        
+                        int total = participantes.size();
+                        binding.clientsCheckIn.setText("Clientes que realizaron el Check-in: " + 
+                            checkInsRealizados + "/" + total);
+                    }
+                }
+            })
+            .addOnFailureListener(e -> {
+                binding.clientsCheckIn.setText("Clientes que realizaron el Check-in: 0/0");
+            });
+    }
+    
+    /**
+     * 📊 CARGAR CONTADOR REAL DE CHECK-OUT DESDE FIREBASE
+     */
+    private void cargarContadorCheckOut() {
+        if (tourId == null || tourId.isEmpty()) return;
+        
+        com.google.firebase.firestore.FirebaseFirestore.getInstance()
+            .collection("tours_asignados")
+            .document(tourId)
+            .get()
+            .addOnSuccessListener(documentSnapshot -> {
+                if (documentSnapshot.exists()) {
+                    List<java.util.Map<String, Object>> participantes = 
+                        (List<java.util.Map<String, Object>>) documentSnapshot.get("participantes");
+                    
+                    if (participantes != null) {
+                        int checkOutsRealizados = 0;
+                        for (java.util.Map<String, Object> participante : participantes) {
+                            Boolean checkOut = (Boolean) participante.get("checkOut");
+                            if (checkOut != null && checkOut) {
+                                checkOutsRealizados++;
+                            }
+                        }
+                        
+                        int total = participantes.size();
+                        binding.clientsCheckOut.setText("Clientes que realizaron el Check-out: " + 
+                            checkOutsRealizados + "/" + total);
+                    }
+                }
+            })
+            .addOnFailureListener(e -> {
+                binding.clientsCheckOut.setText("Clientes que realizaron el Check-out: 0/0");
+            });
+    }
+    
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         if (item.getItemId() == android.R.id.home) {

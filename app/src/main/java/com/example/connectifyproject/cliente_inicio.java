@@ -34,13 +34,8 @@ public class cliente_inicio extends AppCompatActivity {
     
     private static final String TAG = "ClienteInicio";
     
-    // Datos hardcodeados del tour activo (será reemplazado con Firebase)
-    private static final String TOUR_TITLE = "Tour histórico por Lima";
-    private static final String TOUR_COMPANY = "Lima Tours";
-    private static final String TOUR_DURATION = "Duración: 5 hrs 30 min. Fecha: 23/09/2025.";
-    private static final int TOUR_PROGRESS = 10; // 10% completado - Estado inicial
-    
     private FirebaseFirestore db;
+    private String tourActivoId = null; // ID del tour activo del cliente
     
     // Views
     private TextView tvTourTitle;
@@ -54,6 +49,8 @@ public class cliente_inicio extends AppCompatActivity {
     private View circleFin;
     private View progressLineActive;
     private MaterialCardView cardTourActivo;
+    private MaterialCardView cardQr;
+    private android.widget.ImageView ivQrCode;
     private ImageButton btnNotifications;
     private BottomNavigationView bottomNavigation;
     private RecyclerView rvToursRecientes;
@@ -112,23 +109,8 @@ public class cliente_inicio extends AppCompatActivity {
     }
     
     private void setupTourData() {
-        // Cargar datos hardcodeados del tour
-        tvTourTitle.setText(TOUR_TITLE);
-        tvTourCompany.setText(TOUR_COMPANY);
-        tvTourDuration.setText(TOUR_DURATION);
-        
-        // Configurar el estado del progreso (simulando que está "En curso")
-        setupProgressState();
-    }
-    
-    private void setupProgressState() {
-        // Estado actual: Inicio (solo el círculo "Inicio" está activo, sin línea de progreso)
-        tvInicio.setTextColor(getResources().getColor(R.color.cliente_progress_active, null));
-        tvEnCurso.setTextColor(getResources().getColor(R.color.cliente_progress_inactive, null));
-        tvFin.setTextColor(getResources().getColor(R.color.cliente_progress_inactive, null));
-        
-        // En estado inicial: solo círculo activo, sin línea de progreso
-        // La línea activa está oculta (android:visibility="gone" en XML)
+        // Cargar tour activo del cliente desde Firebase
+        cargarTourActivoDelCliente();
     }
     
     private void setupRecyclerViews() {
@@ -229,8 +211,8 @@ public class cliente_inicio extends AppCompatActivity {
     private void setupClickListeners() {
         // Hacer clickeable todo el card del tour activo
         cardTourActivo.setOnClickListener(v -> {
-            // TODO: Redirigir a detalles del tour activo
-            Toast.makeText(this, "Próximamente: Detalles del tour", Toast.LENGTH_SHORT).show();
+            // Abrir pantalla de QR para check-in o check-out
+            mostrarQRTourActivo();
         });
         
         btnNotifications.setOnClickListener(v -> {
@@ -238,6 +220,23 @@ public class cliente_inicio extends AppCompatActivity {
             intent.putExtra("origin_activity", "cliente_inicio");
             startActivity(intent);
         });
+    }
+    
+    /**
+     * 🔲 MOSTRAR QR DEL TOUR ACTIVO
+     * Abre cliente_show_qr con los datos del tour activo
+     */
+    private void mostrarQRTourActivo() {
+        if (tourActivoId == null) {
+            Toast.makeText(this, "No hay tour activo", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
+        Intent intent = new Intent(this, cliente_show_qr.class);
+        intent.putExtra("tourId", tourActivoId);
+        intent.putExtra("tipoQR", "check_in"); // Por defecto check_in, el guía decidirá
+        intent.putExtra("tourTitulo", tvTourTitle.getText().toString());
+        startActivity(intent);
     }
     
     // ========== MÉTODOS PARA GENERAR DATOS DE PRUEBA ==========
@@ -331,6 +330,25 @@ public class cliente_inicio extends AppCompatActivity {
                 return;
             }
             
+            // Filtrar tours donde el cliente ya está inscrito
+            com.google.firebase.auth.FirebaseUser currentUser = 
+                com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser();
+            if (currentUser != null) {
+                List<Map<String, Object>> participantes = 
+                    (List<Map<String, Object>>) doc.get("participantes");
+                if (participantes != null) {
+                    String clienteId = currentUser.getUid();
+                    for (Map<String, Object> participante : participantes) {
+                        String participanteId = (String) participante.get("clienteId");
+                        if (clienteId.equals(participanteId)) {
+                            // Cliente ya inscrito, no mostrar este tour
+                            Log.d(TAG, "⏭️ Tour " + doc.getId() + " omitido (cliente ya inscrito)");
+                            return;
+                        }
+                    }
+                }
+            }
+            
             Cliente_Tour tour = new Cliente_Tour();
             tour.setId(doc.getId());
             tour.setTitle(doc.getString("titulo"));
@@ -382,17 +400,22 @@ public class cliente_inicio extends AppCompatActivity {
     private boolean isTourAvailable(Timestamp fechaRealizacion) {
         if (fechaRealizacion == null) return false;
         
-        Calendar today = Calendar.getInstance();
-        today.set(Calendar.HOUR_OF_DAY, 0);
-        today.set(Calendar.MINUTE, 0);
-        today.set(Calendar.SECOND, 0);
-        today.set(Calendar.MILLISECOND, 0);
+        // Obtener fecha/hora actual
+        Calendar now = Calendar.getInstance();
+        Date currentDateTime = now.getTime();
         
-        Calendar minDate = (Calendar) today.clone();
-        minDate.add(Calendar.DAY_OF_MONTH, 1);
-        
+        // La fecha del tour (solo fecha, sin hora)
         Date tourDate = fechaRealizacion.toDate();
-        return tourDate.compareTo(minDate.getTime()) >= 0;
+        
+        // Permitir tours de HOY y futuros (no mostrar tours ya pasados)
+        Calendar tourDateOnly = Calendar.getInstance();
+        tourDateOnly.setTime(tourDate);
+        tourDateOnly.set(Calendar.HOUR_OF_DAY, 23);
+        tourDateOnly.set(Calendar.MINUTE, 59);
+        tourDateOnly.set(Calendar.SECOND, 59);
+        
+        // Mostrar si la fecha del tour es HOY o futura
+        return tourDateOnly.getTime().compareTo(currentDateTime) >= 0;
     }
     
     private void loadTourImage(Cliente_Tour tour) {
@@ -464,6 +487,232 @@ public class cliente_inicio extends AppCompatActivity {
         }
         
         Log.d(TAG, "📊 RecyclerViews actualizados - Recientes: " + toursRecientes.size() + ", Cercanos: " + toursCercanos.size());
+    }
+    
+    /**
+     * 🔍 CARGAR TOUR ACTIVO DEL CLIENTE DESDE FIREBASE
+     * Busca tours donde el cliente esté inscrito y el estado sea 'check_in' o 'en_curso'
+     */
+    private void cargarTourActivoDelCliente() {
+        com.google.firebase.auth.FirebaseUser currentUser = 
+            com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser();
+        
+        if (currentUser == null) {
+            Log.d(TAG, "⚠️ Usuario no autenticado, ocultando card de tour activo");
+            cardTourActivo.setVisibility(View.GONE);
+            if (cardQr != null) cardQr.setVisibility(View.GONE);
+            return;
+        }
+        
+        String clienteId = currentUser.getUid();
+        Log.d(TAG, "🔍 Buscando tour activo para cliente: " + clienteId);
+        
+        // Buscar en tours_asignados donde participantes[] contenga al clienteId
+        // y el estado sea 'check_in' o 'en_curso'
+        db.collection("tours_asignados")
+                .whereIn("estado", java.util.Arrays.asList("check_in", "en_curso"))
+                .addSnapshotListener((snapshots, error) -> {
+                    if (error != null) {
+                        Log.e(TAG, "❌ Error al cargar tour activo", error);
+                        cardTourActivo.setVisibility(View.GONE);
+                        return;
+                    }
+                    
+                    if (snapshots == null || snapshots.isEmpty()) {
+                        Log.d(TAG, "ℹ️ No hay tours activos, ocultando card");
+                        cardTourActivo.setVisibility(View.GONE);
+                        if (cardQr != null) cardQr.setVisibility(View.GONE);
+                        return;
+                    }
+                    
+                    // Buscar tour donde el cliente esté en participantes[]
+                    boolean tourEncontrado = false;
+                    for (com.google.firebase.firestore.DocumentSnapshot doc : snapshots.getDocuments()) {
+                        java.util.List<java.util.Map<String, Object>> participantes = 
+                            (java.util.List<java.util.Map<String, Object>>) doc.get("participantes");
+                        
+                        if (participantes != null) {
+                            for (java.util.Map<String, Object> participante : participantes) {
+                                String participanteId = (String) participante.get("clienteId");
+                                if (clienteId.equals(participanteId)) {
+                                    // ¡Encontrado! Mostrar este tour
+                                    tourActivoId = doc.getId();
+                                    mostrarTourActivo(doc);
+                                    tourEncontrado = true;
+                                    break;
+                                }
+                            }
+                        }
+                        
+                        if (tourEncontrado) break;
+                    }
+                    
+                    if (!tourEncontrado) {
+                        Log.d(TAG, "ℹ️ Cliente no está inscrito en ningún tour activo");
+                        cardTourActivo.setVisibility(View.GONE);
+                        if (cardQr != null) cardQr.setVisibility(View.GONE);
+                    }
+                });
+    }
+    
+    /**
+     * 📍 MOSTRAR TOUR ACTIVO CON DATOS REALES
+     * Actualiza la UI con los datos del tour desde Firebase
+     */
+    private void mostrarTourActivo(com.google.firebase.firestore.DocumentSnapshot doc) {
+        try {
+            cardTourActivo.setVisibility(View.VISIBLE);
+            
+            // Extraer datos del tour
+            String titulo = doc.getString("titulo");
+            String nombreEmpresa = doc.getString("nombreEmpresa");
+            String duracion = doc.getString("duracion");
+            String horaInicio = doc.getString("horaInicio");
+            String horaFin = doc.getString("horaFin");
+            String estado = doc.getString("estado");
+            
+            com.google.firebase.Timestamp fechaRealizacion = doc.getTimestamp("fechaRealizacion");
+            
+            // Generar y mostrar QR dinámico para este tour
+            generarYMostrarQR(doc.getId());
+            
+            // Actualizar textos
+            if (titulo != null) {
+                tvTourTitle.setText(titulo);
+            }
+            
+            if (nombreEmpresa != null) {
+                tvTourCompany.setText(nombreEmpresa);
+            }
+            
+            // Formatear duración y fecha
+            if (fechaRealizacion != null && duracion != null) {
+                SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+                String fechaStr = sdf.format(fechaRealizacion.toDate());
+                tvTourDuration.setText("Duración: " + duracion + " hrs. Fecha: " + fechaStr);
+            }
+            
+            // Actualizar estado del progreso según el estado del tour
+            actualizarEstadoProgreso(estado);
+            
+            Log.d(TAG, "✅ Tour activo mostrado: " + titulo + " (ID: " + doc.getId() + ", Estado: " + estado + ")");
+            
+        } catch (Exception e) {
+            Log.e(TAG, "❌ Error al mostrar tour activo", e);
+            cardTourActivo.setVisibility(View.GONE);
+        }
+    }
+    
+    /**
+     * 🎨 ACTUALIZAR ESTADO DEL PROGRESO VISUAL
+     * Cambia los indicadores visuales según el estado del tour
+     */
+    private void actualizarEstadoProgreso(String estado) {
+        if (estado == null) estado = "check_in";
+        
+        switch (estado.toLowerCase()) {
+            case "check_in":
+            case "check-in disponible":
+                // Inicio activo, resto inactivo
+                tvInicio.setTextColor(getResources().getColor(R.color.cliente_progress_active, null));
+                tvEnCurso.setTextColor(getResources().getColor(R.color.cliente_progress_inactive, null));
+                tvFin.setTextColor(getResources().getColor(R.color.cliente_progress_inactive, null));
+                
+                circleInicio.setBackgroundResource(R.drawable.cliente_progress_circle_active);
+                circleEnCurso.setBackgroundResource(R.drawable.cliente_progress_circle_inactive);
+                circleFin.setBackgroundResource(R.drawable.cliente_progress_circle_inactive);
+                
+                progressLineActive.setVisibility(View.GONE);
+                break;
+                
+            case "en_curso":
+            case "en curso":
+                // Inicio y en curso activos
+                tvInicio.setTextColor(getResources().getColor(R.color.cliente_progress_active, null));
+                tvEnCurso.setTextColor(getResources().getColor(R.color.cliente_progress_active, null));
+                tvFin.setTextColor(getResources().getColor(R.color.cliente_progress_inactive, null));
+                
+                circleInicio.setBackgroundResource(R.drawable.cliente_progress_circle_active);
+                circleEnCurso.setBackgroundResource(R.drawable.cliente_progress_circle_active);
+                circleFin.setBackgroundResource(R.drawable.cliente_progress_circle_inactive);
+                
+                progressLineActive.setVisibility(View.VISIBLE);
+                android.widget.RelativeLayout.LayoutParams params = 
+                    (android.widget.RelativeLayout.LayoutParams) progressLineActive.getLayoutParams();
+                params.width = (int) (cardTourActivo.getWidth() * 0.5); // 50% de ancho
+                progressLineActive.setLayoutParams(params);
+                break;
+                
+            case "check_out":
+            case "check-out disponible":
+            case "completado":
+            case "finalizado":
+                // Todos activos
+                tvInicio.setTextColor(getResources().getColor(R.color.cliente_progress_active, null));
+                tvEnCurso.setTextColor(getResources().getColor(R.color.cliente_progress_active, null));
+                tvFin.setTextColor(getResources().getColor(R.color.cliente_progress_active, null));
+                
+                circleInicio.setBackgroundResource(R.drawable.cliente_progress_circle_active);
+                circleEnCurso.setBackgroundResource(R.drawable.cliente_progress_circle_active);
+                circleFin.setBackgroundResource(R.drawable.cliente_progress_circle_active);
+                
+                progressLineActive.setVisibility(View.VISIBLE);
+                android.widget.RelativeLayout.LayoutParams params2 = 
+                    (android.widget.RelativeLayout.LayoutParams) progressLineActive.getLayoutParams();
+                params2.width = android.widget.RelativeLayout.LayoutParams.MATCH_PARENT;
+                progressLineActive.setLayoutParams(params2);
+                break;
+        }
+    }
+    
+    /**
+     * 🔲 GENERAR Y MOSTRAR QR DINÁMICO
+     * Genera un QR único para el cliente con su tourId y clienteId
+     */
+    private void generarYMostrarQR(String tourId) {
+        try {
+            com.google.firebase.auth.FirebaseUser currentUser = 
+                com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser();
+            
+            if (currentUser == null || tourId == null) {
+                if (cardQr != null) cardQr.setVisibility(View.GONE);
+                return;
+            }
+            
+            String clienteId = currentUser.getUid();
+            String qrData = "TOUR:" + tourId + "|CLIENTE:" + clienteId;
+            
+            // Generar QR usando ZXing
+            com.google.zxing.BarcodeFormat format = com.google.zxing.BarcodeFormat.QR_CODE;
+            com.google.zxing.MultiFormatWriter writer = new com.google.zxing.MultiFormatWriter();
+            com.google.zxing.common.BitMatrix bitMatrix = writer.encode(qrData, format, 512, 512);
+            
+            int width = bitMatrix.getWidth();
+            int height = bitMatrix.getHeight();
+            android.graphics.Bitmap bitmap = android.graphics.Bitmap.createBitmap(width, height, android.graphics.Bitmap.Config.RGB_565);
+            
+            for (int x = 0; x < width; x++) {
+                for (int y = 0; y < height; y++) {
+                    bitmap.setPixel(x, y, bitMatrix.get(x, y) ? 
+                        android.graphics.Color.BLACK : android.graphics.Color.WHITE);
+                }
+            }
+            
+            // Mostrar QR en ImageView
+            if (ivQrCode != null) {
+                ivQrCode.setImageBitmap(bitmap);
+            }
+            
+            if (cardQr != null) {
+                cardQr.setVisibility(View.VISIBLE);
+            }
+            
+            Log.d(TAG, "✅ QR dinámico generado para tour: " + tourId);
+            
+        } catch (Exception e) {
+            Log.e(TAG, "❌ Error generando QR dinámico", e);
+            if (cardQr != null) cardQr.setVisibility(View.GONE);
+        }
     }
 
 }
