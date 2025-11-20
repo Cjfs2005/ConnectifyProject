@@ -34,6 +34,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.firebase.firestore.FieldValue;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -255,6 +256,87 @@ public class guia_tour_map extends AppCompatActivity implements OnMapReadyCallba
             binding.clientsRegistered.setText(String.format("Puntos visitados: %d/%d (✅ Completo)", itineraryNames.size(), itineraryNames.size()));
         }
     }
+    
+    /**
+     * 🔄 GUARDAR POSICIÓN DEL GUÍA EN FIREBASE
+     */
+    private void guardarPosicionEnFirebase(int puntoIndex) {
+        com.google.firebase.firestore.FirebaseFirestore db = com.google.firebase.firestore.FirebaseFirestore.getInstance();
+        
+        // Actualizar el punto específico del itinerario como completado
+        db.collection("tours_asignados")
+            .document(tourId)
+            .get()
+            .addOnSuccessListener(documentSnapshot -> {
+                if (documentSnapshot.exists()) {
+                    java.util.List<java.util.Map<String, Object>> itinerario = 
+                        (java.util.List<java.util.Map<String, Object>>) documentSnapshot.get("itinerario");
+                    
+                    if (itinerario != null && puntoIndex < itinerario.size()) {
+                        // Marcar punto como visitado con campo booleano simple
+                        java.util.Map<String, Object> punto = itinerario.get(puntoIndex);
+                        punto.put("registro_llegada", true);
+                        
+                        // Actualizar itinerario en Firebase
+                        db.collection("tours_asignados")
+                            .document(tourId)
+                            .update("itinerario", itinerario)
+                            .addOnSuccessListener(aVoid -> {
+                                android.util.Log.d("GuiaTourMap", "Posición guardada: punto " + puntoIndex);
+                            })
+                            .addOnFailureListener(e -> {
+                                android.util.Log.e("GuiaTourMap", "Error al guardar posición", e);
+                            });
+                    }
+                }
+            })
+            .addOnFailureListener(e -> {
+                android.util.Log.e("GuiaTourMap", "Error al obtener tour para guardar posición", e);
+            });
+    }
+    
+    /**
+     * 🔄 RECUPERAR ESTADO DEL TOUR AL VOLVER A LA PANTALLA
+     */
+    private void recuperarEstadoTour() {
+        com.google.firebase.firestore.FirebaseFirestore db = com.google.firebase.firestore.FirebaseFirestore.getInstance();
+        
+        db.collection("tours_asignados")
+            .document(tourId)
+            .get()
+            .addOnSuccessListener(documentSnapshot -> {
+                if (documentSnapshot.exists()) {
+                    // Recuperar progreso del itinerario
+                    java.util.List<java.util.Map<String, Object>> itinerario = 
+                        (java.util.List<java.util.Map<String, Object>>) documentSnapshot.get("itinerario");
+                    
+                    if (itinerario != null) {
+                        // Encontrar el último punto visitado
+                        int ultimoPuntoVisitado = -1;
+                        for (int i = 0; i < itinerario.size(); i++) {
+                            java.util.Map<String, Object> punto = itinerario.get(i);
+                            Boolean registroLlegada = (Boolean) punto.get("registro_llegada");
+                            if (registroLlegada != null && registroLlegada) {
+                                ultimoPuntoVisitado = i;
+                            }
+                        }
+                        
+                        // Actualizar posición actual
+                        if (ultimoPuntoVisitado >= 0) {
+                            currentPointIndex = ultimoPuntoVisitado + 1; // Siguiente punto
+                            if (currentPointIndex >= itineraryPoints.size()) {
+                                currentPointIndex = itineraryPoints.size() - 1;
+                            }
+                            updateOngoingUI();
+                            android.util.Log.d("GuiaTourMap", "Estado recuperado: punto actual " + currentPointIndex);
+                        }
+                    }
+                }
+            })
+            .addOnFailureListener(e -> {
+                android.util.Log.e("GuiaTourMap", "Error al recuperar estado del tour", e);
+            });
+    }
 
     @Override
     public void onMapReady(@NonNull GoogleMap googleMap) {
@@ -340,6 +422,10 @@ public class guia_tour_map extends AppCompatActivity implements OnMapReadyCallba
         if (currentPointIndex < markers.size()) {
             markers.get(currentPointIndex).setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE));  // Mark as visited
         }
+        
+        // 🔄 GUARDAR POSICIÓN EN FIREBASE
+        guardarPosicionEnFirebase(currentPointIndex);
+        
         Toast.makeText(this, "¡Llegaste a " + itineraryNames.get(currentPointIndex) + "!", Toast.LENGTH_SHORT).show();
         currentPointIndex++;
         updateOngoingUI();
@@ -552,46 +638,7 @@ public class guia_tour_map extends AppCompatActivity implements OnMapReadyCallba
         startActivity(intent);
     }
 
-    /**
-     * 🔄 RECUPERAR ESTADO DEL TOUR DESDE FIREBASE
-     * Para mantener consistencia al salir y volver a entrar
-     */
-    private void recuperarEstadoTour() {
-        if (tourId == null || tourId.isEmpty()) return;
-        
-        com.google.firebase.firestore.FirebaseFirestore.getInstance()
-            .collection("tours_asignados")
-            .document(tourId)
-            .get()
-            .addOnSuccessListener(documentSnapshot -> {
-                if (documentSnapshot.exists()) {
-                    Boolean tourStarted = documentSnapshot.getBoolean("tourStarted");
-                    String estado = documentSnapshot.getString("estado");
-                    
-                    if (tourStarted != null && tourStarted) {
-                        // El tour ya fue iniciado
-                        isTourOngoing = true;
-                        
-                        // Recuperar progreso del itinerario
-                        Long progressIndex = documentSnapshot.getLong("currentPointIndex");
-                        if (progressIndex != null) {
-                            currentPointIndex = progressIndex.intValue();
-                        }
-                    }
-                    
-                    // Actualizar UI según estado
-                    if ("en_curso".equals(estado)) {
-                        binding.preTourLayout.setVisibility(View.GONE);
-                        binding.ongoingTourLayout.setVisibility(View.VISIBLE);
-                        binding.postTourLayout.setVisibility(View.GONE);
-                        updateOngoingUI();
-                    }
-                }
-            })
-            .addOnFailureListener(e -> {
-                android.util.Log.e("GuiaTourMap", "Error al recuperar estado", e);
-            });
-    }
+
     
     /**
      * 📊 CARGAR CONTADOR REAL DE CHECK-IN DESDE FIREBASE

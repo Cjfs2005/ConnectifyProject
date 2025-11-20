@@ -411,9 +411,9 @@ public class cliente_reserva_detalle extends AppCompatActivity {
                             }
                         }
                         
-                        // Mostrar botón check-out si el estado es "en progreso" o "check_out"
+                        // Mostrar botón check-out si el estado es "en_curso", "check_out" o "en progreso"
                         if (estadoLower.equals("en progreso") || estadoLower.equals("check_out") || 
-                            estadoLower.equals("check-out disponible")) {
+                            estadoLower.equals("en_curso") || estadoLower.equals("check-out disponible")) {
                             if (cardQrCheckout != null) {
                                 cardQrCheckout.setVisibility(View.VISIBLE);
                             }

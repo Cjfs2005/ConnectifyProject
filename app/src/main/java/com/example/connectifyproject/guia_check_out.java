@@ -25,6 +25,7 @@ public class guia_check_out extends AppCompatActivity {
     private TourFirebaseService tourFirebaseService;
     private String tourId;
     private String tourName;
+    private int numeroParticipantes;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,6 +40,7 @@ public class guia_check_out extends AppCompatActivity {
         Intent intent = getIntent();
         tourId = intent.getStringExtra("tour_id");
         tourName = intent.getStringExtra("tour_name");
+        numeroParticipantes = intent.getIntExtra("participants_count", 0); // Corregir el nombre del parámetro
 
         setSupportActionBar(binding.toolbar);
         if (getSupportActionBar() != null) {
@@ -46,19 +48,20 @@ public class guia_check_out extends AppCompatActivity {
             getSupportActionBar().setTitle("Check-out");
         }
 
-        // Hardcoded clients with rating
-        clients = new ArrayList<>();
-        clients.add(new GuiaClient("Ana Bonino", "AFR456", "Realizó Check-out", "23-06-25 02:30 pm", "961928802", true, false, 5));
-        clients.add(new GuiaClient("Ana Bonino", "AFR456", "Check-out pendiente", "", "961928802", false, false, 0));
-        clients.add(new GuiaClient("Ana Bonino", "AFR456", "No asistió", "", "961928802", false, true, 0));
+        // Verificar datos del tour
+        if (tourId == null || tourId.isEmpty()) {
+            Toast.makeText(this, "Error: ID de tour no válido", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+
+        // Cargar participantes del tour desde Firebase
+        cargarParticipantesTour();
 
         binding.recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new GuiaClientAdapter(this, clients);
-        binding.recyclerView.setAdapter(adapter);
-
+        
         binding.confirmButton.setOnClickListener(v -> {
-            Toast.makeText(this, "Check-out confirmado (simulado)", Toast.LENGTH_SHORT).show();
-            finish();
+            iniciarEscaneoCheckOut();
         });
 
         // Add Terminar Tour button
@@ -118,5 +121,38 @@ public class guia_check_out extends AppCompatActivity {
         } else {
             Toast.makeText(this, "Error: No se encontró ID del tour", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    private void cargarParticipantesTour() {
+        // Aquí cargaremos los participantes reales del tour desde Firebase
+        // Por ahora usamos datos de ejemplo hasta implementar la carga real
+        clients = new ArrayList<>();
+        clients.add(new GuiaClient("Cargando participantes...", "", "", "", "", false, false, 0));
+        
+        adapter = new GuiaClientAdapter(this, clients);
+        binding.recyclerView.setAdapter(adapter);
+        
+        // TODO: Implementar carga real de participantes desde Firebase
+        // tourFirebaseService.obtenerParticipantesTour(tourId, callback);
+    }
+
+    private void iniciarEscaneoCheckOut() {
+        if (tourId == null || tourId.isEmpty()) {
+            Toast.makeText(this, "Error: Tour ID no válido", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
+        if (numeroParticipantes <= 0) {
+            Toast.makeText(this, "Error: No hay participantes registrados", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
+        // Abrir la actividad de escaneo de QR en modo check-out
+        Intent intent = new Intent(this, guia_scan_qr_participants.class);
+        intent.putExtra("tourId", tourId);
+        intent.putExtra("tourTitulo", tourName != null ? tourName : "Tour");
+        intent.putExtra("numeroParticipantes", numeroParticipantes);
+        intent.putExtra("scanMode", "check_out"); // Parámetro clave para check-out
+        startActivity(intent);
     }
 }

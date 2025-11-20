@@ -23,6 +23,7 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.Timestamp;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -189,12 +190,26 @@ public class cliente_reservas extends AppCompatActivity {
                                     String estado = doc.getString("estado");
                                     Log.d(TAG, "Reserva encontrada en tour: " + doc.getId() + " (estado: " + estado + ")");
                                     
-                                    // No mostrar tours cancelados o completados hace más de 30 días
-                                    if (!"cancelado".equalsIgnoreCase(estado)) {
-                                        // Crear objeto Cliente_Reserva con datos reales
-                                        Cliente_Reserva reserva = crearReservaDesdeFirebase(doc, participante);
-                                        if (reserva != null) {
-                                            allReservas.add(reserva);
+                                    // ✅ MOSTRAR TOURS EN ESTOS ESTADOS ACTIVOS:
+                                    // - confirmado: Tour confirmado con guía asignado
+                                    // - check_in: Check-in habilitado, listo para iniciar
+                                    // - en_curso: Tour en progreso
+                                    // - check_out: Check-out habilitado, tour terminando
+                                    List<String> estadosValidos = Arrays.asList(
+                                        "confirmado", "check_in", "en_curso", "en_progreso", 
+                                        "check_out", "programado"
+                                    );
+                                    
+                                    if (estado != null && estadosValidos.contains(estado.toLowerCase())) {
+                                        // ✅ VALIDAR TOURS SIMULTÁNEOS - Solo un tour activo por día
+                                        if (validarTourSimultaneo(doc, allReservas)) {
+                                            // Crear objeto Cliente_Reserva con datos reales
+                                            Cliente_Reserva reserva = crearReservaDesdeFirebase(doc, participante);
+                                            if (reserva != null) {
+                                                allReservas.add(reserva);
+                                            }
+                                        } else {
+                                            Log.w(TAG, "Tour simultáneo detectado y omitido: " + doc.getId());
                                         }
                                     }
                                     break; // Solo necesitamos procesar este participante una vez
@@ -339,6 +354,56 @@ public class cliente_reservas extends AppCompatActivity {
         
         Log.d(TAG, "Mostrando " + (showingProximas ? "próximas" : "pasadas") + ": " + filteredReservas.size() + " reservas");
         reservasAdapter.notifyDataSetChanged();
+    }
+
+    /**
+     * ✅ VALIDAR TOURS SIMULTÁNEOS - Prevenir que el cliente tenga múltiples tours activos el mismo día
+     */
+    private boolean validarTourSimultaneo(QueryDocumentSnapshot nuevoTour, List<Cliente_Reserva> reservasExistentes) {
+        try {
+            // Obtener fecha del nuevo tour
+            Timestamp fechaNuevoTour = nuevoTour.getTimestamp("fechaRealizacion");
+            if (fechaNuevoTour == null) return true; // Si no hay fecha, permitir
+            
+            Calendar calNuevoTour = Calendar.getInstance();
+            calNuevoTour.setTime(fechaNuevoTour.toDate());
+            calNuevoTour.set(Calendar.HOUR_OF_DAY, 0);
+            calNuevoTour.set(Calendar.MINUTE, 0);
+            calNuevoTour.set(Calendar.SECOND, 0);
+            calNuevoTour.set(Calendar.MILLISECOND, 0);
+            
+            // Verificar si ya existe una reserva activa para el mismo día
+            for (Cliente_Reserva reservaExistente : reservasExistentes) {
+                // Solo verificar tours con estados activos
+                if (reservaExistente.getFecha() != null && !reservaExistente.getFecha().isEmpty()) {
+                    try {
+                        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault());
+                        Date fechaExistente = sdf.parse(reservaExistente.getFecha());
+                        
+                        Calendar calExistente = Calendar.getInstance();
+                        calExistente.setTime(fechaExistente);
+                        calExistente.set(Calendar.HOUR_OF_DAY, 0);
+                        calExistente.set(Calendar.MINUTE, 0);
+                        calExistente.set(Calendar.SECOND, 0);
+                        calExistente.set(Calendar.MILLISECOND, 0);
+                        
+                        // Si las fechas coinciden, hay conflicto
+                        if (calNuevoTour.getTimeInMillis() == calExistente.getTimeInMillis()) {
+                            Log.w(TAG, "Tour simultáneo detectado: " + nuevoTour.getId() + " conflicta con reserva existente");
+                            return false;
+                        }
+                    } catch (Exception e) {
+                        Log.e(TAG, "Error al parsear fecha de reserva existente: " + reservaExistente.getFecha(), e);
+                    }
+                }
+            }
+            
+            return true; // No hay conflictos
+            
+        } catch (Exception e) {
+            Log.e(TAG, "Error en validación de tours simultáneos", e);
+            return true; // En caso de error, permitir el tour
+        }
     }
 
 

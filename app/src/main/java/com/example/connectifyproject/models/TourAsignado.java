@@ -46,6 +46,7 @@ public class TourAsignado implements Serializable {
     private Integer numeroParticipantesTotal;
     private boolean checkInRealizado;
     private boolean checkOutRealizado;
+    private boolean tourStarted; // ✅ Campo que faltaba para Firebase
     @Nullable
     private Timestamp horaCheckIn;
     @Nullable
@@ -218,6 +219,9 @@ public class TourAsignado implements Serializable {
     
     public boolean isCheckOutRealizado() { return checkOutRealizado; }
     public void setCheckOutRealizado(boolean checkOutRealizado) { this.checkOutRealizado = checkOutRealizado; }
+    
+    public boolean isTourStarted() { return tourStarted; }
+    public void setTourStarted(boolean tourStarted) { this.tourStarted = tourStarted; }
     
     @Nullable
     public Timestamp getHoraCheckIn() { return horaCheckIn; }

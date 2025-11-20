@@ -467,12 +467,12 @@ public class guia_scan_qr_participants extends AppCompatActivity {
     }
     
     private void finalizarTour() {
-        // Cambiar estado a "finalizado"
+        // Cambiar estado a "completado" (estado final correcto)
         db.collection("tours_asignados")
             .document(tourId)
-            .update("estado", "finalizado")
+            .update("estado", "completado")
             .addOnSuccessListener(aVoid -> {
-                Toast.makeText(this, "✅ Tour finalizado exitosamente", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "✅ Tour completado exitosamente", Toast.LENGTH_SHORT).show();
                 
                 Intent intent = new Intent(this, guia_assigned_tours.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -480,7 +480,7 @@ public class guia_scan_qr_participants extends AppCompatActivity {
                 finish();
             })
             .addOnFailureListener(e -> {
-                Toast.makeText(this, "❌ Error al finalizar tour: " + e.getMessage(), 
+                Toast.makeText(this, "❌ Error al completar tour: " + e.getMessage(), 
                     Toast.LENGTH_SHORT).show();
             });
     }

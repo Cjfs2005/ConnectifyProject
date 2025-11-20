@@ -47,6 +47,9 @@ public class guia_assigned_tours extends AppCompatActivity implements GuiaDateFi
     // 🎯 TOUR PRIORITARIO - Variables importantes
     private TourAsignado tourPrioritario = null;
     private String currentDateFrom, currentDateTo, currentAmount, currentDuration, currentLanguages;
+    private com.google.firebase.firestore.ListenerRegistration priorityListener;
+    private com.google.firebase.firestore.ListenerRegistration realtimeListener;
+    private boolean isUpdatingUI = false; // ✅ Flag para prevenir bucle infinito
     
     // Servicios
     private GuiaNotificationService notificationService;
@@ -156,6 +159,10 @@ public class guia_assigned_tours extends AppCompatActivity implements GuiaDateFi
         if (binding.bottomNav != null) {
             binding.bottomNav.setSelectedItemId(R.id.nav_tours);
         }
+        
+        // 🔄 ACTUALIZAR DATOS EN TIEMPO REAL AL REGRESAR
+        loadToursAsignados();
+        loadTourPrioritario();
     }
 
     /**
@@ -193,6 +200,9 @@ public class guia_assigned_tours extends AppCompatActivity implements GuiaDateFi
                 runOnUiThread(() -> {
                     onApplyFilters(currentDateFrom, currentDateTo, currentAmount, currentDuration, currentLanguages);
                 });
+                
+                // 🔄 CONFIGURAR LISTENER EN TIEMPO REAL PARA CAMBIOS DE ESTADO
+                setupRealtimeUpdates();
             }
 
             @Override
@@ -206,6 +216,52 @@ public class guia_assigned_tours extends AppCompatActivity implements GuiaDateFi
                 });
             }
         });
+    }
+    
+    /**
+     * 🔄 CONFIGURAR LISTENER EN TIEMPO REAL PARA ACTUALIZACIONES DE ESTADO
+     */
+    private void setupRealtimeUpdates() {
+        if (tourFirebaseService == null) return;
+        
+        // ✅ VALIDAR USUARIO AUTENTICADO
+        com.google.firebase.auth.FirebaseUser currentUser = 
+            com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser == null) {
+            Log.w(TAG, "Usuario no autenticado - no se pueden configurar listeners en tiempo real");
+            return;
+        }
+        
+        // ✅ EVITAR MÚLTIPLES LISTENERS
+        if (realtimeListener != null) {
+            realtimeListener.remove();
+        }
+        
+        // Escuchar cambios en tours asignados para actualizar estados en tiempo real
+        realtimeListener = com.google.firebase.firestore.FirebaseFirestore.getInstance()
+            .collection("tours_asignados")
+            .whereEqualTo("guiaAsignado.identificadorUsuario", currentUser.getUid())
+            .whereEqualTo("habilitado", true)
+            .addSnapshotListener((value, error) -> {
+                if (error != null) {
+                    Log.w(TAG, "Listen failed.", error);
+                    return;
+                }
+                
+                if (value != null && !value.isEmpty() && !isUpdatingUI) {
+                    Log.d(TAG, "Cambios detectados en tours asignados - actualizando UI");
+                    // ✅ PREVENIR BUCLE INFINITO
+                    isUpdatingUI = true;
+                    runOnUiThread(() -> {
+                        loadToursAsignados();
+                        if (tourPrioritario != null) {
+                            loadTourPrioritario();
+                        }
+                        // Reset flag después de un delay
+                        binding.getRoot().postDelayed(() -> isUpdatingUI = false, 2000);
+                    });
+                }
+            });
     }
 
     /**
@@ -946,5 +1002,17 @@ public class guia_assigned_tours extends AppCompatActivity implements GuiaDateFi
                 });
             }
         });
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        // ✅ Limpiar listeners para evitar memory leaks
+        if (priorityListener != null) {
+            priorityListener.remove();
+        }
+        if (realtimeListener != null) {
+            realtimeListener.remove();
+        }
     }
 }
