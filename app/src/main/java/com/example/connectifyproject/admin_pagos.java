@@ -1,173 +1,452 @@
 package com.example.connectifyproject;
 
-import android.content.Intent;
 import android.os.Bundle;
-import android.text.Editable;
-import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.connectifyproject.databinding.AdminPagosViewBinding;
 import com.example.connectifyproject.ui.admin.AdminBottomNavFragment;
+import com.example.connectifyproject.utils.AuthConstants;
+import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.button.MaterialButtonToggleGroup;
+import com.google.firebase.Timestamp;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
+import java.util.TimeZone;
 
 public class admin_pagos extends AppCompatActivity {
-    private AdminPagosViewBinding binding;
-    private PagosAdapter pagosAdapter;
-    private List<PagoItem> pagosList;
-    private List<PagoItem> filteredPagosList;
+
+    private static final String TAG = "AdminPagos";
+
+    // Secciones
+    private static final int SECTION_RECIBIDOS = 0;
+    private static final int SECTION_REALIZADOS = 1;
+
+    // Firebase
+    private FirebaseFirestore db;
+    private FirebaseAuth auth;
+
+    // UI
+    private AutoCompleteTextView spinnerMeses;
+    private RecyclerView recyclerViewPagos;
+    private MaterialButtonToggleGroup togglePayments;
+    private MaterialButton btnPagosRecibidos;
+    private MaterialButton btnPagosRealizados;
+
+    // Datos
+    private final List<PagoItem> listaRecibidos = new ArrayList<>();
+    private final List<PagoItem> listaRealizados = new ArrayList<>();
+    private final List<PagoItem> listaMostrada = new ArrayList<>();
+
+    private int currentSection = SECTION_RECIBIDOS;
+    private int mesSeleccionado = 0; // 0 = todos, 1..12 = ene..dic
+
+    // Formato de fecha/hora
+    private static final Locale LOCALE_PE = new Locale("es", "PE");
+    private static final TimeZone TIMEZONE_LIMA = TimeZone.getTimeZone("America/Lima");
+    private static final SimpleDateFormat FORMATO_FECHA_HORA =
+            new SimpleDateFormat("dd/MM/yyyy h:mm a", LOCALE_PE);
+
+    static {
+        FORMATO_FECHA_HORA.setTimeZone(TIMEZONE_LIMA);
+    }
+
+    private PagosAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        binding = AdminPagosViewBinding.inflate(getLayoutInflater());
-        setContentView(binding.getRoot());
+        setContentView(R.layout.admin_pagos_view);
 
-        // Configurar toolbar
-        binding.topAppBar.setNavigationOnClickListener(v -> finish());
+        db = FirebaseFirestore.getInstance();
+        auth = FirebaseAuth.getInstance();
 
-        // Configurar botón de notificaciones
-        setupNotifications();
-
-        // Configurar RecyclerView
-        setupRecyclerView();
-
-        // Configurar búsqueda
-        setupSearch();
-
-        // Configurar datos de prueba
-        setupTestData();
-
-        // Configurar bottom navigation
-        setupBottomNavigation();
-    }
-
-    private void setupNotifications() {
-        binding.btnNotifications.setOnClickListener(v -> {
-            android.widget.PopupMenu popup = new android.widget.PopupMenu(this, v);
-            MenuInflater inflater = popup.getMenuInflater();
-            inflater.inflate(R.menu.menu_admin_notifications, popup.getMenu());
-            popup.setOnMenuItemClickListener(this::onNotificationAction);
-            popup.show();
-        });
-    }
-
-    private boolean onNotificationAction(@NonNull MenuItem item) {
-        int id = item.getItemId();
-        if (id == R.id.action_mark_all_read) {
-            Toast.makeText(this, "Todas las notificaciones marcadas como leídas", Toast.LENGTH_SHORT).show();
-            return true;
-        } else if (id == R.id.action_preferences) {
-            Toast.makeText(this, "Configuración de notificaciones", Toast.LENGTH_SHORT).show();
-            return true;
-        } else if (id == R.id.action_view_all) {
-            Toast.makeText(this, "Ver todas las notificaciones", Toast.LENGTH_SHORT).show();
-            return true;
+        MaterialToolbar topAppBar = findViewById(R.id.topAppBar);
+        if (topAppBar != null) {
+            topAppBar.setNavigationOnClickListener(v -> onBackPressed());
         }
-        return false;
-    }
 
-    private void setupRecyclerView() {
-        pagosList = new ArrayList<>();
-        filteredPagosList = new ArrayList<>();
-        pagosAdapter = new PagosAdapter(filteredPagosList);
-        binding.recyclerViewPagos.setLayoutManager(new LinearLayoutManager(this));
-        binding.recyclerViewPagos.setAdapter(pagosAdapter);
-    }
+        spinnerMeses = findViewById(R.id.spinnerMonthFilter);
+        recyclerViewPagos = findViewById(R.id.recyclerViewPagos);
+        togglePayments = findViewById(R.id.togglePayments);
+        btnPagosRecibidos = findViewById(R.id.btnPagosRecibidos);
+        btnPagosRealizados = findViewById(R.id.btnPagosRealizados);
 
-    private void setupSearch() {
-        binding.etSearch.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+        // RecyclerView
+        recyclerViewPagos.setLayoutManager(new LinearLayoutManager(this));
+        adapter = new PagosAdapter(listaMostrada);
+        recyclerViewPagos.setAdapter(adapter);
 
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                filterPagos(s.toString());
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {}
-        });
-    }
-
-    private void filterPagos(String query) {
-        filteredPagosList.clear();
-        if (query.isEmpty()) {
-            filteredPagosList.addAll(pagosList);
-        } else {
-            String lowerCaseQuery = query.toLowerCase();
-            for (PagoItem pago : pagosList) {
-                if (pago.getNombre().toLowerCase().contains(lowerCaseQuery) ||
-                    pago.getHora().toLowerCase().contains(lowerCaseQuery)) {
-                    filteredPagosList.add(pago);
-                }
-            }
-        }
-        pagosAdapter.notifyDataSetChanged();
-    }
-
-    private void setupTestData() {
-        // Datos de prueba estáticos
-        pagosList.add(new PagoItem("Alex", "10:30 AM", R.drawable.ic_avatar_male_1, true));
-        pagosList.add(new PagoItem("Sara", "11:45 AM", R.drawable.ic_avatar_female_1, true));
-        pagosList.add(new PagoItem("David", "12:15 PM", R.drawable.ic_avatar_male_2, true));
-        pagosList.add(new PagoItem("Emily", "1:30 PM", R.drawable.ic_avatar_female_2, true));
-        pagosList.add(new PagoItem("Maxwell", "2:45 PM", R.drawable.ic_avatar_male_3, true));
-        pagosList.add(new PagoItem("Jessica", "3:15 PM", R.drawable.ic_avatar_female_3, true));
-        
-        // Inicializar lista filtrada
-        filteredPagosList.addAll(pagosList);
-        pagosAdapter.notifyDataSetChanged();
-    }
-
-    private void setupBottomNavigation() {
+        // Bottom nav admin
         AdminBottomNavFragment bottomNavFragment = AdminBottomNavFragment.newInstance("pagos");
-        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        transaction.replace(R.id.bottomNavContainer, bottomNavFragment);
-        transaction.commit();
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.bottomNavContainer, bottomNavFragment)
+                .commit();
+
+        configurarDropdownMeses();
+        configurarToggleSecciones();
+        cargarPagos();
     }
 
-    // Clase interna para los datos de pago
-    public static class PagoItem {
-        private String nombre;
-        private String hora;
-        private int avatarResource;
-        private boolean conectado;
+    // =========================================================
+    // DROPDOWN DE MESES
+    // =========================================================
 
-        public PagoItem(String nombre, String hora, int avatarResource, boolean conectado) {
-            this.nombre = nombre;
-            this.hora = hora;
-            this.avatarResource = avatarResource;
-            this.conectado = conectado;
+    private void configurarDropdownMeses() {
+        if (spinnerMeses == null) return;
+
+        List<String> meses = new ArrayList<>();
+        meses.add("Todos los meses");
+        meses.add("Enero");
+        meses.add("Febrero");
+        meses.add("Marzo");
+        meses.add("Abril");
+        meses.add("Mayo");
+        meses.add("Junio");
+        meses.add("Julio");
+        meses.add("Agosto");
+        meses.add("Septiembre");
+        meses.add("Octubre");
+        meses.add("Noviembre");
+        meses.add("Diciembre");
+
+        ArrayAdapter<String> adapterMeses = new ArrayAdapter<>(
+                this,
+                android.R.layout.simple_list_item_1,
+                meses
+        );
+        spinnerMeses.setAdapter(adapterMeses);
+        spinnerMeses.setText(meses.get(0), false);
+
+        spinnerMeses.setOnItemClickListener((parent, view, position, id) -> {
+            mesSeleccionado = position; // 0 = todos
+            rebuildListaMostrada();
+        });
+    }
+
+    // =========================================================
+    // TOGGLE DE SECCIONES
+    // =========================================================
+
+    private void configurarToggleSecciones() {
+        if (togglePayments == null) return;
+
+        togglePayments.setSingleSelection(true);
+        // Por defecto: Pagos recibidos
+        btnPagosRecibidos.setChecked(true);
+        currentSection = SECTION_RECIBIDOS;
+
+        togglePayments.addOnButtonCheckedListener(
+                (group, checkedId, isChecked) -> {
+                    if (!isChecked) return;
+
+                    if (checkedId == R.id.btnPagosRecibidos) {
+                        currentSection = SECTION_RECIBIDOS;
+                    } else if (checkedId == R.id.btnPagosRealizados) {
+                        currentSection = SECTION_REALIZADOS;
+                    }
+                    rebuildListaMostrada();
+                });
+    }
+
+    // =========================================================
+    // CARGA DE PAGOS DESDE FIREBASE
+    // =========================================================
+
+    private void cargarPagos() {
+        FirebaseUser currentUser = auth.getCurrentUser();
+        if (currentUser == null) {
+            listaRecibidos.clear();
+            listaRealizados.clear();
+            listaMostrada.clear();
+            adapter.notifyDataSetChanged();
+            return;
         }
 
-        // Getters
-        public String getNombre() { return nombre; }
-        public String getHora() { return hora; }
-        public int getAvatarResource() { return avatarResource; }
-        public boolean isConectado() { return conectado; }
+        String adminUid = currentUser.getUid();
+
+        // 1) Pagos RECIBIDOS: Cliente -> Administrador (A Empresa)
+        db.collection("pagos")
+                .whereEqualTo("uidUsuarioRecibe", adminUid)
+                .whereEqualTo("tipoPago", "A Empresa")
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    listaRecibidos.clear();
+                    for (DocumentSnapshot doc : querySnapshot.getDocuments()) {
+                        PagoItem item = crearPagoDesdeDocumento(doc, true);
+                        if (item != null) {
+                            listaRecibidos.add(item);
+                            cargarNombreUsuario(item); // cliente
+                        }
+                    }
+                    rebuildListaMostrada();
+                })
+                .addOnFailureListener(e ->
+                        Log.e(TAG, "Error cargando pagos recibidos", e));
+
+        // 2) Pagos REALIZADOS: Administrador -> Guía (A Guia)
+        db.collection("pagos")
+                .whereEqualTo("uidUsuarioPaga", adminUid)
+                .whereEqualTo("tipoPago", "A Guia")
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    listaRealizados.clear();
+                    for (DocumentSnapshot doc : querySnapshot.getDocuments()) {
+                        PagoItem item = crearPagoDesdeDocumento(doc, false);
+                        if (item != null) {
+                            listaRealizados.add(item);
+                            cargarNombreUsuario(item); // guía
+                        }
+                    }
+                    rebuildListaMostrada();
+                })
+                .addOnFailureListener(e ->
+                        Log.e(TAG, "Error cargando pagos realizados", e));
     }
 
-    // Adapter para RecyclerView
-    private class PagosAdapter extends RecyclerView.Adapter<PagosAdapter.PagoViewHolder> {
-        private List<PagoItem> pagos;
+    /** true = recibido (cliente->admin), false = realizado (admin->guia) */
+    private PagoItem crearPagoDesdeDocumento(DocumentSnapshot doc, boolean esRecibido) {
+        Object fechaObj = doc.get("fecha");
+        if (fechaObj == null) return null;
 
-        public PagosAdapter(List<PagoItem> pagos) {
-            this.pagos = pagos;
+        String fechaFormateada;
+        int mesNumero;
+
+        if (fechaObj instanceof Timestamp) {
+            Timestamp ts = (Timestamp) fechaObj;
+            Date date = ts.toDate();
+
+            fechaFormateada = FORMATO_FECHA_HORA.format(date);
+
+            Calendar cal = Calendar.getInstance(TIMEZONE_LIMA, LOCALE_PE);
+            cal.setTime(date);
+            mesNumero = cal.get(Calendar.MONTH) + 1; // 1..12
+        } else if (fechaObj instanceof String) {
+            String fechaRaw = (String) fechaObj;
+            fechaFormateada = formatearFechaHoraCadena(fechaRaw);
+            mesNumero = extraerMesDesdeFechaCadena(fechaRaw);
+        } else {
+            return null;
+        }
+
+        Double monto = doc.getDouble("monto");
+        String nombreTour = doc.getString("nombreTour");
+        String uidPaga = doc.getString("uidUsuarioPaga");
+        String uidRecibe = doc.getString("uidUsuarioRecibe");
+
+        if (uidPaga == null || uidRecibe == null) return null;
+
+        PagoItem item = new PagoItem();
+        item.idDocumento = doc.getId();
+        item.fechaFormateada = fechaFormateada;
+        item.mesNumero = mesNumero;
+        item.monto = (monto != null) ? monto : 0.0;
+        item.nombreTour = (nombreTour != null) ? nombreTour : "";
+
+        if (esRecibido) {
+            item.tipo = PagoItem.TIPO_RECIBIDO;
+            item.uidOtroUsuario = uidPaga;          // cliente
+            item.nombreOtroUsuario = "Cliente";
+        } else {
+            item.tipo = PagoItem.TIPO_REALIZADO;
+            item.uidOtroUsuario = uidRecibe;        // guía
+            item.nombreOtroUsuario = "Guía";
+        }
+
+        return item;
+    }
+
+    /**
+     * Cargar nombre (nombresApellidos) desde la colección de usuarios.
+     * Usa AuthConstants.COLLECTION_USUARIOS para asegurar que es la misma
+     * colección que el resto de la app.
+     */
+    private void cargarNombreUsuario(PagoItem item) {
+        if (item.uidOtroUsuario == null) return;
+
+        db.collection(AuthConstants.COLLECTION_USUARIOS)
+                .document(item.uidOtroUsuario)
+                .get()
+                .addOnSuccessListener(doc -> {
+                    if (doc.exists()) {
+                        String nombre = doc.getString("nombresApellidos");
+                        Log.d(TAG, "Usuario " + item.uidOtroUsuario +
+                                " encontrado. nombresApellidos=" + nombre +
+                                " tipo=" + (item.tipo == PagoItem.TIPO_RECIBIDO ? "RECIBIDO" : "REALIZADO"));
+
+                        if (nombre != null && !nombre.trim().isEmpty()) {
+                            item.nombreOtroUsuario = nombre;
+                        }
+                    } else {
+                        Log.w(TAG, "Documento de usuario NO existe para uid=" + item.uidOtroUsuario);
+                    }
+                    rebuildListaMostrada();
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error cargando usuario " + item.uidOtroUsuario, e);
+                });
+    }
+
+    // =========================================================
+    // ARMAR LISTA MOSTRADA APLICANDO FILTRO DE MES + SECCION
+    // =========================================================
+
+    private void rebuildListaMostrada() {
+        listaMostrada.clear();
+
+        List<PagoItem> fuente = (currentSection == SECTION_RECIBIDOS)
+                ? listaRecibidos
+                : listaRealizados;
+
+        for (PagoItem p : fuente) {
+            if (mesSeleccionado != 0 && p.mesNumero != mesSeleccionado) continue;
+            listaMostrada.add(p);
+        }
+
+        adapter.notifyDataSetChanged();
+    }
+
+    // =========================================================
+    // HELPERS DE FECHA PARA REGISTROS ANTIGUOS EN STRING
+    // =========================================================
+
+    @NonNull
+    private String formatearFechaHoraCadena(@NonNull String fechaRaw) {
+        try {
+            String[] partes = fechaRaw.split(",");
+            if (partes.length < 2) {
+                return fechaRaw;
+            }
+
+            String parteFecha = partes[0].trim();
+            String parteHoraZona = partes[1].trim();
+
+            String[] tokensFecha = parteFecha.split(" ");
+            if (tokensFecha.length < 5) return fechaRaw;
+
+            String dia = pad2(tokensFecha[0]);
+            String mesNombre = tokensFecha[2].toLowerCase(Locale.ROOT);
+            String anio = tokensFecha[4];
+
+            int mesNumero = mesDesdeNombre(mesNombre);
+            String mes = pad2(String.valueOf(mesNumero));
+
+            String fechaCorta = dia + "/" + mes + "/" + anio;
+            String horaCorta = extraerHoraCorta(parteHoraZona);
+
+            return fechaCorta + " " + horaCorta;
+        } catch (Exception e) {
+            return fechaRaw;
+        }
+    }
+
+    @NonNull
+    private String extraerHoraCorta(@NonNull String parteHoraZona) {
+        int idxUtc = parteHoraZona.indexOf("UTC");
+        String core = (idxUtc > 0) ? parteHoraZona.substring(0, idxUtc).trim() : parteHoraZona.trim();
+
+        String[] pieces = core.split(" ");
+        if (pieces.length < 2) return core;
+
+        String tiempo = pieces[0]; // "1:26:38"
+        String ampm = pieces[1];   // "p.m." / "a.m."
+
+        String[] tParts = tiempo.split(":");
+        if (tParts.length < 2) return core;
+
+        return tParts[0] + ":" + tParts[1] + " " + ampm;
+    }
+
+    private int extraerMesDesdeFechaCadena(@NonNull String fechaRaw) {
+        try {
+            String[] partes = fechaRaw.split(",");
+            if (partes.length == 0) return 0;
+
+            String parteFecha = partes[0].trim();
+            String[] tokensFecha = parteFecha.split(" ");
+            if (tokensFecha.length < 3) return 0;
+
+            String mesNombre = tokensFecha[2].toLowerCase(Locale.ROOT);
+            return mesDesdeNombre(mesNombre);
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
+    private int mesDesdeNombre(String mesNombre) {
+        switch (mesNombre) {
+            case "enero": return 1;
+            case "febrero": return 2;
+            case "marzo": return 3;
+            case "abril": return 4;
+            case "mayo": return 5;
+            case "junio": return 6;
+            case "julio": return 7;
+            case "agosto": return 8;
+            case "septiembre":
+            case "setiembre": return 9;
+            case "octubre": return 10;
+            case "noviembre": return 11;
+            case "diciembre": return 12;
+            default: return 0;
+        }
+    }
+
+    @NonNull
+    private String pad2(@NonNull String s) {
+        if (s.length() >= 2) return s;
+        return "0" + s;
+    }
+
+    // =========================================================
+    // MODELO DE PAGO
+    // =========================================================
+
+    private static class PagoItem {
+        static final int TIPO_RECIBIDO = 1;
+        static final int TIPO_REALIZADO = 2;
+
+        String idDocumento;
+        String fechaFormateada;
+        int mesNumero;
+
+        double monto;
+        String nombreTour;
+
+        int tipo;                 // RECIBIDO / REALIZADO
+        String uidOtroUsuario;    // cliente o guía
+        String nombreOtroUsuario; // se muestra en el card
+    }
+
+    // =========================================================
+    // ADAPTER
+    // =========================================================
+
+    private static class PagosAdapter extends RecyclerView.Adapter<PagosAdapter.PagoViewHolder> {
+
+        private final List<PagoItem> items;
+
+        PagosAdapter(List<PagoItem> items) {
+            this.items = items;
         }
 
         @NonNull
@@ -180,41 +459,37 @@ public class admin_pagos extends AppCompatActivity {
 
         @Override
         public void onBindViewHolder(@NonNull PagoViewHolder holder, int position) {
-            PagoItem pago = pagos.get(position);
-            holder.bind(pago);
+            PagoItem item = items.get(position);
+
+            String defaultName = (item.tipo == PagoItem.TIPO_RECIBIDO) ? "Cliente" : "Guía";
+            String nombre = (item.nombreOtroUsuario != null && !item.nombreOtroUsuario.isEmpty())
+                    ? item.nombreOtroUsuario
+                    : defaultName;
+
+            holder.textClientName.setText(nombre);
+
+            String detalle = "S/ " + String.format(Locale.US, "%.2f", item.monto)
+                    + " · " + item.nombreTour;
+            holder.textStatus.setText(detalle);
+
+            holder.textTime.setText(item.fechaFormateada != null ? item.fechaFormateada : "");
         }
 
         @Override
         public int getItemCount() {
-            return pagos.size();
+            return items.size();
         }
 
-        class PagoViewHolder extends RecyclerView.ViewHolder {
-            private ImageView ivAvatar;
-            private TextView tvNombre;
-            private TextView tvHora;
-            private TextView tvEstado;
+        static class PagoViewHolder extends RecyclerView.ViewHolder {
+            TextView textClientName;  // tvClientName
+            TextView textStatus;      // tvPaymentStatus
+            TextView textTime;        // tvPaymentTime
 
-            public PagoViewHolder(@NonNull View itemView) {
+            PagoViewHolder(@NonNull View itemView) {
                 super(itemView);
-                ivAvatar = itemView.findViewById(R.id.ivAvatar);
-                tvNombre = itemView.findViewById(R.id.tvClientName);
-                tvHora = itemView.findViewById(R.id.tvPaymentTime);
-                tvEstado = itemView.findViewById(R.id.tvPaymentStatus);
-            }
-
-            public void bind(PagoItem pago) {
-                ivAvatar.setImageResource(pago.getAvatarResource());
-                tvNombre.setText("Cliente: " + pago.getNombre());
-                tvHora.setText(pago.getHora());
-                tvEstado.setText("Pago completado");
-
-                // Click listener para ir al historial de pagos
-                itemView.setOnClickListener(v -> {
-                    Intent intent = new Intent(admin_pagos.this, admin_historial_pagos.class);
-                    intent.putExtra("cliente_nombre", pago.getNombre());
-                    startActivity(intent);
-                });
+                textClientName = itemView.findViewById(R.id.tvClientName);
+                textStatus = itemView.findViewById(R.id.tvPaymentStatus);
+                textTime = itemView.findViewById(R.id.tvPaymentTime);
             }
         }
     }
