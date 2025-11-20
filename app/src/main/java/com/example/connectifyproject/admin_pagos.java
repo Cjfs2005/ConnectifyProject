@@ -7,7 +7,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
-import android.widget.EditText;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -17,7 +16,9 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.connectifyproject.ui.admin.AdminBottomNavFragment;
 import com.example.connectifyproject.utils.AuthConstants;
-import com.google.android.material.textfield.TextInputLayout;
+import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.button.MaterialButtonToggleGroup;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -34,22 +35,29 @@ import java.util.TimeZone;
 
 public class admin_pagos extends AppCompatActivity {
 
-    // ---------- Firebase ----------
+    private static final String TAG = "AdminPagos";
+
+    // Secciones
+    private static final int SECTION_RECIBIDOS = 0;
+    private static final int SECTION_REALIZADOS = 1;
+
+    // Firebase
     private FirebaseFirestore db;
     private FirebaseAuth auth;
 
-    // ---------- UI ----------
-    private EditText editTextBuscar;          // etSearch (oculta)
-    private AutoCompleteTextView spinnerMeses; // dropdown de meses
+    // UI
+    private AutoCompleteTextView spinnerMeses;
     private RecyclerView recyclerViewPagos;
+    private MaterialButtonToggleGroup togglePayments;
+    private MaterialButton btnPagosRecibidos;
+    private MaterialButton btnPagosRealizados;
 
-    private PagosAdapter adapter;
+    // Datos
+    private final List<PagoItem> listaRecibidos = new ArrayList<>();
+    private final List<PagoItem> listaRealizados = new ArrayList<>();
+    private final List<PagoItem> listaMostrada = new ArrayList<>();
 
-    // ---------- Datos ----------
-    private final List<PagoItem> listaCompletaPagos = new ArrayList<>();
-    private final List<PagoItem> listaFiltradaPagos = new ArrayList<>();
-
-    // Estado de filtros
+    private int currentSection = SECTION_RECIBIDOS;
     private int mesSeleccionado = 0; // 0 = todos, 1..12 = ene..dic
 
     // Formato de fecha/hora
@@ -62,40 +70,30 @@ public class admin_pagos extends AppCompatActivity {
         FORMATO_FECHA_HORA.setTimeZone(TIMEZONE_LIMA);
     }
 
-    private static final String TAG = "AdminPagos";
+    private PagosAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.admin_pagos_view);
 
-        // Firebase
         db = FirebaseFirestore.getInstance();
         auth = FirebaseAuth.getInstance();
 
-        // Toolbar
-        View topAppBar = findViewById(R.id.topAppBar);
+        MaterialToolbar topAppBar = findViewById(R.id.topAppBar);
         if (topAppBar != null) {
-            topAppBar.setOnClickListener(v -> onBackPressed());
+            topAppBar.setNavigationOnClickListener(v -> onBackPressed());
         }
 
-        // ---------- Referencias UI ----------
-        editTextBuscar = findViewById(R.id.etSearch);
         spinnerMeses = findViewById(R.id.spinnerMonthFilter);
         recyclerViewPagos = findViewById(R.id.recyclerViewPagos);
-
-        // Ocultar COMPLETAMENTE la barra de búsqueda (lupa + caja)
-        TextInputLayout tilSearch = findViewById(R.id.tilSearch);
-        if (tilSearch != null) {
-            tilSearch.setVisibility(View.GONE);
-        }
-        if (editTextBuscar != null) {
-            editTextBuscar.setVisibility(View.GONE);
-        }
+        togglePayments = findViewById(R.id.togglePayments);
+        btnPagosRecibidos = findViewById(R.id.btnPagosRecibidos);
+        btnPagosRealizados = findViewById(R.id.btnPagosRealizados);
 
         // RecyclerView
         recyclerViewPagos.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new PagosAdapter(listaFiltradaPagos);
+        adapter = new PagosAdapter(listaMostrada);
         recyclerViewPagos.setAdapter(adapter);
 
         // Bottom nav admin
@@ -105,11 +103,12 @@ public class admin_pagos extends AppCompatActivity {
                 .commit();
 
         configurarDropdownMeses();
-        cargarPagosParaAdministradorActual();
+        configurarToggleSecciones();
+        cargarPagos();
     }
 
     // =========================================================
-    // DROPDOWN DE MESES (Material exposed dropdown)
+    // DROPDOWN DE MESES
     // =========================================================
 
     private void configurarDropdownMeses() {
@@ -136,150 +135,198 @@ public class admin_pagos extends AppCompatActivity {
                 meses
         );
         spinnerMeses.setAdapter(adapterMeses);
-
-        // Valor por defecto
         spinnerMeses.setText(meses.get(0), false);
 
         spinnerMeses.setOnItemClickListener((parent, view, position, id) -> {
-            mesSeleccionado = position; // 0 = todos, 1..12 = ene..dic
-            aplicarFiltros();
+            mesSeleccionado = position; // 0 = todos
+            rebuildListaMostrada();
         });
+    }
+
+    // =========================================================
+    // TOGGLE DE SECCIONES
+    // =========================================================
+
+    private void configurarToggleSecciones() {
+        if (togglePayments == null) return;
+
+        togglePayments.setSingleSelection(true);
+        // Por defecto: Pagos recibidos
+        btnPagosRecibidos.setChecked(true);
+        currentSection = SECTION_RECIBIDOS;
+
+        togglePayments.addOnButtonCheckedListener(
+                (group, checkedId, isChecked) -> {
+                    if (!isChecked) return;
+
+                    if (checkedId == R.id.btnPagosRecibidos) {
+                        currentSection = SECTION_RECIBIDOS;
+                    } else if (checkedId == R.id.btnPagosRealizados) {
+                        currentSection = SECTION_REALIZADOS;
+                    }
+                    rebuildListaMostrada();
+                });
     }
 
     // =========================================================
     // CARGA DE PAGOS DESDE FIREBASE
     // =========================================================
 
-    private void cargarPagosParaAdministradorActual() {
+    private void cargarPagos() {
         FirebaseUser currentUser = auth.getCurrentUser();
         if (currentUser == null) {
-            listaCompletaPagos.clear();
-            listaFiltradaPagos.clear();
+            listaRecibidos.clear();
+            listaRealizados.clear();
+            listaMostrada.clear();
             adapter.notifyDataSetChanged();
             return;
         }
 
         String adminUid = currentUser.getUid();
 
+        // 1) Pagos RECIBIDOS: Cliente -> Administrador (A Empresa)
         db.collection("pagos")
                 .whereEqualTo("uidUsuarioRecibe", adminUid)
+                .whereEqualTo("tipoPago", "A Empresa")
                 .get()
                 .addOnSuccessListener(querySnapshot -> {
-                    listaCompletaPagos.clear();
-
+                    listaRecibidos.clear();
                     for (DocumentSnapshot doc : querySnapshot.getDocuments()) {
-
-                        String tipoPago = doc.getString("tipoPago");
-                        // Solo pagos "A Empresa"
-                        if (tipoPago == null || !tipoPago.equals("A Empresa")) {
-                            continue;
+                        PagoItem item = crearPagoDesdeDocumento(doc, true);
+                        if (item != null) {
+                            listaRecibidos.add(item);
+                            cargarNombreUsuario(item); // cliente
                         }
-
-                        Object fechaObj = doc.get("fecha");
-                        if (fechaObj == null) continue;
-
-                        String fechaFormateada;
-                        int mesNumero;
-
-                        if (fechaObj instanceof Timestamp) {
-                            Timestamp ts = (Timestamp) fechaObj;
-                            Date date = ts.toDate();
-
-                            fechaFormateada = FORMATO_FECHA_HORA.format(date);
-
-                            Calendar cal = Calendar.getInstance(TIMEZONE_LIMA, LOCALE_PE);
-                            cal.setTime(date);
-                            mesNumero = cal.get(Calendar.MONTH) + 1; // 1..12
-                        } else if (fechaObj instanceof String) {
-                            // Compatibilidad con pagos antiguos en String
-                            String fechaRaw = (String) fechaObj;
-                            fechaFormateada = formatearFechaHoraCadena(fechaRaw);
-                            mesNumero = extraerMesDesdeFechaCadena(fechaRaw);
-                        } else {
-                            continue;
-                        }
-
-                        Double monto = doc.getDouble("monto");
-                        String nombreTour = doc.getString("nombreTour");
-                        String uidPaga = doc.getString("uidUsuarioPaga");
-                        String uidRecibe = doc.getString("uidUsuarioRecibe");
-
-                        if (uidPaga == null) continue;
-
-                        // Crear item con valores básicos
-                        PagoItem item = new PagoItem();
-                        item.idDocumento = doc.getId();
-                        item.fechaFormateada = fechaFormateada;
-                        item.mesNumero = mesNumero;
-                        item.monto = (monto != null) ? monto : 0.0;
-                        item.nombreTour = (nombreTour != null) ? nombreTour : "";
-                        item.uidCliente = uidPaga;
-                        item.uidAdmin = uidRecibe;
-                        item.tipoPago = tipoPago;
-                        item.nombreCliente = "Cliente"; // provisional
-
-                        listaCompletaPagos.add(item);
-
-                        // --- Cargar nombre real del cliente ---
-                        // MISMA lógica que en SplashActivity: documento con ID = uid
-                        db.collection(AuthConstants.COLLECTION_USUARIOS)
-                                .document(uidPaga)
-                                .get()
-                                .addOnSuccessListener(clienteDoc -> {
-                                    if (clienteDoc.exists()) {
-                                        String nombresApellidos =
-                                                clienteDoc.getString("nombresApellidos");
-                                        Log.d(TAG, "Nombre encontrado para " + uidPaga + ": " + nombresApellidos);
-                                        if (nombresApellidos != null &&
-                                                !nombresApellidos.trim().isEmpty()) {
-                                            item.nombreCliente = nombresApellidos;
-                                        } else {
-                                            item.nombreCliente = "Cliente";
-                                        }
-                                    } else {
-                                        Log.w(TAG, "No existe documento de usuario para uid " + uidPaga);
-                                        item.nombreCliente = "Cliente";
-                                    }
-                                    aplicarFiltros(); // refrescar lista
-                                })
-                                .addOnFailureListener(e -> {
-                                    Log.e(TAG, "Error obteniendo usuario " + uidPaga, e);
-                                    item.nombreCliente = "Cliente";
-                                    aplicarFiltros();
-                                });
                     }
+                    rebuildListaMostrada();
+                })
+                .addOnFailureListener(e ->
+                        Log.e(TAG, "Error cargando pagos recibidos", e));
 
-                    // Primera carga (antes de que terminen de llegar todos los nombres)
-                    aplicarFiltros();
+        // 2) Pagos REALIZADOS: Administrador -> Guía (A Guia)
+        db.collection("pagos")
+                .whereEqualTo("uidUsuarioPaga", adminUid)
+                .whereEqualTo("tipoPago", "A Guia")
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    listaRealizados.clear();
+                    for (DocumentSnapshot doc : querySnapshot.getDocuments()) {
+                        PagoItem item = crearPagoDesdeDocumento(doc, false);
+                        if (item != null) {
+                            listaRealizados.add(item);
+                            cargarNombreUsuario(item); // guía
+                        }
+                    }
+                    rebuildListaMostrada();
+                })
+                .addOnFailureListener(e ->
+                        Log.e(TAG, "Error cargando pagos realizados", e));
+    }
+
+    /** true = recibido (cliente->admin), false = realizado (admin->guia) */
+    private PagoItem crearPagoDesdeDocumento(DocumentSnapshot doc, boolean esRecibido) {
+        Object fechaObj = doc.get("fecha");
+        if (fechaObj == null) return null;
+
+        String fechaFormateada;
+        int mesNumero;
+
+        if (fechaObj instanceof Timestamp) {
+            Timestamp ts = (Timestamp) fechaObj;
+            Date date = ts.toDate();
+
+            fechaFormateada = FORMATO_FECHA_HORA.format(date);
+
+            Calendar cal = Calendar.getInstance(TIMEZONE_LIMA, LOCALE_PE);
+            cal.setTime(date);
+            mesNumero = cal.get(Calendar.MONTH) + 1; // 1..12
+        } else if (fechaObj instanceof String) {
+            String fechaRaw = (String) fechaObj;
+            fechaFormateada = formatearFechaHoraCadena(fechaRaw);
+            mesNumero = extraerMesDesdeFechaCadena(fechaRaw);
+        } else {
+            return null;
+        }
+
+        Double monto = doc.getDouble("monto");
+        String nombreTour = doc.getString("nombreTour");
+        String uidPaga = doc.getString("uidUsuarioPaga");
+        String uidRecibe = doc.getString("uidUsuarioRecibe");
+
+        if (uidPaga == null || uidRecibe == null) return null;
+
+        PagoItem item = new PagoItem();
+        item.idDocumento = doc.getId();
+        item.fechaFormateada = fechaFormateada;
+        item.mesNumero = mesNumero;
+        item.monto = (monto != null) ? monto : 0.0;
+        item.nombreTour = (nombreTour != null) ? nombreTour : "";
+
+        if (esRecibido) {
+            item.tipo = PagoItem.TIPO_RECIBIDO;
+            item.uidOtroUsuario = uidPaga;          // cliente
+            item.nombreOtroUsuario = "Cliente";
+        } else {
+            item.tipo = PagoItem.TIPO_REALIZADO;
+            item.uidOtroUsuario = uidRecibe;        // guía
+            item.nombreOtroUsuario = "Guía";
+        }
+
+        return item;
+    }
+
+    /**
+     * Cargar nombre (nombresApellidos) desde la colección de usuarios.
+     * Usa AuthConstants.COLLECTION_USUARIOS para asegurar que es la misma
+     * colección que el resto de la app.
+     */
+    private void cargarNombreUsuario(PagoItem item) {
+        if (item.uidOtroUsuario == null) return;
+
+        db.collection(AuthConstants.COLLECTION_USUARIOS)
+                .document(item.uidOtroUsuario)
+                .get()
+                .addOnSuccessListener(doc -> {
+                    if (doc.exists()) {
+                        String nombre = doc.getString("nombresApellidos");
+                        Log.d(TAG, "Usuario " + item.uidOtroUsuario +
+                                " encontrado. nombresApellidos=" + nombre +
+                                " tipo=" + (item.tipo == PagoItem.TIPO_RECIBIDO ? "RECIBIDO" : "REALIZADO"));
+
+                        if (nombre != null && !nombre.trim().isEmpty()) {
+                            item.nombreOtroUsuario = nombre;
+                        }
+                    } else {
+                        Log.w(TAG, "Documento de usuario NO existe para uid=" + item.uidOtroUsuario);
+                    }
+                    rebuildListaMostrada();
                 })
                 .addOnFailureListener(e -> {
-                    Log.e(TAG, "Error obteniendo pagos", e);
-                    listaCompletaPagos.clear();
-                    listaFiltradaPagos.clear();
-                    adapter.notifyDataSetChanged();
+                    Log.e(TAG, "Error cargando usuario " + item.uidOtroUsuario, e);
                 });
     }
 
     // =========================================================
-    // FILTRADO SOLO POR MES
+    // ARMAR LISTA MOSTRADA APLICANDO FILTRO DE MES + SECCION
     // =========================================================
 
-    private void aplicarFiltros() {
-        listaFiltradaPagos.clear();
+    private void rebuildListaMostrada() {
+        listaMostrada.clear();
 
-        for (PagoItem item : listaCompletaPagos) {
-            // Filtro de mes
-            if (mesSeleccionado != 0 && item.mesNumero != mesSeleccionado) {
-                continue;
-            }
-            listaFiltradaPagos.add(item);
+        List<PagoItem> fuente = (currentSection == SECTION_RECIBIDOS)
+                ? listaRecibidos
+                : listaRealizados;
+
+        for (PagoItem p : fuente) {
+            if (mesSeleccionado != 0 && p.mesNumero != mesSeleccionado) continue;
+            listaMostrada.add(p);
         }
 
         adapter.notifyDataSetChanged();
     }
 
     // =========================================================
-    // HELPERS DE FECHA / HORA PARA CADENA ANTIGUA
+    // HELPERS DE FECHA PARA REGISTROS ANTIGUOS EN STRING
     // =========================================================
 
     @NonNull
@@ -290,10 +337,9 @@ public class admin_pagos extends AppCompatActivity {
                 return fechaRaw;
             }
 
-            String parteFecha = partes[0].trim();      // "12 de noviembre de 2025"
-            String parteHoraZona = partes[1].trim();   // "1:26:38 p.m. UTC-5"
+            String parteFecha = partes[0].trim();
+            String parteHoraZona = partes[1].trim();
 
-            // ---- Fecha ----
             String[] tokensFecha = parteFecha.split(" ");
             if (tokensFecha.length < 5) return fechaRaw;
 
@@ -305,8 +351,6 @@ public class admin_pagos extends AppCompatActivity {
             String mes = pad2(String.valueOf(mesNumero));
 
             String fechaCorta = dia + "/" + mes + "/" + anio;
-
-            // ---- Hora ----
             String horaCorta = extraerHoraCorta(parteHoraZona);
 
             return fechaCorta + " " + horaCorta;
@@ -374,10 +418,13 @@ public class admin_pagos extends AppCompatActivity {
     }
 
     // =========================================================
-    // MODELO
+    // MODELO DE PAGO
     // =========================================================
 
     private static class PagoItem {
+        static final int TIPO_RECIBIDO = 1;
+        static final int TIPO_REALIZADO = 2;
+
         String idDocumento;
         String fechaFormateada;
         int mesNumero;
@@ -385,10 +432,9 @@ public class admin_pagos extends AppCompatActivity {
         double monto;
         String nombreTour;
 
-        String uidCliente;
-        String uidAdmin;
-        String nombreCliente;
-        String tipoPago;
+        int tipo;                 // RECIBIDO / REALIZADO
+        String uidOtroUsuario;    // cliente o guía
+        String nombreOtroUsuario; // se muestra en el card
     }
 
     // =========================================================
@@ -415,11 +461,12 @@ public class admin_pagos extends AppCompatActivity {
         public void onBindViewHolder(@NonNull PagoViewHolder holder, int position) {
             PagoItem item = items.get(position);
 
-            String nombreCliente = (item.nombreCliente != null && !item.nombreCliente.isEmpty())
-                    ? item.nombreCliente
-                    : "Cliente";
+            String defaultName = (item.tipo == PagoItem.TIPO_RECIBIDO) ? "Cliente" : "Guía";
+            String nombre = (item.nombreOtroUsuario != null && !item.nombreOtroUsuario.isEmpty())
+                    ? item.nombreOtroUsuario
+                    : defaultName;
 
-            holder.textClientName.setText(nombreCliente);
+            holder.textClientName.setText(nombre);
 
             String detalle = "S/ " + String.format(Locale.US, "%.2f", item.monto)
                     + " · " + item.nombreTour;
