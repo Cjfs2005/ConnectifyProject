@@ -430,7 +430,7 @@ public class admin_create_tour extends AppCompatActivity implements OnMapReadyCa
     }
     
     private void showIdiomasDialog() {
-        String[] idiomasDisponibles = {"Español", "Inglés", "Francés", "Alemán", "Portugués", "Italiano", "Chino", "Japonés"};
+        String[] idiomasDisponibles = {"Español", "Inglés", "Francés", "Alemán", "Italiano", "Chino", "Japonés"};
         boolean[] idiomasSeleccionados = new boolean[idiomasDisponibles.length];
         
         // Marcar los idiomas ya seleccionados
@@ -1030,6 +1030,23 @@ public class admin_create_tour extends AppCompatActivity implements OnMapReadyCa
             placeMap.put("direccion", place.getAddress());
             placeMap.put("latitud", place.getLatitude());
             placeMap.put("longitud", place.getLongitude());
+            
+            // Guardar actividades del punto
+            if (place.getActivities() != null && !place.getActivities().isEmpty()) {
+                // Convertir actividades de String a List<String> separadas por salto de línea
+                String[] actividadesArray = place.getActivities().split("\n");
+                List<String> actividadesList = new ArrayList<>();
+                for (String actividad : actividadesArray) {
+                    String actividadTrim = actividad.trim();
+                    if (!actividadTrim.isEmpty()) {
+                        actividadesList.add(actividadTrim);
+                    }
+                }
+                if (!actividadesList.isEmpty()) {
+                    placeMap.put("actividades", actividadesList);
+                }
+            }
+            
             itinerario.add(placeMap);
         }
         borrador.setItinerario(itinerario);

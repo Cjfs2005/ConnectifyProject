@@ -265,11 +265,23 @@ private void setupTourFromFirebase(DocumentSnapshot doc) {
         
         if (tourItinerario != null && !tourItinerario.isEmpty()) {
             for (int i = 0; i < tourItinerario.size(); i++) {
+                final int index = i;
                 TextView itinerarioView = new TextView(this);
                 itinerarioView.setText("📍 " + (i + 1) + ". " + tourItinerario.get(i));
                 itinerarioView.setTextSize(14);
                 itinerarioView.setTextColor(Color.parseColor("#212121"));
                 itinerarioView.setPadding(0, 8, 0, 8);
+                
+                // Hacer clickeable para mostrar actividades
+                itinerarioView.setClickable(true);
+                itinerarioView.setFocusable(true);
+                itinerarioView.setBackgroundResource(android.R.drawable.list_selector_background);
+                
+                itinerarioView.setOnClickListener(v -> {
+                    // Mostrar actividades del punto
+                    mostrarActividadesPunto(index);
+                });
+                
                 container.addView(itinerarioView);
             }
         } else {
@@ -279,6 +291,41 @@ private void setupTourFromFirebase(DocumentSnapshot doc) {
             emptyView.setTextColor(Color.parseColor("#757575"));
             container.addView(emptyView);
         }
+    }
+    
+    /**
+     * Mostrar diálogo con actividades del punto del itinerario
+     */
+    private void mostrarActividadesPunto(int index) {
+        if (tourItinerarioCompleto == null || index >= tourItinerarioCompleto.size()) {
+            Toast.makeText(this, "No hay información de actividades", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
+        Map<String, Object> punto = tourItinerarioCompleto.get(index);
+        String nombrePunto = (String) punto.get("nombre");
+        List<String> actividades = (List<String>) punto.get("actividades");
+        
+        if (actividades == null || actividades.isEmpty()) {
+            Toast.makeText(this, "No hay actividades registradas para este punto", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
+        StringBuilder mensaje = new StringBuilder();
+        mensaje.append("Actividades en ").append(nombrePunto).append(":\\n\\n");
+        
+        for (int i = 0; i < actividades.size(); i++) {
+            mensaje.append((i + 1)).append(". ").append(actividades.get(i));
+            if (i < actividades.size() - 1) {
+                mensaje.append("\\n");
+            }
+        }
+        
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("Actividades del Itinerario")
+            .setMessage(mensaje.toString())
+            .setPositiveButton("Cerrar", null)
+            .show();
     }
 
     /**

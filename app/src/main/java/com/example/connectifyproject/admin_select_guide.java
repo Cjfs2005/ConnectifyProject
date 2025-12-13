@@ -238,25 +238,32 @@ public class admin_select_guide extends AppCompatActivity {
                     // Por ahora todos disponibles, se validará al seleccionar
                     boolean disponible = true;
                     
-                    // Filtrar solo guías que cumplan con idiomas requeridos
+                    // Filtrar solo guías que cumplan con TODOS los idiomas requeridos
                     if (idiomasRequeridos != null && !idiomasRequeridos.isEmpty()) {
                         android.util.Log.d("AdminSelectGuide", "  - Verificando idiomas requeridos...");
-                        boolean cumpleRequisito = false;
+                        boolean cumpleTodosLosIdiomas = true;
+                        
+                        // El guía debe tener TODOS los idiomas requeridos
                         for (String idiomaRequerido : idiomasRequeridos) {
+                            boolean tieneEsteIdioma = false;
                             for (String idiomaGuia : idiomas) {
                                 if (idiomaGuia.equalsIgnoreCase(idiomaRequerido)) {
                                     android.util.Log.d("AdminSelectGuide", "    ✓ Coincidencia: " + idiomaRequerido + " = " + idiomaGuia);
-                                    cumpleRequisito = true;
+                                    tieneEsteIdioma = true;
                                     break;
                                 }
                             }
-                            if (cumpleRequisito) break;
+                            if (!tieneEsteIdioma) {
+                                android.util.Log.d("AdminSelectGuide", "    ✗ Falta idioma: " + idiomaRequerido);
+                                cumpleTodosLosIdiomas = false;
+                                break;
+                            }
                         }
                         
-                        if (!cumpleRequisito) {
+                        if (!cumpleTodosLosIdiomas) {
                             android.util.Log.d("AdminSelectGuide", "  ✗ Guía descartado por idiomas");
                             guiasDescartados++;
-                            continue; // Saltar este guía si no cumple idiomas
+                            continue; // Saltar este guía si no cumple TODOS los idiomas
                         }
                     }
                     
@@ -340,12 +347,12 @@ public class admin_select_guide extends AppCompatActivity {
     private void applyLanguageFilter() {
         List<String> selectedLanguages = new ArrayList<>();
         
-        if (binding.chipEspanol.isChecked()) selectedLanguages.add("español");
-        if (binding.chipIngles.isChecked()) selectedLanguages.add("inglés");
-        if (binding.chipFrances.isChecked()) selectedLanguages.add("francés");
-        if (binding.chipItaliano.isChecked()) selectedLanguages.add("italiano");
-        if (binding.chipMandarin.isChecked()) selectedLanguages.add("mandarín");
-        if (binding.chipPortugues.isChecked()) selectedLanguages.add("portugués");
+        if (binding.chipEspanol.isChecked()) selectedLanguages.add("Español");
+        if (binding.chipIngles.isChecked()) selectedLanguages.add("Inglés");
+        if (binding.chipFrances.isChecked()) selectedLanguages.add("Francés");
+        if (binding.chipItaliano.isChecked()) selectedLanguages.add("Italiano");
+        if (binding.chipMandarin.isChecked()) selectedLanguages.add("Chino");
+        if (binding.chipPortugues.isChecked()) selectedLanguages.add("Japonés");
 
         filteredGuides.clear();
         

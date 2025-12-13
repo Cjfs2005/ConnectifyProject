@@ -1,5 +1,8 @@
 package com.example.connectifyproject.models;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Cliente_ItinerarioItem {
     private String id;
     private String placeName;
@@ -9,6 +12,7 @@ public class Cliente_ItinerarioItem {
     private double latitude;
     private double longitude;
     private boolean isLastItem;
+    private List<String> actividades;
 
     public Cliente_ItinerarioItem(String id, String placeName, String duration, 
                                  String visitTime, String description, 
@@ -21,6 +25,7 @@ public class Cliente_ItinerarioItem {
         this.latitude = latitude;
         this.longitude = longitude;
         this.isLastItem = false;
+        this.actividades = new ArrayList<>();
     }
 
     // Constructor alternativo para compatibilidad
@@ -34,6 +39,7 @@ public class Cliente_ItinerarioItem {
         this.latitude = latitude;
         this.longitude = longitude;
         this.isLastItem = false;
+        this.actividades = new ArrayList<>();
     }
 
     // Getters
@@ -59,4 +65,6 @@ public class Cliente_ItinerarioItem {
     public void setLatitude(double latitude) { this.latitude = latitude; }
     public void setLongitude(double longitude) { this.longitude = longitude; }
     public void setLastItem(boolean lastItem) { isLastItem = lastItem; }
+    public List<String> getActividades() { return actividades != null ? actividades : new ArrayList<>(); }
+    public void setActividades(List<String> actividades) { this.actividades = actividades; }
 }

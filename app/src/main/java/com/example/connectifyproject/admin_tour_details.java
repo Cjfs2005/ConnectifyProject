@@ -168,15 +168,20 @@ public class admin_tour_details extends AppCompatActivity implements OnMapReadyC
                             String direccion = (String) punto.get("direccion");
                             Double latitud = (Double) punto.get("latitud");
                             Double longitud = (Double) punto.get("longitud");
+                            List<String> actividades = (List<String>) punto.get("actividades");
                             
                             if (nombre != null && latitud != null && longitud != null) {
-                                itinerarioItems.add(new Cliente_ItinerarioItem(
+                                Cliente_ItinerarioItem item = new Cliente_ItinerarioItem(
                                     "",  // hora (vacío por ahora)
                                     nombre,
                                     direccion != null ? direccion : "",
                                     latitud,
                                     longitud
-                                ));
+                                );
+                                if (actividades != null && !actividades.isEmpty()) {
+                                    item.setActividades(actividades);
+                                }
+                                itinerarioItems.add(item);
                             }
                         }
                     }
@@ -530,6 +535,32 @@ public class admin_tour_details extends AppCompatActivity implements OnMapReadyC
             LatLng location = new LatLng(item.getLatitude(), item.getLongitude());
             mGoogleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(location, 16f));
         }
+        
+        // Mostrar diálogo con actividades si existen
+        List<String> actividades = item.getActividades();
+        if (actividades != null && !actividades.isEmpty()) {
+            mostrarDialogoActividades(item.getPlaceName(), actividades);
+        } else {
+            Toast.makeText(this, "No hay actividades registradas para este punto", Toast.LENGTH_SHORT).show();
+        }
+    }
+    
+    private void mostrarDialogoActividades(String nombrePunto, List<String> actividades) {
+        StringBuilder mensaje = new StringBuilder();
+        mensaje.append("Actividades en ").append(nombrePunto).append(":\n\n");
+        
+        for (int i = 0; i < actividades.size(); i++) {
+            mensaje.append(actividades.get(i));
+            if (i < actividades.size() - 1) {
+                mensaje.append("\n");
+            }
+        }
+        
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("Actividades del Itinerario")
+            .setMessage(mensaje.toString())
+            .setPositiveButton("Cerrar", null)
+            .show();
     }
 
     private void setupBottomNavigation() {

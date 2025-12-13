@@ -130,16 +130,24 @@ public class cliente_tour_mapa extends AppCompatActivity implements Cliente_Itin
             String direccion = (String) punto.get("direccion");
             Double latitud = (Double) punto.get("latitud");
             Double longitud = (Double) punto.get("longitud");
+            List<String> actividades = (List<String>) punto.get("actividades");
             
             if (nombre != null && latitud != null && longitud != null) {
                 // Agregar a la lista de puntos para el RecyclerView
-                itinerarioItems.add(new Cliente_ItinerarioItem(
+                Cliente_ItinerarioItem item = new Cliente_ItinerarioItem(
                     "", // hora vacía ya que no la tenemos en la estructura
                     nombre,
                     direccion != null ? direccion : "",
                     latitud,
                     longitud
-                ));
+                );
+                
+                // Agregar actividades si existen
+                if (actividades != null && !actividades.isEmpty()) {
+                    item.setActividades(actividades);
+                }
+                
+                itinerarioItems.add(item);
                 
                 // Agregar coordenadas para la ruta
                 routePoints.add(new LatLng(latitud, longitud));
@@ -238,10 +246,30 @@ public class cliente_tour_mapa extends AppCompatActivity implements Cliente_Itin
     }
 
     public void onItinerarioItemClick(Cliente_ItinerarioItem item) {
+        // Construir mensaje con descripción y actividades
+        StringBuilder mensaje = new StringBuilder();
+        
+        if (item.getDescription() != null && !item.getDescription().isEmpty()) {
+            mensaje.append(item.getDescription()).append("\n\n");
+        }
+        
+        List<String> actividades = item.getActividades();
+        if (actividades != null && !actividades.isEmpty()) {
+            mensaje.append("Actividades:\n");
+            for (int i = 0; i < actividades.size(); i++) {
+                mensaje.append((i + 1)).append(". ").append(actividades.get(i));
+                if (i < actividades.size() - 1) {
+                    mensaje.append("\n");
+                }
+            }
+        } else if (mensaje.length() == 0) {
+            mensaje.append("No hay información adicional disponible");
+        }
+        
         // Mostrar dialog con detalles del punto de interés
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(item.getTime() + " - " + item.getTitle())
-                .setMessage(item.getDescription())
+                .setMessage(mensaje.toString())
                 .setPositiveButton("Ver en mapa", (dialog, which) -> {
                     // Centrar el mapa en este punto
                     if (mMap != null) {
