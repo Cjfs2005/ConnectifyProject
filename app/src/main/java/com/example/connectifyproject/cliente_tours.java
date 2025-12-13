@@ -159,9 +159,12 @@ public class cliente_tours extends AppCompatActivity {
                     for (DocumentSnapshot doc : querySnapshot.getDocuments()) {
                         // Verificar habilitado manualmente
                         Boolean habilitado = doc.getBoolean("habilitado");
-                        Log.d(TAG, "Tour " + doc.getId() + " - habilitado: " + habilitado);
+                        String estado = doc.getString("estado");
+                        Log.d(TAG, "Tour " + doc.getId() + " - habilitado: " + habilitado + ", estado: " + estado);
                         
-                        if (habilitado != null && habilitado) {
+                        // Filtrar tours cancelados y completados
+                        if (habilitado != null && habilitado && 
+                            estado != null && !estado.equals("cancelado") && !estado.equals("completado")) {
                             processTourDocument(doc);
                             toursValidos++;
                         }

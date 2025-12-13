@@ -269,8 +269,8 @@ public class cliente_tour_detalle extends AppCompatActivity implements Cliente_S
         });
 
         btnContinuar.setOnClickListener(v -> {
-            // Inscribir al cliente en el tour (sin pago)
-            inscribirseEnTour();
+            // Navegar a selección de método de pago
+            navigateToPaymentMethod();
         });
 
         cardEmpresa.setOnClickListener(v -> {
@@ -371,113 +371,39 @@ public class cliente_tour_detalle extends AppCompatActivity implements Cliente_S
     }
     
     /**
-     * 📝 INSCRIBIR CLIENTE EN EL TOUR (SIN PAGO)
-     * Agrega al cliente al array participantes[] del tour en Firebase
+     * 💳 NAVEGAR A MÉTODO DE PAGO
+     * Prepara todos los datos necesarios y navega a la pantalla de selección de pago
      */
-    private void inscribirseEnTour() {
+    private void navigateToPaymentMethod() {
         // Verificar autenticación
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser == null) {
-            Toast.makeText(this, "❌ Debes iniciar sesión para inscribirte", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Debes iniciar sesión para continuar", Toast.LENGTH_LONG).show();
             return;
         }
         
         if (tour.getId() == null || tour.getId().isEmpty()) {
-            Toast.makeText(this, "❌ Error: ID de tour no válido", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Error: Información del tour no válida", Toast.LENGTH_SHORT).show();
             return;
         }
         
-        btnContinuar.setEnabled(false);
-        btnContinuar.setText("Inscribiendo...");
+        // Calcular precio total
+        double serviciosPrice = 0.0;
+        for (Cliente_ServicioAdicional servicio : serviciosAdicionales) {
+            if (servicio.isSelected()) {
+                serviciosPrice += servicio.getPrice();
+            }
+        }
+        double totalPerPerson = tour.getPrecio() + serviciosPrice;
+        double totalPrice = totalPerPerson * peopleCount;
         
-        String clienteId = currentUser.getUid();
-        String clienteEmail = currentUser.getEmail();
+        // Crear intent con todos los datos necesarios
+        Intent intent = new Intent(this, cliente_metodo_pago.class);
+        intent.putExtra("tour_id", tour.getId());
+        intent.putExtra("tour_title", tour.getTitulo());
+        intent.putExtra("total_price", String.format("%.2f", totalPrice));
+        intent.putExtra("people_count", peopleCount);
         
-        // Crear objeto participante
-        // NOTA: No se puede usar FieldValue.serverTimestamp() dentro de arrayUnion()
-        // Se usa com.google.firebase.Timestamp.now() en su lugar
-        Map<String, Object> participante = new HashMap<>();
-        participante.put("clienteId", clienteId);
-        participante.put("clienteEmail", clienteEmail != null ? clienteEmail : "");
-        participante.put("checkIn", false);
-        participante.put("checkOut", false);
-        participante.put("fechaInscripcion", com.google.firebase.Timestamp.now());
-        
-        // Verificar si ya está inscrito
-        FirebaseFirestore.getInstance()
-                .collection("tours_asignados")
-                .document(tour.getId())
-                .get()
-                .addOnSuccessListener(doc -> {
-                    if (doc.exists()) {
-                        List<Map<String, Object>> participantes = 
-                            (List<Map<String, Object>>) doc.get("participantes");
-                        
-                        // Verificar si ya está inscrito
-                        if (participantes != null) {
-                            for (Map<String, Object> p : participantes) {
-                                if (clienteId.equals(p.get("clienteId"))) {
-                                    runOnUiThread(() -> {
-                                        Toast.makeText(this, "ℹ️ Ya estás inscrito en este tour", Toast.LENGTH_LONG).show();
-                                        btnContinuar.setEnabled(true);
-                                        btnContinuar.setText("Ya inscrito");
-                                    });
-                                    return;
-                                }
-                            }
-                        }
-                        
-                        // Agregar participante al array
-                        FirebaseFirestore.getInstance()
-                                .collection("tours_asignados")
-                                .document(tour.getId())
-                                .update("participantes", FieldValue.arrayUnion(participante))
-                                .addOnSuccessListener(aVoid -> {
-                                    // También actualizar el contador
-                                    FirebaseFirestore.getInstance()
-                                            .collection("tours_asignados")
-                                            .document(tour.getId())
-                                            .update("numeroParticipantesTotal", FieldValue.increment(1))
-                                            .addOnSuccessListener(aVoid2 -> {
-                                                runOnUiThread(() -> {
-                                                    Toast.makeText(this, "✅ ¡Inscripción exitosa! Ahora puedes hacer check-in cuando comience el tour", Toast.LENGTH_LONG).show();
-                                                    btnContinuar.setText("✅ Inscrito");
-                                                    
-                                                    // Regresar a la pantalla anterior después de 1.5 segundos
-                                                    new android.os.Handler().postDelayed(() -> {
-                                                        finish();
-                                                    }, 1500);
-                                                });
-                                            })
-                                            .addOnFailureListener(e -> {
-                                                runOnUiThread(() -> {
-                                                    Toast.makeText(this, "⚠️ Inscrito pero error al actualizar contador", Toast.LENGTH_SHORT).show();
-                                                    btnContinuar.setEnabled(true);
-                                                    btnContinuar.setText("Inscribirse");
-                                                });
-                                            });
-                                })
-                                .addOnFailureListener(e -> {
-                                    runOnUiThread(() -> {
-                                        Toast.makeText(this, "❌ Error al inscribirse: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                                        btnContinuar.setEnabled(true);
-                                        btnContinuar.setText("Inscribirse");
-                                    });
-                                });
-                    } else {
-                        runOnUiThread(() -> {
-                            Toast.makeText(this, "❌ Tour no encontrado", Toast.LENGTH_SHORT).show();
-                            btnContinuar.setEnabled(true);
-                            btnContinuar.setText("Inscribirse");
-                        });
-                    }
-                })
-                .addOnFailureListener(e -> {
-                    runOnUiThread(() -> {
-                        Toast.makeText(this, "❌ Error al verificar inscripción: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                        btnContinuar.setEnabled(true);
-                        btnContinuar.setText("Inscribirse");
-                    });
-                });
+        startActivity(intent);
     }
 }

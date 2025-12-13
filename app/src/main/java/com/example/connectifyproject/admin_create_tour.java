@@ -51,7 +51,7 @@ import java.util.Map;
 public class admin_create_tour extends AppCompatActivity implements OnMapReadyCallback {
     
     // ⚠️ MODO PRUEBA: Cambiar a true para permitir crear tours en el mismo día (solo para testing)
-    private static final boolean TEST_MODE = true;
+    private static final boolean TEST_MODE = false;
     
     private AdminCreateTourViewBinding binding;
     private GoogleMap mMap;
