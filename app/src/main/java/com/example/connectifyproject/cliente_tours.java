@@ -222,7 +222,11 @@ public class cliente_tours extends AppCompatActivity {
             tour.setStartTime(horaInicio != null ? horaInicio : "Por confirmar");
             tour.setEndTime(horaFin != null ? horaFin : "Por confirmar");
             
-            // Ubicación del primer punto del itinerario
+            // Ciudad del tour
+            String ciudad = doc.getString("ciudad");
+            tour.setCiudad(ciudad != null ? ciudad : "");
+            
+            // Ubicación del primer punto del itinerario (para retrocompatibilidad)
             List<Map<String, Object>> itinerario = (List<Map<String, Object>>) doc.get("itinerario");
             if (itinerario != null && !itinerario.isEmpty()) {
                 String direccion = (String) itinerario.get(0).get("direccion");
@@ -348,20 +352,34 @@ public class cliente_tours extends AppCompatActivity {
             double minPrice = data.getDoubleExtra("min_price", 0);
             double maxPrice = data.getDoubleExtra("max_price", Double.MAX_VALUE);
             String language = data.getStringExtra("language");
+            String city = data.getStringExtra("city");
             
-            applyFilters(startDate, endDate, minPrice, maxPrice, language);
+            applyFilters(startDate, endDate, minPrice, maxPrice, language, city);
         }
     }
 
-    private void applyFilters(String startDate, String endDate, double minPrice, double maxPrice, String language) {
+    private void applyFilters(String startDate, String endDate, double minPrice, double maxPrice, String language, String city) {
         filteredTours.clear();
         
         for (Cliente_Tour tour : allTours) {
             boolean matchesPrice = tour.getPrice() >= minPrice && tour.getPrice() <= maxPrice;
-            // Por simplicidad, solo filtramos por precio por ahora
-            // Se pueden agregar más filtros según necesidad
             
-            if (matchesPrice) {
+            // Filtro por ciudad
+            boolean matchesCity = true;
+            if (city != null && !city.isEmpty()) {
+                String tourCity = tour.getCiudad();
+                matchesCity = tourCity != null && tourCity.equalsIgnoreCase(city);
+            }
+            
+            // Filtro por idioma
+            boolean matchesLanguage = true;
+            if (language != null && !language.isEmpty()) {
+                List<String> tourLanguages = tour.getIdiomasRequeridos();
+                matchesLanguage = tourLanguages != null && tourLanguages.contains(language);
+            }
+            
+            // Aplicar todos los filtros
+            if (matchesPrice && matchesCity && matchesLanguage) {
                 filteredTours.add(tour);
             }
         }

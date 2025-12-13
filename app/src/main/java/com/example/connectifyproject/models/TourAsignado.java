@@ -16,6 +16,7 @@ public class TourAsignado implements Serializable {
     private Timestamp fechaRealizacion;
     private String horaInicio;
     private String horaFin;
+    private String ciudad; // Ciudad donde se realiza el tour
     
     // Itinerario con seguimiento
     private List<Map<String, Object>> itinerario;
@@ -177,6 +178,9 @@ public class TourAsignado implements Serializable {
     
     public String getHoraFin() { return horaFin; }
     public void setHoraFin(String horaFin) { this.horaFin = horaFin; }
+
+    public String getCiudad() { return ciudad; }
+    public void setCiudad(String ciudad) { this.ciudad = ciudad; }
     
     public List<Map<String, Object>> getItinerario() { return itinerario; }
     public void setItinerario(List<Map<String, Object>> itinerario) { this.itinerario = itinerario; }

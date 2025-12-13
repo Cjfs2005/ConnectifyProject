@@ -15,6 +15,7 @@ public class Cliente_Tour implements Serializable {
     private String endTime;
     private double price;
     private String location;
+    private String ciudad;
     private String description;
     private String imageUrl;
     private float calificacion;
@@ -114,6 +115,8 @@ public class Cliente_Tour implements Serializable {
     public void setEndTime(String endTime) { this.endTime = endTime; }
     public void setPrice(double price) { this.price = price; }
     public void setLocation(String location) { this.location = location; }
+    public String getCiudad() { return ciudad; }
+    public void setCiudad(String ciudad) { this.ciudad = ciudad; }
     public void setDescription(String description) { this.description = description; }
     public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
     public void setCalificacion(float calificacion) { this.calificacion = calificacion; }

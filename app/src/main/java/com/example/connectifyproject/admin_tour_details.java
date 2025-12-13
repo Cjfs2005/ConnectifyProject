@@ -198,6 +198,8 @@ public class admin_tour_details extends AppCompatActivity implements OnMapReadyC
                     if (fechaRealizacion != null) {
                         binding.tvFecha.setText(fechaRealizacion);
                     }
+                    String ciudad = documentSnapshot.getString("ciudad");
+                    binding.tvCiudad.setText(ciudad != null && !ciudad.isEmpty() ? ciudad : "No especificado");
                     if (precio != null) binding.tvCostoPorPersona.setText("S/ " + precio.intValue());
                     if (horaInicio != null && horaFin != null) {
                         binding.tvHorario.setText(horaInicio + " - " + horaFin);

@@ -345,6 +345,7 @@ public class AdminTourService {
                     oferta.setFechaRealizacion(borrador.getFechaRealizacion());
                     oferta.setHoraInicio(borrador.getHoraInicio());
                     oferta.setHoraFin(borrador.getHoraFin());
+                    oferta.setCiudad(borrador.getCiudad());
                     oferta.setItinerario(borrador.getItinerario());
                     oferta.setServiciosAdicionales(borrador.getServiciosAdicionales());
                     oferta.setImagenesUrls(nuevasUrls);

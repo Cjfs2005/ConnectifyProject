@@ -19,6 +19,7 @@ public class TourBorrador implements Serializable {
     private String fechaRealizacion; // Formato: dd/MM/yyyy
     private String horaInicio;
     private String horaFin;
+    private String ciudad; // Ciudad donde se realiza el tour
     
     // Itinerario y servicios
     private List<Map<String, Object>> itinerario;
@@ -120,6 +121,9 @@ public class TourBorrador implements Serializable {
 
     public String getHoraFin() { return horaFin; }
     public void setHoraFin(String horaFin) { this.horaFin = horaFin; }
+
+    public String getCiudad() { return ciudad; }
+    public void setCiudad(String ciudad) { this.ciudad = ciudad; }
 
     public List<Map<String, Object>> getItinerario() { return itinerario; }
     public void setItinerario(List<Map<String, Object>> itinerario) { this.itinerario = itinerario; }

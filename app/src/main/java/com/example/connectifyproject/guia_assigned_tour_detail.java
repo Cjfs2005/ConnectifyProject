@@ -123,6 +123,7 @@ private void setupTourFromFirebase(DocumentSnapshot doc) {
     String horaInicio = doc.getString("horaInicio");
     String horaFin = doc.getString("horaFin");
     String estado = doc.getString("estado");
+    String ciudad = doc.getString("ciudad");
     Double pagoGuia = doc.getDouble("pagoGuia");
     
     android.util.Log.d("GuiaAssignedTour", "Datos cargados - Titulo: " + titulo + ", Estado: " + estado);
@@ -187,7 +188,7 @@ private void setupTourFromFirebase(DocumentSnapshot doc) {
     this.duracionHoras = duracion;
     
     setupTourHeader(titulo, nombreEmpresa, fechaFormateada + " " + horaInicio, 
-                   duracion + " horas", numParticipantes, estado, pagoGuia);
+                   duracion + " horas", numParticipantes, estado, pagoGuia, ciudad);
     setupParticipantes(participantesData);
     setupItinerario(itinerarioTexto);
     setupTourInfo(idiomas, servicios, descripcion);
@@ -204,10 +205,11 @@ private void setupTourFromFirebase(DocumentSnapshot doc) {
      * ✅ HEADER: Configurar información principal del tour
      */
     private void setupTourHeader(String tourName, String tourEmpresa, String tourInitio, 
-                                String tourDuration, int tourClients, String tourStatus, Double pagoGuia) {
+                                String tourDuration, int tourClients, String tourStatus, Double pagoGuia, String ciudad) {
         binding.tourName.setText(tourName != null ? tourName : "Tour sin título");
         binding.empresaBadge.setText(tourEmpresa != null ? tourEmpresa : "Empresa");
         binding.tourInitio.setText(tourInitio != null ? tourInitio : "Fecha no disponible");
+        binding.tourCiudad.setText("📍 " + (ciudad != null && !ciudad.isEmpty() ? ciudad : "No especificado"));
         binding.tourDuration.setText(tourDuration != null ? tourDuration : "Duración");
         binding.tourClients.setText(tourClients + " personas");
         

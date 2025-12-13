@@ -21,10 +21,10 @@ import java.util.Locale;
 public class cliente_tour_filtros extends AppCompatActivity {
 
     private MaterialToolbar toolbar;
-    private TextInputLayout tilStartDate, tilEndDate, tilLanguage;
+    private TextInputLayout tilStartDate, tilEndDate, tilLanguage, tilCity;
     private TextInputEditText etStartDate, etEndDate, etMinPrice, etMaxPrice;
-    private AutoCompleteTextView actLanguage;
-    private MaterialButton btnClearDates, btnClearPrice, btnClearLanguage;
+    private AutoCompleteTextView actLanguage, actCity;
+    private MaterialButton btnClearDates, btnClearPrice, btnClearLanguage, btnClearCity;
     private MaterialButton btnClearFilters, btnApplyFilters;
 
     private Calendar startDateCalendar, endDateCalendar;
@@ -38,6 +38,7 @@ public class cliente_tour_filtros extends AppCompatActivity {
         initViews();
         setupToolbar();
         setupLanguageDropdown();
+        setupCityDropdown();
         setupClickListeners();
         initDateFormatters();
     }
@@ -47,14 +48,17 @@ public class cliente_tour_filtros extends AppCompatActivity {
         tilStartDate = findViewById(R.id.til_start_date);
         tilEndDate = findViewById(R.id.til_end_date);
         tilLanguage = findViewById(R.id.til_language);
+        tilCity = findViewById(R.id.til_city);
         etStartDate = findViewById(R.id.et_start_date);
         etEndDate = findViewById(R.id.et_end_date);
         etMinPrice = findViewById(R.id.et_min_price);
         etMaxPrice = findViewById(R.id.et_max_price);
         actLanguage = findViewById(R.id.act_language);
+        actCity = findViewById(R.id.act_city);
         btnClearDates = findViewById(R.id.btn_clear_dates);
         btnClearPrice = findViewById(R.id.btn_clear_price);
         btnClearLanguage = findViewById(R.id.btn_clear_language);
+        btnClearCity = findViewById(R.id.btn_clear_city);
         btnClearFilters = findViewById(R.id.btn_clear_filters);
         btnApplyFilters = findViewById(R.id.btn_apply_filters);
     }
@@ -73,10 +77,18 @@ public class cliente_tour_filtros extends AppCompatActivity {
     }
 
     private void setupLanguageDropdown() {
-        String[] languages = {"Español", "Inglés", "Portugués", "Chino", "Francés"};
+        String[] languages = {"Español", "Inglés", "Francés", "Alemán", "Italiano", "Chino", "Japonés"};
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, 
                 android.R.layout.simple_dropdown_item_1line, languages);
         actLanguage.setAdapter(adapter);
+    }
+
+    private void setupCityDropdown() {
+        String[] cities = {"Lima", "Cusco", "Arequipa", "Trujillo", "Chiclayo", 
+                          "Piura", "Iquitos", "Huancayo", "Tacna", "Puno"};
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, 
+                android.R.layout.simple_dropdown_item_1line, cities);
+        actCity.setAdapter(adapter);
     }
 
     private void setupClickListeners() {
@@ -91,6 +103,7 @@ public class cliente_tour_filtros extends AppCompatActivity {
         btnClearDates.setOnClickListener(v -> clearDates());
         btnClearPrice.setOnClickListener(v -> clearPrices());
         btnClearLanguage.setOnClickListener(v -> clearLanguage());
+        btnClearCity.setOnClickListener(v -> clearCity());
         btnClearFilters.setOnClickListener(v -> clearAllFilters());
 
         // Apply filters
@@ -144,10 +157,15 @@ public class cliente_tour_filtros extends AppCompatActivity {
         actLanguage.setText("");
     }
 
+    private void clearCity() {
+        actCity.setText("");
+    }
+
     private void clearAllFilters() {
         clearDates();
         clearPrices();
         clearLanguage();
+        clearCity();
     }
 
     private void applyFilters() {
@@ -157,6 +175,7 @@ public class cliente_tour_filtros extends AppCompatActivity {
         String startDate = etStartDate.getText().toString().trim();
         String endDate = etEndDate.getText().toString().trim();
         String language = actLanguage.getText().toString().trim();
+        String city = actCity.getText().toString().trim();
         
         double minPrice = 0;
         double maxPrice = Double.MAX_VALUE;
@@ -183,6 +202,7 @@ public class cliente_tour_filtros extends AppCompatActivity {
         resultIntent.putExtra("min_price", minPrice);
         resultIntent.putExtra("max_price", maxPrice);
         resultIntent.putExtra("language", language);
+        resultIntent.putExtra("city", city);
         
         setResult(RESULT_OK, resultIntent);
         finish();

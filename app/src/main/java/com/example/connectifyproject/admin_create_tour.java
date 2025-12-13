@@ -11,6 +11,8 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewParent;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -60,6 +62,7 @@ public class admin_create_tour extends AppCompatActivity implements OnMapReadyCa
     private final int TOTAL_STEPS = 4;
     
     private String tourTitle;
+    private String tourCiudad;
     private String tourDescription;
     private String tourPrice;
     private String tourDuration;
@@ -106,6 +109,7 @@ public class admin_create_tour extends AppCompatActivity implements OnMapReadyCa
         initializeData();
         setupImagePicker();
         setupUI();
+        setupCiudadSpinner();
         setupListeners();
         setupAdapters();
         initializeMaps();
@@ -248,6 +252,28 @@ public class admin_create_tour extends AppCompatActivity implements OnMapReadyCa
         } else {
             Log.e("AdminCreateTour", "✗ ERROR: TextInputLayout NO encontrado");
         }
+    }
+    
+    private void setupCiudadSpinner() {
+        String[] ciudades = {
+            "Lima",
+            "Cusco",
+            "Arequipa",
+            "Trujillo",
+            "Chiclayo",
+            "Piura",
+            "Iquitos",
+            "Huancayo",
+            "Tacna",
+            "Puno"
+        };
+        
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(
+            this,
+            android.R.layout.simple_dropdown_item_1line,
+            ciudades
+        );
+        binding.spinnerCiudad.setAdapter(adapter);
     }
 
     private void setupListeners() {
@@ -644,6 +670,7 @@ public class admin_create_tour extends AppCompatActivity implements OnMapReadyCa
 
     private boolean validateStep1() {
         tourTitle = binding.etTourTitle.getText().toString().trim();
+        tourCiudad = binding.spinnerCiudad.getText().toString().trim();
         tourDescription = binding.etTourDescription.getText().toString().trim();
         tourPrice = binding.etTourPrice.getText().toString().trim();
         tourDuration = binding.etTourDuration.getText().toString().trim();
@@ -653,6 +680,13 @@ public class admin_create_tour extends AppCompatActivity implements OnMapReadyCa
         if (tourTitle.isEmpty()) {
             binding.etTourTitle.setError("Ingrese el titulo del tour");
             return false;
+        }
+        if (tourCiudad.isEmpty()) {
+            binding.tilCiudad.setError("Seleccione la ciudad del tour");
+            Toast.makeText(this, "Seleccione la ciudad del tour", Toast.LENGTH_SHORT).show();
+            return false;
+        } else {
+            binding.tilCiudad.setError(null);
         }
         if (tourDescription.isEmpty()) {
             binding.etTourDescription.setError("Ingrese la descripcion");
@@ -998,6 +1032,7 @@ public class admin_create_tour extends AppCompatActivity implements OnMapReadyCa
         }
         
         borrador.setTitulo(tourTitle != null ? tourTitle : binding.etTourTitle.getText().toString().trim());
+        borrador.setCiudad(tourCiudad != null ? tourCiudad : binding.spinnerCiudad.getText().toString().trim());
         borrador.setDescripcion(tourDescription != null ? tourDescription : binding.etTourDescription.getText().toString().trim());
         
         try {
@@ -1117,6 +1152,13 @@ public class admin_create_tour extends AppCompatActivity implements OnMapReadyCa
                     if (borrador.getTitulo() != null) {
                         binding.etTourTitle.setText(borrador.getTitulo());
                         tourTitle = borrador.getTitulo();
+                    }
+                    
+                    // Cargar ciudad
+                    if (borrador.getCiudad() != null && !borrador.getCiudad().isEmpty()) {
+                        String ciudad = borrador.getCiudad();
+                        tourCiudad = ciudad;
+                        binding.spinnerCiudad.setText(ciudad, false);
                     }
                     
                     if (borrador.getDescripcion() != null) {

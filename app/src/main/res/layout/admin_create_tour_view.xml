@@ -121,6 +121,23 @@
 
                         </com.google.android.material.textfield.TextInputLayout>
 
+                        <!-- Ciudad -->
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/til_ciudad"
+                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="12dp"
+                            android:hint="Ciudad del tour">
+
+                            <AutoCompleteTextView
+                                android:id="@+id/spinner_ciudad"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:inputType="none" />
+
+                        </com.google.android.material.textfield.TextInputLayout>
+
                         <!-- Descripción -->
                         <com.google.android.material.textfield.TextInputLayout
                             android:layout_width="match_parent"
