@@ -72,7 +72,23 @@ public class GuiaAssignedTourAdapter extends RecyclerView.Adapter<RecyclerView.V
             // ✅ USAR LA MISMA ESTRUCTURA QUE OFERTAS
             tourHolder.binding.empresaText.setText(tour.getEmpresa());
             tourHolder.binding.tourName.setText(tour.getName());
-            tourHolder.binding.tourDuration.setText(tour.getDuration());
+            
+            // Ciudad
+            String ciudad = tour.getCiudad() != null ? tour.getCiudad() : "Lima";
+            tourHolder.binding.tourCiudad.setText(ciudad);
+            
+            // Duración con "horas"
+            String duracion = tour.getDuration();
+            if (duracion != null && !duracion.toLowerCase().contains("hora")) {
+                // Si solo es número, agregar "horas"
+                try {
+                    int horas = Integer.parseInt(duracion.trim());
+                    duracion = horas + " horas";
+                } catch (NumberFormatException e) {
+                    // Si no es número, dejar como está
+                }
+            }
+            tourHolder.binding.tourDuration.setText(duracion);
             // ✅ TEXTO INTELIGENTE PARA PARTICIPANTES
             int numParticipantes = tour.getClients();
             if (numParticipantes == 0) {

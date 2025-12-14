@@ -84,7 +84,13 @@ public class guia_tour_detail extends AppCompatActivity implements OnMapReadyCal
             //binding.tourDescription.setText(extras.getString("tour_description"));
             
             // Consideraciones y requerimientos
-            binding.tourConsideraciones.setText("• " + extras.getString("tour_consideraciones", "No especificadas"));
+            String consideraciones = extras.getString("tour_consideraciones", "");
+            if (consideraciones != null && !consideraciones.isEmpty() && !consideraciones.equals("No especificadas")) {
+                binding.tourConsideraciones.setText("• " + consideraciones);
+                binding.tourConsideraciones.setVisibility(android.view.View.VISIBLE);
+            } else {
+                binding.tourConsideraciones.setVisibility(android.view.View.GONE);
+            }
             binding.tourLanguagesRequired.setText("• Idiomas: " + extras.getString("tour_languages", "No especificado"));
             
             // Crear servicios dinámicos
@@ -294,7 +300,7 @@ public class guia_tour_detail extends AppCompatActivity implements OnMapReadyCal
         binding.itinerarioContainer.addView(paradaLayout);
         
         // Agregar línea conectora (excepto en el último elemento)
-        if (indice < total - 1) {
+        /*if (indice < total - 1) {
             android.view.View linea = new android.view.View(this);
             android.widget.LinearLayout.LayoutParams lineaParams = 
                 new android.widget.LinearLayout.LayoutParams(3, 40);
@@ -302,7 +308,7 @@ public class guia_tour_detail extends AppCompatActivity implements OnMapReadyCal
             linea.setLayoutParams(lineaParams);
             linea.setBackgroundColor(getResources().getColor(android.R.color.darker_gray));
             binding.itinerarioContainer.addView(linea);
-        }
+        }*/
     }
     
     /**
@@ -450,6 +456,33 @@ public class guia_tour_detail extends AppCompatActivity implements OnMapReadyCal
         
         textoLayout.addView(nombreText);
         
+        // Obtener y mostrar actividades del punto
+        if (itinerarioData != null && indice < itinerarioData.size()) {
+            Map<String, Object> punto = itinerarioData.get(indice);
+            List<String> actividades = (List<String>) punto.get("actividades");
+            
+            android.widget.TextView actividadesText = new android.widget.TextView(this);
+            actividadesText.setTextSize(13);
+            actividadesText.setTextColor(getResources().getColor(android.R.color.darker_gray));
+            actividadesText.setPadding(0, 4, 0, 0);
+            
+            if (actividades != null && !actividades.isEmpty()) {
+                StringBuilder actividadesStr = new StringBuilder();
+                for (int i = 0; i < actividades.size(); i++) {
+                    actividadesStr.append(actividades.get(i));
+                    if (i < actividades.size() - 1) {
+                        actividadesStr.append("\n");
+                    }
+                }
+                actividadesText.setText(actividadesStr.toString());
+            } else {
+                actividadesText.setText("No hay detalles de actividades");
+                actividadesText.setTypeface(null, android.graphics.Typeface.ITALIC);
+            }
+            
+            textoLayout.addView(actividadesText);
+        }
+        
         // Agregar elementos al layout principal
         paradaLayout.addView(iconoView);
         paradaLayout.addView(textoLayout);
@@ -458,7 +491,7 @@ public class guia_tour_detail extends AppCompatActivity implements OnMapReadyCal
         binding.itinerarioContainer.addView(paradaLayout);
         
         // Agregar línea conectora (excepto en el último elemento)
-        if (indice < total - 1) {
+        /*if (indice < total - 1) {
             android.view.View linea = new android.view.View(this);
             android.widget.LinearLayout.LayoutParams lineaParams = 
                 new android.widget.LinearLayout.LayoutParams(3, 40);
@@ -466,7 +499,7 @@ public class guia_tour_detail extends AppCompatActivity implements OnMapReadyCal
             linea.setLayoutParams(lineaParams);
             linea.setBackgroundColor(getResources().getColor(android.R.color.darker_gray));
             binding.itinerarioContainer.addView(linea);
-        }
+        }*/
     }
     
     /**

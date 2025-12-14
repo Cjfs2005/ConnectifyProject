@@ -15,8 +15,9 @@ public class GuiaAssignedTour {
     private List<String> itinerario;
     private double pagoGuia; // ✅ Añadido para compatibilidad con ofertas
     private String tourId; // ✅ ID para operaciones Firebase
+    private String ciudad; // Ciudad donde se realiza el tour
 
-    public GuiaAssignedTour(String name, String empresa, String initio, String duration, int clients, String status, String date, String languages, String services, List<String> itinerario, double pagoGuia, String tourId) {
+    public GuiaAssignedTour(String name, String empresa, String initio, String duration, int clients, String status, String date, String languages, String services, List<String> itinerario, double pagoGuia, String tourId, String ciudad) {
         this.name = name;
         this.empresa = empresa;
         this.initio = initio;
@@ -29,6 +30,7 @@ public class GuiaAssignedTour {
         this.itinerario = itinerario;
         this.pagoGuia = pagoGuia; // ✅ Inicializar pagoGuia
         this.tourId = tourId; // ✅ Inicializar tourId
+        this.ciudad = ciudad; // Inicializar ciudad
     }
 
     // Getters
@@ -44,4 +46,5 @@ public class GuiaAssignedTour {
     public List<String> getItinerario() { return itinerario; }
     public double getPagoGuia() { return pagoGuia; } // ✅ Getter para pagoGuia
     public String getTourId() { return tourId; } // ✅ Getter para tourId
+    public String getCiudad() { return ciudad; } // Getter para ciudad
 }

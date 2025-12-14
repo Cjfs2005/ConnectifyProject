@@ -46,7 +46,7 @@ public class guia_assigned_tours extends AppCompatActivity implements GuiaDateFi
     
     // 🎯 TOUR PRIORITARIO - Variables importantes
     private TourAsignado tourPrioritario = null;
-    private String currentDateFrom, currentDateTo, currentAmount, currentDuration, currentLanguages;
+    private String currentDateFrom, currentDateTo, currentCiudad;
     private com.google.firebase.firestore.ListenerRegistration priorityListener;
     private com.google.firebase.firestore.ListenerRegistration realtimeListener;
     private boolean isUpdatingUI = false; // ✅ Flag para prevenir bucle infinito
@@ -198,7 +198,7 @@ public class guia_assigned_tours extends AppCompatActivity implements GuiaDateFi
                 
                 // Aplicar filtros y actualizar UI
                 runOnUiThread(() -> {
-                    onApplyFilters(currentDateFrom, currentDateTo, currentAmount, currentDuration, currentLanguages);
+                    onApplyFilters(currentDateFrom, currentDateTo, currentCiudad);
                 });
                 
                 // 🔄 CONFIGURAR LISTENER EN TIEMPO REAL PARA CAMBIOS DE ESTADO
@@ -337,7 +337,8 @@ public class guia_assigned_tours extends AppCompatActivity implements GuiaDateFi
             servicios,
             itinerarioFormateado,
             pagoGuia, // ✅ Añadir pagoGuia al constructor
-            tourAsignado.getId() // ✅ Pasar ID para operaciones Firebase
+            tourAsignado.getId(), // ✅ Pasar ID para operaciones Firebase
+            tourAsignado.getCiudad() // Ciudad del tour
         );
     }
 
@@ -400,12 +401,10 @@ public class guia_assigned_tours extends AppCompatActivity implements GuiaDateFi
     }
 
     @Override
-    public void onApplyFilters(String dateFrom, String dateTo, String amount, String duration, String languages) {
+    public void onApplyFilters(String dateFrom, String dateTo, String ciudad) {
         this.currentDateFrom = dateFrom;
         this.currentDateTo = dateTo;
-        this.currentAmount = amount;
-        this.currentDuration = duration;
-        this.currentLanguages = languages;
+        this.currentCiudad = ciudad;
 
         SimpleDateFormat inputFormat = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault());
         SimpleDateFormat storedFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
@@ -413,6 +412,8 @@ public class guia_assigned_tours extends AppCompatActivity implements GuiaDateFi
         
         for (GuiaAssignedTour tour : allAssignedTours) {
             boolean matches = true;
+            
+            // Filtro por fecha
             try {
                 Date tourDate = storedFormat.parse(tour.getDate());
                 if (dateFrom != null && !dateFrom.isEmpty()) {
@@ -426,8 +427,15 @@ public class guia_assigned_tours extends AppCompatActivity implements GuiaDateFi
             } catch (ParseException e) {
                 matches = false;
             }
-            if (duration != null && !duration.isEmpty() && !tour.getDuration().toLowerCase().contains(duration.toLowerCase())) matches = false;
-            if (languages != null && !languages.isEmpty() && !tour.getLanguages().toLowerCase().contains(languages.toLowerCase())) matches = false;
+            
+            // Filtro por ciudad
+            if (ciudad != null && !ciudad.isEmpty()) {
+                String tourCiudad = tour.getCiudad();
+                if (tourCiudad == null || !tourCiudad.equalsIgnoreCase(ciudad)) {
+                    matches = false;
+                }
+            }
+            
             if (matches) filteredTours.add(tour);
         }
 

@@ -57,8 +57,22 @@ public class GuiaTourAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             // PAGO AL GUÍA (no precio del tour)
             tourHolder.binding.tourPrice.setText("S/. " + (int)tour.getPrice());
             
-            // Duración
-            tourHolder.binding.tourDuration.setText(tour.getDuration());
+            // Ciudad
+            String ciudad = tour.getCiudad() != null ? tour.getCiudad() : "Lima";
+            tourHolder.binding.tourCiudad.setText(ciudad);
+            
+            // Duración con "horas"
+            String duracion = tour.getDuration();
+            if (duracion != null && !duracion.toLowerCase().contains("hora")) {
+                // Si solo es número, agregar "horas"
+                try {
+                    int horas = Integer.parseInt(duracion.trim());
+                    duracion = horas + " horas";
+                } catch (NumberFormatException e) {
+                    // Si no es número, dejar como está
+                }
+            }
+            tourHolder.binding.tourDuration.setText(duracion);
             
             // Idiomas
             tourHolder.binding.tourLanguages.setText(tour.getLanguages());

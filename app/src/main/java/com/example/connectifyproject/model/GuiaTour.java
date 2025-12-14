@@ -19,6 +19,7 @@ public class GuiaTour {
     private boolean transporteIncluido;
     private boolean almuerzoIncluido;
     private String firebaseId; // ID de Firebase para referencia
+    private String ciudad; // Ciudad donde se realiza el tour
 
     public GuiaTour(String name, String location, double price, String duration, String languages,
                     String startTime, String date, String description, String benefits,
@@ -62,7 +63,9 @@ public class GuiaTour {
     public boolean isTransporteIncluido() { return transporteIncluido; }
     public boolean isAlmuerzoIncluido() { return almuerzoIncluido; }
     public String getFirebaseId() { return firebaseId; }
+    public String getCiudad() { return ciudad; }
     
-    // Setter para Firebase ID
+    // Setters
     public void setFirebaseId(String firebaseId) { this.firebaseId = firebaseId; }
+    public void setCiudad(String ciudad) { this.ciudad = ciudad; }
 }

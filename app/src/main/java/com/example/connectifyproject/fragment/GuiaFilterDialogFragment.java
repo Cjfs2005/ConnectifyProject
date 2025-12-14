@@ -21,10 +21,10 @@ import java.util.Locale;
 public class GuiaFilterDialogFragment extends DialogFragment {
     private FilterListener listener;
     private GuiaDialogFilterBinding binding;
-    private String[] idiomasDisponibles = {"Español", "Inglés", "Francés", "Alemán", "Italiano", "Chino", "Japonés"}; // Simula DB
+    private String[] ciudadesDisponibles = {"Lima", "Cusco", "Arequipa", "Trujillo", "Chiclayo", "Piura", "Iquitos", "Huancayo", "Tacna", "Puno"};
 
     public interface FilterListener {
-        void onApplyFilters(String dateFrom, String dateTo, String amount, String duration, String languages);
+        void onApplyFilters(String dateFrom, String dateTo, String ciudad);
     }
 
     @Override
@@ -48,12 +48,12 @@ public class GuiaFilterDialogFragment extends DialogFragment {
         binding.dateTo.setClickable(true);
         binding.dateTo.setOnClickListener(v -> showDatePicker(binding.dateTo));
 
-        // Poblar ChipGroup con idiomas
-        for (String idioma : idiomasDisponibles) {
+        // Poblar ChipGroup con ciudades
+        for (String ciudad : ciudadesDisponibles) {
             Chip chip = new Chip(getContext());
-            chip.setText(idioma);
+            chip.setText(ciudad);
             chip.setCheckable(true);
-            binding.languagesChipGroup.addView(chip);
+            binding.ciudadChipGroup.addView(chip);
         }
 
         AlertDialog.Builder builder = new AlertDialog.Builder(requireActivity());
@@ -61,23 +61,21 @@ public class GuiaFilterDialogFragment extends DialogFragment {
                 .setPositiveButton("Aplicar Filtros", (dialog, id) -> {
                     String dateFrom = binding.dateFrom.getText().toString();
                     String dateTo = binding.dateTo.getText().toString();
-                    String duration = binding.duration.getText().toString();
 
-                    // Recolectar idiomas seleccionados
-                    StringBuilder languagesSelected = new StringBuilder();
-                    for (int i = 0; i < binding.languagesChipGroup.getChildCount(); i++) {
-                        Chip chip = (Chip) binding.languagesChipGroup.getChildAt(i);
+                    // Recolectar ciudad seleccionada
+                    String ciudadSeleccionada = null;
+                    for (int i = 0; i < binding.ciudadChipGroup.getChildCount(); i++) {
+                        Chip chip = (Chip) binding.ciudadChipGroup.getChildAt(i);
                         if (chip.isChecked()) {
-                            if (languagesSelected.length() > 0) languagesSelected.append(",");
-                            languagesSelected.append(chip.getText());
+                            ciudadSeleccionada = chip.getText().toString();
+                            break;
                         }
                     }
-                    String languages = languagesSelected.toString();
 
-                    listener.onApplyFilters(dateFrom, dateTo, null, duration, languages);
+                    listener.onApplyFilters(dateFrom, dateTo, ciudadSeleccionada);
                 })
                 .setNegativeButton("Reiniciar Filtros", (dialog, id) -> {
-                    listener.onApplyFilters(null, null, null, null, null);
+                    listener.onApplyFilters(null, null, null);
                 });
 
         return builder.create();

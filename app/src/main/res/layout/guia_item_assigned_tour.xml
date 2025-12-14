@@ -71,6 +71,39 @@
             android:paddingVertical="8dp"
             android:layout_marginBottom="8dp">
 
+            <!-- Ciudad -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:gravity="center">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Ciudad"
+                    android:textSize="10sp"
+                    android:textColor="#9E9E9E"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tour_ciudad"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Lima"
+                    android:textSize="13sp"
+                    android:textColor="#212121"
+                    android:textStyle="bold"
+                    android:layout_marginTop="2dp" />
+
+            </LinearLayout>
+
+            <View
+                android:layout_width="1dp"
+                android:layout_height="match_parent"
+                android:background="#E0E0E0" />
+
             <!-- Duración -->
             <LinearLayout
                 android:layout_width="0dp"

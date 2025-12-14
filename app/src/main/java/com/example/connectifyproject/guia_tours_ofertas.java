@@ -158,7 +158,7 @@ public class guia_tours_ofertas extends AppCompatActivity implements GuiaFilterD
                     }
                     
                     // Aplicar filtros actuales
-                    onApplyFilters(currentDateFrom, currentDateTo, currentAmount, currentDuration, currentLanguages);
+                    onApplyFilters(currentDateFrom, currentDateTo, null);
                     
                     if (allTours.isEmpty()) {
                         mostrarMensajeNoOfertas();
@@ -247,8 +247,9 @@ public class guia_tours_ofertas extends AppCompatActivity implements GuiaFilterD
             false                                 // almuerzoIncluido
         );
         
-        // Guardar referencia al ID de Firebase
+        // Guardar referencia al ID de Firebase y ciudad
         tour.setFirebaseId(oferta.getId());
+        tour.setCiudad(oferta.getCiudad());
         
         return tour;
     }
@@ -304,18 +305,19 @@ public class guia_tours_ofertas extends AppCompatActivity implements GuiaFilterD
     }
 
     @Override
-    public void onApplyFilters(String dateFrom, String dateTo, String amount, String duration, String languages) {
+    public void onApplyFilters(String dateFrom, String dateTo, String ciudad) {
         this.currentDateFrom = dateFrom;
         this.currentDateTo = dateTo;
-        this.currentAmount = amount;
-        this.currentDuration = duration;
-        this.currentLanguages = languages;
+        // Guardar ciudad en variable de instancia
+        String currentCiudad = ciudad;
 
         SimpleDateFormat inputFormat = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault());
         SimpleDateFormat storedFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
         List<GuiaTour> filteredTours = new ArrayList<>();
         for (GuiaTour tour : allTours) {
             boolean matches = true;
+            
+            // Filtro por fecha
             try {
                 Date tourDate = storedFormat.parse(tour.getDate());
                 if (dateFrom != null && !dateFrom.isEmpty()) {
@@ -329,15 +331,15 @@ public class guia_tours_ofertas extends AppCompatActivity implements GuiaFilterD
             } catch (ParseException e) {
                 matches = false;
             }
-            if (amount != null && !amount.isEmpty()) {
-                try {
-                    double maxAmount = Double.parseDouble(amount.replaceAll("[^0-9.]", ""));
-                    if (tour.getPrice() > maxAmount) matches = false;
-                } catch (NumberFormatException e) {
+            
+            // Filtro por ciudad
+            if (ciudad != null && !ciudad.isEmpty()) {
+                String tourCiudad = tour.getCiudad();
+                if (tourCiudad == null || !tourCiudad.equalsIgnoreCase(ciudad)) {
+                    matches = false;
                 }
             }
-            if (duration != null && !duration.isEmpty() && !tour.getDuration().toLowerCase().contains(duration.toLowerCase())) matches = false;
-            if (languages != null && !languages.isEmpty() && !tour.getLanguages().toLowerCase().contains(languages.toLowerCase())) matches = false;
+            
             if (matches) filteredTours.add(tour);
         }
 
@@ -365,20 +367,35 @@ public class guia_tours_ofertas extends AppCompatActivity implements GuiaFilterD
 
     private String getFormattedHeader(String date) {
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+        String[] meses = {"enero", "febrero", "marzo", "abril", "mayo", "junio",
+                         "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"};
         try {
             Date tourDate = sdf.parse(date);
-            Date today = sdf.parse("04/11/2025"); // Current date
-            if (sdf.format(today).equals(date)) {
-                return "Hoy, " + date.replace("/", " de ");
-            } else {
-                Calendar cal = Calendar.getInstance();
-                cal.setTime(today);
-                cal.add(Calendar.DAY_OF_YEAR, 1);
-                if (sdf.format(cal.getTime()).equals(date)) {
-                    return "Mañana, " + date.replace("/", " de ");
-                }
-                return date.replace("/", " de ");
+            Calendar tourCal = Calendar.getInstance();
+            tourCal.setTime(tourDate);
+            
+            Calendar today = Calendar.getInstance();
+            
+            // Formatear fecha con nombre de mes
+            int dia = tourCal.get(Calendar.DAY_OF_MONTH);
+            int mes = tourCal.get(Calendar.MONTH);
+            int anio = tourCal.get(Calendar.YEAR);
+            String fechaFormateada = dia + " de " + meses[mes] + " de " + anio;
+            
+            // Verificar si es hoy
+            if (tourCal.get(Calendar.YEAR) == today.get(Calendar.YEAR) &&
+                tourCal.get(Calendar.DAY_OF_YEAR) == today.get(Calendar.DAY_OF_YEAR)) {
+                return "Hoy, " + fechaFormateada;
             }
+            
+            // Verificar si es mañana
+            today.add(Calendar.DAY_OF_YEAR, 1);
+            if (tourCal.get(Calendar.YEAR) == today.get(Calendar.YEAR) &&
+                tourCal.get(Calendar.DAY_OF_YEAR) == today.get(Calendar.DAY_OF_YEAR)) {
+                return "Mañana, " + fechaFormateada;
+            }
+            
+            return fechaFormateada;
         } catch (ParseException e) {
             return date;
         }

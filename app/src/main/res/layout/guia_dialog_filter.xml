@@ -9,7 +9,10 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Rango de Fechas del Tour" />
+        android:text="Rango de Fechas del Tour"
+        android:textStyle="bold"
+        android:textSize="14sp"
+        android:layout_marginBottom="8dp" />
 
     <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
@@ -23,7 +26,8 @@
 
     <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp">
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/date_to"
             android:layout_width="match_parent"
@@ -34,27 +38,15 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Duración del Tour" />
-
-    <com.google.android.material.textfield.TextInputLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/duration"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="2 horas" />
-    </com.google.android.material.textfield.TextInputLayout>
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Idiomas requeridos" />
+        android:text="Ciudad"
+        android:textStyle="bold"
+        android:textSize="14sp"
+        android:layout_marginBottom="8dp" />
 
     <com.google.android.material.chip.ChipGroup
-        android:id="@+id/languages_chip_group"
+        android:id="@+id/ciudad_chip_group"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:chipSpacing="8dp"
-        app:singleSelection="false" /> <!-- Se poblará dinámicamente -->
+        app:singleSelection="true" /> <!-- Se poblará dinámicamente -->
 </LinearLayout>

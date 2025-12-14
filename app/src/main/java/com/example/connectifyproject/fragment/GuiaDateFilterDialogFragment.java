@@ -13,6 +13,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
 
 import com.example.connectifyproject.databinding.GuiaDialogDateFilterBinding;
+import com.google.android.material.chip.Chip;
 
 import java.util.Calendar;
 import java.util.Locale;
@@ -20,9 +21,10 @@ import java.util.Locale;
 public class GuiaDateFilterDialogFragment extends DialogFragment {
     private FilterListener listener;
     private GuiaDialogDateFilterBinding binding;
+    private String[] ciudadesDisponibles = {"Lima", "Cusco", "Arequipa", "Trujillo", "Chiclayo", "Piura", "Iquitos", "Huancayo", "Tacna", "Puno"};
 
     public interface FilterListener {
-        void onApplyFilters(String dateFrom, String dateTo, String amount, String duration, String languages);
+        void onApplyFilters(String dateFrom, String dateTo, String ciudad);
     }
 
     @Override
@@ -46,15 +48,34 @@ public class GuiaDateFilterDialogFragment extends DialogFragment {
         binding.dateTo.setClickable(true);
         binding.dateTo.setOnClickListener(v -> showDatePicker(binding.dateTo));
 
+        // Poblar ChipGroup con ciudades
+        for (String ciudad : ciudadesDisponibles) {
+            Chip chip = new Chip(getContext());
+            chip.setText(ciudad);
+            chip.setCheckable(true);
+            binding.ciudadChipGroup.addView(chip);
+        }
+
         AlertDialog.Builder builder = new AlertDialog.Builder(requireActivity());
         builder.setView(binding.getRoot())
                 .setPositiveButton("Aplicar Filtros", (dialog, id) -> {
                     String dateFrom = binding.dateFrom.getText().toString();
                     String dateTo = binding.dateTo.getText().toString();
-                    listener.onApplyFilters(dateFrom, dateTo, null, null, null);
+                    
+                    // Recolectar ciudad seleccionada
+                    String ciudadSeleccionada = null;
+                    for (int i = 0; i < binding.ciudadChipGroup.getChildCount(); i++) {
+                        Chip chip = (Chip) binding.ciudadChipGroup.getChildAt(i);
+                        if (chip.isChecked()) {
+                            ciudadSeleccionada = chip.getText().toString();
+                            break;
+                        }
+                    }
+                    
+                    listener.onApplyFilters(dateFrom, dateTo, ciudadSeleccionada);
                 })
                 .setNegativeButton("Reiniciar Filtros", (dialog, id) -> {
-                    listener.onApplyFilters(null, null, null, null, null);
+                    listener.onApplyFilters(null, null, null);
                 });
 
         return builder.create();

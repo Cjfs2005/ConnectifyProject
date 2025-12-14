@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:id="@+id/nav_historial" android:title="Historial" android:icon="@drawable/ic_historial" />
+    <item android:id="@+id/nav_historial" android:title="Historial" android:icon="@drawable/history_24" />
     <item android:id="@+id/nav_ofertas" android:title="Ofertas" android:icon="@drawable/ic_local_offer_24" />
     <item android:id="@+id/nav_tours" android:title="Tours" android:icon="@drawable/ic_mapa" />
     <item android:id="@+id/nav_perfil" android:title="Perfil" android:icon="@drawable/ic_person_24" />
