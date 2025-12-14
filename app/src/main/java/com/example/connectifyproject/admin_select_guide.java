@@ -393,18 +393,52 @@ public class admin_select_guide extends AppCompatActivity {
     private void onGuideSelected(GuideItem guide) {
         android.util.Log.d("AdminSelectGuide", "onGuideSelected llamado para: " + guide.name);
         
-        // Confirmar selección
-        new androidx.appcompat.app.AlertDialog.Builder(this)
-            .setTitle("Confirmar selección")
-            .setMessage("¿Desea ofrecer el tour \"" + tourTitulo + "\" a " + guide.name + "?")
-            .setPositiveButton("Confirmar", (dialog, which) -> {
-                android.util.Log.d("AdminSelectGuide", "Usuario confirmó la selección");
-                selectGuide(guide);
+        // Validar que el tour inicia en al menos 18 horas
+        validarTiempoYSeleccionarGuia(guide);
+    }
+    
+    private void validarTiempoYSeleccionarGuia(GuideItem guide) {
+        // Cargar datos del tour para validar tiempo
+        db.collection("tours_ofertas")
+            .document(ofertaId)
+            .get()
+            .addOnSuccessListener(tourDoc -> {
+                if (!tourDoc.exists()) {
+                    Toast.makeText(this, "Error: Tour no encontrado", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                
+                Object fechaRealizacion = tourDoc.get("fechaRealizacion");
+                String horaInicio = tourDoc.getString("horaInicio");
+                
+                // Validar que se puede asignar guía (>=18h)
+                if (!com.example.connectifyproject.utils.TourTimeValidator.puedeAsignarGuia(fechaRealizacion, horaInicio)) {
+                    String mensaje = com.example.connectifyproject.utils.TourTimeValidator.getMensajeTourSinAsignarBloqueado(fechaRealizacion, horaInicio);
+                    new androidx.appcompat.app.AlertDialog.Builder(this)
+                        .setTitle("No se puede asignar guía")
+                        .setMessage(mensaje)
+                        .setPositiveButton("Entendido", null)
+                        .show();
+                    return;
+                }
+                
+                // Si pasa la validación, mostrar confirmación
+                new androidx.appcompat.app.AlertDialog.Builder(this)
+                    .setTitle("Confirmar selección")
+                    .setMessage("¿Desea ofrecer el tour \"" + tourTitulo + "\" a " + guide.name + "?")
+                    .setPositiveButton("Confirmar", (dialog, which) -> {
+                        android.util.Log.d("AdminSelectGuide", "Usuario confirmó la selección");
+                        selectGuide(guide);
+                    })
+                    .setNegativeButton("Cancelar", (dialog, which) -> {
+                        android.util.Log.d("AdminSelectGuide", "Usuario canceló la selección");
+                    })
+                    .show();
             })
-            .setNegativeButton("Cancelar", (dialog, which) -> {
-                android.util.Log.d("AdminSelectGuide", "Usuario canceló la selección");
-            })
-            .show();
+            .addOnFailureListener(e -> {
+                android.util.Log.e("AdminSelectGuide", "Error al cargar tour", e);
+                Toast.makeText(this, "Error al validar tiempo del tour", Toast.LENGTH_SHORT).show();
+            });
     }
     
     private void selectGuide(GuideItem guide) {

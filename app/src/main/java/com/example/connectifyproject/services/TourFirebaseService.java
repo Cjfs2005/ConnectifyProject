@@ -1166,6 +1166,16 @@ private void crearTourAsignadoDesdeDocumento(DocumentSnapshot ofertaDoc, Documen
                     return;
                 }
                 
+                // Validar tiempo: debe quedar al menos 12 horas
+                Object fechaRealizacion = ofertaDoc.get("fechaRealizacion");
+                String horaInicio = ofertaDoc.getString("horaInicio");
+                
+                if (!com.example.connectifyproject.utils.TourTimeValidator.puedeAceptarOferta(fechaRealizacion, horaInicio)) {
+                    String mensaje = com.example.connectifyproject.utils.TourTimeValidator.getMensajeTourPendienteBloqueado(fechaRealizacion, horaInicio);
+                    callback.onError("No se puede aceptar: " + mensaje);
+                    return;
+                }
+                
                 // 2. Actualizar estado en guias_ofertados
                 Map<String, Object> actualizacionOfrecimiento = new HashMap<>();
                 actualizacionOfrecimiento.put("estadoOferta", "aceptado");

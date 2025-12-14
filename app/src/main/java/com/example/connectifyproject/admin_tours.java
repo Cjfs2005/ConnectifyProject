@@ -196,6 +196,13 @@ public class admin_tours extends AppCompatActivity {
     }
     
     /**
+     * Recargar tours de la pestaña actual
+     */
+    private void loadToursForCurrentTab() {
+        loadTours(currentTab);
+    }
+    
+    /**
      * MÉTODO DE MIGRACIÓN - SOLO NECESARIO UNA VEZ
      * 
      * Este método migra borradores antiguos que fueron creados antes de agregar
@@ -345,43 +352,62 @@ public class admin_tours extends AppCompatActivity {
                         // Solo mostrar tours SIN guía seleccionado
                         if (guiaSeleccionado == null || guiaSeleccionado.isEmpty()) {
                             String titulo = doc.getString("titulo");
+                            String horaInicio = doc.getString("horaInicio");
                             android.util.Log.d("AdminTours", "  - titulo: " + titulo);
+                            android.util.Log.d("AdminTours", "  - horaInicio: " + horaInicio);
                             
                             // Manejar fecha como String o Timestamp
                             String fecha = "Sin fecha";
+                            Object fechaRealizacion = null;
                             try {
                                 // Intentar primero como Timestamp
-                                Timestamp fechaRealizacion = doc.getTimestamp("fechaRealizacion");
+                                fechaRealizacion = doc.getTimestamp("fechaRealizacion");
                                 if (fechaRealizacion != null) {
-                                    fecha = dateFormat.format(fechaRealizacion.toDate());
+                                    fecha = dateFormat.format(((Timestamp)fechaRealizacion).toDate());
                                 }
                             } catch (Exception e) {
                                 // Si falla, intentar como String
                                 String fechaString = doc.getString("fechaRealizacion");
                                 if (fechaString != null && !fechaString.isEmpty()) {
                                     fecha = fechaString;
+                                    fechaRealizacion = fechaString;
                                 }
                                 android.util.Log.d("AdminTours", "  - fechaRealizacion es String: " + fechaString);
                             }
                             android.util.Log.d("AdminTours", "  - fecha procesada: " + fecha);
                             
-                            List<String> imagenesUrls = (List<String>) doc.get("imagenesUrls");
-                            String imageUrl = (imagenesUrls != null && !imagenesUrls.isEmpty()) 
-                                ? imagenesUrls.get(0) 
-                                : null;
-                            android.util.Log.d("AdminTours", "  - imageUrl: " + (imageUrl != null ? "presente" : "null"));
+                            // Calcular estado de bloqueo basado en tiempo
+                            String estadoBloqueo = com.example.connectifyproject.utils.TourTimeValidator
+                                .getEstadoTourSinAsignar(fechaRealizacion, horaInicio);
                             
-                            toursList.add(new TourItem(
-                                doc.getId(),
-                                titulo != null ? titulo : "Sin título",
-                                fecha,
-                                "Sin asignar",
-                                imageUrl,
-                                true,
-                                "publicado"
-                            ));
-                            toursAgregados++;
-                            android.util.Log.d("AdminTours", "  ✓ Tour agregado a la lista");
+                            // Solo agregar si no está oculto
+                            if (!"oculto".equals(estadoBloqueo)) {
+                                List<String> imagenesUrls = (List<String>) doc.get("imagenesUrls");
+                                String imageUrl = (imagenesUrls != null && !imagenesUrls.isEmpty()) 
+                                    ? imagenesUrls.get(0) 
+                                    : null;
+                                android.util.Log.d("AdminTours", "  - imageUrl: " + (imageUrl != null ? "presente" : "null"));
+                                android.util.Log.d("AdminTours", "  - estadoBloqueo: " + estadoBloqueo);
+                                
+                                TourItem tourItem = new TourItem(
+                                    doc.getId(),
+                                    titulo != null ? titulo : "Sin título",
+                                    fecha,
+                                    "Sin asignar",
+                                    imageUrl,
+                                    true,
+                                    "publicado"
+                                );
+                                tourItem.setFechaRealizacion(fechaRealizacion);
+                                tourItem.setHoraInicio(horaInicio);
+                                tourItem.setEstadoBloqueo(estadoBloqueo);
+                                
+                                toursList.add(tourItem);
+                                toursAgregados++;
+                                android.util.Log.d("AdminTours", "  ✓ Tour agregado a la lista (estado: " + estadoBloqueo + ")");
+                            } else {
+                                android.util.Log.d("AdminTours", "  - Tour omitido (ya pasó su hora de inicio)");
+                            }
                         } else {
                             android.util.Log.d("AdminTours", "  - Tour omitido (tiene guía asignado)");
                         }
@@ -413,42 +439,55 @@ public class admin_tours extends AppCompatActivity {
                     // Solo mostrar tours con guía seleccionado (pendiente de confirmación)
                     if (guiaSeleccionado != null && !guiaSeleccionado.isEmpty()) {
                         String titulo = doc.getString("titulo");
+                        String horaInicio = doc.getString("horaInicio");
                         
                         // Manejar fecha como String o Timestamp
                         String fecha = "Sin fecha";
+                        Object fechaRealizacion = null;
                         try {
-                            Timestamp fechaRealizacion = doc.getTimestamp("fechaRealizacion");
+                            fechaRealizacion = doc.getTimestamp("fechaRealizacion");
                             if (fechaRealizacion != null) {
-                                fecha = dateFormat.format(fechaRealizacion.toDate());
+                                fecha = dateFormat.format(((Timestamp)fechaRealizacion).toDate());
                             }
                         } catch (Exception e) {
                             String fechaString = doc.getString("fechaRealizacion");
                             if (fechaString != null && !fechaString.isEmpty()) {
                                 fecha = fechaString;
+                                fechaRealizacion = fechaString;
                             }
                         }
                         
-                        List<String> imagenesUrls = (List<String>) doc.get("imagenesUrls");
-                        String imageUrl = (imagenesUrls != null && !imagenesUrls.isEmpty()) 
-                            ? imagenesUrls.get(0) 
-                            : null;
+                        // Calcular estado de bloqueo basado en tiempo (12 horas para pendientes)
+                        String estadoBloqueo = com.example.connectifyproject.utils.TourTimeValidator
+                            .getEstadoTourPendiente(fechaRealizacion, horaInicio);
                         
-                        TourItem tourItem = new TourItem(
-                            doc.getId(),
-                            titulo,
-                            fecha,
-                            "Pendiente confirmación",
-                            imageUrl,
-                            false,
-                            "pendiente"
-                        );
-                        
-                        tourItem.setGuiaSeleccionadoId(guiaSeleccionado);
-                        
-                        // Verificar si hay rechazo no visto
-                        checkForRejection(doc.getId(), guiaSeleccionado, tourItem);
-                        
-                        toursList.add(tourItem);
+                        // Solo agregar si no está oculto
+                        if (!"oculto".equals(estadoBloqueo)) {
+                            List<String> imagenesUrls = (List<String>) doc.get("imagenesUrls");
+                            String imageUrl = (imagenesUrls != null && !imagenesUrls.isEmpty()) 
+                                ? imagenesUrls.get(0) 
+                                : null;
+                            
+                            TourItem tourItem = new TourItem(
+                                doc.getId(),
+                                titulo,
+                                fecha,
+                                "Pendiente confirmación",
+                                imageUrl,
+                                false,
+                                "pendiente"
+                            );
+                            
+                            tourItem.setGuiaSeleccionadoId(guiaSeleccionado);
+                            tourItem.setFechaRealizacion(fechaRealizacion);
+                            tourItem.setHoraInicio(horaInicio);
+                            tourItem.setEstadoBloqueo(estadoBloqueo);
+                            
+                            // Verificar si hay rechazo no visto
+                            checkForRejection(doc.getId(), guiaSeleccionado, tourItem);
+                            
+                            toursList.add(tourItem);
+                        }
                     }
                 });
                 toursAdapter.notifyDataSetChanged();
@@ -647,6 +686,11 @@ public class admin_tours extends AppCompatActivity {
         private boolean tieneRechazo; // Indica si hay un rechazo no visto
         private String guiaSeleccionadoId; // ID del guía actualmente seleccionado
         private String motivoRechazo; // Motivo del rechazo si existe
+        
+        // Nuevos campos para gestión de tiempo
+        private Object fechaRealizacion; // Timestamp o String de la fecha
+        private String horaInicio; // Hora de inicio del tour (HH:mm)
+        private String estadoBloqueo; // "visible", "bloqueado", "oculto"
 
         public TourItem(String id, String titulo, String fecha, String estado, String imagenUrl, 
                        boolean esPublicado, String tipo) {
@@ -660,6 +704,9 @@ public class admin_tours extends AppCompatActivity {
             this.tieneRechazo = false;
             this.guiaSeleccionadoId = null;
             this.motivoRechazo = null;
+            this.fechaRealizacion = null;
+            this.horaInicio = null;
+            this.estadoBloqueo = "visible";
         }
 
         // Getters
@@ -673,11 +720,17 @@ public class admin_tours extends AppCompatActivity {
         public boolean isTieneRechazo() { return tieneRechazo; }
         public String getGuiaSeleccionadoId() { return guiaSeleccionadoId; }
         public String getMotivoRechazo() { return motivoRechazo; }
+        public Object getFechaRealizacion() { return fechaRealizacion; }
+        public String getHoraInicio() { return horaInicio; }
+        public String getEstadoBloqueo() { return estadoBloqueo; }
         
         // Setters
         public void setTieneRechazo(boolean tieneRechazo) { this.tieneRechazo = tieneRechazo; }
         public void setGuiaSeleccionadoId(String guiaSeleccionadoId) { this.guiaSeleccionadoId = guiaSeleccionadoId; }
         public void setMotivoRechazo(String motivoRechazo) { this.motivoRechazo = motivoRechazo; }
+        public void setFechaRealizacion(Object fechaRealizacion) { this.fechaRealizacion = fechaRealizacion; }
+        public void setHoraInicio(String horaInicio) { this.horaInicio = horaInicio; }
+        public void setEstadoBloqueo(String estadoBloqueo) { this.estadoBloqueo = estadoBloqueo; }
     }
 
     // Adapter para RecyclerView
@@ -757,8 +810,46 @@ public class admin_tours extends AppCompatActivity {
                 // Configurar botón de acción según el tipo
                 setupActionButton(tour);
 
+                // Aplicar estilo visual según estado de bloqueo
+                if ("bloqueado".equals(tour.getEstadoBloqueo())) {
+                    itemView.setAlpha(0.5f);
+                    itemView.setEnabled(false);
+                } else {
+                    itemView.setAlpha(1.0f);
+                    itemView.setEnabled(true);
+                }
+                
                 // Click listener - Para borradores, ir directo a editar
                 itemView.setOnClickListener(v -> {
+                    // Validar estado de bloqueo antes de permitir acción
+                    if ("bloqueado".equals(tour.getEstadoBloqueo())) {
+                        // Recalcular estado por si acaso (el usuario pudo tener la pantalla abierta mucho tiempo)
+                        String estadoActual = "publicado".equals(tour.getTipo()) 
+                            ? com.example.connectifyproject.utils.TourTimeValidator.getEstadoTourSinAsignar(
+                                tour.getFechaRealizacion(), tour.getHoraInicio())
+                            : com.example.connectifyproject.utils.TourTimeValidator.getEstadoTourPendiente(
+                                tour.getFechaRealizacion(), tour.getHoraInicio());
+                        
+                        if ("oculto".equals(estadoActual) || "bloqueado".equals(estadoActual)) {
+                            // Mostrar mensaje explicativo
+                            String mensaje = "publicado".equals(tour.getTipo())
+                                ? com.example.connectifyproject.utils.TourTimeValidator.getMensajeTourSinAsignarBloqueado(
+                                    tour.getFechaRealizacion(), tour.getHoraInicio())
+                                : com.example.connectifyproject.utils.TourTimeValidator.getMensajeTourPendienteBloqueado(
+                                    tour.getFechaRealizacion(), tour.getHoraInicio());
+                            
+                            new androidx.appcompat.app.AlertDialog.Builder(admin_tours.this)
+                                .setTitle("Tour no disponible")
+                                .setMessage(mensaje)
+                                .setPositiveButton("Entendido", (dialog, which) -> {
+                                    // Recargar la lista para actualizar el estado
+                                    loadToursForCurrentTab();
+                                })
+                                .show();
+                            return;
+                        }
+                    }
+                    
                     if ("borrador".equals(tour.getTipo())) {
                         // Para borradores, ir directo a editar
                         Intent intent = new Intent(admin_tours.this, admin_create_tour.class);
@@ -777,6 +868,9 @@ public class admin_tours extends AppCompatActivity {
             }
             
             private void setupActionButton(TourItem tour) {
+                // Si el tour está bloqueado, deshabilitar el botón
+                boolean esBloqueado = "bloqueado".equals(tour.getEstadoBloqueo());
+                
                 switch (tour.getTipo()) {
                     case "borrador":
                         // Para borradores, ocultar el botón (se hace clic en el ítem completo)
@@ -786,11 +880,15 @@ public class admin_tours extends AppCompatActivity {
                     case "sin_guia":
                         btnAction.setText("Seleccionar guía");
                         btnAction.setVisibility(View.VISIBLE);
+                        btnAction.setEnabled(!esBloqueado);
+                        btnAction.setAlpha(esBloqueado ? 0.5f : 1.0f);
                         btnAction.setOnClickListener(v -> {
-                            Intent intent = new Intent(admin_tours.this, admin_select_guide.class);
-                            intent.putExtra("ofertaId", tour.getId());
-                            intent.putExtra("tourTitulo", tour.getTitulo());
-                            startActivity(intent);
+                            if (!esBloqueado) {
+                                Intent intent = new Intent(admin_tours.this, admin_select_guide.class);
+                                intent.putExtra("ofertaId", tour.getId());
+                                intent.putExtra("tourTitulo", tour.getTitulo());
+                                startActivity(intent);
+                            }
                         });
                         break;
                         

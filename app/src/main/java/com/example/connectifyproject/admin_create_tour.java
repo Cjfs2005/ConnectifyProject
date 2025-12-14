@@ -707,10 +707,10 @@ public class admin_create_tour extends AppCompatActivity implements OnMapReadyCa
             return false;
         }
         
-        // Validar que la fecha sea al menos al día siguiente
+        // Validar que la fecha y hora sean al menos 24 horas en el futuro
         if (!validateFechaMinima()) {
-            binding.etTourDate.setError("La fecha debe ser al menos mañana");
-            Toast.makeText(this, "La fecha del tour debe ser al menos al día siguiente", Toast.LENGTH_LONG).show();
+            binding.etTourDate.setError("El tour debe iniciar en al menos 24 horas");
+            Toast.makeText(this, "El tour debe programarse para iniciar en al menos 24 horas desde ahora", Toast.LENGTH_LONG).show();
             return false;
         }
         
@@ -730,7 +730,7 @@ public class admin_create_tour extends AppCompatActivity implements OnMapReadyCa
     }
     
     /**
-     * Valida que la fecha seleccionada sea al menos al día siguiente
+     * Valida que la fecha y hora seleccionadas sean al menos 24 horas en el futuro
      * ⚠️ En modo TEST_MODE=true, permite crear tours para el mismo día
      */
     private boolean validateFechaMinima() {
@@ -744,23 +744,30 @@ public class admin_create_tour extends AppCompatActivity implements OnMapReadyCa
             return true;
         }
         
-        // Obtener el inicio del día de mañana (00:00:00)
-        Calendar tomorrow = Calendar.getInstance();
-        tomorrow.add(Calendar.DAY_OF_MONTH, 1);
-        tomorrow.set(Calendar.HOUR_OF_DAY, 0);
-        tomorrow.set(Calendar.MINUTE, 0);
-        tomorrow.set(Calendar.SECOND, 0);
-        tomorrow.set(Calendar.MILLISECOND, 0);
+        // Validar que se haya seleccionado hora de inicio
+        if (tourStartTime == null || tourStartTime.isEmpty()) {
+            return false;
+        }
         
-        // Obtener el inicio del día seleccionado (00:00:00)
-        Calendar selectedDay = (Calendar) selectedCalendar.clone();
-        selectedDay.set(Calendar.HOUR_OF_DAY, 0);
-        selectedDay.set(Calendar.MINUTE, 0);
-        selectedDay.set(Calendar.SECOND, 0);
-        selectedDay.set(Calendar.MILLISECOND, 0);
-        
-        // La fecha seleccionada debe ser igual o posterior a mañana
-        return !selectedDay.before(tomorrow);
+        try {
+            // Combinar fecha seleccionada con hora de inicio
+            Calendar fechaHoraInicio = (Calendar) selectedCalendar.clone();
+            String[] timeParts = tourStartTime.split(":");
+            fechaHoraInicio.set(Calendar.HOUR_OF_DAY, Integer.parseInt(timeParts[0]));
+            fechaHoraInicio.set(Calendar.MINUTE, Integer.parseInt(timeParts[1]));
+            fechaHoraInicio.set(Calendar.SECOND, 0);
+            fechaHoraInicio.set(Calendar.MILLISECOND, 0);
+            
+            // Calcular 24 horas desde ahora
+            Calendar limite24Horas = Calendar.getInstance();
+            limite24Horas.add(Calendar.HOUR_OF_DAY, 24);
+            
+            // La fecha+hora de inicio debe ser al menos 24 horas en el futuro
+            return !fechaHoraInicio.before(limite24Horas);
+        } catch (Exception e) {
+            Log.e("AdminCreateTour", "Error validando fecha mínima", e);
+            return false;
+        }
     }
     
     /**

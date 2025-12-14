@@ -153,8 +153,14 @@ public class guia_tours_ofertas extends AppCompatActivity implements GuiaFilterD
                     // Convertir ofertas de Firebase a modelo GuiaTour existente
                     allTours.clear();
                     for (OfertaTour oferta : ofertas) {
-                        GuiaTour tour = convertirOfertaToGuiaTour(oferta);
-                        allTours.add(tour);
+                        // Filtrar: solo mostrar ofertas con al menos 12 horas
+                        if (com.example.connectifyproject.utils.TourTimeValidator.puedeAceptarOferta(
+                                oferta.getFechaRealizacion(), oferta.getHoraInicio())) {
+                            GuiaTour tour = convertirOfertaToGuiaTour(oferta);
+                            allTours.add(tour);
+                        } else {
+                            android.util.Log.d("GuiaToursOfertas", "Oferta filtrada por tiempo insuficiente: " + oferta.getTitulo());
+                        }
                     }
                     
                     // Aplicar filtros actuales
