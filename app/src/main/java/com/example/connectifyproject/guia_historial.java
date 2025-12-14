@@ -119,27 +119,14 @@ public class guia_historial extends AppCompatActivity {
     }
 
     private void checkNotificationPermissions() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) 
-                    != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this, 
-                        new String[]{Manifest.permission.POST_NOTIFICATIONS}, 
-                        NOTIFICATION_PERMISSION_REQUEST_CODE);
-            }
-        }
+        // Permisos deshabilitados - no solicitar automáticamente en esta pantalla
+        // Los permisos se deben solicitar en guia_permisos.java
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        
-        if (requestCode == NOTIFICATION_PERMISSION_REQUEST_CODE) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Toast.makeText(this, "✅ Permisos de notificación concedidos", Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(this, "❌ Permisos de notificación denegados", Toast.LENGTH_SHORT).show();
-            }
-        }
+        // Ya no se solicitan permisos en esta pantalla
     }
 
     private void handleNotificationIntent() {

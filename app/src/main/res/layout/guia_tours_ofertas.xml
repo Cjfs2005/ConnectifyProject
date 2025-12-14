@@ -78,10 +78,6 @@
                 android:layout_height="wrap_content"
                 android:text="No hay ofertas disponibles para ti" />
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Las ofertas aparecerán aquí cuando haya tours disponibles" />
         </LinearLayout>
     </LinearLayout>
 

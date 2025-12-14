@@ -142,7 +142,7 @@ public class FirebaseLoginActivity extends AppCompatActivity {
         if (AuthConstants.ROLE_CLIENTE.equals(rol)) {
             intent = new Intent(this, cliente_inicio.class);
         } else if (AuthConstants.ROLE_GUIA.equals(rol)) {
-            intent = new Intent(this, guia_tours_ofertas.class);
+            intent = new Intent(this, guia_historial.class);
         } else {
             // Rol desconocido → Ir a selección de rol
             redirectToRoleSelection();

@@ -189,9 +189,8 @@ public class GuiaAssignedTourAdapter extends RecyclerView.Adapter<RecyclerView.V
         // Mostrar layout de acciones
         holder.binding.actionsLayout.setVisibility(View.VISIBLE);
         
-        // BOTÓN DETALLES - Siempre disponible para todos los tours
-        holder.binding.detailsIcon.setVisibility(View.VISIBLE);
-        holder.binding.detailsIcon.setOnClickListener(v -> startDetailIntent(tour));
+        // BOTÓN DETALLES - Oculto porque el card completo ya es clickeable
+        holder.binding.detailsIcon.setVisibility(View.GONE);
         
         // 🎯 CONFIGURAR BOTONES SEGÚN ESTADO (PARA TODOS LOS TOURS)
         configurarBotonesPorEstadoTour(holder, tour, estado);

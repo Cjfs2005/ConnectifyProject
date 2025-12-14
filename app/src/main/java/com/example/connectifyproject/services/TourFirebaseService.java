@@ -401,6 +401,7 @@ private void crearTourAsignadoDesdeDocumento(DocumentSnapshot ofertaDoc, Documen
     Log.d(TAG, "========================");
     
     tourAsignado.put("participantes", participantes);
+    tourAsignado.put("ciudad", ofertaDoc.getString("ciudad"));
     tourAsignado.put("estado", "confirmado");
     tourAsignado.put("numeroParticipantesTotal", 0);
     tourAsignado.put("checkInRealizado", false);
@@ -512,6 +513,7 @@ private void crearTourAsignadoDesdeDocumento(DocumentSnapshot ofertaDoc, Documen
         tourAsignado.put("pagoGuia", oferta.getPagoGuia());
         tourAsignado.put("idiomasRequeridos", oferta.getIdiomasRequeridos());
         tourAsignado.put("consideraciones", oferta.getConsideraciones());
+        tourAsignado.put("ciudad", oferta.getCiudad());
         tourAsignado.put("participantes", participantes);
         tourAsignado.put("estado", "confirmado"); // ✅ Estado inicial único
         tourAsignado.put("numeroParticipantesTotal", participantes.size());

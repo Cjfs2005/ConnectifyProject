@@ -205,11 +205,6 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="No hay tours asignados en las fechas seleccionadas" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Ajusta las fechas para encontrar los tours" />
         </LinearLayout>
     </LinearLayout>
 
