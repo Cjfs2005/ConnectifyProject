@@ -12,6 +12,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.bumptech.glide.Glide;
 import com.example.connectifyproject.databinding.GuiaTourDetailBinding;
 import com.example.connectifyproject.services.TourFirebaseService;
+import com.example.connectifyproject.ui.guia.TourImageAdapter;
+import androidx.viewpager2.widget.ViewPager2;
+import android.graphics.Color;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -372,15 +377,19 @@ public class guia_tour_detail extends AppCompatActivity implements OnMapReadyCal
             .get()
             .addOnSuccessListener(doc -> {
                 if (doc.exists()) {
-                    // Cargar imagen principal
-                    String imagenPrincipal = doc.getString("imagenPrincipal");
-                    if (imagenPrincipal != null && !imagenPrincipal.isEmpty()) {
-                        Glide.with(this)
-                            .load(imagenPrincipal)
-                            .placeholder(R.drawable.ic_tour_banner)
-                            .error(R.drawable.ic_tour_banner)
-                            .centerCrop()
-                            .into(binding.tourImage);
+                    // Cargar galería de imágenes
+                    List<String> imagenesUrls = (List<String>) doc.get("imagenesUrls");
+                    if (imagenesUrls != null && !imagenesUrls.isEmpty()) {
+                        setupImageGallery(imagenesUrls);
+                    } else {
+                        // Si no hay galería, intentar cargar imagen principal
+                        String imagenPrincipal = doc.getString("imagenPrincipal");
+                        if (imagenPrincipal != null && !imagenPrincipal.isEmpty()) {
+                            setupImageGallery(java.util.Arrays.asList(imagenPrincipal));
+                        } else {
+                            // Mostrar imagen por defecto
+                            setupImageGallery(java.util.Arrays.asList(""));
+                        }
                     }
                     
                     // Cargar itinerario
@@ -655,5 +664,70 @@ public class guia_tour_detail extends AppCompatActivity implements OnMapReadyCal
     public void onLowMemory() {
         super.onLowMemory();
         binding.mapView.onLowMemory();
+    }
+    
+    /**
+     * Configurar galería de imágenes con ViewPager2
+     */
+    private void setupImageGallery(List<String> imageUrls) {
+        TourImageAdapter adapter = new TourImageAdapter(this, imageUrls);
+        binding.imagesViewPager.setAdapter(adapter);
+        
+        // Configurar indicadores de página
+        setupImageIndicators(imageUrls.size());
+        
+        // Actualizar indicador al cambiar de página
+        binding.imagesViewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
+            @Override
+            public void onPageSelected(int position) {
+                super.onPageSelected(position);
+                updateImageIndicators(position);
+            }
+        });
+    }
+    
+    /**
+     * Crear indicadores de página para la galería
+     */
+    private void setupImageIndicators(int count) {
+        binding.imagesIndicator.removeAllViews();
+        
+        if (count <= 1) {
+            binding.imagesIndicator.setVisibility(android.view.View.GONE);
+            return;
+        }
+        
+        binding.imagesIndicator.setVisibility(android.view.View.VISIBLE);
+        ImageView[] indicators = new ImageView[count];
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.WRAP_CONTENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        );
+        params.setMargins(4, 0, 4, 0);
+        
+        for (int i = 0; i < count; i++) {
+            indicators[i] = new ImageView(this);
+            indicators[i].setImageResource(R.drawable.ic_circle);
+            indicators[i].setLayoutParams(params);
+            indicators[i].setColorFilter(Color.WHITE);
+            indicators[i].setAlpha(0.5f);
+            binding.imagesIndicator.addView(indicators[i]);
+        }
+        
+        // Marcar el primero como seleccionado
+        if (count > 0) {
+            indicators[0].setAlpha(1.0f);
+        }
+    }
+    
+    /**
+     * Actualizar indicadores al cambiar de imagen
+     */
+    private void updateImageIndicators(int position) {
+        int childCount = binding.imagesIndicator.getChildCount();
+        for (int i = 0; i < childCount; i++) {
+            ImageView indicator = (ImageView) binding.imagesIndicator.getChildAt(i);
+            indicator.setAlpha(i == position ? 1.0f : 0.5f);
+        }
     }
 }
