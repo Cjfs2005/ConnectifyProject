@@ -41,30 +41,6 @@
                 app:cardElevation="2dp"
                 app:cardCornerRadius="8dp">
 
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:padding="12dp"
-                    android:gravity="center_vertical">
-
-                    <ImageView
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:layout_marginEnd="12dp"
-                        android:src="@drawable/ic_notification"
-                        app:tint="#FF6F00" />
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="Selecciona el método de pago que se utilizará para este tour. Esta selección es solo informativa."
-                        android:textSize="14sp"
-                        android:textColor="#E65100" />
-
-                </LinearLayout>
-
             </com.google.android.material.card.MaterialCardView>
 
             <!-- Lista de métodos de pago -->

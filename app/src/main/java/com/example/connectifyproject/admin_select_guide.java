@@ -50,6 +50,10 @@ public class admin_select_guide extends AppCompatActivity {
     private ProgressDialog progressDialog;
     
     private static final String CHANNEL_ID = "tour_notifications";
+    private static final int REQUEST_SELECT_PAYMENT = 2001;
+    
+    // Guía seleccionado temporalmente (esperando método de pago)
+    private GuideItem selectedGuide;
 
     // Clase para representar un guía
     public static class GuideItem {
@@ -549,11 +553,33 @@ public class admin_select_guide extends AppCompatActivity {
     private void onGuideSelected(GuideItem guide) {
         android.util.Log.d("AdminSelectGuide", "onGuideSelected llamado para: " + guide.name);
         
-        // Validar que el tour inicia en al menos 18 horas
-        validarTiempoYSeleccionarGuia(guide);
+        // Guardar guía seleccionado temporalmente
+        selectedGuide = guide;
+        
+        // Ir a selección de método de pago
+        Intent intent = new Intent(this, AdminSelectPaymentMethodActivity.class);
+        startActivityForResult(intent, REQUEST_SELECT_PAYMENT);
     }
     
-    private void validarTiempoYSeleccionarGuia(GuideItem guide) {
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        
+        if (requestCode == REQUEST_SELECT_PAYMENT && resultCode == RESULT_OK && data != null) {
+            String paymentMethodId = data.getStringExtra("selectedPaymentMethodId");
+            android.util.Log.d("AdminSelectGuide", "Método de pago seleccionado: " + paymentMethodId);
+            
+            // Ahora validar tiempo y asignar guía
+            if (selectedGuide != null) {
+                validarTiempoYSeleccionarGuia(selectedGuide, paymentMethodId);
+            }
+        } else {
+            android.util.Log.d("AdminSelectGuide", "Selección de método de pago cancelada");
+            selectedGuide = null;
+        }
+    }
+    
+    private void validarTiempoYSeleccionarGuia(GuideItem guide, String paymentMethodId) {
         // Cargar datos del tour para validar tiempo
         db.collection("tours_ofertas")
             .document(ofertaId)
@@ -584,10 +610,11 @@ public class admin_select_guide extends AppCompatActivity {
                     .setMessage("¿Desea ofrecer el tour \"" + tourTitulo + "\" a " + guide.name + "?")
                     .setPositiveButton("Confirmar", (dialog, which) -> {
                         android.util.Log.d("AdminSelectGuide", "Usuario confirmó la selección");
-                        selectGuide(guide);
+                        selectGuide(guide, paymentMethodId);
                     })
                     .setNegativeButton("Cancelar", (dialog, which) -> {
                         android.util.Log.d("AdminSelectGuide", "Usuario canceló la selección");
+                        selectedGuide = null;
                     })
                     .show();
             })
@@ -597,15 +624,16 @@ public class admin_select_guide extends AppCompatActivity {
             });
     }
     
-    private void selectGuide(GuideItem guide) {
+    private void selectGuide(GuideItem guide, String paymentMethodId) {
         android.util.Log.d("AdminSelectGuide", "=== SELECCIONANDO GUÍA ===");
         android.util.Log.d("AdminSelectGuide", "Guía seleccionado: " + guide.name + " (ID: " + guide.id + ")");
         android.util.Log.d("AdminSelectGuide", "Oferta ID: " + ofertaId);
         android.util.Log.d("AdminSelectGuide", "Tour: " + tourTitulo);
+        android.util.Log.d("AdminSelectGuide", "Método de pago: " + paymentMethodId);
         
         showProgressDialog("Ofreciendo tour al guía...");
         
-        adminTourService.seleccionarGuia(ofertaId, guide.id, null)
+        adminTourService.seleccionarGuia(ofertaId, guide.id, paymentMethodId)
             .addOnSuccessListener(aVoid -> {
                 android.util.Log.d("AdminSelectGuide", "✓ Tour ofrecido exitosamente");
                 dismissProgressDialog();
