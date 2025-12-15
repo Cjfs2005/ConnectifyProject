@@ -213,6 +213,18 @@ public class admin_tour_details extends AppCompatActivity implements OnMapReadyC
                     // Actualizar UI con los datos cargados
                     if (titulo != null) binding.tvTourNombre.setText(titulo);
                     if (descripcion != null) binding.tvTourDescripcion.setText(descripcion);
+                    
+                    // ✅ Mostrar motivo de cancelación si el tour está cancelado
+                    String estadoTour = documentSnapshot.getString("estado");
+                    if ("cancelado".equalsIgnoreCase(estadoTour)) {
+                        String motivoCancelacion = documentSnapshot.getString("motivoCancelacion");
+                        if (motivoCancelacion != null && !motivoCancelacion.isEmpty()) {
+                            String tipoCancelacion = motivoCancelacion.toLowerCase().contains("manual") ? "manual" : "automática";
+                            String mensajeCancelacion = "\n\n❌ Cancelación " + tipoCancelacion + ": " + motivoCancelacion;
+                            binding.tvTourDescripcion.setText(descripcion + mensajeCancelacion);
+                        }
+                    }
+                    
                     if (fechaRealizacion != null) {
                         binding.tvFecha.setText(fechaRealizacion);
                     }
@@ -233,9 +245,15 @@ public class admin_tour_details extends AppCompatActivity implements OnMapReadyC
                         binding.recyclerViewServicios.setAdapter(serviciosAdapter);
                     }
                     
-                    // Configurar badge de estado
-                    binding.tvEstadoBadge.setText(tourEstado);
-                    if (tourEsPublicado) {
+                    // ✅ Configurar badge de estado (usar estado real de Firebase)
+                    String estadoReal = documentSnapshot.getString("estado");
+                    String estadoMostrar = estadoReal != null ? estadoReal.toUpperCase() : tourEstado;
+                    binding.tvEstadoBadge.setText(estadoMostrar);
+                    
+                    // Color según estado
+                    if ("cancelado".equalsIgnoreCase(estadoReal)) {
+                        binding.tvEstadoBadge.setBackgroundColor(getColor(android.R.color.holo_red_dark));
+                    } else if (tourEsPublicado) {
                         binding.tvEstadoBadge.setBackgroundColor(getColor(R.color.success_500));
                     } else {
                         binding.tvEstadoBadge.setBackgroundColor(getColor(R.color.text_secondary));
@@ -465,7 +483,11 @@ public class admin_tour_details extends AppCompatActivity implements OnMapReadyC
     private void setupTabs() {
         binding.tabLayoutDetails.addTab(binding.tabLayoutDetails.newTab().setText("Info"));
         binding.tabLayoutDetails.addTab(binding.tabLayoutDetails.newTab().setText("Itinerario"));
-        binding.tabLayoutDetails.addTab(binding.tabLayoutDetails.newTab().setText("Guía"));
+        
+        // ✅ Agregar pestaña Guía solo para tours pendientes y confirmados (no sin asignar)
+        if (!"sin_asignar".equals(tourTipo)) {
+            binding.tabLayoutDetails.addTab(binding.tabLayoutDetails.newTab().setText("Guía"));
+        }
         
         // Agregar pestaña Participantes solo para tours confirmados
         if ("confirmado".equals(tourTipo)) {

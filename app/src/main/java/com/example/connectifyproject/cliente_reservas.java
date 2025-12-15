@@ -39,7 +39,8 @@ public class cliente_reservas extends AppCompatActivity {
     private Cliente_ReservasAdapter reservasAdapter;
     private List<Cliente_Reserva> allReservas;
     private List<Cliente_Reserva> filteredReservas;
-    private boolean showingProximas = true;
+    private List<Map<String, Object>> allReservasCanceladas; // ✅ Nueva lista para canceladas
+    private int currentTab = 0; // 0: Próximas, 1: Pasadas, 2: Canceladas
     private BottomNavigationView bottomNavigation;
     
     private FirebaseFirestore db;
@@ -128,16 +129,23 @@ public class cliente_reservas extends AppCompatActivity {
     }
     
     private void setupTabs() {
-        // Agregar tabs
+        // ✅ Agregar tabs (ahora incluye Canceladas)
         tabLayoutReservas.addTab(tabLayoutReservas.newTab().setText("Próximas"));
         tabLayoutReservas.addTab(tabLayoutReservas.newTab().setText("Pasadas"));
+        tabLayoutReservas.addTab(tabLayoutReservas.newTab().setText("Canceladas"));
         
         // Listener para cambios de tab
         tabLayoutReservas.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
-                showingProximas = tab.getPosition() == 0;
-                filterReservas();
+                currentTab = tab.getPosition();
+                if (currentTab == 2) {
+                    // Tab Canceladas
+                    mostrarReservasCanceladas();
+                } else {
+                    // Tab Próximas o Pasadas
+                    filterReservas();
+                }
             }
             
             @Override
@@ -153,6 +161,7 @@ public class cliente_reservas extends AppCompatActivity {
     private void setupRecyclerView() {
     allReservas = new ArrayList<>();
     filteredReservas = new ArrayList<>();
+    allReservasCanceladas = new ArrayList<>(); // ✅ Inicializar lista de canceladas
     reservasAdapter = new Cliente_ReservasAdapter(this, filteredReservas);
         
         rvReservas.setLayoutManager(new LinearLayoutManager(this));
@@ -346,6 +355,8 @@ public class cliente_reservas extends AppCompatActivity {
     private void filterReservas() {
         filteredReservas.clear();
         
+        boolean showingProximas = (currentTab == 0);
+        
         for (Cliente_Reserva reserva : allReservas) {
             boolean esFutura = "Próxima".equals(reserva.getEstado());
             
@@ -358,6 +369,124 @@ public class cliente_reservas extends AppCompatActivity {
         
         Log.d(TAG, "Mostrando " + (showingProximas ? "próximas" : "pasadas") + ": " + filteredReservas.size() + " reservas");
         reservasAdapter.notifyDataSetChanged();
+    }
+    
+    /**
+     * ✅ Cargar y mostrar reservas canceladas desde Firebase
+     */
+    private void mostrarReservasCanceladas() {
+        if (currentUserId == null) {
+            Log.e(TAG, "Usuario no autenticado");
+            return;
+        }
+        
+        Log.d(TAG, "Cargando reservas canceladas para usuario: " + currentUserId);
+        
+        db.collection("reservas_canceladas")
+            .whereEqualTo("clienteId", currentUserId)
+            .get()
+            .addOnSuccessListener(queryDocumentSnapshots -> {
+                allReservasCanceladas.clear();
+                filteredReservas.clear();
+                
+                Log.d(TAG, "Reservas canceladas encontradas: " + queryDocumentSnapshots.size());
+                
+                for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
+                    Map<String, Object> cancelada = doc.getData();
+                    cancelada.put("documentId", doc.getId());
+                    allReservasCanceladas.add(cancelada);
+                    
+                    // Crear Cliente_Reserva para mostrar en el adapter
+                    Cliente_Reserva reserva = crearReservaCanceladaParaAdapter(cancelada);
+                    if (reserva != null) {
+                        filteredReservas.add(reserva);
+                    }
+                }
+                
+                Log.d(TAG, "Mostrando " + filteredReservas.size() + " reservas canceladas");
+                reservasAdapter.notifyDataSetChanged();
+            })
+            .addOnFailureListener(e -> {
+                Log.e(TAG, "Error al cargar reservas canceladas: " + e.getMessage(), e);
+            });
+    }
+    
+    /**
+     * ✅ Crear objeto Cliente_Reserva desde datos de reserva cancelada
+     */
+    private Cliente_Reserva crearReservaCanceladaParaAdapter(Map<String, Object> canceladaData) {
+        try {
+            String tourId = (String) canceladaData.get("tourId");
+            String titulo = (String) canceladaData.get("tourTitulo");
+            String documentId = (String) canceladaData.get("documentId");
+            
+            // Obtener fecha
+            String fecha = "";
+            Object fechaObj = canceladaData.get("fechaRealizacion");
+            if (fechaObj instanceof Timestamp) {
+                java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault());
+                fecha = sdf.format(((Timestamp) fechaObj).toDate());
+            }
+            
+            String horaInicio = (String) canceladaData.get("horaInicio");
+            String horaFin = (String) canceladaData.get("horaFin");
+            String hora = horaInicio + " - " + horaFin;
+            
+            // Crear tour para la reserva
+            Cliente_Tour tour = new Cliente_Tour();
+            tour.setId(tourId != null ? tourId : documentId);
+            tour.setTitle(titulo != null ? titulo : "Tour Cancelado");
+            tour.setCompanyName("Cargando...");
+            tour.setDuration("");
+            tour.setDate(fecha);
+            tour.setPrice(0.0);
+            
+            // Crear reserva con el tour
+            Cliente_Reserva reserva = new Cliente_Reserva();
+            reserva.setId(tourId != null ? tourId : documentId);
+            reserva.setTour(tour);
+            reserva.setFecha(fecha);
+            reserva.setHoraInicio(horaInicio != null ? horaInicio : "");
+            reserva.setHoraFin(horaFin != null ? horaFin : "");
+            reserva.setEstado("Cancelada");
+            
+            // Guardar datos adicionales en la reserva para el diálogo
+            reserva.setDocumentId(documentId);
+            
+            // Cargar nombre de empresa de forma asíncrona
+            if (tourId != null) {
+                cargarNombreEmpresaParaCancelada(tourId, reserva);
+            }
+            
+            return reserva;
+            
+        } catch (Exception e) {
+            Log.e(TAG, "Error al crear reserva cancelada para adapter: " + e.getMessage(), e);
+            return null;
+        }
+    }
+    
+    /**
+     * ✅ Cargar nombre de empresa para reserva cancelada
+     */
+    private void cargarNombreEmpresaParaCancelada(String tourId, Cliente_Reserva reserva) {
+        db.collection("tours_asignados")
+            .document(tourId)
+            .get()
+            .addOnSuccessListener(doc -> {
+                if (doc.exists()) {
+                    String nombreEmpresa = doc.getString("nombreEmpresa");
+                    if (nombreEmpresa != null) {
+                        reserva.setEmpresaNombre(nombreEmpresa);
+                        reservasAdapter.notifyDataSetChanged();
+                    }
+                }
+            })
+            .addOnFailureListener(e -> {
+                Log.e(TAG, "Error cargando nombre de empresa: " + e.getMessage());
+                reserva.setEmpresaNombre("Empresa no disponible");
+                reservasAdapter.notifyDataSetChanged();
+            });
     }
 
     /**

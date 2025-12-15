@@ -16,6 +16,7 @@ public class Cliente_Reserva implements Serializable {
     private double totalServicios;            // Suma de servicios adicionales
     private double total;                     // Total final
     private String estado;                    // Próxima | Pasada | Cancelada
+    private String documentId;                // ✅ ID del documento en reservas_canceladas
 
     public Cliente_Reserva(String id, Cliente_Tour tour, int personas, String fecha,
                            String horaInicio, String horaFin,
@@ -63,6 +64,15 @@ public class Cliente_Reserva implements Serializable {
     public void setTotalServicios(double totalServicios) { this.totalServicios = totalServicios; }
     public void setTotal(double total) { this.total = total; }
     public void setEstado(String estado) { this.estado = estado; }
+    public String getDocumentId() { return documentId; } // ✅ Getter
+    public void setDocumentId(String documentId) { this.documentId = documentId; } // ✅ Setter
+    
+    // ✅ Helper para obtener nombre de empresa del tour
+    public void setEmpresaNombre(String nombre) {
+        if (this.tour != null) {
+            this.tour.setEmpresaNombre(nombre);
+        }
+    }
 
     // Utilidades
     public double calcularTotalServiciosSeleccionadosPorPersona() {

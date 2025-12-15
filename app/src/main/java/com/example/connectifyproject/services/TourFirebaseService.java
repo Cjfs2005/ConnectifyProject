@@ -1656,6 +1656,7 @@ private void crearTourAsignadoDesdeDocumento(DocumentSnapshot ofertaDoc, Documen
                         updates.put("fechaCancelacion", Timestamp.now());
                         updates.put("fechaActualizacion", Timestamp.now());
                         updates.put("habilitado", false);
+                        updates.put("participantes", new ArrayList<>()); // ✅ Borrar array de participantes
                         
                         final String guiaIdFinal = guiaId;
                         final String empresaIdFinal = empresaId;
@@ -1770,6 +1771,7 @@ private void crearTourAsignadoDesdeDocumento(DocumentSnapshot ofertaDoc, Documen
                 updates.put("fechaCancelacion", Timestamp.now());
                 updates.put("fechaActualizacion", Timestamp.now());
                 updates.put("habilitado", false);
+                updates.put("participantes", new ArrayList<>()); // ✅ Borrar array de participantes
                 
                 final String guiaIdFinal = guiaId;
                 final String empresaIdFinal = empresaId;

@@ -121,6 +121,7 @@ public class Cliente_Tour implements Serializable {
     public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
     public void setCalificacion(float calificacion) { this.calificacion = calificacion; }
     public void setCompanyName(String companyName) { this.companyName = companyName; this.company = companyName; }
+    public void setEmpresaNombre(String nombre) { setCompanyName(nombre); } // ✅ Alias
     
     // Getters y Setters adicionales
     public String getOfertaTourId() { return ofertaTourId; }
