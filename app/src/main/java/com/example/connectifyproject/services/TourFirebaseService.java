@@ -1259,14 +1259,16 @@ private void crearTourAsignadoDesdeDocumento(DocumentSnapshot ofertaDoc, Documen
             return;
         }
         
-        Log.d(TAG, "Buscando ofertas con conflicto para guía " + guiaId);
+        Log.d(TAG, "=== INICIANDO RECHAZO AUTOMÁTICO ===");
+        Log.d(TAG, "Guía ID: " + guiaId);
+        Log.d(TAG, "Oferta aceptada - Fecha: " + fechaAceptada + ", Horario: " + horaInicioAceptada + " - " + horaFinAceptada);
         
-        // Buscar todas las ofertas pendientes del guía
+        // Buscar todas las ofertas habilitadas
         db.collection(COLLECTION_OFERTAS)
             .whereEqualTo("habilitado", true)
             .get()
             .addOnSuccessListener(querySnapshot -> {
-                int ofertasRechazadas = 0;
+                Log.d(TAG, "Total ofertas habilitadas encontradas: " + querySnapshot.size());
                 
                 for (DocumentSnapshot ofertaDoc : querySnapshot.getDocuments()) {
                     String ofertaId = ofertaDoc.getId();
@@ -1280,6 +1282,7 @@ private void crearTourAsignadoDesdeDocumento(DocumentSnapshot ofertaDoc, Documen
                         .addOnSuccessListener(guiaOfertadoDoc -> {
                             if (guiaOfertadoDoc.exists()) {
                                 String estadoOferta = guiaOfertadoDoc.getString("estadoOferta");
+                                Log.d(TAG, "Oferta " + ofertaId + " - Estado: " + estadoOferta);
                                 
                                 // Solo procesar si está pendiente
                                 if ("pendiente".equals(estadoOferta)) {
@@ -1287,20 +1290,28 @@ private void crearTourAsignadoDesdeDocumento(DocumentSnapshot ofertaDoc, Documen
                                     String horaInicioOferta = ofertaDoc.getString("horaInicio");
                                     String horaFinOferta = ofertaDoc.getString("horaFin");
                                     
+                                    Log.d(TAG, "  Comparando con oferta " + ofertaId);
+                                    Log.d(TAG, "  Fecha: " + fechaOferta + ", Horario: " + horaInicioOferta + " - " + horaFinOferta);
+                                    
                                     // Verificar si es el mismo día
-                                    if (esMismaFecha(fechaAceptada, fechaOferta)) {
+                                    boolean mismaFecha = esMismaFecha(fechaAceptada, fechaOferta);
+                                    Log.d(TAG, "  Misma fecha? " + mismaFecha);
+                                    
+                                    if (mismaFecha) {
                                         // Verificar conflicto de horario
-                                        if (hayConflictoHorario(horaInicioAceptada, horaFinAceptada, 
-                                                               horaInicioOferta, horaFinOferta)) {
-                                            
-                                            Log.d(TAG, "Conflicto detectado con oferta " + ofertaId + 
-                                                      " - Rechazando automáticamente");
+                                        boolean hayConflicto = hayConflictoHorario(horaInicioAceptada, horaFinAceptada, 
+                                                               horaInicioOferta, horaFinOferta);
+                                        Log.d(TAG, "  Hay conflicto horario? " + hayConflicto);
+                                        
+                                        if (hayConflicto) {
+                                            Log.d(TAG, "  ✗ CONFLICTO DETECTADO - Rechazando oferta " + ofertaId);
                                             
                                             // Rechazar la oferta con conflicto
                                             Map<String, Object> actualizacion = new HashMap<>();
                                             actualizacion.put("estadoOferta", "rechazado");
                                             actualizacion.put("fechaRespuesta", Timestamp.now());
                                             actualizacion.put("motivoRechazo", "Conflicto de horario - El guía aceptó otro tour");
+                                            actualizacion.put("rechazado", true);
                                             actualizacion.put("vistoAdmin", false);
                                             
                                             db.collection(COLLECTION_OFERTAS)
@@ -1309,15 +1320,37 @@ private void crearTourAsignadoDesdeDocumento(DocumentSnapshot ofertaDoc, Documen
                                                 .document(guiaId)
                                                 .update(actualizacion)
                                                 .addOnSuccessListener(aVoid -> {
-                                                    Log.d(TAG, "Oferta " + ofertaId + " rechazada automáticamente");
+                                                    Log.d(TAG, "    ✓ Subcolección actualizada - Limpiando guiaSeleccionadoActual");
+                                                    
+                                                    // Limpiar guiaSeleccionadoActual para que vuelva a "sin asignar"
+                                                    Map<String, Object> limpiarGuia = new HashMap<>();
+                                                    limpiarGuia.put("guiaSeleccionadoActual", null);
+                                                    limpiarGuia.put("fechaActualizacion", Timestamp.now());
+                                                    
+                                                    db.collection(COLLECTION_OFERTAS)
+                                                        .document(ofertaId)
+                                                        .update(limpiarGuia)
+                                                        .addOnSuccessListener(aVoid2 -> {
+                                                            Log.d(TAG, "    ✓ Oferta " + ofertaId + " rechazada y vuelta a sin asignar");
+                                                        })
+                                                        .addOnFailureListener(e -> {
+                                                            Log.e(TAG, "    ✗ Error limpiando guiaSeleccionadoActual", e);
+                                                        });
                                                 })
                                                 .addOnFailureListener(e -> {
-                                                    Log.e(TAG, "Error al rechazar oferta " + ofertaId, e);
+                                                    Log.e(TAG, "    ✗ Error al rechazar oferta " + ofertaId, e);
                                                 });
+                                        } else {
+                                            Log.d(TAG, "  ✓ Sin conflicto horario");
                                         }
+                                    } else {
+                                        Log.d(TAG, "  ✓ Fecha diferente, sin conflicto");
                                     }
                                 }
                             }
+                        })
+                        .addOnFailureListener(e -> {
+                            Log.e(TAG, "Error verificando oferta " + ofertaId, e);
                         });
                 }
                 
