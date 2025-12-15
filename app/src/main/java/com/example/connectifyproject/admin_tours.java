@@ -38,6 +38,7 @@ public class admin_tours extends AppCompatActivity {
     private AdminToursViewBinding binding;
     private ToursAdapter toursAdapter;
     private List<TourItem> toursList;
+    private List<TourItem> toursListFiltered; // Lista filtrada para búsqueda
     private String currentTab = "borradores";
     
     // Firebase
@@ -75,6 +76,9 @@ public class admin_tours extends AppCompatActivity {
 
         // Configurar TabLayout
         setupTabs();
+
+        // Configurar buscador
+        setupSearchBar();
 
         // NO cargar datos iniciales aquí, esperar a que se cargue empresaId
         // La carga se hará automáticamente en loadEmpresaId()
@@ -173,7 +177,8 @@ public class admin_tours extends AppCompatActivity {
 
     private void setupRecyclerView() {
         toursList = new ArrayList<>();
-        toursAdapter = new ToursAdapter(toursList);
+        toursListFiltered = new ArrayList<>();
+        toursAdapter = new ToursAdapter(toursListFiltered);
         binding.recyclerViewTours.setLayoutManager(new LinearLayoutManager(this));
         binding.recyclerViewTours.setAdapter(toursAdapter);
     }
@@ -206,6 +211,8 @@ public class admin_tours extends AppCompatActivity {
                 }
                 
                 currentTab = tabState;
+                // Limpiar búsqueda al cambiar de tab
+                binding.etSearch.setText("");
                 loadTours(tabState);
             }
 
@@ -215,6 +222,46 @@ public class admin_tours extends AppCompatActivity {
             @Override
             public void onTabReselected(TabLayout.Tab tab) {}
         });
+    }
+    
+    /**
+     * Configurar barra de búsqueda con filtrado en tiempo real
+     */
+    private void setupSearchBar() {
+        binding.etSearch.addTextChangedListener(new android.text.TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                filterTours(s.toString());
+            }
+
+            @Override
+            public void afterTextChanged(android.text.Editable s) {}
+        });
+    }
+    
+    /**
+     * Filtrar tours por título (case-insensitive)
+     */
+    private void filterTours(String query) {
+        toursListFiltered.clear();
+        
+        if (query == null || query.trim().isEmpty()) {
+            // Si no hay búsqueda, mostrar todos los tours
+            toursListFiltered.addAll(toursList);
+        } else {
+            // Filtrar por título (case-insensitive)
+            String queryLower = query.toLowerCase().trim();
+            for (TourItem tour : toursList) {
+                if (tour.getTitulo().toLowerCase().contains(queryLower)) {
+                    toursListFiltered.add(tour);
+                }
+            }
+        }
+        
+        toursAdapter.notifyDataSetChanged();
     }
 
     private void loadTours(String estado) {
@@ -370,7 +417,11 @@ public class admin_tours extends AppCompatActivity {
                 }
                 
                 android.util.Log.d("AdminTours", "Total borradores agregados: " + toursAgregados);
-                toursAdapter.notifyDataSetChanged();
+                
+                // Aplicar filtro actual si existe
+                String currentQuery = binding.etSearch.getText().toString();
+                filterTours(currentQuery);
+                
                 android.util.Log.d("AdminTours", "Adapter notificado");
             })
             .addOnFailureListener(e -> {
@@ -470,7 +521,11 @@ public class admin_tours extends AppCompatActivity {
                 }
                 
                 android.util.Log.d("AdminTours", "Total tours agregados: " + toursAgregados);
-                toursAdapter.notifyDataSetChanged();
+                
+                // Aplicar filtro actual si existe
+                String currentQuery = binding.etSearch.getText().toString();
+                filterTours(currentQuery);
+                
                 android.util.Log.d("AdminTours", "Adapter notificado");
             })
             .addOnFailureListener(e -> {
@@ -543,7 +598,10 @@ public class admin_tours extends AppCompatActivity {
                         }
                     }
                 });
-                toursAdapter.notifyDataSetChanged();
+                
+                // Aplicar filtro actual si existe
+                String currentQuery = binding.etSearch.getText().toString();
+                filterTours(currentQuery);
             })
             .addOnFailureListener(e -> {
                 Toast.makeText(this, "Error al cargar tours pendientes: " + e.getMessage(), Toast.LENGTH_SHORT).show();
@@ -565,7 +623,7 @@ public class admin_tours extends AppCompatActivity {
                     if ("rechazado".equals(estadoOferta) && (vistoAdmin == null || !vistoAdmin)) {
                         tourItem.setTieneRechazo(true);
                         tourItem.setMotivoRechazo(motivoRechazo);
-                        toursAdapter.notifyDataSetChanged();
+                        // Ya no necesitamos notificar aquí, el filtro se aplicará después
                     }
                 }
             });
@@ -621,7 +679,10 @@ public class admin_tours extends AppCompatActivity {
                         ));
                     }
                 }
-                toursAdapter.notifyDataSetChanged();
+                
+                // Aplicar filtro actual si existe
+                String currentQuery = binding.etSearch.getText().toString();
+                filterTours(currentQuery);
             })
             .addOnFailureListener(e -> {
                 Toast.makeText(this, "Error al cargar tours confirmados: " + e.getMessage(), Toast.LENGTH_SHORT).show();
@@ -707,7 +768,10 @@ public class admin_tours extends AppCompatActivity {
                                 "cancelado"
                             ));
                         });
-                        toursAdapter.notifyDataSetChanged();
+                        
+                        // Aplicar filtro actual si existe
+                        String currentQuery = binding.etSearch.getText().toString();
+                        filterTours(currentQuery);
                     });
             })
             .addOnFailureListener(e -> {

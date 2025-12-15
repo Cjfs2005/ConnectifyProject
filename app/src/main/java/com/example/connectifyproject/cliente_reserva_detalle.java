@@ -414,7 +414,7 @@ public class cliente_reserva_detalle extends AppCompatActivity {
         // Cancelar reserva - mostrar diálogo de confirmación
         if (cardCancelar != null) {
             cardCancelar.setOnClickListener(v -> {
-                mostrarDialogoCancelarReserva();
+                mostrarDialogoCancelarReserva(reserva);
             });
         }
         
@@ -436,18 +436,198 @@ public class cliente_reserva_detalle extends AppCompatActivity {
         gestionarVisibilidadBotonesQR(reserva);
     }
     
-    private void mostrarDialogoCancelarReserva() {
-        new androidx.appcompat.app.AlertDialog.Builder(this)
-                .setTitle("Cancelar reserva")
-                .setMessage("¿Estás seguro de que deseas cancelar esta reserva?")
-                .setPositiveButton("Confirmar", (dialog, which) -> {
-                    // Por ahora solo cerramos el dialog
-                    dialog.dismiss();
+    private void mostrarDialogoCancelarReserva(Cliente_Reserva reserva) {
+        if (reserva == null || reserva.getTour() == null) {
+            Toast.makeText(this, "Error: No se encontraron datos de la reserva", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
+        // Obtener datos del tour para validación
+        String tourId = reserva.getTour().getId();
+        String fecha = reserva.getFecha();
+        String horaInicio = reserva.getHoraInicio();
+        
+        // Validar tiempo restante (debe haber más de 2 horas 10 minutos)
+        db.collection("tours_asignados")
+                .document(tourId)
+                .get()
+                .addOnSuccessListener(doc -> {
+                    if (!doc.exists()) {
+                        Toast.makeText(this, "Error: Tour no encontrado", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    
+                    com.google.firebase.Timestamp fechaRealizacion = doc.getTimestamp("fechaRealizacion");
+                    double horasRestantes = com.example.connectifyproject.utils.TourTimeValidator
+                            .calcularHorasHastaInicio(fechaRealizacion, horaInicio);
+                    
+                    Log.d(TAG, "Horas restantes para cancelación: " + horasRestantes);
+                    
+                    // Validar que falten más de 2h 10min (2.166667 horas)
+                    if (horasRestantes < 2.166667) {
+                        String mensaje;
+                        if (horasRestantes < 0) {
+                            mensaje = "No puedes cancelar una reserva que ya ha comenzado.";
+                        } else {
+                            mensaje = "Solo puedes cancelar reservas con más de 2 horas de anticipación.\n\n" +
+                                    "Tiempo restante: " + String.format("%.1f", horasRestantes) + " horas";
+                        }
+                        
+                        new androidx.appcompat.app.AlertDialog.Builder(this)
+                                .setTitle("No se puede cancelar")
+                                .setMessage(mensaje)
+                                .setPositiveButton("Entendido", null)
+                                .show();
+                        return;
+                    }
+                    
+                    // Mostrar diálogo de confirmación
+                    new androidx.appcompat.app.AlertDialog.Builder(this)
+                            .setTitle("Cancelar reserva")
+                            .setMessage("¿Estás seguro de que deseas cancelar esta reserva?\n\n" +
+                                    "Esta acción no se puede deshacer.")
+                            .setPositiveButton("Confirmar", (dialog, which) -> {
+                                cancelarReservaCliente(reserva, tourId, fechaRealizacion, horaInicio);
+                            })
+                            .setNegativeButton("Cancelar", (dialog, which) -> {
+                                dialog.dismiss();
+                            })
+                            .show();
                 })
-                .setNegativeButton("Cancelar", (dialog, which) -> {
-                    dialog.dismiss();
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Error al validar la reserva: " + e.getMessage(), 
+                            Toast.LENGTH_SHORT).show();
+                    Log.e(TAG, "Error validando tiempo de cancelación", e);
+                });
+    }
+    
+    /**
+     * Cancelar reserva del cliente
+     * 1. Remover del array participantes del tour
+     * 2. Crear registro en reservas_canceladas
+     */
+    private void cancelarReservaCliente(Cliente_Reserva reserva, String tourId, 
+                                       com.google.firebase.Timestamp fechaRealizacion, 
+                                       String horaInicio) {
+        if (mAuth.getCurrentUser() == null) {
+            Toast.makeText(this, "Error: Usuario no autenticado", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
+        // Mostrar loader
+        android.app.ProgressDialog progressDialog = new android.app.ProgressDialog(this);
+        progressDialog.setMessage("Cancelando reserva...");
+        progressDialog.setCancelable(false);
+        progressDialog.show();
+        
+        String clienteId = mAuth.getCurrentUser().getUid();
+        String horaFin = reserva.getHoraFin();
+        
+        // 1. Obtener el participante actual del array
+        db.collection("tours_asignados")
+                .document(tourId)
+                .get()
+                .addOnSuccessListener(doc -> {
+                    if (!doc.exists()) {
+                        progressDialog.dismiss();
+                        Toast.makeText(this, "Error: Tour no encontrado", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    
+                    List<java.util.Map<String, Object>> participantes = 
+                            (List<java.util.Map<String, Object>>) doc.get("participantes");
+                    
+                    if (participantes == null || participantes.isEmpty()) {
+                        progressDialog.dismiss();
+                        Toast.makeText(this, "Error: No hay participantes en este tour", 
+                                Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    
+                    // Buscar el participante actual
+                    java.util.Map<String, Object> participanteActual = null;
+                    int indexToRemove = -1;
+                    
+                    for (int i = 0; i < participantes.size(); i++) {
+                        java.util.Map<String, Object> p = participantes.get(i);
+                        String pClienteId = (String) p.get("clienteId");
+                        if (clienteId.equals(pClienteId)) {
+                            participanteActual = p;
+                            indexToRemove = i;
+                            break;
+                        }
+                    }
+                    
+                    if (participanteActual == null) {
+                        progressDialog.dismiss();
+                        Toast.makeText(this, "Error: No se encontró tu reserva en este tour", 
+                                Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    
+                    // 2. Crear registro en reservas_canceladas
+                    java.util.Map<String, Object> reservaCancelada = new java.util.HashMap<>();
+                    reservaCancelada.put("tourId", tourId);
+                    reservaCancelada.put("tourTitulo", reserva.getTour().getTitulo());
+                    reservaCancelada.put("fechaRealizacion", fechaRealizacion);
+                    reservaCancelada.put("horaInicio", horaInicio);
+                    reservaCancelada.put("horaFin", horaFin);
+                    reservaCancelada.put("fechaCancelacion", com.google.firebase.Timestamp.now());
+                    reservaCancelada.put("motivoCancelacion", "Cancelación por cliente");
+                    
+                    // Copiar datos del participante
+                    reservaCancelada.put("clienteId", participanteActual.get("clienteId"));
+                    reservaCancelada.put("nombre", participanteActual.get("nombre"));
+                    reservaCancelada.put("correo", participanteActual.get("correo"));
+                    reservaCancelada.put("numeroPersonas", participanteActual.get("numeroPersonas"));
+                    reservaCancelada.put("montoTotal", participanteActual.get("montoTotal"));
+                    
+                    final int finalIndex = indexToRemove;
+                    
+                    db.collection("reservas_canceladas")
+                            .add(reservaCancelada)
+                            .addOnSuccessListener(docRef -> {
+                                Log.d(TAG, "✅ Reserva guardada en reservas_canceladas");
+                                
+                                // 3. Remover del array participantes
+                                participantes.remove(finalIndex);
+                                
+                                db.collection("tours_asignados")
+                                        .document(tourId)
+                                        .update("participantes", participantes)
+                                        .addOnSuccessListener(aVoid -> {
+                                            Log.d(TAG, "✅ Participante removido del tour");
+                                            progressDialog.dismiss();
+                                            Toast.makeText(this, 
+                                                    "Reserva cancelada exitosamente", 
+                                                    Toast.LENGTH_LONG).show();
+                                            
+                                            // Cerrar activity y volver a la lista con resultado OK
+                                            setResult(RESULT_OK);
+                                            finish();
+                                        })
+                                        .addOnFailureListener(e -> {
+                                            progressDialog.dismiss();
+                                            Toast.makeText(this, 
+                                                    "Error al actualizar el tour: " + e.getMessage(), 
+                                                    Toast.LENGTH_SHORT).show();
+                                            Log.e(TAG, "Error removiendo participante", e);
+                                        });
+                            })
+                            .addOnFailureListener(e -> {
+                                progressDialog.dismiss();
+                                Toast.makeText(this, 
+                                        "Error al guardar la cancelación: " + e.getMessage(), 
+                                        Toast.LENGTH_SHORT).show();
+                                Log.e(TAG, "Error guardando en reservas_canceladas", e);
+                            });
                 })
-                .show();
+                .addOnFailureListener(e -> {
+                    progressDialog.dismiss();
+                    Toast.makeText(this, "Error al obtener datos del tour: " + e.getMessage(), 
+                            Toast.LENGTH_SHORT).show();
+                    Log.e(TAG, "Error obteniendo tour", e);
+                });
     }
     
     private void descargarReciboPDF(Cliente_Reserva reserva) {

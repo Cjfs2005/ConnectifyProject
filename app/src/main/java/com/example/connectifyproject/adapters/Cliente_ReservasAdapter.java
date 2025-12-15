@@ -53,7 +53,13 @@ public class Cliente_ReservasAdapter extends RecyclerView.Adapter<Cliente_Reserv
         if (tour != null) {
             holder.tvTourTitle.setText(tour.getTitle());
             holder.tvTourCompany.setText(tour.getCompanyName());
-            holder.tvTourDuration.setText("Duración: " + tour.getDuration());
+            
+            // Para reservas canceladas, mostrar fecha de cancelación en lugar de duración
+            if ("Cancelada".equals(reserva.getEstado()) && tour.getDuration() != null && !tour.getDuration().isEmpty()) {
+                holder.tvTourDuration.setText("Cancelada el: " + tour.getDuration());
+            } else {
+                holder.tvTourDuration.setText("Duración: " + tour.getDuration());
+            }
         } else {
             holder.tvTourTitle.setText("Reserva");
             holder.tvTourCompany.setText("");
@@ -138,16 +144,26 @@ public class Cliente_ReservasAdapter extends RecyclerView.Adapter<Cliente_Reserv
                     String empresaNombre = reserva.getTour() != null ? reserva.getTour().getCompanyName() : "Empresa no disponible";
                     String fecha = reserva.getFecha();
                     String hora = reserva.getHoraInicio() + " - " + reserva.getHoraFin();
-                    String motivo = doc.getString("motivoCancelacion");
+                    String motivoCancelacion = doc.getString("motivoCancelacion");
                     String montoTotal = doc.getString("montoTotal");
                     
-                    // Construir mensaje del diálogo
+                    // Construir mensaje del diálogo según el motivo
                     StringBuilder mensaje = new StringBuilder();
                     mensaje.append("Tour: ").append(tourTitulo != null ? tourTitulo : "N/A").append("\n\n");
                     mensaje.append("Empresa: ").append(empresaNombre).append("\n\n");
                     mensaje.append("Fecha: ").append(fecha).append("\n");
                     mensaje.append("Hora: ").append(hora).append("\n\n");
-                    mensaje.append("Motivo: La empresa decidió cancelar el tour\n\n");
+                    
+                    // Mostrar mensaje según el tipo de cancelación
+                    if ("Cancelación por cliente".equals(motivoCancelacion)) {
+                        mensaje.append("Motivo: Tú decidiste cancelar esta reserva\n\n");
+                    } else if ("Cancelación manual".equals(motivoCancelacion)) {
+                        mensaje.append("Motivo: La empresa decidió cancelar el tour\n\n");
+                    } else {
+                        // Para cancelación automática u otros motivos
+                        mensaje.append("Motivo: ").append(motivoCancelacion != null ? motivoCancelacion : "Tour cancelado").append("\n\n");
+                    }
+                    
                     mensaje.append("Monto original: S/ ").append(montoTotal != null ? montoTotal : "0.00").append("\n\n");
                     mensaje.append("✓ Ya no se le cobrará este monto");
                     

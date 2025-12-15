@@ -66,6 +66,22 @@ public class cliente_reservas extends AppCompatActivity {
         if (bottomNavigation != null) {
             bottomNavigation.setSelectedItemId(R.id.nav_reservas);
         }
+        
+        // Recargar datos cuando volvemos (por si se canceló una reserva)
+        recargarDatosActuales();
+    }
+    
+    /**
+     * Recargar los datos del tab actual
+     */
+    private void recargarDatosActuales() {
+        if (currentTab == 2) {
+            // Tab Canceladas
+            mostrarReservasCanceladas();
+        } else {
+            // Tab Próximas o Pasadas
+            loadReservasData();
+        }
     }
 
     private void initViews() {
@@ -432,12 +448,20 @@ public class cliente_reservas extends AppCompatActivity {
             String horaFin = (String) canceladaData.get("horaFin");
             String hora = horaInicio + " - " + horaFin;
             
+            // Obtener fecha de cancelación
+            String fechaCancelacion = "";
+            Object fechaCancelacionObj = canceladaData.get("fechaCancelacion");
+            if (fechaCancelacionObj instanceof Timestamp) {
+                java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault());
+                fechaCancelacion = sdf.format(((Timestamp) fechaCancelacionObj).toDate());
+            }
+            
             // Crear tour para la reserva
             Cliente_Tour tour = new Cliente_Tour();
             tour.setId(tourId != null ? tourId : documentId);
             tour.setTitle(titulo != null ? titulo : "Tour Cancelado");
             tour.setCompanyName("Cargando...");
-            tour.setDuration("");
+            tour.setDuration(fechaCancelacion); // Usar duration para guardar fecha de cancelación
             tour.setDate(fecha);
             tour.setPrice(0.0);
             
