@@ -47,6 +47,13 @@ public class admin_tours extends AppCompatActivity {
     private FirebaseFirestore db;
     private String empresaId;
     private SimpleDateFormat dateFormat;
+    
+    // Request codes
+    private static final int REQUEST_SELECT_PAYMENT = 1001;
+    
+    // Temporary data for guide selection flow
+    private String tempOfertaId;
+    private String tempTourTitulo;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -1000,10 +1007,13 @@ public class admin_tours extends AppCompatActivity {
                         btnAction.setAlpha(esBloqueado ? 0.5f : 1.0f);
                         btnAction.setOnClickListener(v -> {
                             if (!esBloqueado) {
-                                Intent intent = new Intent(admin_tours.this, admin_select_guide.class);
-                                intent.putExtra("ofertaId", tour.getId());
-                                intent.putExtra("tourTitulo", tour.getTitulo());
-                                startActivity(intent);
+                                // Guardar datos temporalmente
+                                tempOfertaId = tour.getId();
+                                tempTourTitulo = tour.getTitulo();
+                                
+                                // Primero ir a selección de método de pago
+                                Intent intent = new Intent(admin_tours.this, AdminSelectPaymentMethodActivity.class);
+                                startActivityForResult(intent, REQUEST_SELECT_PAYMENT);
                             }
                         });
                         break;
@@ -1043,13 +1053,16 @@ public class admin_tours extends AppCompatActivity {
                     .setTitle("Tour Rechazado")
                     .setMessage(mensaje)
                     .setPositiveButton("Seleccionar otro guía", (dialog, which) -> {
-                        // Marcar como visto y navegar a selección de guía
+                        // Marcar como visto
                         marcarRechazoVisto(tour.getId(), tour.getGuiaSeleccionadoId());
                         
-                        Intent intent = new Intent(admin_tours.this, admin_select_guide.class);
-                        intent.putExtra("ofertaId", tour.getId());
-                        intent.putExtra("tourTitulo", tour.getTitulo());
-                        startActivity(intent);
+                        // Guardar datos temporalmente
+                        tempOfertaId = tour.getId();
+                        tempTourTitulo = tour.getTitulo();
+                        
+                        // Primero ir a selección de método de pago
+                        Intent intent = new Intent(admin_tours.this, AdminSelectPaymentMethodActivity.class);
+                        startActivityForResult(intent, REQUEST_SELECT_PAYMENT);
                     })
                     .setNegativeButton("Cancelar ofrecimiento", (dialog, which) -> {
                         // Cancelar el ofrecimiento actual
@@ -1091,5 +1104,32 @@ public class admin_tours extends AppCompatActivity {
             })
             .setNegativeButton("Cancelar", null)
             .show();
+    }
+    
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        
+        if (requestCode == REQUEST_SELECT_PAYMENT && resultCode == RESULT_OK) {
+            // El admin seleccionó un método de pago (o lo saltó)
+            // Ahora navegar a selección de guía
+            if (tempOfertaId != null && tempTourTitulo != null) {
+                Intent intent = new Intent(admin_tours.this, admin_select_guide.class);
+                intent.putExtra("ofertaId", tempOfertaId);
+                intent.putExtra("tourTitulo", tempTourTitulo);
+                
+                // Opcional: pasar el método de pago seleccionado (solo informativo)
+                if (data != null && data.hasExtra("selectedPaymentMethodId")) {
+                    String paymentMethodId = data.getStringExtra("selectedPaymentMethodId");
+                    intent.putExtra("paymentMethodId", paymentMethodId);
+                }
+                
+                startActivity(intent);
+                
+                // Limpiar datos temporales
+                tempOfertaId = null;
+                tempTourTitulo = null;
+            }
+        }
     }
 }

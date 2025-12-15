@@ -208,6 +208,23 @@
                 android:inputType="phone" />
         </com.google.android.material.textfield.TextInputLayout>
 
+        <!-- CCI -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilCciEmpresa"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            app:startIconDrawable="@drawable/ic_payment_24">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etCciEmpresa"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="CCI (20 dígitos) *"
+                android:inputType="number"
+                android:maxLength="20" />
+        </com.google.android.material.textfield.TextInputLayout>
+
         <!-- Fotos Promocionales -->
         <TextView
             android:layout_width="match_parent"

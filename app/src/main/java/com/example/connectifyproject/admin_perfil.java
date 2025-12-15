@@ -32,7 +32,7 @@ public class admin_perfil extends AppCompatActivity {
     
     // Views
     private ImageView ivProfilePhoto, btnNotifications;
-    private TextView tvUserName, tvDocumentType, tvDocument, tvEmail;
+    private TextView tvUserName, tvDocumentType, tvDocument, tvEmail, tvCci;
     private TextView tvCompanyName, tvCompanyDescription, tvCompanyLocation, tvCompanyPhone, tvCompanyEmail;
     private MaterialButton btnEditProfile, btnEditCompany;
     private RecyclerView rvCompanyPhotos;
@@ -81,6 +81,7 @@ public class admin_perfil extends AppCompatActivity {
         tvDocumentType = findViewById(R.id.tv_document_type);
         tvDocument = findViewById(R.id.tv_document);
         tvEmail = findViewById(R.id.tv_email);
+        tvCci = findViewById(R.id.tv_cci);
         
         // Company views
         tvCompanyName = findViewById(R.id.tv_company_name);
@@ -123,6 +124,11 @@ public class admin_perfil extends AppCompatActivity {
             Toast.makeText(this, "Funcionalidad en desarrollo", Toast.LENGTH_SHORT).show();
         });
 
+        findViewById(R.id.layout_payment_methods).setOnClickListener(v -> {
+            Intent intent = new Intent(this, cliente_metodos_pago.class);
+            startActivity(intent);
+        });
+
         findViewById(R.id.layout_logout).setOnClickListener(v -> logout());
     }
 
@@ -161,6 +167,7 @@ public class admin_perfil extends AppCompatActivity {
             String numeroDocumento = document.getString(AuthConstants.FIELD_NUMERO_DOCUMENTO);
             String email = document.getString(AuthConstants.FIELD_EMAIL);
             String photoUrl = document.getString(AuthConstants.FIELD_PHOTO_URL);
+            String cci = document.getString("cci");
 
             // Company Information
             String nombreEmpresa = document.getString(AuthConstants.FIELD_NOMBRE_EMPRESA);
@@ -175,6 +182,7 @@ public class admin_perfil extends AppCompatActivity {
             if (tipoDocumento != null) tvDocumentType.setText(tipoDocumento);
             if (numeroDocumento != null) tvDocument.setText(numeroDocumento);
             if (email != null) tvEmail.setText(email);
+            if (cci != null && !cci.isEmpty()) tvCci.setText(cci);
 
             // Company data
             if (nombreEmpresa != null) tvCompanyName.setText(nombreEmpresa);

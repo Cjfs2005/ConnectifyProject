@@ -163,6 +163,28 @@
 
             </com.google.android.material.textfield.TextInputLayout>
 
+            <!-- CCI -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/til_cci"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="32dp"
+                android:hint="CCI (20 dígitos) *"
+                app:boxStrokeColor="?attr/colorPrimary"
+                app:hintTextColor="?attr/colorPrimary"
+                app:startIconDrawable="@drawable/ic_payment_24"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/et_cci"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="number"
+                    android:maxLength="20"
+                    android:maxLines="1" />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
             <!-- Save Button -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_guardar"

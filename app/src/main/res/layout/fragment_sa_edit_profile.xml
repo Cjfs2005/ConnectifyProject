@@ -164,7 +164,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="32dp"
-                android:hint="Domicilio">
+                android:hint="Ciudad">
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/et_domicilio"
                     android:layout_width="match_parent"

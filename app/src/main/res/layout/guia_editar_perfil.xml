@@ -148,25 +148,24 @@
 
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Campo Domicilio -->
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/til_domicilio"
+            <!-- Campo Ciudad -->
+            <TextView
+                android:id="@+id/tv_ciudad_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:text="Ciudad"
+                android:textSize="14sp"
+                android:textColor="?attr/colorOnSurface" />
+
+            <Spinner
+                android:id="@+id/spinner_ciudad"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                android:hint="Domicilio"
-                app:boxStrokeColor="?attr/colorPrimary"
-                app:hintTextColor="?attr/colorPrimary"
-                app:endIconMode="clear_text">
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/et_domicilio"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:inputType="textCapWords|textMultiLine"
-                    android:maxLines="3" />
-
-            </com.google.android.material.textfield.TextInputLayout>
+                android:minHeight="48dp"
+                android:background="@android:drawable/editbox_background"
+                android:padding="12dp" />
 
             <!-- Campo CCI (20 dígitos) -->
             <com.google.android.material.textfield.TextInputLayout
@@ -185,26 +184,6 @@
                     android:layout_height="wrap_content"
                     android:inputType="number"
                     android:maxLength="20" />
-
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <!-- Campo YAPE (9 dígitos) -->
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/til_yape"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                android:hint="Número de YAPE"
-                app:boxStrokeColor="?attr/colorPrimary"
-                app:hintTextColor="?attr/colorPrimary"
-                app:endIconMode="clear_text">
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/et_yape"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:inputType="number"
-                    android:maxLength="9" />
 
             </com.google.android.material.textfield.TextInputLayout>
 

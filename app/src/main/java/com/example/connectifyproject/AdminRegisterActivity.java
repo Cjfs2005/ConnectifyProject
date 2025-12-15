@@ -45,7 +45,7 @@ public class AdminRegisterActivity extends AppCompatActivity implements Promotio
     // Views
     private ImageView ivProfilePhoto;
     private TextInputEditText etNombreCompleto, etNumeroDoc, etEmail, etNombreEmpresa;
-    private TextInputEditText etDescripcionEmpresa, etUbicacionEmpresa, etCorreoEmpresa, etTelefonoEmpresa;
+    private TextInputEditText etDescripcionEmpresa, etUbicacionEmpresa, etCorreoEmpresa, etTelefonoEmpresa, etCciEmpresa;
     private Spinner spinnerTipoDoc;
     private MaterialButton btnSelectPhoto, btnSelectPromotionalPhotos, btnGuardar, btnLogout;
     private RecyclerView rvPromotionalPhotos;
@@ -120,6 +120,7 @@ public class AdminRegisterActivity extends AppCompatActivity implements Promotio
         etUbicacionEmpresa = findViewById(R.id.etUbicacionEmpresa);
         etCorreoEmpresa = findViewById(R.id.etCorreoEmpresa);
         etTelefonoEmpresa = findViewById(R.id.etTelefonoEmpresa);
+        etCciEmpresa = findViewById(R.id.etCciEmpresa);
         btnSelectPromotionalPhotos = findViewById(R.id.btnSelectPromotionalPhotos);
         rvPromotionalPhotos = findViewById(R.id.rvPromotionalPhotos);
         tvPhotoCount = findViewById(R.id.tvPhotoCount);
@@ -249,6 +250,7 @@ public class AdminRegisterActivity extends AppCompatActivity implements Promotio
         String ubicacion = etUbicacionEmpresa.getText() != null ? etUbicacionEmpresa.getText().toString().trim() : "";
         String correoEmpresa = etCorreoEmpresa.getText() != null ? etCorreoEmpresa.getText().toString().trim() : "";
         String telefonoEmpresa = etTelefonoEmpresa.getText() != null ? etTelefonoEmpresa.getText().toString().trim() : "";
+        String cciEmpresa = etCciEmpresa.getText() != null ? etCciEmpresa.getText().toString().trim() : "";
 
         // Validaciones
         if (TextUtils.isEmpty(nombreCompleto)) {
@@ -291,6 +293,16 @@ public class AdminRegisterActivity extends AppCompatActivity implements Promotio
             return;
         }
 
+        if (TextUtils.isEmpty(cciEmpresa)) {
+            Toast.makeText(this, "Ingresa el CCI de la empresa", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (cciEmpresa.length() != 20) {
+            Toast.makeText(this, "El CCI debe tener exactamente 20 dígitos", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         if (promotionalPhotosAdapter.getPhotoCount() < MIN_PROMOTIONAL_PHOTOS) {
             Toast.makeText(this, "Debes seleccionar al menos " + MIN_PROMOTIONAL_PHOTOS + " fotos promocionales", Toast.LENGTH_SHORT).show();
             return;
@@ -301,11 +313,11 @@ public class AdminRegisterActivity extends AppCompatActivity implements Promotio
         btnGuardar.setText("Guardando...");
 
         // Subir fotos primero
-        uploadPhotos(nombreCompleto, tipoDoc, numeroDoc, nombreEmpresa, descripcion, ubicacion, correoEmpresa, telefonoEmpresa);
+        uploadPhotos(nombreCompleto, tipoDoc, numeroDoc, nombreEmpresa, descripcion, ubicacion, correoEmpresa, telefonoEmpresa, cciEmpresa);
     }
 
     private void uploadPhotos(String nombreCompleto, String tipoDoc, String numeroDoc, String nombreEmpresa,
-                              String descripcion, String ubicacion, String correoEmpresa, String telefonoEmpresa) {
+                              String descripcion, String ubicacion, String correoEmpresa, String telefonoEmpresa, String cciEmpresa) {
         String uid = currentUser.getUid();
         List<Uri> promotionalPhotos = promotionalPhotosAdapter.getPhotos();
         int totalPhotos = promotionalPhotos.size() + (profilePhotoUri != null ? 1 : 0);
@@ -358,7 +370,7 @@ public class AdminRegisterActivity extends AppCompatActivity implements Promotio
                 }
                 
                 saveToFirestore(nombreCompleto, tipoDoc, numeroDoc, nombreEmpresa, descripcion, ubicacion,
-                        correoEmpresa, telefonoEmpresa, photosList, profilePhotoUrl[0]);
+                        correoEmpresa, telefonoEmpresa, cciEmpresa, photosList, profilePhotoUrl[0]);
             }
         };
 
@@ -463,7 +475,7 @@ public class AdminRegisterActivity extends AppCompatActivity implements Promotio
 
     private void saveToFirestore(String nombreCompleto, String tipoDoc, String numeroDoc, String nombreEmpresa,
                                  String descripcion, String ubicacion, String correoEmpresa,
-                                 String telefonoEmpresa, List<String> fotosEmpresa, String photoUrl) {
+                                 String telefonoEmpresa, String cciEmpresa, List<String> fotosEmpresa, String photoUrl) {
         String uid = currentUser.getUid();
 
         Map<String, Object> adminData = new HashMap<>();
@@ -486,6 +498,7 @@ public class AdminRegisterActivity extends AppCompatActivity implements Promotio
         adminData.put(AuthConstants.FIELD_UBICACION_EMPRESA, ubicacion);
         adminData.put(AuthConstants.FIELD_CORREO_EMPRESA, correoEmpresa);
         adminData.put(AuthConstants.FIELD_TELEFONO_EMPRESA, telefonoEmpresa);
+        adminData.put("cci", cciEmpresa);
         adminData.put(AuthConstants.FIELD_FOTOS_EMPRESA, fotosEmpresa);
         
         // Campos de reseñas

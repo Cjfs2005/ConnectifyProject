@@ -40,7 +40,6 @@ public class guia_perfil extends AppCompatActivity {
     private TextView tvBirthDate;
     private TextView tvAddress;
     private TextView tvCci;
-    private TextView tvYape;
     private LinearLayout languagesContainer;
     private MaterialButton btnAddLanguage;
     private LinearLayout layoutPermissions;
@@ -94,7 +93,6 @@ public class guia_perfil extends AppCompatActivity {
         tvBirthDate = findViewById(R.id.tv_birth_date);
         tvAddress = findViewById(R.id.tv_address);
         tvCci = findViewById(R.id.tv_cci);
-        tvYape = findViewById(R.id.tv_yape);
         languagesContainer = findViewById(R.id.languages_container);
         btnAddLanguage = findViewById(R.id.btn_add_language);
         layoutPermissions = findViewById(R.id.layout_permissions);
@@ -228,20 +226,13 @@ public class guia_perfil extends AppCompatActivity {
                 tvAddress.setVisibility(View.VISIBLE);
             }
 
-            // Métodos de pago
+            // Cuenta para pagos
             String cci = document.getString("cci");
-            String numeroYape = document.getString("numeroYape");
             
             if (cci != null && !cci.isEmpty()) {
                 tvCci.setText(cci);
             } else {
                 tvCci.setText("No especificado");
-            }
-            
-            if (numeroYape != null && !numeroYape.isEmpty()) {
-                tvYape.setText(numeroYape);
-            } else {
-                tvYape.setText("No especificado");
             }
             
             // Idiomas
