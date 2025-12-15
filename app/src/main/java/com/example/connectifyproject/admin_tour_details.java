@@ -95,11 +95,8 @@ public class admin_tour_details extends AppCompatActivity implements OnMapReadyC
         // Configurar toolbar
         binding.topAppBar.setNavigationOnClickListener(v -> finish());
 
-        // Cargar datos del tour desde Firebase
+        // Cargar datos del tour desde Firebase (configura tabs después de cargar)
         loadTourData();
-
-        // Configurar tabs
-        setupTabs();
 
         // Configurar mapa
         initializeMap();
@@ -122,8 +119,54 @@ public class admin_tour_details extends AppCompatActivity implements OnMapReadyC
         db.collection(collection).document(tourId).get()
             .addOnSuccessListener(documentSnapshot -> {
                 if (documentSnapshot.exists()) {
-                    // Cargar datos básicos
-                    String titulo = documentSnapshot.getString("titulo");
+                    // ✅ Detectar tours sin asignar o pendientes
+                    String tipoFirebase = documentSnapshot.getString("tipo");
+                    String guiaId = documentSnapshot.getString("guiaAsignadoId");
+                    
+                    if (tipoFirebase != null) {
+                        tourTipo = tipoFirebase;
+                        setupTabs();
+                        continueLoadingTourData(documentSnapshot);
+                    } else if ("tours_ofertas".equals(collection) && guiaId == null) {
+                        // Verificar si tiene ofertas pendientes en subcolección
+                        db.collection("tours_ofertas")
+                            .document(tourId)
+                            .collection("guias_ofertados")
+                            .whereEqualTo("estadoOferta", "pendiente")
+                            .limit(1)
+                            .get()
+                            .addOnSuccessListener(ofertasSnapshot -> {
+                                if (!ofertasSnapshot.isEmpty()) {
+                                    // Tiene ofertas pendientes = pendiente
+                                    tourTipo = "pendiente";
+                                } else {
+                                    // Sin ofertas = sin_asignar
+                                    tourTipo = "sin_asignar";
+                                }
+                                setupTabs();
+                                continueLoadingTourData(documentSnapshot);
+                            })
+                            .addOnFailureListener(e -> {
+                                // En caso de error, asumir sin_asignar
+                                tourTipo = "sin_asignar";
+                                setupTabs();
+                                continueLoadingTourData(documentSnapshot);
+                            });
+                        return; // Salir para esperar respuesta de subcolección
+                    } else {
+                        setupTabs();
+                        continueLoadingTourData(documentSnapshot);
+                    }
+                }
+            })
+            .addOnFailureListener(e -> {
+                Toast.makeText(this, "Error al cargar tour: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            });
+    }
+    
+    private void continueLoadingTourData(DocumentSnapshot documentSnapshot) {
+        // Cargar datos básicos
+        String titulo = documentSnapshot.getString("titulo");
                     String descripcion = documentSnapshot.getString("descripcion");
                     
                     // Manejar fechaRealizacion como String o Timestamp
@@ -283,11 +326,6 @@ public class admin_tour_details extends AppCompatActivity implements OnMapReadyC
                             addItinerarioMarkersToMap();
                         }
                     }
-                }
-            })
-            .addOnFailureListener(e -> {
-                Toast.makeText(this, "Error al cargar datos del tour: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-            });
     }
 
     private void initializeMap() {
@@ -376,8 +414,8 @@ public class admin_tour_details extends AppCompatActivity implements OnMapReadyC
     }
 
     private void setupButtons() {
-        // Mostrar botón "Seleccionar Guía" solo si el tour está publicado
-        if ("publicado".equals(tourTipo)) {
+        // Mostrar botón "Seleccionar Guía" solo si el tour está publicado o sin asignar
+        if ("publicado".equals(tourTipo) || "sin_asignar".equals(tourTipo)) {
             binding.btnAsignarGuia.setVisibility(View.VISIBLE);
             binding.btnAsignarGuia.setOnClickListener(v -> {
                 // Navegar a la vista de selección de guías
@@ -387,7 +425,7 @@ public class admin_tour_details extends AppCompatActivity implements OnMapReadyC
                 startActivity(intent);
             });
         } else {
-            // Ocultar botón para tours en borrador
+            // Ocultar botón para tours en borrador o ya asignados
             binding.btnAsignarGuia.setVisibility(View.GONE);
         }
         
@@ -481,11 +519,14 @@ public class admin_tour_details extends AppCompatActivity implements OnMapReadyC
     }
 
     private void setupTabs() {
+        // Limpiar tabs existentes antes de agregar nuevos
+        binding.tabLayoutDetails.removeAllTabs();
+        
         binding.tabLayoutDetails.addTab(binding.tabLayoutDetails.newTab().setText("Info"));
         binding.tabLayoutDetails.addTab(binding.tabLayoutDetails.newTab().setText("Itinerario"));
         
-        // ✅ Agregar pestaña Guía solo para tours pendientes y confirmados (no sin asignar)
-        if (!"sin_asignar".equals(tourTipo)) {
+        // ✅ Agregar pestaña Guía para tours sin_asignar, pendiente y confirmado
+        if ("sin_asignar".equals(tourTipo) || "pendiente".equals(tourTipo) || "confirmado".equals(tourTipo)) {
             binding.tabLayoutDetails.addTab(binding.tabLayoutDetails.newTab().setText("Guía"));
         }
         
@@ -611,6 +652,11 @@ public class admin_tour_details extends AppCompatActivity implements OnMapReadyC
                 binding.tvGuiaNoAsignada.setVisibility(View.VISIBLE);
                 binding.tvGuiaNoAsignada.setText("No hay guía seleccionado");
             }
+        } else if ("sin_asignar".equals(tourTipo)) {
+            // Para tours sin asignar, mostrar mensaje
+            binding.tvGuiaNoAsignada.setVisibility(View.VISIBLE);
+            binding.tvGuiaNoAsignada.setText("Aún no se ha seleccionado un guía para este tour");
+            android.util.Log.d("AdminTourDetails", "Tour sin asignar - mostrando mensaje");
         } else if (guiaAsignadoId != null && !guiaAsignadoId.isEmpty()) {
             // Para otros tipos con guía asignado
             android.util.Log.d("AdminTourDetails", "Cargando desde guiaAsignadoId: " + guiaAsignadoId);

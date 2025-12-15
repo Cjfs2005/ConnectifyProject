@@ -454,7 +454,11 @@ private void crearTourAsignadoDesdeDocumento(DocumentSnapshot ofertaDoc, Documen
                                     .update(guiaUpdates)
                                     .addOnSuccessListener(aVoid2 -> {
                                         Log.d(TAG, "Oferta y tour asignado creados exitosamente");
-                                        callback.onSuccess("¡Tour aceptado exitosamente!");
+                                        
+                                        // Rechazar automáticamente otras ofertas con conflicto de horario
+                                        rechazarOfertasConConflicto(guiaId, ofertaDoc, () -> {
+                                            callback.onSuccess("¡Tour aceptado exitosamente!");
+                                        });
                                     })
                                     .addOnFailureListener(e -> {
                                         Log.e(TAG, "Error al actualizar subcolección: ", e);

@@ -254,36 +254,7 @@ public class admin_select_guide extends AppCompatActivity {
                     // Por ahora todos disponibles, se validará al seleccionar
                     boolean disponible = true;
                     
-                    // Filtrar solo guías que cumplan con TODOS los idiomas requeridos
-                    if (idiomasRequeridos != null && !idiomasRequeridos.isEmpty()) {
-                        android.util.Log.d("AdminSelectGuide", "  - Verificando idiomas requeridos...");
-                        boolean cumpleTodosLosIdiomas = true;
-                        
-                        // El guía debe tener TODOS los idiomas requeridos
-                        for (String idiomaRequerido : idiomasRequeridos) {
-                            boolean tieneEsteIdioma = false;
-                            for (String idiomaGuia : idiomas) {
-                                if (idiomaGuia.equalsIgnoreCase(idiomaRequerido)) {
-                                    android.util.Log.d("AdminSelectGuide", "    ✓ Coincidencia: " + idiomaRequerido + " = " + idiomaGuia);
-                                    tieneEsteIdioma = true;
-                                    break;
-                                }
-                            }
-                            if (!tieneEsteIdioma) {
-                                android.util.Log.d("AdminSelectGuide", "    ✗ Falta idioma: " + idiomaRequerido);
-                                cumpleTodosLosIdiomas = false;
-                                break;
-                            }
-                        }
-                        
-                        if (!cumpleTodosLosIdiomas) {
-                            android.util.Log.d("AdminSelectGuide", "  ✗ Guía descartado por idiomas");
-                            guiasDescartados++;
-                            continue; // Saltar este guía si no cumple TODOS los idiomas
-                        }
-                    }
-                    
-                    android.util.Log.d("AdminSelectGuide", "  ✓ Guía cumple requisitos de idioma, verificando horario...");
+                    android.util.Log.d("AdminSelectGuide", "  ✓ Guía aceptado, verificando horario...");
                     
                     // Crear el GuideItem temporalmente
                     GuideItem guide = new GuideItem(id, name, email, rating, tourCount, 
@@ -318,6 +289,8 @@ public class admin_select_guide extends AppCompatActivity {
                             Toast.LENGTH_LONG).show();
                     } else {
                         android.util.Log.d("AdminSelectGuide", "✓ " + allGuides.size() + " guías disponibles");
+                        // Aplicar filtro inicial si hay chips preseleccionados
+                        applyLanguageFilter();
                     }
                 }, 1500); // Esperar 1.5 segundos para las verificaciones asíncronas
             })
