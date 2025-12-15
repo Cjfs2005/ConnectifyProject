@@ -135,13 +135,31 @@
 
             </com.google.android.material.chip.ChipGroup>
 
-            <!-- Rating display -->
+            <!-- Filtro por ciudad -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
                 android:orientation="horizontal"
-                android:gravity="center_vertical"/>
+                android:gravity="center_vertical"
+                android:paddingVertical="8dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Filtrar por ciudad del tour"
+                    android:textColor="@color/on_surface"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <com.google.android.material.switchmaterial.SwitchMaterial
+                    android:id="@+id/switchCityFilter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checked="true" />
+
+            </LinearLayout>
 
             <!-- Lista de guías -->
             <androidx.recyclerview.widget.RecyclerView

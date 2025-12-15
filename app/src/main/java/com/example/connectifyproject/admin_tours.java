@@ -2,6 +2,7 @@ package com.example.connectifyproject;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -35,6 +36,8 @@ import java.util.Locale;
 import java.util.Map;
 
 public class admin_tours extends AppCompatActivity {
+    private static final String TAG = "AdminTours";
+    
     private AdminToursViewBinding binding;
     private ToursAdapter toursAdapter;
     private List<TourItem> toursList;
@@ -47,6 +50,13 @@ public class admin_tours extends AppCompatActivity {
     private FirebaseFirestore db;
     private String empresaId;
     private SimpleDateFormat dateFormat;
+    
+    // Request codes
+    private static final int REQUEST_SELECT_PAYMENT = 1001;
+    
+    // Temporary data for guide selection flow
+    private String tempOfertaId;
+    private String tempTourTitulo;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -192,18 +202,24 @@ public class admin_tours extends AppCompatActivity {
                 
                 switch (position) {
                     case 0:
-                        tabState = "borradores";
+                        tabState = "en_curso"; // ✅ NUEVA PESTAÑA: En Curso
                         break;
                     case 1:
-                        tabState = "publicados";
+                        tabState = "borradores";
                         break;
                     case 2:
-                        tabState = "pendiente";
+                        tabState = "publicados";
                         break;
                     case 3:
-                        tabState = "confirmados";
+                        tabState = "pendiente";
                         break;
                     case 4:
+                        tabState = "confirmados";
+                        break;
+                    case 5:
+                        tabState = "finalizados"; // ✅ NUEVA PESTAÑA: Finalizados
+                        break;
+                    case 6:
                         tabState = "cancelados";
                         break;
                     default:
@@ -273,6 +289,10 @@ public class admin_tours extends AppCompatActivity {
         toursAdapter.notifyDataSetChanged();
         
         switch (estado) {
+            case "en_curso":
+                loadEnCurso(); // ✅ FASE 4: Nueva pestaña
+                break;
+                
             case "borradores":
                 loadBorradores();
                 break;
@@ -287,6 +307,10 @@ public class admin_tours extends AppCompatActivity {
                 
             case "confirmados":
                 loadConfirmados();
+                break;
+                
+            case "finalizados":
+                loadFinalizados(); // ✅ FASE 4: Nueva pestaña
                 break;
                 
             case "cancelados":
@@ -779,6 +803,236 @@ public class admin_tours extends AppCompatActivity {
             });
     }
     
+    /**
+     * ✅ FASE 4: PESTAÑA "EN CURSO"
+     * Muestra tours con estado: check_in, en_curso, check_out
+     */
+    private void loadEnCurso() {
+        db.collection("tours_asignados")
+            .whereEqualTo("empresaId", empresaId)
+            .whereEqualTo("habilitado", true)
+            .whereIn("estado", java.util.Arrays.asList("check_in", "en_curso", "check_out"))
+            .addSnapshotListener((querySnapshot, error) -> {
+                if (error != null) {
+                    Toast.makeText(this, "Error al cargar tours en curso: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                
+                if (querySnapshot == null) return;
+                
+                toursList.clear();
+                for (DocumentSnapshot doc : querySnapshot.getDocuments()) {
+                    String titulo = doc.getString("titulo");
+                    String estadoDoc = doc.getString("estado");
+                    String guiaNombre = doc.getString("guiaNombre");
+                    
+                    // Obtener punto actual del itinerario
+                    String puntoActual = obtenerPuntoActualItinerario(doc);
+                    
+                    // Manejar fecha como String o Timestamp
+                    String fecha = "Sin fecha";
+                    try {
+                        Timestamp fechaRealizacion = doc.getTimestamp("fechaRealizacion");
+                        if (fechaRealizacion != null) {
+                            fecha = dateFormat.format(fechaRealizacion.toDate());
+                        }
+                    } catch (Exception e) {
+                        String fechaString = doc.getString("fechaRealizacion");
+                        if (fechaString != null && !fechaString.isEmpty()) {
+                            fecha = fechaString;
+                        }
+                    }
+                    
+                    // Obtener hora de inicio real si existe
+                    Timestamp horaInicioReal = doc.getTimestamp("horaInicioReal");
+                    String horaInicio = "";
+                    if (horaInicioReal != null) {
+                        SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm", Locale.getDefault());
+                        horaInicio = " - Inicio: " + timeFormat.format(horaInicioReal.toDate());
+                    }
+                    
+                    // Obtener número de participantes
+                    Long numParticipantes = doc.getLong("numeroParticipantesTotal");
+                    Long numConfirmados = doc.getLong("numeroParticipantesConfirmados");
+                    String participantesInfo = "";
+                    if (numParticipantes != null && numConfirmados != null) {
+                        participantesInfo = " - " + numConfirmados + "/" + numParticipantes + " participantes";
+                    }
+                    
+                    List<String> imagenesUrls = (List<String>) doc.get("imagenesUrls");
+                    String imageUrl = (imagenesUrls != null && !imagenesUrls.isEmpty()) 
+                        ? imagenesUrls.get(0) 
+                        : null;
+                    
+                    // Badge de estado
+                    String estadoDisplay = "";
+                    switch (estadoDoc != null ? estadoDoc : "") {
+                        case "check_in":
+                            estadoDisplay = "Check-in";
+                            break;
+                        case "en_curso":
+                            estadoDisplay = "En Curso";
+                            if (puntoActual != null && !puntoActual.isEmpty()) {
+                                estadoDisplay += " - " + puntoActual;
+                            }
+                            break;
+                        case "check_out":
+                            estadoDisplay = "Check-out";
+                            break;
+                        default:
+                            estadoDisplay = estadoDoc != null ? capitalizeFirst(estadoDoc) : "En curso";
+                    }
+                    
+                    // Agregar info del guía
+                    if (guiaNombre != null && !guiaNombre.isEmpty()) {
+                        estadoDisplay += " - Guía: " + guiaNombre;
+                    }
+                    
+                    estadoDisplay += horaInicio + participantesInfo;
+                    
+                    toursList.add(new TourItem(
+                        doc.getId(),
+                        titulo,
+                        fecha,
+                        estadoDisplay,
+                        imageUrl,
+                        true,
+                        "en_curso"
+                    ));
+                }
+                
+                // Aplicar filtro actual si existe
+                String currentQuery = binding.etSearch.getText().toString();
+                filterTours(currentQuery);
+            });
+    }
+    
+    /**
+     * ✅ FASE 4: PESTAÑA "FINALIZADOS"
+     * Muestra tours completados desde la colección tours_completados
+     */
+    private void loadFinalizados() {
+        db.collection("tours_completados")
+            .whereEqualTo("empresaId", empresaId)
+            .get()
+            .addOnSuccessListener(querySnapshot -> {
+                // Ordenar en memoria para evitar crear índice compuesto
+                List<DocumentSnapshot> docs = new ArrayList<>(querySnapshot.getDocuments());
+                docs.sort((d1, d2) -> {
+                    Timestamp t1 = d1.getTimestamp("fechaRegistro");
+                    Timestamp t2 = d2.getTimestamp("fechaRegistro");
+                    if (t1 == null || t2 == null) return 0;
+                    return t2.compareTo(t1); // Descendente
+                });
+                
+                toursList.clear();
+                for (DocumentSnapshot doc : docs) {
+                    String titulo = doc.getString("titulo");
+                    String guiaNombre = doc.getString("guiaNombre");
+                    
+                    // Manejar fecha como String o Timestamp
+                    String fecha = "Sin fecha";
+                    try {
+                        Timestamp fechaRealizacion = doc.getTimestamp("fechaRealizacion");
+                        if (fechaRealizacion != null) {
+                            fecha = dateFormat.format(fechaRealizacion.toDate());
+                        }
+                    } catch (Exception e) {
+                        String fechaString = doc.getString("fechaRealizacion");
+                        if (fechaString != null && !fechaString.isEmpty()) {
+                            fecha = fechaString;
+                        }
+                    }
+                    
+                    // Obtener duración real
+                    String duracionReal = doc.getString("duracionReal");
+                    
+                    // Obtener información de participantes y pago
+                    Long numParticipantes = doc.getLong("numeroParticipantes");
+                    Double pagoEmpresaTotal = doc.getDouble("pagoEmpresaTotal");
+                    Double pagoGuia = doc.getDouble("pagoGuia");
+                    
+                    // Construir información de estado
+                    String estadoDisplay = "Completado";
+                    if (guiaNombre != null) {
+                        estadoDisplay += " - Guía: " + guiaNombre;
+                    }
+                    if (numParticipantes != null) {
+                        estadoDisplay += " - " + numParticipantes + " participantes";
+                    }
+                    if (duracionReal != null) {
+                        estadoDisplay += " - Duración: " + duracionReal;
+                    }
+                    if (pagoEmpresaTotal != null) {
+                        estadoDisplay += String.format(" - Ingreso: S/ %.2f", pagoEmpresaTotal);
+                    }
+                    
+                    // Buscar imagen del tour original
+                    String tourAsignadoId = doc.getString("tourAsignadoId");
+                    
+                    toursList.add(new TourItem(
+                        doc.getId(),
+                        titulo,
+                        fecha,
+                        estadoDisplay,
+                        null, // Se puede agregar imagen después si es necesario
+                        false, // No es editable
+                        "finalizado"
+                    ));
+                }
+                
+                // Aplicar filtro actual si existe
+                String currentQuery = binding.etSearch.getText().toString();
+                filterTours(currentQuery);
+            })
+            .addOnFailureListener(e -> {
+                Toast.makeText(this, "Error al cargar tours finalizados: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            });
+    }
+    
+    /**
+     * Obtener el punto actual del itinerario donde está el guía
+     */
+    private String obtenerPuntoActualItinerario(DocumentSnapshot doc) {
+        try {
+            List<Map<String, Object>> itinerario = 
+                (List<Map<String, Object>>) doc.get("itinerario");
+            
+            if (itinerario == null || itinerario.isEmpty()) {
+                return null;
+            }
+            
+            String puntoActual = null;
+            int puntosCompletados = 0;
+            int totalPuntos = itinerario.size();
+            
+            for (int i = 0; i < itinerario.size(); i++) {
+                Map<String, Object> punto = itinerario.get(i);
+                Boolean completado = (Boolean) punto.get("completado");
+                String nombrePunto = (String) punto.get("nombre");
+                
+                if (completado != null && completado) {
+                    puntosCompletados++;
+                    puntoActual = nombrePunto;
+                } else {
+                    if (puntoActual == null) {
+                        puntoActual = nombrePunto;
+                    }
+                    break;
+                }
+            }
+            
+            if (puntoActual != null) {
+                return String.format("%s (%d/%d)", puntoActual, puntosCompletados, totalPuntos);
+            }
+            
+            return null;
+        } catch (Exception e) {
+            Log.e(TAG, "Error al obtener punto actual del itinerario", e);
+            return null;
+        }
+    }
+    
     private String capitalizeFirst(String text) {
         if (text == null || text.isEmpty()) return text;
         return text.substring(0, 1).toUpperCase() + text.substring(1).toLowerCase();
@@ -1000,10 +1254,13 @@ public class admin_tours extends AppCompatActivity {
                         btnAction.setAlpha(esBloqueado ? 0.5f : 1.0f);
                         btnAction.setOnClickListener(v -> {
                             if (!esBloqueado) {
-                                Intent intent = new Intent(admin_tours.this, admin_select_guide.class);
-                                intent.putExtra("ofertaId", tour.getId());
-                                intent.putExtra("tourTitulo", tour.getTitulo());
-                                startActivity(intent);
+                                // Guardar datos temporalmente
+                                tempOfertaId = tour.getId();
+                                tempTourTitulo = tour.getTitulo();
+                                
+                                // Primero ir a selección de método de pago
+                                Intent intent = new Intent(admin_tours.this, AdminSelectPaymentMethodActivity.class);
+                                startActivityForResult(intent, REQUEST_SELECT_PAYMENT);
                             }
                         });
                         break;
@@ -1043,13 +1300,16 @@ public class admin_tours extends AppCompatActivity {
                     .setTitle("Tour Rechazado")
                     .setMessage(mensaje)
                     .setPositiveButton("Seleccionar otro guía", (dialog, which) -> {
-                        // Marcar como visto y navegar a selección de guía
+                        // Marcar como visto
                         marcarRechazoVisto(tour.getId(), tour.getGuiaSeleccionadoId());
                         
-                        Intent intent = new Intent(admin_tours.this, admin_select_guide.class);
-                        intent.putExtra("ofertaId", tour.getId());
-                        intent.putExtra("tourTitulo", tour.getTitulo());
-                        startActivity(intent);
+                        // Guardar datos temporalmente
+                        tempOfertaId = tour.getId();
+                        tempTourTitulo = tour.getTitulo();
+                        
+                        // Primero ir a selección de método de pago
+                        Intent intent = new Intent(admin_tours.this, AdminSelectPaymentMethodActivity.class);
+                        startActivityForResult(intent, REQUEST_SELECT_PAYMENT);
                     })
                     .setNegativeButton("Cancelar ofrecimiento", (dialog, which) -> {
                         // Cancelar el ofrecimiento actual
@@ -1091,5 +1351,32 @@ public class admin_tours extends AppCompatActivity {
             })
             .setNegativeButton("Cancelar", null)
             .show();
+    }
+    
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        
+        if (requestCode == REQUEST_SELECT_PAYMENT && resultCode == RESULT_OK) {
+            // El admin seleccionó un método de pago (o lo saltó)
+            // Ahora navegar a selección de guía
+            if (tempOfertaId != null && tempTourTitulo != null) {
+                Intent intent = new Intent(admin_tours.this, admin_select_guide.class);
+                intent.putExtra("ofertaId", tempOfertaId);
+                intent.putExtra("tourTitulo", tempTourTitulo);
+                
+                // Opcional: pasar el método de pago seleccionado (solo informativo)
+                if (data != null && data.hasExtra("selectedPaymentMethodId")) {
+                    String paymentMethodId = data.getStringExtra("selectedPaymentMethodId");
+                    intent.putExtra("paymentMethodId", paymentMethodId);
+                }
+                
+                startActivity(intent);
+                
+                // Limpiar datos temporales
+                tempOfertaId = null;
+                tempTourTitulo = null;
+            }
+        }
     }
 }

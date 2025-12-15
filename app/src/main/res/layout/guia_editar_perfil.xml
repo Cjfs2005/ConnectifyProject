@@ -148,23 +148,22 @@
 
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Campo Domicilio -->
+            <!-- Campo Ciudad -->
             <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/til_domicilio"
+                android:id="@+id/til_ciudad"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                android:hint="Domicilio"
+                android:hint="Ciudad"
                 app:boxStrokeColor="?attr/colorPrimary"
                 app:hintTextColor="?attr/colorPrimary"
-                app:endIconMode="clear_text">
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
 
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/et_domicilio"
+                <AutoCompleteTextView
+                    android:id="@+id/spinner_ciudad"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="textCapWords|textMultiLine"
-                    android:maxLines="3" />
+                    android:inputType="none" />
 
             </com.google.android.material.textfield.TextInputLayout>
 
@@ -185,26 +184,6 @@
                     android:layout_height="wrap_content"
                     android:inputType="number"
                     android:maxLength="20" />
-
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <!-- Campo YAPE (9 dígitos) -->
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/til_yape"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                android:hint="Número de YAPE"
-                app:boxStrokeColor="?attr/colorPrimary"
-                app:hintTextColor="?attr/colorPrimary"
-                app:endIconMode="clear_text">
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/et_yape"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:inputType="number"
-                    android:maxLength="9" />
 
             </com.google.android.material.textfield.TextInputLayout>
 

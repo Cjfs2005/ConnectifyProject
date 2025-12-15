@@ -49,9 +49,9 @@ public class GuiaRegisterActivity extends AppCompatActivity {
     
     private ImageView imgProfilePreview;
     private Button btnSelectPhoto;
-    private TextInputEditText etNombreCompleto, etNumeroDoc, etFechaNacimiento, etEmailGuia, etDomicilio, etCci, etYape;
+    private TextInputEditText etNombreCompleto, etNumeroDoc, etFechaNacimiento, etEmailGuia, etCci;
     private EditText etTelefono;
-    private Spinner spinnerTipoDoc;
+    private Spinner spinnerTipoDoc, spinnerCiudadGuia;
     private CountryCodePicker ccpTelefono;
     private CheckBox cbEspanol, cbIngles, cbFrances, cbAleman, cbItaliano, cbChino, cbJapones;
     private Button btnGuardar, btnLogout;
@@ -128,9 +128,8 @@ public class GuiaRegisterActivity extends AppCompatActivity {
         etEmailGuia = findViewById(R.id.etEmailGuia);
         ccpTelefono = findViewById(R.id.ccpTelefonoGuia);
         etTelefono = findViewById(R.id.etTelefonoGuia);
-        etDomicilio = findViewById(R.id.etDomicilioGuia);
+        spinnerCiudadGuia = findViewById(R.id.spinnerCiudadGuia);
         etCci = findViewById(R.id.etCciGuia);
-        etYape = findViewById(R.id.etYapeGuia);
         
         // Checkboxes de idiomas
         cbEspanol = findViewById(R.id.cbEspanol);
@@ -146,6 +145,7 @@ public class GuiaRegisterActivity extends AppCompatActivity {
     }
 
     private void setupSpinners() {
+        // Spinner Tipo de Documento
         ArrayAdapter<String> adapterTipoDoc = new ArrayAdapter<>(
                 this,
                 android.R.layout.simple_spinner_item,
@@ -153,6 +153,27 @@ public class GuiaRegisterActivity extends AppCompatActivity {
         );
         adapterTipoDoc.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerTipoDoc.setAdapter(adapterTipoDoc);
+        
+        // Spinner Ciudad
+        String[] ciudades = {
+            "Lima",
+            "Cusco",
+            "Arequipa",
+            "Trujillo",
+            "Chiclayo",
+            "Piura",
+            "Iquitos",
+            "Huancayo",
+            "Tacna",
+            "Puno"
+        };
+        ArrayAdapter<String> adapterCiudad = new ArrayAdapter<>(
+                this,
+                android.R.layout.simple_spinner_item,
+                ciudades
+        );
+        adapterCiudad.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerCiudadGuia.setAdapter(adapterCiudad);
     }
 
     private void setupListeners() {
@@ -275,9 +296,8 @@ public class GuiaRegisterActivity extends AppCompatActivity {
         String fecha = etFechaNacimiento.getText().toString().trim();
         String telefono = etTelefono.getText().toString().trim();
         String codigoPais = ccpTelefono.getSelectedCountryCodeWithPlus();
-        String domicilio = etDomicilio.getText().toString().trim();
+        String ciudad = spinnerCiudadGuia.getSelectedItem() != null ? spinnerCiudadGuia.getSelectedItem().toString() : "";
         String cci = etCci.getText().toString().trim();
-        String yape = etYape.getText().toString().trim();
         List<String> idiomas = getSelectedIdiomas();
 
         // Validaciones
@@ -305,6 +325,11 @@ public class GuiaRegisterActivity extends AppCompatActivity {
             return;
         }
 
+        if (ciudad.isEmpty()) {
+            Toast.makeText(this, "Selecciona tu ciudad", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         if (cci.isEmpty()) {
             etCci.setError("Ingresa tu CCI (Código de Cuenta Interbancario)");
             etCci.requestFocus();
@@ -317,18 +342,6 @@ public class GuiaRegisterActivity extends AppCompatActivity {
             return;
         }
 
-        if (yape.isEmpty()) {
-            etYape.setError("Ingresa tu número de YAPE");
-            etYape.requestFocus();
-            return;
-        }
-
-        if (yape.length() != 9) {
-            etYape.setError("El número de YAPE debe tener exactamente 9 dígitos");
-            etYape.requestFocus();
-            return;
-        }
-
         if (idiomas.size() < 2) {
             Toast.makeText(this, "Selecciona al menos 2 idiomas (Español + otro)", Toast.LENGTH_SHORT).show();
             return;
@@ -338,20 +351,20 @@ public class GuiaRegisterActivity extends AppCompatActivity {
         btnGuardar.setText("Guardando...");
 
         if (selectedImageUri != null) {
-            uploadPhotoAndSaveData(nombreCompleto, tipoDoc, numeroDoc, fecha, telefono, codigoPais, domicilio, cci, yape, idiomas);
+            uploadPhotoAndSaveData(nombreCompleto, tipoDoc, numeroDoc, fecha, telefono, codigoPais, ciudad, cci, idiomas);
         } else {
-            saveDataToFirestore(nombreCompleto, tipoDoc, numeroDoc, fecha, telefono, codigoPais, domicilio, cci, yape, idiomas, null);
+            saveDataToFirestore(nombreCompleto, tipoDoc, numeroDoc, fecha, telefono, codigoPais, ciudad, cci, idiomas, null);
         }
     }
 
     private void uploadPhotoAndSaveData(String nombreCompleto, String tipoDoc, String numeroDoc, 
-                                        String fecha, String telefono, String codigoPais, String domicilio, 
-                                        String cci, String yape, List<String> idiomas) {
+                                        String fecha, String telefono, String codigoPais, String ciudad, 
+                                        String cci, List<String> idiomas) {
         storageHelper.uploadProfilePhoto(this, selectedImageUri, currentUser.getUid(), new StorageHelper.UploadCallback() {
             @Override
             public void onSuccess(String downloadUrl) {
                 Log.d(TAG, "Foto subida: " + downloadUrl);
-                saveDataToFirestore(nombreCompleto, tipoDoc, numeroDoc, fecha, telefono, codigoPais, domicilio, cci, yape, idiomas, downloadUrl);
+                saveDataToFirestore(nombreCompleto, tipoDoc, numeroDoc, fecha, telefono, codigoPais, ciudad, cci, idiomas, downloadUrl);
             }
 
             @Override
@@ -370,28 +383,28 @@ public class GuiaRegisterActivity extends AppCompatActivity {
     }
 
     private void saveDataToFirestore(String nombreCompleto, String tipoDoc, String numeroDoc, 
-                                     String fecha, String telefono, String codigoPais, String domicilio, 
-                                     String cci, String yape, List<String> idiomas, String photoUrl) {
+                                     String fecha, String telefono, String codigoPais, String ciudad, 
+                                     String cci, List<String> idiomas, String photoUrl) {
         // Usar foto subida, de Google Auth o default
         if (photoUrl != null) {
             // Foto subida por el usuario
-            saveFinalDataToFirestore(nombreCompleto, tipoDoc, numeroDoc, fecha, telefono, codigoPais, domicilio, cci, yape, idiomas, photoUrl);
+            saveFinalDataToFirestore(nombreCompleto, tipoDoc, numeroDoc, fecha, telefono, codigoPais, ciudad, cci, idiomas, photoUrl);
         } else if (currentUser.getPhotoUrl() != null) {
             // Foto de Google Auth
-            saveFinalDataToFirestore(nombreCompleto, tipoDoc, numeroDoc, fecha, telefono, codigoPais, domicilio, cci, yape, idiomas, currentUser.getPhotoUrl().toString());
+            saveFinalDataToFirestore(nombreCompleto, tipoDoc, numeroDoc, fecha, telefono, codigoPais, ciudad, cci, idiomas, currentUser.getPhotoUrl().toString());
         } else {
             // Obtener URL de foto por defecto desde Firebase Storage
             storageHelper.getDefaultPhotoUrl(new StorageHelper.UploadCallback() {
                 @Override
                 public void onSuccess(String downloadUrl) {
-                    saveFinalDataToFirestore(nombreCompleto, tipoDoc, numeroDoc, fecha, telefono, codigoPais, domicilio, cci, yape, idiomas, downloadUrl);
+                    saveFinalDataToFirestore(nombreCompleto, tipoDoc, numeroDoc, fecha, telefono, codigoPais, ciudad, cci, idiomas, downloadUrl);
                 }
 
                 @Override
                 public void onFailure(Exception e) {
                     Log.e(TAG, "Error al obtener foto por defecto, usando gs:// URI", e);
                     // Fallback: usar el gs:// URI directamente
-                    saveFinalDataToFirestore(nombreCompleto, tipoDoc, numeroDoc, fecha, telefono, codigoPais, domicilio, cci, yape, idiomas, AuthConstants.DEFAULT_PHOTO_URL);
+                    saveFinalDataToFirestore(nombreCompleto, tipoDoc, numeroDoc, fecha, telefono, codigoPais, ciudad, cci, idiomas, AuthConstants.DEFAULT_PHOTO_URL);
                 }
 
                 @Override
@@ -406,8 +419,8 @@ public class GuiaRegisterActivity extends AppCompatActivity {
      * Guarda los datos finales en Firestore con la URL de foto resuelta
      */
     private void saveFinalDataToFirestore(String nombreCompleto, String tipoDoc, String numeroDoc, 
-                                          String fecha, String telefono, String codigoPais, String domicilio, 
-                                          String cci, String yape, List<String> idiomas, String resolvedPhotoUrl) {
+                                          String fecha, String telefono, String codigoPais, String ciudad, 
+                                          String cci, List<String> idiomas, String resolvedPhotoUrl) {
         Map<String, Object> guiaData = new HashMap<>();
         guiaData.put(AuthConstants.FIELD_EMAIL, currentUser.getEmail());
         guiaData.put(AuthConstants.FIELD_ROL, AuthConstants.ROLE_GUIA);
@@ -417,9 +430,8 @@ public class GuiaRegisterActivity extends AppCompatActivity {
         guiaData.put(AuthConstants.FIELD_FECHA_NACIMIENTO, fecha);
         guiaData.put(AuthConstants.FIELD_TELEFONO, telefono);
         guiaData.put(AuthConstants.FIELD_CODIGO_PAIS, codigoPais);
-        guiaData.put(AuthConstants.FIELD_DOMICILIO, domicilio.isEmpty() ? "" : domicilio);
-        guiaData.put("cci", cci.isEmpty() ? "" : cci);
-        guiaData.put("numeroYape", yape.isEmpty() ? "" : yape);
+        guiaData.put(AuthConstants.FIELD_DOMICILIO, ciudad);
+        guiaData.put("cci", cci);
         guiaData.put(AuthConstants.FIELD_UID, currentUser.getUid());
         guiaData.put(AuthConstants.FIELD_HABILITADO, false); // Guía NO habilitado hasta aprobación del admin
         guiaData.put(AuthConstants.FIELD_IDIOMAS, idiomas);

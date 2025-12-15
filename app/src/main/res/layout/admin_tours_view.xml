@@ -90,6 +90,11 @@
                 <com.google.android.material.tabs.TabItem
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:text="En Curso" />
+
+                <com.google.android.material.tabs.TabItem
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
                     android:text="Borradores" />
 
                 <com.google.android.material.tabs.TabItem
@@ -106,6 +111,11 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Confirmados" />
+
+                <com.google.android.material.tabs.TabItem
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Finalizados" />
 
                 <com.google.android.material.tabs.TabItem
                     android:layout_width="wrap_content"

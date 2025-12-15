@@ -46,6 +46,7 @@ public class admin_editar_perfil extends AppCompatActivity {
     private AutoCompleteTextView spinnerTipoDocumento;
     private TextInputEditText etNumeroDocumento;
     private TextInputEditText etEmail;
+    private TextInputEditText etCci;
     private MaterialButton btnGuardar;
 
     // Data
@@ -89,6 +90,7 @@ public class admin_editar_perfil extends AppCompatActivity {
         spinnerTipoDocumento = findViewById(R.id.spinner_tipo_documento);
         etNumeroDocumento = findViewById(R.id.et_numero_documento);
         etEmail = findViewById(R.id.et_email);
+        etCci = findViewById(R.id.et_cci);
         btnGuardar = findViewById(R.id.btn_guardar);
     }
 
@@ -179,6 +181,7 @@ public class admin_editar_perfil extends AppCompatActivity {
                         String tipoDocumento = documentSnapshot.getString(AuthConstants.FIELD_TIPO_DOCUMENTO);
                         String numeroDocumento = documentSnapshot.getString(AuthConstants.FIELD_NUMERO_DOCUMENTO);
                         String email = documentSnapshot.getString(AuthConstants.FIELD_EMAIL);
+                        String cci = documentSnapshot.getString("cci");
                         currentPhotoUrl = documentSnapshot.getString(AuthConstants.FIELD_PHOTO_URL);
 
                         // Llenar campos
@@ -186,6 +189,7 @@ public class admin_editar_perfil extends AppCompatActivity {
                         if (tipoDocumento != null) spinnerTipoDocumento.setText(tipoDocumento, false);
                         if (numeroDocumento != null) etNumeroDocumento.setText(numeroDocumento);
                         if (email != null) etEmail.setText(email);
+                        if (cci != null) etCci.setText(cci);
 
                         // Cargar foto de perfil
                         loadProfilePhoto(currentPhotoUrl);
@@ -212,6 +216,7 @@ public class admin_editar_perfil extends AppCompatActivity {
         String nombreCompleto = etNombreCompleto.getText() != null ? etNombreCompleto.getText().toString().trim() : "";
         String tipoDocumento = spinnerTipoDocumento.getText().toString().trim();
         String numeroDocumento = etNumeroDocumento.getText() != null ? etNumeroDocumento.getText().toString().trim() : "";
+        String cci = etCci.getText() != null ? etCci.getText().toString().trim() : "";
 
         // Validaciones
         if (nombreCompleto.isEmpty()) {
@@ -229,24 +234,34 @@ public class admin_editar_perfil extends AppCompatActivity {
             return;
         }
 
+        if (cci.isEmpty()) {
+            Toast.makeText(this, "Ingresa el CCI", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (cci.length() != 20) {
+            Toast.makeText(this, "El CCI debe tener exactamente 20 dígitos", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         // Deshabilitar botón durante el proceso
         btnGuardar.setEnabled(false);
         btnGuardar.setText("Guardando...");
 
         if (selectedImageUri != null) {
             // Subir nueva foto primero
-            uploadPhotoAndSaveData(nombreCompleto, tipoDocumento, numeroDocumento);
+            uploadPhotoAndSaveData(nombreCompleto, tipoDocumento, numeroDocumento, cci);
         } else {
             // Guardar sin cambiar la foto
-            saveDataToFirestore(nombreCompleto, tipoDocumento, numeroDocumento, currentPhotoUrl);
+            saveDataToFirestore(nombreCompleto, tipoDocumento, numeroDocumento, cci, currentPhotoUrl);
         }
     }
 
-    private void uploadPhotoAndSaveData(String nombreCompleto, String tipoDocumento, String numeroDocumento) {
+    private void uploadPhotoAndSaveData(String nombreCompleto, String tipoDocumento, String numeroDocumento, String cci) {
         storageHelper.uploadProfilePhoto(this, selectedImageUri, currentUser.getUid(), new StorageHelper.UploadCallback() {
             @Override
             public void onSuccess(String downloadUrl) {
-                saveDataToFirestore(nombreCompleto, tipoDocumento, numeroDocumento, downloadUrl);
+                saveDataToFirestore(nombreCompleto, tipoDocumento, numeroDocumento, cci, downloadUrl);
             }
 
             @Override
@@ -266,11 +281,12 @@ public class admin_editar_perfil extends AppCompatActivity {
         });
     }
 
-    private void saveDataToFirestore(String nombreCompleto, String tipoDocumento, String numeroDocumento, String photoUrl) {
+    private void saveDataToFirestore(String nombreCompleto, String tipoDocumento, String numeroDocumento, String cci, String photoUrl) {
         Map<String, Object> updates = new HashMap<>();
         updates.put(AuthConstants.FIELD_NOMBRE_COMPLETO, nombreCompleto);
         updates.put(AuthConstants.FIELD_TIPO_DOCUMENTO, tipoDocumento);
         updates.put(AuthConstants.FIELD_NUMERO_DOCUMENTO, numeroDocumento);
+        updates.put("cci", cci);
         
         if (photoUrl != null && !photoUrl.isEmpty()) {
             updates.put(AuthConstants.FIELD_PHOTO_URL, photoUrl);

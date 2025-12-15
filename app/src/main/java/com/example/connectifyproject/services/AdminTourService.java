@@ -456,7 +456,6 @@ public class AdminTourService {
                 ofrecimiento.put("correoElectronico", guiaDoc.getString("email"));
                 ofrecimiento.put("numeroTelefono", guiaDoc.getString("telefono"));
                 ofrecimiento.put("codigoPais", guiaDoc.getString("codigoPais"));
-                ofrecimiento.put("numeroYape", guiaDoc.getString("numeroYape"));
                 ofrecimiento.put("idiomasManejados", guiaDoc.get("idiomas"));
                 ofrecimiento.put("estadoOferta", "pendiente");
                 ofrecimiento.put("fechaOferta", Timestamp.now());

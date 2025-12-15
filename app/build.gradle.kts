@@ -99,6 +99,9 @@ dependencies {
     implementation("com.journeyapps:zxing-android-embedded:4.3.0")
     implementation("com.google.zxing:core:3.5.3")
     
+    // MPAndroidChart for pie chart
+    implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
+    
     // CameraX for QR scanning
     implementation("androidx.camera:camera-core:1.3.1")
     implementation("androidx.camera:camera-camera2:1.3.1")

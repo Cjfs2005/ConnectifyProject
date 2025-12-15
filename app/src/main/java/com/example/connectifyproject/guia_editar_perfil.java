@@ -47,9 +47,8 @@ public class guia_editar_perfil extends AppCompatActivity {
     private TextInputEditText etNumeroDocumento;
     private TextInputEditText etTelefono;
     private TextInputEditText etFechaNacimiento;
-    private TextInputEditText etDomicilio;
+    private AutoCompleteTextView spinnerCiudad;
     private TextInputEditText etCci;
-    private TextInputEditText etYape;
     private MaterialButton btnGuardar;
 
     private Calendar calendar = Calendar.getInstance();
@@ -83,9 +82,8 @@ public class guia_editar_perfil extends AppCompatActivity {
         etNumeroDocumento = findViewById(R.id.et_numero_documento);
         etTelefono = findViewById(R.id.et_telefono);
         etFechaNacimiento = findViewById(R.id.et_fecha_nacimiento);
-        etDomicilio = findViewById(R.id.et_domicilio);
+        spinnerCiudad = findViewById(R.id.spinner_ciudad);
         etCci = findViewById(R.id.et_cci);
-        etYape = findViewById(R.id.et_yape);
         btnGuardar = findViewById(R.id.btn_guardar);
     }
 
@@ -99,6 +97,7 @@ public class guia_editar_perfil extends AppCompatActivity {
     }
 
     private void setupDropdown() {
+        // Tipo de Documento
         String[] tiposDocumento = {"DNI", "Pasaporte", "Carnet de Extranjeria"};
         ArrayAdapter<String> adapter = new ArrayAdapter<>(
                 this,
@@ -106,6 +105,27 @@ public class guia_editar_perfil extends AppCompatActivity {
                 tiposDocumento
         );
         spinnerTipoDocumento.setAdapter(adapter);
+        
+        // Ciudades
+        String[] ciudades = {
+            "Lima",
+            "Cusco",
+            "Arequipa",
+            "Trujillo",
+            "Chiclayo",
+            "Piura",
+            "Iquitos",
+            "Huancayo",
+            "Tacna",
+            "Puno"
+        };
+        ArrayAdapter<String> adapterCiudad = new ArrayAdapter<>(
+                this,
+                android.R.layout.simple_dropdown_item_1line,
+                ciudades
+        );
+        spinnerCiudad.setAdapter(adapterCiudad);
+        spinnerCiudad.setInputType(0);
     }
 
     private void setupDatePicker() {
@@ -197,9 +217,8 @@ public class guia_editar_perfil extends AppCompatActivity {
         String numeroDocumento = etNumeroDocumento.getText().toString().trim();
         String telefono = etTelefono.getText().toString().trim();
         String fechaNacimiento = etFechaNacimiento.getText().toString().trim();
-        String domicilio = etDomicilio.getText().toString().trim();
+        String ciudad = spinnerCiudad.getText().toString().trim();
         String cci = etCci.getText().toString().trim();
-        String yape = etYape.getText().toString().trim();
 
         // Validaciones básicas
         if (tipoDocumento.isEmpty() || numeroDocumento.isEmpty() || telefono.isEmpty() || fechaNacimiento.isEmpty()) {
@@ -210,12 +229,6 @@ public class guia_editar_perfil extends AppCompatActivity {
         // Validación CCI (20 dígitos)
         if (!cci.isEmpty() && cci.length() != 20) {
             Toast.makeText(this, "El CCI debe tener exactamente 20 dígitos", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        // Validación YAPE (9 dígitos)
-        if (!yape.isEmpty() && yape.length() != 9) {
-            Toast.makeText(this, "El número de YAPE debe tener exactamente 9 dígitos", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -232,14 +245,11 @@ public class guia_editar_perfil extends AppCompatActivity {
         updates.put("telefono", telefono);
         updates.put("fechaNacimiento", fechaNacimiento);
         
-        if (!domicilio.isEmpty()) {
-            updates.put("domicilio", domicilio);
+        if (!ciudad.isEmpty()) {
+            updates.put("domicilio", ciudad);
         }
         if (!cci.isEmpty()) {
             updates.put("cci", cci);
-        }
-        if (!yape.isEmpty()) {
-            updates.put("numeroYape", yape);
         }
 
         btnGuardar.setEnabled(false);
@@ -325,16 +335,16 @@ public class guia_editar_perfil extends AppCompatActivity {
                         String fechaNacimiento = document.getString("fechaNacimiento");
                         String domicilio = document.getString("domicilio");
                         String cci = document.getString("cci");
-                        String numeroYape = document.getString("numeroYape");
                         String photoUrl = document.getString("photoUrl");
 
                         if (tipoDocumento != null) spinnerTipoDocumento.setText(tipoDocumento, false);
                         if (numeroDocumento != null) etNumeroDocumento.setText(numeroDocumento);
                         if (telefono != null) etTelefono.setText(telefono);
                         if (fechaNacimiento != null) etFechaNacimiento.setText(fechaNacimiento);
-                        if (domicilio != null) etDomicilio.setText(domicilio);
+                        if (domicilio != null) {
+                            spinnerCiudad.setText(domicilio, false);
+                        }
                         if (cci != null) etCci.setText(cci);
-                        if (numeroYape != null) etYape.setText(numeroYape);
 
                         // Cargar foto de perfil
                         if (photoUrl != null && !photoUrl.isEmpty()) {

@@ -41,6 +41,7 @@ public class admin_select_guide extends AppCompatActivity {
     // Datos del tour
     private String ofertaId;
     private String tourTitulo;
+    private String tourCiudad;
     private List<String> idiomasRequeridos;
     
     // Firebase
@@ -49,6 +50,10 @@ public class admin_select_guide extends AppCompatActivity {
     private ProgressDialog progressDialog;
     
     private static final String CHANNEL_ID = "tour_notifications";
+    private static final int REQUEST_SELECT_PAYMENT = 2001;
+    
+    // Guía seleccionado temporalmente (esperando método de pago)
+    private GuideItem selectedGuide;
 
     // Clase para representar un guía
     public static class GuideItem {
@@ -60,9 +65,10 @@ public class admin_select_guide extends AppCompatActivity {
         public List<String> languages;
         public String profileImageUrl;
         public boolean disponible;
+        public String ciudad;
 
         public GuideItem(String id, String name, String email, double rating, int tourCount, 
-                        List<String> languages, String profileImageUrl, boolean disponible) {
+                        List<String> languages, String profileImageUrl, boolean disponible, String ciudad) {
             this.id = id;
             this.name = name;
             this.email = email;
@@ -71,6 +77,7 @@ public class admin_select_guide extends AppCompatActivity {
             this.languages = languages;
             this.profileImageUrl = profileImageUrl;
             this.disponible = disponible;
+            this.ciudad = ciudad;
         }
         
         public String getLanguagesText() {
@@ -118,6 +125,7 @@ public class admin_select_guide extends AppCompatActivity {
         setupRecyclerView();
         setupSearch();
         setupLanguageFilters();
+        setupCityFilter();
         
         // Cargar guías desde Firebase
         loadGuidesFromFirebase();
@@ -144,6 +152,9 @@ public class admin_select_guide extends AppCompatActivity {
                     tourFechaRealizacion = doc.get("fechaRealizacion");
                     tourHoraInicio = doc.getString("horaInicio");
                     tourHoraFin = doc.getString("horaFin");
+                    tourCiudad = doc.getString("ciudad");
+                    
+                    android.util.Log.d("AdminSelectGuide", "Ciudad del tour: " + tourCiudad);
                     
                     android.util.Log.d("AdminSelectGuide", "Horario tour - Fecha: " + tourFechaRealizacion + 
                                       ", Inicio: " + tourHoraInicio + ", Fin: " + tourHoraFin);
@@ -251,6 +262,10 @@ public class admin_select_guide extends AppCompatActivity {
                     String profileImageUrl = doc.getString("photoUrl");
                     android.util.Log.d("AdminSelectGuide", "  - Foto perfil: " + (profileImageUrl != null ? "presente" : "null"));
                     
+                    // Obtener ciudad del guía (almacenada en campo domicilio)
+                    String ciudadGuia = doc.getString("domicilio");
+                    android.util.Log.d("AdminSelectGuide", "  - Ciudad del guía: " + ciudadGuia);
+                    
                     // Por ahora todos disponibles, se validará al seleccionar
                     boolean disponible = true;
                     
@@ -258,7 +273,7 @@ public class admin_select_guide extends AppCompatActivity {
                     
                     // Crear el GuideItem temporalmente
                     GuideItem guide = new GuideItem(id, name, email, rating, tourCount, 
-                                                   idiomas, profileImageUrl, disponible);
+                                                   idiomas, profileImageUrl, disponible, ciudadGuia);
                     
                     // Verificar conflicto de horario antes de agregar
                     verificarConflictoHorario(id, tieneConflicto -> {
@@ -461,6 +476,13 @@ public class admin_select_guide extends AppCompatActivity {
             applyLanguageFilter();
         });
     }
+    
+    private void setupCityFilter() {
+        // Switch activado por defecto
+        binding.switchCityFilter.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            applyLanguageFilter(); // Reaplicar todos los filtros
+        });
+    }
 
     private void applyLanguageFilter() {
         List<String> selectedLanguages = new ArrayList<>();
@@ -497,6 +519,18 @@ public class admin_select_guide extends AppCompatActivity {
             }
         }
         
+        // Aplicar filtro de ciudad si está activado
+        if (binding.switchCityFilter.isChecked() && tourCiudad != null && !tourCiudad.isEmpty()) {
+            List<GuideItem> ciudadFiltered = new ArrayList<>();
+            for (GuideItem guide : filteredGuides) {
+                if (guide.ciudad != null && guide.ciudad.equalsIgnoreCase(tourCiudad)) {
+                    ciudadFiltered.add(guide);
+                }
+            }
+            filteredGuides.clear();
+            filteredGuides.addAll(ciudadFiltered);
+        }
+        
         // También aplicar filtro de búsqueda si hay texto
         String searchQuery = binding.etSearch.getText().toString().trim();
         if (!searchQuery.isEmpty()) {
@@ -519,11 +553,33 @@ public class admin_select_guide extends AppCompatActivity {
     private void onGuideSelected(GuideItem guide) {
         android.util.Log.d("AdminSelectGuide", "onGuideSelected llamado para: " + guide.name);
         
-        // Validar que el tour inicia en al menos 18 horas
-        validarTiempoYSeleccionarGuia(guide);
+        // Guardar guía seleccionado temporalmente
+        selectedGuide = guide;
+        
+        // Ir a selección de método de pago
+        Intent intent = new Intent(this, AdminSelectPaymentMethodActivity.class);
+        startActivityForResult(intent, REQUEST_SELECT_PAYMENT);
     }
     
-    private void validarTiempoYSeleccionarGuia(GuideItem guide) {
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        
+        if (requestCode == REQUEST_SELECT_PAYMENT && resultCode == RESULT_OK && data != null) {
+            String paymentMethodId = data.getStringExtra("selectedPaymentMethodId");
+            android.util.Log.d("AdminSelectGuide", "Método de pago seleccionado: " + paymentMethodId);
+            
+            // Ahora validar tiempo y asignar guía
+            if (selectedGuide != null) {
+                validarTiempoYSeleccionarGuia(selectedGuide, paymentMethodId);
+            }
+        } else {
+            android.util.Log.d("AdminSelectGuide", "Selección de método de pago cancelada");
+            selectedGuide = null;
+        }
+    }
+    
+    private void validarTiempoYSeleccionarGuia(GuideItem guide, String paymentMethodId) {
         // Cargar datos del tour para validar tiempo
         db.collection("tours_ofertas")
             .document(ofertaId)
@@ -554,10 +610,11 @@ public class admin_select_guide extends AppCompatActivity {
                     .setMessage("¿Desea ofrecer el tour \"" + tourTitulo + "\" a " + guide.name + "?")
                     .setPositiveButton("Confirmar", (dialog, which) -> {
                         android.util.Log.d("AdminSelectGuide", "Usuario confirmó la selección");
-                        selectGuide(guide);
+                        selectGuide(guide, paymentMethodId);
                     })
                     .setNegativeButton("Cancelar", (dialog, which) -> {
                         android.util.Log.d("AdminSelectGuide", "Usuario canceló la selección");
+                        selectedGuide = null;
                     })
                     .show();
             })
@@ -567,15 +624,16 @@ public class admin_select_guide extends AppCompatActivity {
             });
     }
     
-    private void selectGuide(GuideItem guide) {
+    private void selectGuide(GuideItem guide, String paymentMethodId) {
         android.util.Log.d("AdminSelectGuide", "=== SELECCIONANDO GUÍA ===");
         android.util.Log.d("AdminSelectGuide", "Guía seleccionado: " + guide.name + " (ID: " + guide.id + ")");
         android.util.Log.d("AdminSelectGuide", "Oferta ID: " + ofertaId);
         android.util.Log.d("AdminSelectGuide", "Tour: " + tourTitulo);
+        android.util.Log.d("AdminSelectGuide", "Método de pago: " + paymentMethodId);
         
         showProgressDialog("Ofreciendo tour al guía...");
         
-        adminTourService.seleccionarGuia(ofertaId, guide.id, null)
+        adminTourService.seleccionarGuia(ofertaId, guide.id, paymentMethodId)
             .addOnSuccessListener(aVoid -> {
                 android.util.Log.d("AdminSelectGuide", "✓ Tour ofrecido exitosamente");
                 dismissProgressDialog();

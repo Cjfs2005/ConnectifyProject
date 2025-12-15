@@ -477,9 +477,9 @@ public class cliente_reservas extends AppCompatActivity {
             // Guardar datos adicionales en la reserva para el diálogo
             reserva.setDocumentId(documentId);
             
-            // Cargar nombre de empresa de forma asíncrona
+            // Cargar datos del tour (nombre de empresa e imagen) de forma asíncrona
             if (tourId != null) {
-                cargarNombreEmpresaParaCancelada(tourId, reserva);
+                cargarDatosTourParaCancelada(tourId, reserva);
             }
             
             return reserva;
@@ -491,23 +491,34 @@ public class cliente_reservas extends AppCompatActivity {
     }
     
     /**
-     * ✅ Cargar nombre de empresa para reserva cancelada
+     * ✅ Cargar datos del tour (nombre de empresa e imagen) para reserva cancelada
      */
-    private void cargarNombreEmpresaParaCancelada(String tourId, Cliente_Reserva reserva) {
+    private void cargarDatosTourParaCancelada(String tourId, Cliente_Reserva reserva) {
         db.collection("tours_asignados")
             .document(tourId)
             .get()
             .addOnSuccessListener(doc -> {
                 if (doc.exists()) {
+                    // Cargar nombre de empresa
                     String nombreEmpresa = doc.getString("nombreEmpresa");
                     if (nombreEmpresa != null) {
                         reserva.setEmpresaNombre(nombreEmpresa);
-                        reservasAdapter.notifyDataSetChanged();
                     }
+                    
+                    // Cargar imagen del tour (campo correcto: imagenPrincipal)
+                    String imagenUrl = doc.getString("imagenPrincipal");
+                    if (imagenUrl != null && !imagenUrl.isEmpty()) {
+                        Cliente_Tour tour = reserva.getTour();
+                        if (tour != null) {
+                            tour.setImageUrl(imagenUrl);
+                        }
+                    }
+                    
+                    reservasAdapter.notifyDataSetChanged();
                 }
             })
             .addOnFailureListener(e -> {
-                Log.e(TAG, "Error cargando nombre de empresa: " + e.getMessage());
+                Log.e(TAG, "Error cargando datos del tour: " + e.getMessage());
                 reserva.setEmpresaNombre("Empresa no disponible");
                 reservasAdapter.notifyDataSetChanged();
             });
@@ -518,9 +529,14 @@ public class cliente_reservas extends AppCompatActivity {
      */
     private boolean validarTourSimultaneo(QueryDocumentSnapshot nuevoTour, List<Cliente_Reserva> reservasExistentes) {
         try {
-            // Obtener fecha del nuevo tour
+            // Obtener fecha y horas del nuevo tour
             Timestamp fechaNuevoTour = nuevoTour.getTimestamp("fechaRealizacion");
-            if (fechaNuevoTour == null) return true; // Si no hay fecha, permitir
+            String horaInicioNuevo = nuevoTour.getString("horaInicio");
+            String horaFinNuevo = nuevoTour.getString("horaFin");
+            
+            if (fechaNuevoTour == null || horaInicioNuevo == null || horaFinNuevo == null) {
+                return true; // Si no hay datos completos, permitir
+            }
             
             Calendar calNuevoTour = Calendar.getInstance();
             calNuevoTour.setTime(fechaNuevoTour.toDate());
@@ -529,9 +545,12 @@ public class cliente_reservas extends AppCompatActivity {
             calNuevoTour.set(Calendar.SECOND, 0);
             calNuevoTour.set(Calendar.MILLISECOND, 0);
             
-            // Verificar si ya existe una reserva activa para el mismo día
+            // Convertir horas a minutos para comparación fácil
+            int inicioNuevoMinutos = convertirHoraAMinutos(horaInicioNuevo);
+            int finNuevoMinutos = convertirHoraAMinutos(horaFinNuevo);
+            
+            // Verificar si hay solapamiento de horarios con reservas existentes
             for (Cliente_Reserva reservaExistente : reservasExistentes) {
-                // Solo verificar tours con estados activos
                 if (reservaExistente.getFecha() != null && !reservaExistente.getFecha().isEmpty()) {
                     try {
                         java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault());
@@ -544,10 +563,27 @@ public class cliente_reservas extends AppCompatActivity {
                         calExistente.set(Calendar.SECOND, 0);
                         calExistente.set(Calendar.MILLISECOND, 0);
                         
-                        // Si las fechas coinciden, hay conflicto
+                        // Si las fechas coinciden, verificar horarios
                         if (calNuevoTour.getTimeInMillis() == calExistente.getTimeInMillis()) {
-                            Log.w(TAG, "Tour simultáneo detectado: " + nuevoTour.getId() + " conflicta con reserva existente");
-                            return false;
+                            // Obtener horarios de la reserva existente
+                            String horaInicioExistente = reservaExistente.getHoraInicio();
+                            String horaFinExistente = reservaExistente.getHoraFin();
+                            
+                            if (horaInicioExistente != null && horaFinExistente != null) {
+                                int inicioExistenteMinutos = convertirHoraAMinutos(horaInicioExistente);
+                                int finExistenteMinutos = convertirHoraAMinutos(horaFinExistente);
+                                
+                                // Verificar si los horarios se solapan
+                                boolean seSuperponen = !(finNuevoMinutos <= inicioExistenteMinutos || 
+                                                         inicioNuevoMinutos >= finExistenteMinutos);
+                                
+                                if (seSuperponen) {
+                                    Log.w(TAG, "Conflicto de horarios detectado: " + nuevoTour.getId() + 
+                                        " (" + horaInicioNuevo + "-" + horaFinNuevo + ") se solapa con reserva existente " +
+                                        "(" + horaInicioExistente + "-" + horaFinExistente + ")");
+                                    return false;
+                                }
+                            }
                         }
                     } catch (Exception e) {
                         Log.e(TAG, "Error al parsear fecha de reserva existente: " + reservaExistente.getFecha(), e);
@@ -555,11 +591,26 @@ public class cliente_reservas extends AppCompatActivity {
                 }
             }
             
-            return true; // No hay conflictos
+            return true; // No hay conflictos de horarios
             
         } catch (Exception e) {
             Log.e(TAG, "Error en validación de tours simultáneos", e);
             return true; // En caso de error, permitir el tour
+        }
+    }
+    
+    /**
+     * Convierte una hora en formato "HH:mm" a minutos desde medianoche
+     */
+    private int convertirHoraAMinutos(String hora) {
+        try {
+            String[] partes = hora.split(":");
+            int horas = Integer.parseInt(partes[0]);
+            int minutos = Integer.parseInt(partes[1]);
+            return horas * 60 + minutos;
+        } catch (Exception e) {
+            Log.e(TAG, "Error al convertir hora: " + hora, e);
+            return 0;
         }
     }
 

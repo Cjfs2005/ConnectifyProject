@@ -99,6 +99,7 @@
         <activity android:name=".admin_select_guide" android:exported="false" />
         <activity android:name=".admin_payment_proposal" android:exported="false" />
         <activity android:name=".admin_create_tour" android:exported="false" />
+        <activity android:name=".AdminSelectPaymentMethodActivity" android:exported="false" />
         
         <!-- Admin Profile Edit Activities -->
         <activity android:name=".admin_editar_perfil" android:exported="false" />

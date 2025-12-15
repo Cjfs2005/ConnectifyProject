@@ -277,7 +277,6 @@ public class TourDataSeeder {
         guiaData.put("nombresCompletos", "Gianfranco Enriquez Soel");
         guiaData.put("correoElectronico", "a20224926@pucp.edu.pe");
         guiaData.put("numeroTelefono", "987 654 321");
-        guiaData.put("numeroYape", "987654321");
         guiaData.put("codigoPais", "+51");
         guiaData.put("idiomasManejados", Arrays.asList("Español", "Inglés", "Chino"));
         guiaData.put("fechaOferta", Timestamp.now());

@@ -50,7 +50,12 @@ public class cliente_inicio extends AppCompatActivity {
     private View progressLineActive;
     private MaterialCardView cardTourActivo;
     private MaterialCardView cardQr;
+    private MaterialCardView cardStatistics;
     private android.widget.ImageView ivQrCode;
+    private TextView tvQrInstruction;
+    private TextView tvPuntoActual;
+    private TextView tvNoStatistics;
+    private com.github.mikephil.charting.charts.PieChart pieChart;
     private ImageButton btnNotifications;
     private BottomNavigationView bottomNavigation;
     private RecyclerView rvToursRecientes;
@@ -96,6 +101,13 @@ public class cliente_inicio extends AppCompatActivity {
         circleFin = findViewById(R.id.circle_fin);
         progressLineActive = findViewById(R.id.progress_line_active);
         cardTourActivo = findViewById(R.id.card_tour_activo);
+        cardQr = findViewById(R.id.card_qr);
+        cardStatistics = findViewById(R.id.card_statistics);
+        ivQrCode = findViewById(R.id.iv_qr_code);
+        tvQrInstruction = findViewById(R.id.tv_qr_instruction);
+        tvPuntoActual = findViewById(R.id.tv_punto_actual);
+        tvNoStatistics = findViewById(R.id.tv_no_statistics);
+        pieChart = findViewById(R.id.pie_chart);
         btnNotifications = findViewById(R.id.btn_notifications);
         bottomNavigation = findViewById(R.id.bottom_navigation);
         rvToursRecientes = findViewById(R.id.rv_tours_recientes);
@@ -488,6 +500,7 @@ public class cliente_inicio extends AppCompatActivity {
             Log.d(TAG, "⚠️ Usuario no autenticado, ocultando card de tour activo");
             cardTourActivo.setVisibility(View.GONE);
             if (cardQr != null) cardQr.setVisibility(View.GONE);
+            if (cardStatistics != null) cardStatistics.setVisibility(View.GONE);
             return;
         }
         
@@ -495,13 +508,14 @@ public class cliente_inicio extends AppCompatActivity {
         Log.d(TAG, "🔍 Buscando tour activo para cliente: " + clienteId);
         
         // Buscar en tours_asignados donde participantes[] contenga al clienteId
-        // y el estado sea 'check_in' o 'en_curso'
+        // y el estado sea 'check_in', 'en_curso' o 'check_out'
         db.collection("tours_asignados")
-                .whereIn("estado", java.util.Arrays.asList("check_in", "en_curso"))
+                .whereIn("estado", java.util.Arrays.asList("check_in", "en_curso", "check_out"))
                 .addSnapshotListener((snapshots, error) -> {
                     if (error != null) {
                         Log.e(TAG, "❌ Error al cargar tour activo", error);
                         cardTourActivo.setVisibility(View.GONE);
+                        if (cardStatistics != null) cardStatistics.setVisibility(View.GONE);
                         return;
                     }
                     
@@ -509,6 +523,8 @@ public class cliente_inicio extends AppCompatActivity {
                         Log.d(TAG, "ℹ️ No hay tours activos, ocultando card");
                         cardTourActivo.setVisibility(View.GONE);
                         if (cardQr != null) cardQr.setVisibility(View.GONE);
+                        // ✅ FASE 5: Mostrar gráfico de estadísticas
+                        cargarYMostrarEstadisticas();
                         return;
                     }
                     
@@ -538,6 +554,11 @@ public class cliente_inicio extends AppCompatActivity {
                         Log.d(TAG, "ℹ️ Cliente no está inscrito en ningún tour activo");
                         cardTourActivo.setVisibility(View.GONE);
                         if (cardQr != null) cardQr.setVisibility(View.GONE);
+                        // ✅ FASE 5: Mostrar gráfico de estadísticas
+                        cargarYMostrarEstadisticas();
+                    } else {
+                        // Ocultar estadísticas si hay tour activo
+                        if (cardStatistics != null) cardStatistics.setVisibility(View.GONE);
                     }
                 });
     }
@@ -555,13 +576,21 @@ public class cliente_inicio extends AppCompatActivity {
             String nombreEmpresa = doc.getString("nombreEmpresa");
             String duracion = doc.getString("duracion");
             String horaInicio = doc.getString("horaInicio");
-            String horaFin = doc.getString("horaFin");
             String estado = doc.getString("estado");
             
             com.google.firebase.Timestamp fechaRealizacion = doc.getTimestamp("fechaRealizacion");
+            com.google.firebase.Timestamp horaFin = doc.getTimestamp("horaFin");
             
-            // Generar y mostrar QR dinámico para este tour
-            generarYMostrarQR(doc.getId());
+            // Generar y mostrar QR dinámico según el estado del tour
+            generarYMostrarQR(doc.getId(), estado, horaFin);
+            
+            // Mostrar punto actual del itinerario si está en_curso
+            if ("en_curso".equalsIgnoreCase(estado)) {
+                mostrarPuntoActualItinerario(doc);
+            } else {
+                // Ocultar texto de punto actual si no está en curso
+                if (tvPuntoActual != null) tvPuntoActual.setVisibility(View.GONE);
+            }
             
             // Actualizar textos
             if (titulo != null) {
@@ -653,53 +682,338 @@ public class cliente_inicio extends AppCompatActivity {
     }
     
     /**
-     * 🔲 GENERAR Y MOSTRAR QR DINÁMICO
-     * Genera un QR único para el cliente con su tourId y clienteId
+     * 🔲 GENERAR Y MOSTRAR QR DINÁMICO SEGÚN ESTADO DEL TOUR
+     * - check_in: Muestra QR para check-in
+     * - check_out: Muestra QR para check-out (solo si no ha pasado horaFin)
+     * - en_curso: Oculta QR
      */
-    private void generarYMostrarQR(String tourId) {
+    private void generarYMostrarQR(String tourId, String estado, com.google.firebase.Timestamp horaFin) {
         try {
             com.google.firebase.auth.FirebaseUser currentUser = 
                 com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser();
             
-            if (currentUser == null || tourId == null) {
+            if (currentUser == null || tourId == null || estado == null) {
                 if (cardQr != null) cardQr.setVisibility(View.GONE);
                 return;
             }
             
             String clienteId = currentUser.getUid();
-            String qrData = "TOUR:" + tourId + "|CLIENTE:" + clienteId;
             
-            // Generar QR usando ZXing
-            com.google.zxing.BarcodeFormat format = com.google.zxing.BarcodeFormat.QR_CODE;
-            com.google.zxing.MultiFormatWriter writer = new com.google.zxing.MultiFormatWriter();
-            com.google.zxing.common.BitMatrix bitMatrix = writer.encode(qrData, format, 512, 512);
-            
-            int width = bitMatrix.getWidth();
-            int height = bitMatrix.getHeight();
-            android.graphics.Bitmap bitmap = android.graphics.Bitmap.createBitmap(width, height, android.graphics.Bitmap.Config.RGB_565);
-            
-            for (int x = 0; x < width; x++) {
-                for (int y = 0; y < height; y++) {
-                    bitmap.setPixel(x, y, bitMatrix.get(x, y) ? 
-                        android.graphics.Color.BLACK : android.graphics.Color.WHITE);
+            // ✅ FASE 3: Lógica según estado del tour
+            if ("check_in".equalsIgnoreCase(estado)) {
+                // Mostrar QR de CHECK-IN en formato JSON
+                org.json.JSONObject qrJson = new org.json.JSONObject();
+                qrJson.put("tourId", tourId);
+                qrJson.put("clienteId", clienteId);
+                qrJson.put("type", "check_in");
+                
+                String qrData = qrJson.toString();
+                generarBitmapQR(qrData);
+                
+                if (tvQrInstruction != null) {
+                    tvQrInstruction.setText("📍 Muestra este código al guía para hacer CHECK-IN");
+                    tvQrInstruction.setVisibility(View.VISIBLE);
                 }
+                
+                if (cardQr != null) cardQr.setVisibility(View.VISIBLE);
+                Log.d(TAG, "✅ QR de CHECK-IN generado");
+                
+            } else if ("check_out".equalsIgnoreCase(estado)) {
+                // ✅ VALIDAR: No mostrar QR de check-out después de horaFin
+                if (horaFin != null) {
+                    long horaFinMillis = horaFin.toDate().getTime();
+                    long horaActualMillis = System.currentTimeMillis();
+                    
+                    if (horaActualMillis > horaFinMillis) {
+                        // Ya pasó la hora de fin - no mostrar QR
+                        Log.d(TAG, "⚠️ Tour ya finalizó - ocultando QR de check-out");
+                        if (cardQr != null) cardQr.setVisibility(View.GONE);
+                        return;
+                    }
+                }
+                
+                // Mostrar QR de CHECK-OUT en formato JSON
+                org.json.JSONObject qrJson = new org.json.JSONObject();
+                qrJson.put("tourId", tourId);
+                qrJson.put("clienteId", clienteId);
+                qrJson.put("type", "check_out");
+                
+                String qrData = qrJson.toString();
+                generarBitmapQR(qrData);
+                
+                if (tvQrInstruction != null) {
+                    tvQrInstruction.setText("🏁 Muestra este código al guía para hacer CHECK-OUT");
+                    tvQrInstruction.setVisibility(View.VISIBLE);
+                }
+                
+                if (cardQr != null) cardQr.setVisibility(View.VISIBLE);
+                Log.d(TAG, "✅ QR de CHECK-OUT generado");
+                
+            } else if ("en_curso".equalsIgnoreCase(estado)) {
+                // Durante el tour NO se muestra QR
+                Log.d(TAG, "ℹ️ Tour en curso - ocultando QR");
+                if (cardQr != null) cardQr.setVisibility(View.GONE);
+            } else {
+                // Otros estados - ocultar QR
+                if (cardQr != null) cardQr.setVisibility(View.GONE);
             }
-            
-            // Mostrar QR en ImageView
-            if (ivQrCode != null) {
-                ivQrCode.setImageBitmap(bitmap);
-            }
-            
-            if (cardQr != null) {
-                cardQr.setVisibility(View.VISIBLE);
-            }
-            
-            Log.d(TAG, "✅ QR dinámico generado para tour: " + tourId);
             
         } catch (Exception e) {
             Log.e(TAG, "❌ Error generando QR dinámico", e);
             if (cardQr != null) cardQr.setVisibility(View.GONE);
         }
+    }
+    
+    /**
+     * 🎨 GENERAR BITMAP DEL QR
+     */
+    private void generarBitmapQR(String qrData) throws Exception {
+        com.google.zxing.BarcodeFormat format = com.google.zxing.BarcodeFormat.QR_CODE;
+        com.google.zxing.MultiFormatWriter writer = new com.google.zxing.MultiFormatWriter();
+        com.google.zxing.common.BitMatrix bitMatrix = writer.encode(qrData, format, 512, 512);
+        
+        int width = bitMatrix.getWidth();
+        int height = bitMatrix.getHeight();
+        android.graphics.Bitmap bitmap = android.graphics.Bitmap.createBitmap(width, height, android.graphics.Bitmap.Config.RGB_565);
+        
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                bitmap.setPixel(x, y, bitMatrix.get(x, y) ? 
+                    android.graphics.Color.BLACK : android.graphics.Color.WHITE);
+            }
+        }
+        
+        // Mostrar QR en ImageView
+        if (ivQrCode != null) {
+            ivQrCode.setImageBitmap(bitmap);
+        }
+    }
+    
+    /**
+     * 📍 MOSTRAR PUNTO ACTUAL DEL ITINERARIO
+     * Cuando el tour está en_curso, muestra el punto donde se encuentra el guía
+     */
+    private void mostrarPuntoActualItinerario(com.google.firebase.firestore.DocumentSnapshot doc) {
+        try {
+            java.util.List<java.util.Map<String, Object>> itinerario = 
+                (java.util.List<java.util.Map<String, Object>>) doc.get("itinerario");
+            
+            if (itinerario == null || itinerario.isEmpty()) {
+                if (tvPuntoActual != null) tvPuntoActual.setVisibility(View.GONE);
+                return;
+            }
+            
+            // Buscar el último punto completado o el primero no completado
+            String puntoActual = null;
+            int totalPuntos = itinerario.size();
+            int puntosCompletados = 0;
+            
+            for (int i = 0; i < itinerario.size(); i++) {
+                java.util.Map<String, Object> punto = itinerario.get(i);
+                Boolean completado = (Boolean) punto.get("completado");
+                String nombrePunto = (String) punto.get("nombre");
+                
+                if (completado != null && completado) {
+                    puntosCompletados++;
+                    puntoActual = nombrePunto; // Último completado
+                } else {
+                    // Primer punto no completado - este es el destino actual
+                    if (puntoActual == null) {
+                        puntoActual = nombrePunto;
+                    }
+                    break;
+                }
+            }
+            
+            if (puntoActual != null && tvPuntoActual != null) {
+                String mensaje = String.format("📍 Ubicación actual: %s (%d/%d puntos visitados)", 
+                    puntoActual, puntosCompletados, totalPuntos);
+                tvPuntoActual.setText(mensaje);
+                tvPuntoActual.setVisibility(View.VISIBLE);
+                Log.d(TAG, "✅ Mostrando punto actual: " + puntoActual);
+            } else {
+                if (tvPuntoActual != null) tvPuntoActual.setVisibility(View.GONE);
+            }
+            
+        } catch (Exception e) {
+            Log.e(TAG, "❌ Error al mostrar punto actual", e);
+            if (tvPuntoActual != null) tvPuntoActual.setVisibility(View.GONE);
+        }
+    }
+    
+    /**
+     * ✅ FASE 5: CARGAR Y MOSTRAR ESTADÍSTICAS DE TOURS
+     * Muestra un gráfico de torta con: confirmados, completados, cancelados
+     */
+    private void cargarYMostrarEstadisticas() {
+        com.google.firebase.auth.FirebaseUser currentUser = 
+            com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser();
+        
+        if (currentUser == null || cardStatistics == null) {
+            return;
+        }
+        
+        String clienteId = currentUser.getUid();
+        
+        // Contadores para cada estado
+        final int[] confirmados = {0};
+        final int[] completados = {0};
+        final int[] cancelados = {0};
+        final int[] totalConsultas = {0};
+        
+        // 1. Contar tours confirmados (tours_asignados con estado confirmado o pendiente)
+        db.collection("tours_asignados")
+            .get()
+            .addOnSuccessListener(querySnapshot -> {
+                for (com.google.firebase.firestore.DocumentSnapshot doc : querySnapshot.getDocuments()) {
+                    String estado = doc.getString("estado");
+                    java.util.List<java.util.Map<String, Object>> participantes = 
+                        (java.util.List<java.util.Map<String, Object>>) doc.get("participantes");
+                    
+                    if (participantes != null) {
+                        for (java.util.Map<String, Object> participante : participantes) {
+                            String participanteId = (String) participante.get("clienteId");
+                            if (clienteId.equals(participanteId)) {
+                                if ("confirmado".equalsIgnoreCase(estado) || 
+                                    "pendiente".equalsIgnoreCase(estado)) {
+                                    confirmados[0]++;
+                                } else if ("cancelado".equalsIgnoreCase(estado)) {
+                                    cancelados[0]++;
+                                }
+                                break;
+                            }
+                        }
+                    }
+                }
+                
+                totalConsultas[0]++;
+                verificarYMostrarGrafico(confirmados[0], completados[0], cancelados[0], totalConsultas[0]);
+            });
+        
+        // 2. Contar tours completados (tours_completados)
+        db.collection("tours_completados")
+            .get()
+            .addOnSuccessListener(querySnapshot -> {
+                for (com.google.firebase.firestore.DocumentSnapshot doc : querySnapshot.getDocuments()) {
+                    String tourAsignadoId = doc.getString("tourAsignadoId");
+                    
+                    if (tourAsignadoId != null) {
+                        // Verificar si el cliente estaba en este tour
+                        db.collection("tours_asignados")
+                            .document(tourAsignadoId)
+                            .get()
+                            .addOnSuccessListener(tourDoc -> {
+                                if (tourDoc.exists()) {
+                                    java.util.List<java.util.Map<String, Object>> participantes = 
+                                        (java.util.List<java.util.Map<String, Object>>) tourDoc.get("participantes");
+                                    
+                                    if (participantes != null) {
+                                        for (java.util.Map<String, Object> participante : participantes) {
+                                            String participanteId = (String) participante.get("clienteId");
+                                            if (clienteId.equals(participanteId)) {
+                                                completados[0]++;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                            });
+                    }
+                }
+                
+                totalConsultas[0]++;
+                verificarYMostrarGrafico(confirmados[0], completados[0], cancelados[0], totalConsultas[0]);
+            });
+    }
+    
+    /**
+     * Verificar que todas las consultas terminaron y mostrar el gráfico
+     */
+    private void verificarYMostrarGrafico(int confirmados, int completados, int cancelados, int totalConsultas) {
+        // Esperar a que ambas consultas terminen (confirmados/cancelados + completados)
+        if (totalConsultas < 2) {
+            return;
+        }
+        
+        int total = confirmados + completados + cancelados;
+        
+        if (total == 0) {
+            // No hay datos - mostrar mensaje
+            if (pieChart != null) pieChart.setVisibility(View.GONE);
+            if (tvNoStatistics != null) tvNoStatistics.setVisibility(View.VISIBLE);
+            if (cardStatistics != null) cardStatistics.setVisibility(View.VISIBLE);
+            Log.d(TAG, "ℹ️ No hay estadísticas para mostrar");
+            return;
+        }
+        
+        // Configurar gráfico de torta
+        if (pieChart != null) {
+            configurarPieChart(confirmados, completados, cancelados);
+            pieChart.setVisibility(View.VISIBLE);
+            if (tvNoStatistics != null) tvNoStatistics.setVisibility(View.GONE);
+            if (cardStatistics != null) cardStatistics.setVisibility(View.VISIBLE);
+            Log.d(TAG, "✅ Gráfico de estadísticas mostrado: " + confirmados + " confirmados, " + 
+                completados + " completados, " + cancelados + " cancelados");
+        }
+    }
+    
+    /**
+     * Configurar el gráfico de torta con los datos
+     */
+    private void configurarPieChart(int confirmados, int completados, int cancelados) {
+        java.util.ArrayList<com.github.mikephil.charting.data.PieEntry> entries = new java.util.ArrayList<>();
+        
+        if (confirmados > 0) {
+            entries.add(new com.github.mikephil.charting.data.PieEntry(confirmados, "Confirmados"));
+        }
+        if (completados > 0) {
+            entries.add(new com.github.mikephil.charting.data.PieEntry(completados, "Completados"));
+        }
+        if (cancelados > 0) {
+            entries.add(new com.github.mikephil.charting.data.PieEntry(cancelados, "Cancelados"));
+        }
+        
+        com.github.mikephil.charting.data.PieDataSet dataSet = 
+            new com.github.mikephil.charting.data.PieDataSet(entries, "Tours");
+        
+        // Colores para cada categoría
+        java.util.ArrayList<Integer> colors = new java.util.ArrayList<>();
+        if (confirmados > 0) colors.add(android.graphics.Color.parseColor("#FFB300")); // Naranja para confirmados
+        if (completados > 0) colors.add(android.graphics.Color.parseColor("#43A047")); // Verde para completados
+        if (cancelados > 0) colors.add(android.graphics.Color.parseColor("#E53935")); // Rojo para cancelados
+        
+        dataSet.setColors(colors);
+        dataSet.setValueTextSize(14f);
+        dataSet.setValueTextColor(android.graphics.Color.WHITE);
+        dataSet.setValueFormatter(new com.github.mikephil.charting.formatter.PercentFormatter(pieChart));
+        
+        com.github.mikephil.charting.data.PieData data = new com.github.mikephil.charting.data.PieData(dataSet);
+        
+        // Configurar apariencia del gráfico
+        pieChart.setData(data);
+        pieChart.setUsePercentValues(true);
+        pieChart.getDescription().setEnabled(false);
+        pieChart.setDrawHoleEnabled(true);
+        pieChart.setHoleRadius(40f);
+        pieChart.setTransparentCircleRadius(45f);
+        pieChart.setHoleColor(android.graphics.Color.WHITE);
+        pieChart.setEntryLabelTextSize(12f);
+        pieChart.setEntryLabelColor(android.graphics.Color.BLACK);
+        pieChart.setCenterText("Mis Tours\n" + (confirmados + completados + cancelados) + " total");
+        pieChart.setCenterTextSize(16f);
+        pieChart.setDrawEntryLabels(true);
+        
+        // Leyenda
+        com.github.mikephil.charting.components.Legend legend = pieChart.getLegend();
+        legend.setVerticalAlignment(com.github.mikephil.charting.components.Legend.LegendVerticalAlignment.BOTTOM);
+        legend.setHorizontalAlignment(com.github.mikephil.charting.components.Legend.LegendHorizontalAlignment.CENTER);
+        legend.setOrientation(com.github.mikephil.charting.components.Legend.LegendOrientation.HORIZONTAL);
+        legend.setDrawInside(false);
+        legend.setTextSize(12f);
+        
+        // Animar
+        pieChart.animateY(1000, com.github.mikephil.charting.animation.Easing.EaseInOutQuad);
+        pieChart.invalidate();
     }
 
 }
