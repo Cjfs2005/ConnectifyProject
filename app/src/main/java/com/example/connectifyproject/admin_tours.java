@@ -810,13 +810,12 @@ public class admin_tours extends AppCompatActivity {
                 // Configurar botón de acción según el tipo
                 setupActionButton(tour);
 
-                // Aplicar estilo visual según estado de bloqueo
+                // Aplicar estilo visual según estado de bloqueo (pero mantener clickeable para mostrar mensaje)
                 if ("bloqueado".equals(tour.getEstadoBloqueo())) {
                     itemView.setAlpha(0.5f);
-                    itemView.setEnabled(false);
+                    // NO deshabilitar itemView para permitir click y mostrar mensaje
                 } else {
                     itemView.setAlpha(1.0f);
-                    itemView.setEnabled(true);
                 }
                 
                 // Click listener - Para borradores, ir directo a editar
@@ -824,7 +823,7 @@ public class admin_tours extends AppCompatActivity {
                     // Validar estado de bloqueo antes de permitir acción
                     if ("bloqueado".equals(tour.getEstadoBloqueo())) {
                         // Recalcular estado por si acaso (el usuario pudo tener la pantalla abierta mucho tiempo)
-                        String estadoActual = "publicado".equals(tour.getTipo()) 
+                        String estadoActual = tour.isEsPublicado() 
                             ? com.example.connectifyproject.utils.TourTimeValidator.getEstadoTourSinAsignar(
                                 tour.getFechaRealizacion(), tour.getHoraInicio())
                             : com.example.connectifyproject.utils.TourTimeValidator.getEstadoTourPendiente(
@@ -832,7 +831,7 @@ public class admin_tours extends AppCompatActivity {
                         
                         if ("oculto".equals(estadoActual) || "bloqueado".equals(estadoActual)) {
                             // Mostrar mensaje explicativo
-                            String mensaje = "publicado".equals(tour.getTipo())
+                            String mensaje = tour.isEsPublicado()
                                 ? com.example.connectifyproject.utils.TourTimeValidator.getMensajeTourSinAsignarBloqueado(
                                     tour.getFechaRealizacion(), tour.getHoraInicio())
                                 : com.example.connectifyproject.utils.TourTimeValidator.getMensajeTourPendienteBloqueado(
