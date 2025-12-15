@@ -153,6 +153,27 @@ public class GuiaRegisterActivity extends AppCompatActivity {
         );
         adapterTipoDoc.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerTipoDoc.setAdapter(adapterTipoDoc);
+        
+        // Spinner Ciudad
+        String[] ciudades = {
+            "Lima",
+            "Cusco",
+            "Arequipa",
+            "Trujillo",
+            "Chiclayo",
+            "Piura",
+            "Iquitos",
+            "Huancayo",
+            "Tacna",
+            "Puno"
+        };
+        ArrayAdapter<String> adapterCiudad = new ArrayAdapter<>(
+                this,
+                android.R.layout.simple_spinner_item,
+                ciudades
+        );
+        adapterCiudad.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerCiudadGuia.setAdapter(adapterCiudad);
     }
 
     private void setupListeners() {

@@ -47,7 +47,7 @@ public class guia_editar_perfil extends AppCompatActivity {
     private TextInputEditText etNumeroDocumento;
     private TextInputEditText etTelefono;
     private TextInputEditText etFechaNacimiento;
-    private android.widget.Spinner spinnerCiudad;
+    private AutoCompleteTextView spinnerCiudad;
     private TextInputEditText etCci;
     private MaterialButton btnGuardar;
 
@@ -125,6 +125,7 @@ public class guia_editar_perfil extends AppCompatActivity {
                 ciudades
         );
         spinnerCiudad.setAdapter(adapterCiudad);
+        spinnerCiudad.setInputType(0);
     }
 
     private void setupDatePicker() {
@@ -216,7 +217,7 @@ public class guia_editar_perfil extends AppCompatActivity {
         String numeroDocumento = etNumeroDocumento.getText().toString().trim();
         String telefono = etTelefono.getText().toString().trim();
         String fechaNacimiento = etFechaNacimiento.getText().toString().trim();
-        String ciudad = spinnerCiudad.getSelectedItem() != null ? spinnerCiudad.getSelectedItem().toString() : "";
+        String ciudad = spinnerCiudad.getText().toString().trim();
         String cci = etCci.getText().toString().trim();
 
         // Validaciones básicas
@@ -341,13 +342,7 @@ public class guia_editar_perfil extends AppCompatActivity {
                         if (telefono != null) etTelefono.setText(telefono);
                         if (fechaNacimiento != null) etFechaNacimiento.setText(fechaNacimiento);
                         if (domicilio != null) {
-                            ArrayAdapter<String> adapter = (ArrayAdapter<String>) spinnerCiudad.getAdapter();
-                            if (adapter != null) {
-                                int position = adapter.getPosition(domicilio);
-                                if (position >= 0) {
-                                    spinnerCiudad.setSelection(position);
-                                }
-                            }
+                            spinnerCiudad.setText(domicilio, false);
                         }
                         if (cci != null) etCci.setText(cci);
 

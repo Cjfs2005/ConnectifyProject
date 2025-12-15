@@ -149,23 +149,23 @@
             </com.google.android.material.textfield.TextInputLayout>
 
             <!-- Campo Ciudad -->
-            <TextView
-                android:id="@+id/tv_ciudad_label"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                android:text="Ciudad"
-                android:textSize="14sp"
-                android:textColor="?attr/colorOnSurface" />
-
-            <Spinner
-                android:id="@+id/spinner_ciudad"
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/til_ciudad"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                android:minHeight="48dp"
-                android:background="@android:drawable/editbox_background"
-                android:padding="12dp" />
+                android:hint="Ciudad"
+                app:boxStrokeColor="?attr/colorPrimary"
+                app:hintTextColor="?attr/colorPrimary"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
+
+                <AutoCompleteTextView
+                    android:id="@+id/spinner_ciudad"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="none" />
+
+            </com.google.android.material.textfield.TextInputLayout>
 
             <!-- Campo CCI (20 dígitos) -->
             <com.google.android.material.textfield.TextInputLayout
