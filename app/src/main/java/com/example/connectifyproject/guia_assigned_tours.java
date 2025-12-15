@@ -914,41 +914,36 @@ public class guia_assigned_tours extends AppCompatActivity implements GuiaDateFi
                 return;
             }
             
-            // Verificar si ya pasó la fecha/hora de finalización
-            if (tour.getFechaRealizacion() == null || tour.getHoraFin() == null) {
+            // ✅ NUEVA REGLA: Validar que falten 2 horas o menos para el inicio
+            if (tour.getFechaRealizacion() == null || tour.getHoraInicio() == null) {
                 return;
             }
             
-            // Convertir fecha y hora de fin a Date
-            SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
-            Date fechaTour = tour.getFechaRealizacion().toDate();
+            double horasRestantes = com.example.connectifyproject.utils.TourTimeValidator
+                .calcularHorasHastaInicio(tour.getFechaRealizacion(), tour.getHoraInicio());
             
-            // Combinar fecha con hora de fin
-            SimpleDateFormat dateTimeFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault());
-            String fechaHoraFinStr = dateFormat.format(fechaTour) + " " + tour.getHoraFin();
-            Date fechaHoraFin = dateTimeFormat.parse(fechaHoraFinStr);
-            
-            // Comparar con fecha/hora actual
-            Date ahora = new Date();
-            
-            if (ahora.after(fechaHoraFin)) {
-                // El tour ya pasó y no tiene inscripciones -> CANCELAR
-                Log.w(TAG, "🚫 Auto-cancelando tour sin inscripciones: " + tour.getTitulo() + " (ID: " + tour.getId() + ")");
+            // Solo cancelar si faltan 2 horas o menos (pero aún no ha iniciado)
+            if (horasRestantes <= 2.0 && horasRestantes >= 0) {
+                // El tour está a 2 horas o menos y no tiene inscripciones -> CANCELAR
+                Log.w(TAG, "🚫 Auto-cancelando tour sin inscripciones (faltan " + 
+                    String.format("%.1f", horasRestantes) + " horas): " + tour.getTitulo());
                 
-                tourFirebaseService.actualizarEstadoTour(tour.getId(), "cancelado", new TourFirebaseService.OperationCallback() {
-                    @Override
-                    public void onSuccess(String message) {
-                        Log.d(TAG, "✅ Tour cancelado automáticamente: " + tour.getTitulo());
+                // Llamar al método actualizado que crea pagos
+                tourFirebaseService.verificarYCancelarTourSinParticipantes(
+                    tour.getId(), 
+                    new TourFirebaseService.OperationCallback() {
+                        @Override
+                        public void onSuccess(String message) {
+                            Log.d(TAG, "✅ Tour cancelado automáticamente: " + tour.getTitulo());
+                            tour.setEstado("cancelado");
+                        }
+                        
+                        @Override
+                        public void onError(String error) {
+                            Log.e(TAG, "❌ Error al cancelar tour automáticamente: " + error);
+                        }
                     }
-                    
-                    @Override
-                    public void onError(String error) {
-                        Log.e(TAG, "❌ Error al cancelar tour automáticamente: " + error);
-                    }
-                });
-                
-                // Actualizar estado en memoria para no mostrarlo
-                tour.setEstado("cancelado");
+                );
             }
             
         } catch (Exception e) {

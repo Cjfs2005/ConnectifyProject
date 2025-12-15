@@ -340,39 +340,17 @@
                     android:orientation="horizontal"
                     app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
 
-            </LinearLayout>
-
-            <!-- Tours Cercanos Section -->
-            <LinearLayout
-                android:id="@+id/layout_tours_cercanos"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:orientation="vertical"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/layout_tours_recientes">
-
+                <!-- Mensaje cuando no hay tours -->
                 <TextView
+                    android:id="@+id/tv_no_tours"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="12dp"
-                    android:text="Tours cercanos a tu ubicación"
-                    android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
-                    android:textStyle="bold"
-                    android:textColor="?attr/colorOnSurface" />
-
-                <!-- Tours Cercanos RecyclerView -->
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/rv_tours_cercanos"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
-                    android:paddingBottom="8dp"
-                    android:clipToPadding="false"
-                    android:nestedScrollingEnabled="false"
-                    android:orientation="horizontal"
-                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+                    android:padding="24dp"
+                    android:text="📍 No hay tours disponibles en este momento\n\nVuelve pronto para ver nuevas experiencias"
+                    android:textAlignment="center"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:textSize="14sp"
+                    android:visibility="gone" />
 
             </LinearLayout>
 

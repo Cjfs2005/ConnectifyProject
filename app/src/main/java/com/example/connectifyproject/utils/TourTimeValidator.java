@@ -93,6 +93,32 @@ public class TourTimeValidator {
     }
     
     /**
+     * Valida si un tour está disponible para inscripciones de clientes (≥ 2 horas)
+     * Los tours se ocultan 2 horas antes de su inicio
+     */
+    public static boolean tourDisponibleParaInscripcion(Object fechaRealizacion, String horaInicio) {
+        double horas = calcularHorasHastaInicio(fechaRealizacion, horaInicio);
+        return horas >= 2.0;
+    }
+    
+    /**
+     * Obtiene mensaje de error cuando un tour no está disponible (< 2 horas)
+     */
+    public static String getMensajeTourNoDisponible(Object fechaRealizacion, String horaInicio) {
+        double horas = calcularHorasHastaInicio(fechaRealizacion, horaInicio);
+        
+        if (horas < 0) {
+            return "Este tour ya inició y no está disponible.";
+        } else if (horas < 2.0) {
+            long minutosRestantes = (long) (horas * 60);
+            return String.format(Locale.getDefault(),
+                "Este tour inicia en %d minutos. Las inscripciones se cierran 2 horas antes del inicio.",
+                minutosRestantes);
+        }
+        return "Tour disponible para inscripción";
+    }
+    
+    /**
      * Determina el estado de bloqueo de un tour sin asignar
      * @return "visible" (>18h), "bloqueado" (0-18h), "oculto" (<0h)
      */

@@ -606,10 +606,9 @@ public class AdminTourService {
     public Task<QuerySnapshot> listarToursAsignados(@NonNull String empresaId) {
         Log.d(TAG, "Listando tours asignados de empresa: " + empresaId);
         
+        // Filtrar habilitado localmente, ordenar en código del caller
         return db.collection(COLLECTION_ASIGNADOS)
             .whereEqualTo("empresaId", empresaId)
-            .whereEqualTo("habilitado", true)
-            .orderBy("fechaRealizacion", Query.Direction.ASCENDING)
             .get();
     }
     

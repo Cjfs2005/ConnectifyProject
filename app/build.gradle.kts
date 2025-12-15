@@ -111,4 +111,7 @@ dependencies {
     
     // Guava for ListenableFuture (required by CameraX)
     implementation("com.google.guava:guava:31.1-android")
+    
+    // WorkManager for background tasks
+    implementation("androidx.work:work-runtime:2.9.0")
 }

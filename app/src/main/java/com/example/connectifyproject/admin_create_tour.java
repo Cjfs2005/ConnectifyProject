@@ -218,7 +218,9 @@ public class admin_create_tour extends AppCompatActivity implements OnMapReadyCa
         selectedImageUris = new ArrayList<>();
         uploadedImageUrls = new ArrayList<>();
         selectedIdiomas = new ArrayList<>();
+        // Fecha por defecto: dentro de 2 días (48 horas)
         selectedCalendar = Calendar.getInstance();
+        selectedCalendar.add(Calendar.DAY_OF_MONTH, 2);
         dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
         binding.etTourDate.setText(dateFormat.format(selectedCalendar.getTime()));
     }
@@ -348,14 +350,14 @@ public class admin_create_tour extends AppCompatActivity implements OnMapReadyCa
             selectedCalendar.get(Calendar.MONTH),
             selectedCalendar.get(Calendar.DAY_OF_MONTH)
         );
-        // Establecer fecha mínima como mañana (al menos 1 día después)
-        Calendar tomorrow = Calendar.getInstance();
-        tomorrow.add(Calendar.DAY_OF_MONTH, 1);
-        tomorrow.set(Calendar.HOUR_OF_DAY, 0);
-        tomorrow.set(Calendar.MINUTE, 0);
-        tomorrow.set(Calendar.SECOND, 0);
-        tomorrow.set(Calendar.MILLISECOND, 0);
-        datePickerDialog.getDatePicker().setMinDate(tomorrow.getTimeInMillis());
+        // Establecer fecha mínima: dentro de 2 días (48 horas)
+        Calendar minDate = Calendar.getInstance();
+        minDate.add(Calendar.DAY_OF_MONTH, 2);
+        minDate.set(Calendar.HOUR_OF_DAY, 0);
+        minDate.set(Calendar.MINUTE, 0);
+        minDate.set(Calendar.SECOND, 0);
+        minDate.set(Calendar.MILLISECOND, 0);
+        datePickerDialog.getDatePicker().setMinDate(minDate.getTimeInMillis());
         datePickerDialog.show();
     }
     
@@ -707,10 +709,10 @@ public class admin_create_tour extends AppCompatActivity implements OnMapReadyCa
             return false;
         }
         
-        // Validar que la fecha y hora sean al menos 24 horas en el futuro
+        // Validar que la fecha y hora sean al menos 48 horas en el futuro
         if (!validateFechaMinima()) {
-            binding.etTourDate.setError("El tour debe iniciar en al menos 24 horas");
-            Toast.makeText(this, "El tour debe programarse para iniciar en al menos 24 horas desde ahora", Toast.LENGTH_LONG).show();
+            binding.etTourDate.setError("El tour debe iniciar en al menos 48 horas (2 días)");
+            Toast.makeText(this, "El tour debe programarse para iniciar en al menos 48 horas (2 días) desde ahora", Toast.LENGTH_LONG).show();
             return false;
         }
         
@@ -730,7 +732,7 @@ public class admin_create_tour extends AppCompatActivity implements OnMapReadyCa
     }
     
     /**
-     * Valida que la fecha y hora seleccionadas sean al menos 24 horas en el futuro
+     * Valida que la fecha y hora seleccionadas sean al menos 48 horas en el futuro
      * ⚠️ En modo TEST_MODE=true, permite crear tours para el mismo día
      */
     private boolean validateFechaMinima() {
@@ -758,12 +760,12 @@ public class admin_create_tour extends AppCompatActivity implements OnMapReadyCa
             fechaHoraInicio.set(Calendar.SECOND, 0);
             fechaHoraInicio.set(Calendar.MILLISECOND, 0);
             
-            // Calcular 24 horas desde ahora
-            Calendar limite24Horas = Calendar.getInstance();
-            limite24Horas.add(Calendar.HOUR_OF_DAY, 24);
+            // Calcular 48 horas desde ahora (2 días)
+            Calendar limite48Horas = Calendar.getInstance();
+            limite48Horas.add(Calendar.HOUR_OF_DAY, 48);
             
-            // La fecha+hora de inicio debe ser al menos 24 horas en el futuro
-            return !fechaHoraInicio.before(limite24Horas);
+            // La fecha+hora de inicio debe ser al menos 48 horas en el futuro
+            return !fechaHoraInicio.before(limite48Horas);
         } catch (Exception e) {
             Log.e("AdminCreateTour", "Error validando fecha mínima", e);
             return false;
@@ -809,6 +811,16 @@ public class admin_create_tour extends AppCompatActivity implements OnMapReadyCa
             Toast.makeText(this, "Agregue al menos un lugar al recorrido", Toast.LENGTH_SHORT).show();
             return false;
         }
+        
+        // Validar que todos los lugares tengan actividades
+        for (int i = 0; i < selectedPlaces.size(); i++) {
+            TourPlace place = selectedPlaces.get(i);
+            if (place.getActivities() == null || place.getActivities().trim().isEmpty()) {
+                Toast.makeText(this, "El lugar '" + place.getName() + "' debe tener al menos una actividad", Toast.LENGTH_LONG).show();
+                return false;
+            }
+        }
+        
         return true;
     }
 

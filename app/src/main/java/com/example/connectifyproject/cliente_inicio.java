@@ -54,11 +54,10 @@ public class cliente_inicio extends AppCompatActivity {
     private ImageButton btnNotifications;
     private BottomNavigationView bottomNavigation;
     private RecyclerView rvToursRecientes;
-    private RecyclerView rvToursCercanos;
+    private TextView tvNoTours;
     
-    // Adapters para los RecyclerViews
+    // Adapter para RecyclerView
     private Cliente_GalleryTourAdapter adapterToursRecientes;
-    private Cliente_GalleryTourAdapter adapterToursCercanos;
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -100,7 +99,7 @@ public class cliente_inicio extends AppCompatActivity {
         btnNotifications = findViewById(R.id.btn_notifications);
         bottomNavigation = findViewById(R.id.bottom_navigation);
         rvToursRecientes = findViewById(R.id.rv_tours_recientes);
-        rvToursCercanos = findViewById(R.id.rv_tours_cercanos);
+        tvNoTours = findViewById(R.id.tv_no_tours);
     }
     
     private void setupToolbar() {
@@ -121,6 +120,17 @@ public class cliente_inicio extends AppCompatActivity {
         // Inicializar con lista vacía - se llenará desde Firebase
         adapterToursRecientes = new Cliente_GalleryTourAdapter(this, new ArrayList<>());
         adapterToursRecientes.setOnTourClickListener(tour -> {
+            // ✅ VALIDAR REGLA DE 2 HORAS antes de permitir click
+            boolean disponible = com.example.connectifyproject.utils.TourTimeValidator
+                .tourDisponibleParaInscripcion(tour.getFechaRealizacion(), tour.getStartTime());
+            
+            if (!disponible) {
+                String mensaje = com.example.connectifyproject.utils.TourTimeValidator
+                    .getMensajeTourNoDisponible(tour.getFechaRealizacion(), tour.getStartTime());
+                Toast.makeText(this, mensaje, Toast.LENGTH_LONG).show();
+                return;
+            }
+            
             // Navegar al detalle del tour pasando datos individuales
             Intent intent = new Intent(this, cliente_tour_detalle.class);
             intent.putExtra("tour_id", tour.getId());
@@ -142,35 +152,6 @@ public class cliente_inicio extends AppCompatActivity {
             startActivity(intent);
         });
         rvToursRecientes.setAdapter(adapterToursRecientes);
-        
-        // Configurar RecyclerView para tours cercanos
-        LinearLayoutManager layoutManagerCercanos = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
-        rvToursCercanos.setLayoutManager(layoutManagerCercanos);
-        
-        // Inicializar con lista vacía - se llenará desde Firebase
-        adapterToursCercanos = new Cliente_GalleryTourAdapter(this, new ArrayList<>());
-        adapterToursCercanos.setOnTourClickListener(tour -> {
-            // Navegar al detalle del tour pasando datos individuales
-            Intent intent = new Intent(this, cliente_tour_detalle.class);
-            intent.putExtra("tour_id", tour.getId());
-            intent.putExtra("tour_title", tour.getTitulo());
-            intent.putExtra("tour_description", tour.getDescription());
-            intent.putExtra("tour_company", tour.getCompanyName());
-            intent.putExtra("tour_location", tour.getUbicacion());
-            intent.putExtra("tour_price", tour.getPrecio());
-            intent.putExtra("tour_duration", tour.getDuracion());
-            intent.putExtra("tour_date", tour.getDate());
-            intent.putExtra("tour_start_time", tour.getStartTime());
-            intent.putExtra("tour_end_time", tour.getEndTime());
-            intent.putExtra("tour_image_url", tour.getImageUrl());
-            intent.putExtra("oferta_tour_id", tour.getOfertaTourId());
-            intent.putExtra("empresa_id", tour.getEmpresaId());
-            if (tour.getIdiomasRequeridos() != null) {
-                intent.putStringArrayListExtra("idiomas", new ArrayList<>(tour.getIdiomasRequeridos()));
-            }
-            startActivity(intent);
-        });
-        rvToursCercanos.setAdapter(adapterToursCercanos);
     }
     
     private void setupBottomNavigation() {
@@ -301,21 +282,59 @@ public class cliente_inicio extends AppCompatActivity {
     private void loadToursFromFirebase() {
         Log.d(TAG, "🔄 Cargando tours desde Firebase...");
         
+        // ✅ OPTIMIZADO: Solo whereEqualTo, sin orderBy para evitar índice compuesto
+        // Filtrado de habilitado y ordenamiento se hace localmente
         db.collection("tours_asignados")
-                .whereEqualTo("habilitado", true)
+                .whereEqualTo("estado", "confirmado") // Solo tours confirmados
+                .limit(50) // Cargar más documentos para compensar filtros locales
                 .get()
                 .addOnSuccessListener(querySnapshot -> {
                     Log.d(TAG, "✅ Tours encontrados: " + querySnapshot.size());
                     
-                    List<Cliente_Tour> toursRecientes = new ArrayList<>();
-                    List<Cliente_Tour> toursCercanos = new ArrayList<>();
+                    // Crear lista de pares (documento, tour) para poder ordenar
+                    List<TourDocPair> tourPairs = new ArrayList<>();
                     
                     for (DocumentSnapshot doc : querySnapshot.getDocuments()) {
-                        processTourDocument(doc, toursRecientes, toursCercanos);
+                        // Filtrar habilitado en código
+                        Boolean habilitado = doc.getBoolean("habilitado");
+                        if (habilitado == null || !habilitado) {
+                            continue;
+                        }
+                        
+                        // ✅ Filtrar por regla de 2 horas
+                        Timestamp fechaRealizacion = doc.getTimestamp("fechaRealizacion");
+                        String horaInicio = doc.getString("horaInicio");
+                        
+                        boolean disponible = com.example.connectifyproject.utils.TourTimeValidator
+                            .tourDisponibleParaInscripcion(fechaRealizacion, horaInicio);
+                        
+                        if (disponible) {
+                            Cliente_Tour tour = processTourDocument(doc);
+                            if (tour != null) {
+                                Timestamp fechaCreacion = doc.getTimestamp("fechaCreacion");
+                                tourPairs.add(new TourDocPair(tour, fechaCreacion));
+                            }
+                        }
                     }
                     
-                    // Actualizar RecyclerViews
-                    updateRecyclerViews(toursRecientes, toursCercanos);
+                    // Ordenar por fechaCreacion DESC localmente
+                    tourPairs.sort((p1, p2) -> {
+                        if (p1.fechaCreacion == null) return 1;
+                        if (p2.fechaCreacion == null) return -1;
+                        return p2.fechaCreacion.compareTo(p1.fechaCreacion); // DESC
+                    });
+                    
+                    // Extraer solo los tours y limitar a top 5
+                    List<Cliente_Tour> toursRecientes = new ArrayList<>();
+                    int limit = Math.min(5, tourPairs.size());
+                    for (int i = 0; i < limit; i++) {
+                        toursRecientes.add(tourPairs.get(i).tour);
+                    }
+                    
+                    Log.d(TAG, "📊 Tours disponibles después de filtrar: " + toursRecientes.size());
+                    
+                    // Actualizar RecyclerView
+                    updateRecyclerViews(toursRecientes);
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "❌ Error cargando tours", e);
@@ -323,11 +342,22 @@ public class cliente_inicio extends AppCompatActivity {
                 });
     }
     
-    private void processTourDocument(DocumentSnapshot doc, List<Cliente_Tour> toursRecientes, List<Cliente_Tour> toursCercanos) {
+    // Clase auxiliar para mantener tour con su fechaCreacion
+    private static class TourDocPair {
+        Cliente_Tour tour;
+        Timestamp fechaCreacion;
+        
+        TourDocPair(Cliente_Tour tour, Timestamp fechaCreacion) {
+            this.tour = tour;
+            this.fechaCreacion = fechaCreacion;
+        }
+    }
+    
+    private Cliente_Tour processTourDocument(DocumentSnapshot doc) {
         try {
             Timestamp fechaRealizacion = doc.getTimestamp("fechaRealizacion");
             if (!isTourAvailable(fechaRealizacion)) {
-                return;
+                return null;
             }
             
             // Filtrar tours donde el cliente ya está inscrito
@@ -343,7 +373,7 @@ public class cliente_inicio extends AppCompatActivity {
                         if (clienteId.equals(participanteId)) {
                             // Cliente ya inscrito, no mostrar este tour
                             Log.d(TAG, "⏭️ Tour " + doc.getId() + " omitido (cliente ya inscrito)");
-                            return;
+                            return null;
                         }
                     }
                 }
@@ -385,15 +415,11 @@ public class cliente_inicio extends AppCompatActivity {
             
             loadTourImage(tour);
             
-            // Primeros 5 a recientes, resto a cercanos
-            if (toursRecientes.size() < 5) {
-                toursRecientes.add(tour);
-            } else {
-                toursCercanos.add(tour);
-            }
+            return tour;
             
         } catch (Exception e) {
             Log.e(TAG, "Error procesando tour: " + doc.getId(), e);
+            return null;
         }
     }
     
@@ -429,64 +455,25 @@ public class cliente_inicio extends AppCompatActivity {
                     if (imagenUrl != null && !imagenUrl.isEmpty()) {
                         tour.setImageUrl(imagenUrl);
                         if (adapterToursRecientes != null) adapterToursRecientes.notifyDataSetChanged();
-                        if (adapterToursCercanos != null) adapterToursCercanos.notifyDataSetChanged();
                     }
                 })
                 .addOnFailureListener(e -> Log.e(TAG, "Error cargando imagen", e));
     }
     
-    private void updateRecyclerViews(List<Cliente_Tour> toursRecientes, List<Cliente_Tour> toursCercanos) {
-        if (adapterToursRecientes != null && !toursRecientes.isEmpty()) {
-            adapterToursRecientes = new Cliente_GalleryTourAdapter(this, toursRecientes);
-            adapterToursRecientes.setOnTourClickListener(tour -> {
-                Intent intent = new Intent(this, cliente_tour_detalle.class);
-                intent.putExtra("tour_id", tour.getId());
-                intent.putExtra("tour_title", tour.getTitulo());
-                intent.putExtra("tour_description", tour.getDescription());
-                intent.putExtra("tour_company", tour.getCompanyName());
-                intent.putExtra("tour_location", tour.getUbicacion());
-                intent.putExtra("tour_price", tour.getPrecio());
-                intent.putExtra("tour_duration", tour.getDuracion());
-                intent.putExtra("tour_date", tour.getDate());
-                intent.putExtra("tour_start_time", tour.getStartTime());
-                intent.putExtra("tour_end_time", tour.getEndTime());
-                intent.putExtra("tour_image_url", tour.getImageUrl());
-                intent.putExtra("oferta_tour_id", tour.getOfertaTourId());
-                intent.putExtra("empresa_id", tour.getEmpresaId());
-                if (tour.getIdiomasRequeridos() != null) {
-                    intent.putStringArrayListExtra("idiomas", new ArrayList<>(tour.getIdiomasRequeridos()));
-                }
-                startActivity(intent);
-            });
-            rvToursRecientes.setAdapter(adapterToursRecientes);
+    private void updateRecyclerViews(List<Cliente_Tour> toursRecientes) {
+        if (adapterToursRecientes != null) {
+            adapterToursRecientes.updateTours(toursRecientes);
+            Log.d(TAG, "📊 RecyclerView actualizado - Tours recientes: " + toursRecientes.size());
+            
+            // Mostrar/ocultar mensaje de no tours
+            if (toursRecientes.isEmpty()) {
+                rvToursRecientes.setVisibility(View.GONE);
+                tvNoTours.setVisibility(View.VISIBLE);
+            } else {
+                rvToursRecientes.setVisibility(View.VISIBLE);
+                tvNoTours.setVisibility(View.GONE);
+            }
         }
-        
-        if (adapterToursCercanos != null && !toursCercanos.isEmpty()) {
-            adapterToursCercanos = new Cliente_GalleryTourAdapter(this, toursCercanos);
-            adapterToursCercanos.setOnTourClickListener(tour -> {
-                Intent intent = new Intent(this, cliente_tour_detalle.class);
-                intent.putExtra("tour_id", tour.getId());
-                intent.putExtra("tour_title", tour.getTitulo());
-                intent.putExtra("tour_description", tour.getDescription());
-                intent.putExtra("tour_company", tour.getCompanyName());
-                intent.putExtra("tour_location", tour.getUbicacion());
-                intent.putExtra("tour_price", tour.getPrecio());
-                intent.putExtra("tour_duration", tour.getDuracion());
-                intent.putExtra("tour_date", tour.getDate());
-                intent.putExtra("tour_start_time", tour.getStartTime());
-                intent.putExtra("tour_end_time", tour.getEndTime());
-                intent.putExtra("tour_image_url", tour.getImageUrl());
-                intent.putExtra("oferta_tour_id", tour.getOfertaTourId());
-                intent.putExtra("empresa_id", tour.getEmpresaId());
-                if (tour.getIdiomasRequeridos() != null) {
-                    intent.putStringArrayListExtra("idiomas", new ArrayList<>(tour.getIdiomasRequeridos()));
-                }
-                startActivity(intent);
-            });
-            rvToursCercanos.setAdapter(adapterToursCercanos);
-        }
-        
-        Log.d(TAG, "📊 RecyclerViews actualizados - Recientes: " + toursRecientes.size() + ", Cercanos: " + toursCercanos.size());
     }
     
     /**

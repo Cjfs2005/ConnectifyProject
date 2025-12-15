@@ -68,14 +68,23 @@ public class TourFirebaseService {
         String guiaId = currentUser.getUid();
         Log.d(TAG, "Obteniendo ofertas disponibles para guía: " + guiaId);
         
-        // Primero obtener todas las ofertas publicadas
+        // Primero obtener todas las ofertas publicadas (filtrar habilitado localmente)
         db.collection(COLLECTION_OFERTAS)
                 .whereEqualTo("estado", "publicado")
-                .whereEqualTo("habilitado", true)
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     List<OfertaTour> ofertasParaGuia = new ArrayList<>();
-                    int totalOfertas = queryDocumentSnapshots.size();
+                    
+                    // Filtrar documentos habilitados localmente
+                    java.util.List<DocumentSnapshot> ofertasHabilitadas = new java.util.ArrayList<>();
+                    for (DocumentSnapshot doc : queryDocumentSnapshots) {
+                        Boolean habilitado = doc.getBoolean("habilitado");
+                        if (habilitado != null && habilitado) {
+                            ofertasHabilitadas.add(doc);
+                        }
+                    }
+                    
+                    final int totalOfertas = ofertasHabilitadas.size();
                     
                     if (totalOfertas == 0) {
                         Log.d(TAG, "No hay ofertas publicadas");
@@ -86,7 +95,7 @@ public class TourFirebaseService {
                     // Counter para saber cuándo hemos verificado todas las ofertas
                     final int[] verificadas = {0};
                     
-                    for (DocumentSnapshot document : queryDocumentSnapshots) {
+                    for (DocumentSnapshot document : ofertasHabilitadas) {
                         String ofertaId = document.getId();
                         
                         // Verificar si el guía está en la subcolección de esta oferta
@@ -600,14 +609,18 @@ private void crearTourAsignadoDesdeDocumento(DocumentSnapshot ofertaDoc, Documen
         
         db.collection(COLLECTION_ASIGNADOS)
                 .whereEqualTo("guiaAsignado.identificadorUsuario", guiaId)
-                .whereEqualTo("habilitado", true)
-                .orderBy("fechaRealizacion")
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     List<TourAsignado> toursAsignados = new ArrayList<>();
                     
                     for (DocumentSnapshot document : queryDocumentSnapshots) {
                         try {
+                            // Filtrar habilitado localmente
+                            Boolean habilitado = document.getBoolean("habilitado");
+                            if (habilitado == null || !habilitado) {
+                                continue;
+                            }
+                            
                             TourAsignado tour = document.toObject(TourAsignado.class);
                             if (tour != null) {
                                 tour.setId(document.getId());
@@ -618,6 +631,13 @@ private void crearTourAsignadoDesdeDocumento(DocumentSnapshot ofertaDoc, Documen
                             Log.e(TAG, "Error al parsear tour asignado: " + document.getId(), e);
                         }
                     }
+                    
+                    // Ordenar por fechaRealizacion localmente
+                    toursAsignados.sort((t1, t2) -> {
+                        if (t1.getFechaRealizacion() == null) return 1;
+                        if (t2.getFechaRealizacion() == null) return -1;
+                        return t1.getFechaRealizacion().compareTo(t2.getFechaRealizacion());
+                    });
                     
                     Log.d(TAG, "Total tours asignados cargados: " + toursAsignados.size());
                     callback.onSuccess(toursAsignados);
@@ -657,14 +677,18 @@ private void crearTourAsignadoDesdeDocumento(DocumentSnapshot ofertaDoc, Documen
         
         db.collection(COLLECTION_ASIGNADOS)
             .whereEqualTo("guiaAsignado.identificadorUsuario", guiaId)
-            .whereEqualTo("habilitado", true)
-            .orderBy("fechaRealizacion")
             .get()
             .addOnSuccessListener(querySnapshot -> {
                 List<TourAsignado> tours = new ArrayList<>();
                 
                 for (DocumentSnapshot doc : querySnapshot.getDocuments()) {
                     try {
+                        // Filtrar habilitado localmente
+                        Boolean habilitado = doc.getBoolean("habilitado");
+                        if (habilitado == null || !habilitado) {
+                            continue;
+                        }
+                        
                         TourAsignado tour = doc.toObject(TourAsignado.class);
                         if (tour != null) {
                             tour.setId(doc.getId());
@@ -674,6 +698,13 @@ private void crearTourAsignadoDesdeDocumento(DocumentSnapshot ofertaDoc, Documen
                         Log.w(TAG, "Error convirtiendo tour: " + doc.getId(), e);
                     }
                 }
+                
+                // Ordenar por fechaRealizacion localmente
+                tours.sort((t1, t2) -> {
+                    if (t1.getFechaRealizacion() == null) return 1;
+                    if (t2.getFechaRealizacion() == null) return -1;
+                    return t1.getFechaRealizacion().compareTo(t2.getFechaRealizacion());
+                });
                 
                 TourAsignado tourPrioritario = null;
                 TourAsignado tourCheckInDisponible = null;
@@ -1064,13 +1095,18 @@ private void crearTourAsignadoDesdeDocumento(DocumentSnapshot ofertaDoc, Documen
         // Obtener todos los tours del guía y verificar si hay alguno activo
         db.collection(COLLECTION_ASIGNADOS)
             .whereEqualTo("guiaAsignado.identificadorUsuario", guiaId)
-            .whereEqualTo("habilitado", true)
             .get()
             .addOnSuccessListener(querySnapshot -> {
                 String tourActivoExistente = null;
                 String tituloTourActivo = null;
                 
                 for (DocumentSnapshot doc : querySnapshot.getDocuments()) {
+                    // Filtrar habilitado localmente
+                    Boolean habilitado = doc.getBoolean("habilitado");
+                    if (habilitado == null || !habilitado) {
+                        continue;
+                    }
+                    
                     String docId = doc.getId();
                     String estado = doc.getString("estado");
                     
@@ -1443,24 +1479,59 @@ private void crearTourAsignadoDesdeDocumento(DocumentSnapshot ofertaDoc, Documen
                     
                     // Verificar si hay participantes
                     if (participantes == null || participantes.isEmpty()) {
-                        // Obtener pago original del guía
+                        // ✅ NUEVA REGLA: Validar que falten EXACTAMENTE 2 horas o menos
+                        Object fechaRealizacion = doc.get("fechaRealizacion");
+                        String horaInicio = doc.getString("horaInicio");
+                        
+                        double horasRestantes = com.example.connectifyproject.utils.TourTimeValidator
+                            .calcularHorasHastaInicio(fechaRealizacion, horaInicio);
+                        
+                        // Solo cancelar si faltan 2 horas o menos (y aún no ha iniciado)
+                        if (horasRestantes > 2.0) {
+                            callback.onSuccess("Aún faltan más de 2 horas, no se cancela todavía");
+                            return;
+                        }
+                        
+                        if (horasRestantes < 0) {
+                            callback.onSuccess("El tour ya inició, no se puede cancelar");
+                            return;
+                        }
+                        
+                        // Obtener datos para crear pago y mover reservas
+                        String guiaId = null;
+                        Map<String, Object> guiaAsignado = (Map<String, Object>) doc.get("guiaAsignado");
+                        if (guiaAsignado != null) {
+                            guiaId = (String) guiaAsignado.get("id");
+                        }
+                        
                         Double pagoOriginal = doc.getDouble("pagoGuia");
                         double pagoReducido = pagoOriginal != null ? pagoOriginal * 0.15 : 0;
+                        String titulo = doc.getString("titulo");
+                        String empresaId = doc.getString("empresaId");
                         
-                        // Actualizar estado y pago
+                        // 1. Actualizar estado del tour
                         Map<String, Object> updates = new HashMap<>();
                         updates.put("estado", "cancelado");
                         updates.put("pagoGuia", pagoReducido);
-                        updates.put("motivoCancelacion", "Sin participantes inscritos a la hora de inicio");
+                        updates.put("motivoCancelacion", "Cancelación automática por falta de participantes");
                         updates.put("fechaCancelacion", Timestamp.now());
                         updates.put("fechaActualizacion", Timestamp.now());
+                        
+                        final String guiaIdFinal = guiaId;
+                        final String empresaIdFinal = empresaId;
                         
                         db.collection(COLLECTION_ASIGNADOS)
                             .document(tourId)
                             .update(updates)
                             .addOnSuccessListener(aVoid -> {
-                                Log.d(TAG, "Tour cancelado automáticamente por falta de participantes. Pago reducido a 15%");
-                                callback.onSuccess("Tour cancelado automáticamente. Pago del guía: S/. " + String.format("%.2f", pagoReducido));
+                                Log.d(TAG, "✅ Tour cancelado automáticamente. Pago reducido a 15%");
+                                
+                                // 2. Crear registro de pago (15% al guía)
+                                if (guiaIdFinal != null && pagoReducido > 0) {
+                                    crearPagoCancelacion(tourId, guiaIdFinal, empresaIdFinal, pagoReducido, titulo, callback);
+                                } else {
+                                    callback.onSuccess("Tour cancelado. Pago del guía: S/. " + String.format("%.2f", pagoReducido));
+                                }
                             })
                             .addOnFailureListener(e -> {
                                 Log.e(TAG, "Error cancelando tour", e);
@@ -1476,6 +1547,33 @@ private void crearTourAsignadoDesdeDocumento(DocumentSnapshot ofertaDoc, Documen
             .addOnFailureListener(e -> {
                 Log.e(TAG, "Error verificando tour", e);
                 callback.onError("Error al verificar tour: " + e.getMessage());
+            });
+    }
+    
+    /**
+     * Crear registro de pago cuando se cancela un tour (15% al guía)
+     */
+    private void crearPagoCancelacion(String tourId, String guiaId, String empresaId, 
+                                      double monto, String nombreTour, OperationCallback callback) {
+        Map<String, Object> pago = new HashMap<>();
+        pago.put("fecha", Timestamp.now());
+        pago.put("monto", monto);
+        pago.put("nombreTour", nombreTour != null ? nombreTour : "Tour cancelado");
+        pago.put("tipoPago", "A Guia");
+        pago.put("uidUsuarioPaga", empresaId); // La empresa/admin paga
+        pago.put("uidUsuarioRecibe", guiaId);  // El guía recibe
+        pago.put("tourId", tourId);
+        pago.put("motivoPago", "Compensación por cancelación de tour (15%)");
+        
+        db.collection("pagos")
+            .add(pago)
+            .addOnSuccessListener(docRef -> {
+                Log.d(TAG, "✅ Pago de cancelación registrado: S/. " + monto);
+                callback.onSuccess("Tour cancelado. Pago compensatorio registrado: S/. " + String.format("%.2f", monto));
+            })
+            .addOnFailureListener(e -> {
+                Log.e(TAG, "⚠️ Error registrando pago de cancelación", e);
+                callback.onSuccess("Tour cancelado, pero hubo error al registrar el pago");
             });
     }
     

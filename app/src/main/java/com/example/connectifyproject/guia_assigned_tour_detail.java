@@ -391,19 +391,59 @@ private void setupTourFromFirebase(DocumentSnapshot doc) {
     }
     
     /**
-     * Habilitar check-in: Cambiar estado del tour de "pendiente" a "check_in"
+     * Habilitar check-in: Cambiar estado del tour de "confirmado" a "check_in"
+     * ✅ VALIDACIÓN: Solo se puede habilitar 10 minutos antes del inicio
      */
     private void habilitarCheckIn() {
+        // Primero validar tiempo
         db.collection("tours_asignados")
             .document(tourId)
-            .update("estado", "check_in")
-            .addOnSuccessListener(aVoid -> {
-                Toast.makeText(this, "✅ Check-in habilitado. Ahora puedes mostrar el QR.", Toast.LENGTH_LONG).show();
-                // Recargar datos para actualizar UI
-                loadTourDataFromFirebase();
+            .get()
+            .addOnSuccessListener(doc -> {
+                if (!doc.exists()) {
+                    Toast.makeText(this, "Error: Tour no encontrado", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                
+                Object fechaRealizacion = doc.get("fechaRealizacion");
+                String horaInicio = doc.getString("horaInicio");
+                
+                double horasRestantes = com.example.connectifyproject.utils.TourTimeValidator
+                    .calcularHorasHastaInicio(fechaRealizacion, horaInicio);
+                
+                // Convertir a minutos
+                long minutosRestantes = (long) (horasRestantes * 60);
+                
+                // Validar que falten 10 minutos o menos
+                if (minutosRestantes > 10) {
+                    Toast.makeText(this, 
+                        "⏰ El check-in solo se puede habilitar 10 minutos antes del inicio del tour.\n" +
+                        "Faltan " + minutosRestantes + " minutos.",
+                        Toast.LENGTH_LONG).show();
+                    return;
+                }
+                
+                if (minutosRestantes < 0) {
+                    Toast.makeText(this, 
+                        "⚠️ El tour ya ha iniciado.",
+                        Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                
+                // Si la validación pasa, habilitar check-in
+                db.collection("tours_asignados")
+                    .document(tourId)
+                    .update("estado", "check_in")
+                    .addOnSuccessListener(aVoid -> {
+                        Toast.makeText(this, "✅ Check-in habilitado. Ahora puedes mostrar el QR.", Toast.LENGTH_LONG).show();
+                        loadTourDataFromFirebase();
+                    })
+                    .addOnFailureListener(e -> {
+                        Toast.makeText(this, "❌ Error al habilitar check-in: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    });
             })
             .addOnFailureListener(e -> {
-                Toast.makeText(this, "❌ Error al habilitar check-in: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Error al validar tiempo: " + e.getMessage(), Toast.LENGTH_SHORT).show();
             });
     }
     

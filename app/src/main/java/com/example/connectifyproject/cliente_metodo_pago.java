@@ -210,6 +210,49 @@ public class cliente_metodo_pago extends AppCompatActivity {
         btnReservar.setEnabled(false);
         btnReservar.setText("Procesando...");
         
+        // ✅ VALIDAR REGLA DE 2 HORAS antes de procesar pago
+        db.collection("tours_asignados")
+                .document(tourId)
+                .get()
+                .addOnSuccessListener(tourDoc -> {
+                    if (!tourDoc.exists()) {
+                        showError("Tour no encontrado");
+                        return;
+                    }
+                    
+                    com.google.firebase.Timestamp fechaRealizacion = tourDoc.getTimestamp("fechaRealizacion");
+                    String horaInicio = tourDoc.getString("horaInicio");
+                    
+                    boolean disponible = com.example.connectifyproject.utils.TourTimeValidator
+                        .tourDisponibleParaInscripcion(fechaRealizacion, horaInicio);
+                    
+                    if (!disponible) {
+                        String mensaje = com.example.connectifyproject.utils.TourTimeValidator
+                            .getMensajeTourNoDisponible(fechaRealizacion, horaInicio);
+                        showError(mensaje);
+                        
+                        // Regresar a la lista de tours después de 2 segundos
+                        new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
+                            Intent intent = new Intent(this, cliente_tours.class);
+                            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                            startActivity(intent);
+                            finish();
+                        }, 2000);
+                        return;
+                    }
+                    
+                    // Si está disponible, proceder con el pago
+                    procesarPago();
+                })
+                .addOnFailureListener(e -> {
+                    showError("Error al validar disponibilidad: " + e.getMessage());
+                });
+    }
+    
+    /**
+     * Procesar el pago después de validar la disponibilidad del tour
+     */
+    private void procesarPago() {
         // Primero obtener datos del usuario
         db.collection("usuarios")
                 .document(currentUser.getUid())
