@@ -110,6 +110,9 @@ public class admin_tour_details extends AppCompatActivity implements OnMapReadyC
         String collection;
         if ("confirmado".equals(tourTipo)) {
             collection = "tours_asignados";
+        } else if ("cancelado".equals(tourTipo)) {
+            // ✅ Tours cancelados están en tours_asignados
+            collection = "tours_asignados";
         } else if ("borrador".equals(tourTipo)) {
             collection = "tours_borradores";
         } else {
@@ -204,20 +207,22 @@ public class admin_tour_details extends AppCompatActivity implements OnMapReadyC
                     
                     // Cargar imágenes en galería horizontal
                     List<String> imagenesUrls = (List<String>) documentSnapshot.get("imagenesUrls");
+                    String estadoActual = documentSnapshot.getString("estado");
                     
-                    // Si no hay imágenes y es un tour confirmado, intentar cargar desde la oferta original
-                    if ((imagenesUrls == null || imagenesUrls.isEmpty()) && "confirmado".equals(tourTipo)) {
-                        String ofertaTourId = documentSnapshot.getString("ofertaTourId");
-                        if (ofertaTourId != null) {
-                            cargarImagenesDesdeOferta(ofertaTourId);
-                        }
-                    } else if (imagenesUrls != null && !imagenesUrls.isEmpty()) {
+                    // Cargar imágenes directamente si existen
+                    if (imagenesUrls != null && !imagenesUrls.isEmpty()) {
                         imageAdapter = new com.example.connectifyproject.adapters.TourImageAdapter();
                         binding.recyclerViewImagenes.setLayoutManager(
                             new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
                         );
                         binding.recyclerViewImagenes.setAdapter(imageAdapter);
                         imageAdapter.setImages(imagenesUrls);
+                    } else if ((imagenesUrls == null || imagenesUrls.isEmpty()) && "confirmado".equals(tourTipo)) {
+                        // Solo para confirmados, intentar cargar desde la oferta original
+                        String ofertaTourId = documentSnapshot.getString("ofertaTourId");
+                        if (ofertaTourId != null) {
+                            cargarImagenesDesdeOferta(ofertaTourId);
+                        }
                     }
                     
                     // Cargar itinerario
@@ -257,13 +262,22 @@ public class admin_tour_details extends AppCompatActivity implements OnMapReadyC
                     if (titulo != null) binding.tvTourNombre.setText(titulo);
                     if (descripcion != null) binding.tvTourDescripcion.setText(descripcion);
                     
-                    // ✅ Mostrar motivo de cancelación si el tour está cancelado
+                    // ✅ Mostrar motivo de cancelación y fecha si el tour está cancelado
                     String estadoTour = documentSnapshot.getString("estado");
                     if ("cancelado".equalsIgnoreCase(estadoTour)) {
                         String motivoCancelacion = documentSnapshot.getString("motivoCancelacion");
+                        Timestamp fechaCancelacionTs = documentSnapshot.getTimestamp("fechaCancelacion");
+                        String fechaCancelacionStr = "";
+                        if (fechaCancelacionTs != null) {
+                            fechaCancelacionStr = dateFormat.format(fechaCancelacionTs.toDate());
+                        }
+                        
                         if (motivoCancelacion != null && !motivoCancelacion.isEmpty()) {
                             String tipoCancelacion = motivoCancelacion.toLowerCase().contains("manual") ? "manual" : "automática";
                             String mensajeCancelacion = "\n\n❌ Cancelación " + tipoCancelacion + ": " + motivoCancelacion;
+                            if (!fechaCancelacionStr.isEmpty()) {
+                                mensajeCancelacion += "\n📅 Fecha de cancelación: " + fechaCancelacionStr;
+                            }
                             binding.tvTourDescripcion.setText(descripcion + mensajeCancelacion);
                         }
                     }
@@ -308,6 +322,10 @@ public class admin_tour_details extends AppCompatActivity implements OnMapReadyC
                         guiaAsignadoData = (Map<String, Object>) documentSnapshot.get("guiaAsignado");
                         // Guardar participantes del campo participantes
                         participantesData = (List<Map<String, Object>>) documentSnapshot.get("participantes");
+                    } else if ("cancelado".equals(tourTipo)) {
+                        // Para tours cancelados, guardar guía del campo guiaAsignado (aún está asignado)
+                        guiaAsignadoData = (Map<String, Object>) documentSnapshot.get("guiaAsignado");
+                        // No cargar participantes para cancelados (array vacío)
                     } else if ("pendiente".equals(tourTipo)) {
                         // Para tours pendientes, guardar ID del guía seleccionado
                         guiaSeleccionadoId = documentSnapshot.getString("guiaSeleccionadoActual");
@@ -505,8 +523,11 @@ public class admin_tour_details extends AppCompatActivity implements OnMapReadyC
                 Toast.makeText(admin_tour_details.this, 
                     "✅ " + message, Toast.LENGTH_LONG).show();
                 
-                // Recargar datos del tour para mostrar estado actualizado
-                loadTourData();
+                // Redirigir a admin_tours para que se actualice la lista
+                Intent intent = new Intent(admin_tour_details.this, admin_tours.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
+                finish();
             }
             
             @Override
@@ -525,8 +546,8 @@ public class admin_tour_details extends AppCompatActivity implements OnMapReadyC
         binding.tabLayoutDetails.addTab(binding.tabLayoutDetails.newTab().setText("Info"));
         binding.tabLayoutDetails.addTab(binding.tabLayoutDetails.newTab().setText("Itinerario"));
         
-        // ✅ Agregar pestaña Guía para tours sin_asignar, pendiente y confirmado
-        if ("sin_asignar".equals(tourTipo) || "pendiente".equals(tourTipo) || "confirmado".equals(tourTipo)) {
+        // ✅ Agregar pestaña Guía para tours sin_asignar, pendiente, confirmado y cancelado
+        if ("sin_asignar".equals(tourTipo) || "pendiente".equals(tourTipo) || "confirmado".equals(tourTipo) || "cancelado".equals(tourTipo)) {
             binding.tabLayoutDetails.addTab(binding.tabLayoutDetails.newTab().setText("Guía"));
         }
         
@@ -634,10 +655,10 @@ public class admin_tour_details extends AppCompatActivity implements OnMapReadyC
         android.util.Log.d("AdminTourDetails", "setupGuiaContent - tourTipo: " + tourTipo);
         
         // Cargar información del guía según el tipo de tour
-        if ("confirmado".equals(tourTipo)) {
-            // Para tours confirmados, obtener guía del campo guiaAsignado
+        if ("confirmado".equals(tourTipo) || "cancelado".equals(tourTipo)) {
+            // Para tours confirmados y cancelados, obtener guía del campo guiaAsignado
             if (guiaAsignadoData != null) {
-                android.util.Log.d("AdminTourDetails", "Mostrando info guía confirmado");
+                android.util.Log.d("AdminTourDetails", "Mostrando info guía " + tourTipo);
                 mostrarInfoGuiaConfirmado(guiaAsignadoData);
             } else {
                 binding.tvGuiaNoAsignada.setVisibility(View.VISIBLE);

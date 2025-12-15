@@ -1789,7 +1789,10 @@ private void crearTourAsignadoDesdeDocumento(DocumentSnapshot ofertaDoc, Documen
                 String guiaId = null;
                 Map<String, Object> guiaAsignado = (Map<String, Object>) doc.get("guiaAsignado");
                 if (guiaAsignado != null) {
-                    guiaId = (String) guiaAsignado.get("id");
+                    guiaId = (String) guiaAsignado.get("identificadorUsuario");
+                    if (guiaId == null) {
+                        guiaId = (String) guiaAsignado.get("id"); // Fallback para compatibilidad
+                    }
                 }
                 
                 Double pagoOriginal = doc.getDouble("pagoGuia");
@@ -1852,6 +1855,7 @@ private void crearTourAsignadoDesdeDocumento(DocumentSnapshot ofertaDoc, Documen
                                             List<Map<String, Object>> participantes,
                                             Object fechaRealizacion, String horaInicio, String horaFin,
                                             String motivo, OperationCallback callback) {
+        // ✅ Crear pago con la estructura exacta requerida
         Map<String, Object> pago = new HashMap<>();
         pago.put("fecha", Timestamp.now());
         pago.put("monto", monto);
@@ -1859,8 +1863,6 @@ private void crearTourAsignadoDesdeDocumento(DocumentSnapshot ofertaDoc, Documen
         pago.put("tipoPago", "A Guia");
         pago.put("uidUsuarioPaga", empresaId);
         pago.put("uidUsuarioRecibe", guiaId);
-        pago.put("tourId", tourId);
-        pago.put("motivoPago", "Compensación por cancelación manual (15%)");
         
         db.collection("pagos")
             .add(pago)
