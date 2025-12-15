@@ -167,16 +167,19 @@ public class admin_select_guide extends AppCompatActivity {
                 case "frances":
                     binding.chipFrances.setChecked(true);
                     break;
+                case "alemán":
+                case "aleman":
+                    binding.chipAleman.setChecked(true);
+                    break;
                 case "italiano":
                     binding.chipItaliano.setChecked(true);
                     break;
-                case "mandarín":
-                case "mandarin":
-                    binding.chipMandarin.setChecked(true);
+                case "chino":
+                    binding.chipChino.setChecked(true);
                     break;
-                case "portugués":
-                case "portugues":
-                    binding.chipPortugues.setChecked(true);
+                case "japonés":
+                case "japones":
+                    binding.chipJapones.setChecked(true);
                     break;
             }
         }
@@ -350,9 +353,10 @@ public class admin_select_guide extends AppCompatActivity {
         if (binding.chipEspanol.isChecked()) selectedLanguages.add("Español");
         if (binding.chipIngles.isChecked()) selectedLanguages.add("Inglés");
         if (binding.chipFrances.isChecked()) selectedLanguages.add("Francés");
+        if (binding.chipAleman.isChecked()) selectedLanguages.add("Alemán");
         if (binding.chipItaliano.isChecked()) selectedLanguages.add("Italiano");
-        if (binding.chipMandarin.isChecked()) selectedLanguages.add("Chino");
-        if (binding.chipPortugues.isChecked()) selectedLanguages.add("Japonés");
+        if (binding.chipChino.isChecked()) selectedLanguages.add("Chino");
+        if (binding.chipJapones.isChecked()) selectedLanguages.add("Japonés");
 
         filteredGuides.clear();
         

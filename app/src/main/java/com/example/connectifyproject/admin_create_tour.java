@@ -811,16 +811,6 @@ public class admin_create_tour extends AppCompatActivity implements OnMapReadyCa
             Toast.makeText(this, "Agregue al menos un lugar al recorrido", Toast.LENGTH_SHORT).show();
             return false;
         }
-        
-        // Validar que todos los lugares tengan actividades
-        for (int i = 0; i < selectedPlaces.size(); i++) {
-            TourPlace place = selectedPlaces.get(i);
-            if (place.getActivities() == null || place.getActivities().trim().isEmpty()) {
-                Toast.makeText(this, "El lugar '" + place.getName() + "' debe tener al menos una actividad", Toast.LENGTH_LONG).show();
-                return false;
-            }
-        }
-        
         return true;
     }
 
@@ -830,6 +820,16 @@ public class admin_create_tour extends AppCompatActivity implements OnMapReadyCa
             Toast.makeText(this, "Seleccione la fecha de realizacion", Toast.LENGTH_SHORT).show();
             return false;
         }
+        
+        // Validar que todos los lugares del itinerario tengan actividades
+        for (int i = 0; i < selectedPlaces.size(); i++) {
+            TourPlace place = selectedPlaces.get(i);
+            if (place.getActivities() == null || place.getActivities().trim().isEmpty()) {
+                Toast.makeText(this, "El lugar '" + place.getName() + "' debe tener al menos una actividad. Complete las actividades en la lista inferior.", Toast.LENGTH_LONG).show();
+                return false;
+            }
+        }
+        
         return true;
     }
 
