@@ -488,6 +488,37 @@ public class admin_tour_details extends AppCompatActivity implements OnMapReadyC
      * Mostrar diálogo de confirmación para cancelar tour
      */
     private void mostrarDialogoCancelacion() {
+        // ✅ Primero verificar que el tour aún esté en estado válido
+        db.collection("tours_asignados").document(tourId).get()
+            .addOnSuccessListener(doc -> {
+                if (!doc.exists()) {
+                    Toast.makeText(this, "❌ El tour no existe", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                
+                String estadoActual = doc.getString("estado");
+                if (estadoActual == null || (!estadoActual.equals("confirmado") && 
+                    !estadoActual.equals("pendiente") && !estadoActual.equals("programado"))) {
+                    Toast.makeText(this, 
+                        "⚠️ Este tour ya no se puede cancelar (estado: " + estadoActual + ")", 
+                        Toast.LENGTH_LONG).show();
+                    // Redirigir a admin_tours
+                    Intent intent = new Intent(this, admin_tours.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(intent);
+                    finish();
+                    return;
+                }
+                
+                // Estado válido, mostrar diálogo
+                mostrarDialogoConfirmacionCancelacion();
+            })
+            .addOnFailureListener(e -> {
+                Toast.makeText(this, "Error al verificar estado del tour", Toast.LENGTH_SHORT).show();
+            });
+    }
+    
+    private void mostrarDialogoConfirmacionCancelacion() {
         android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(this);
         builder.setTitle("⚠️ Cancelar Tour");
         builder.setMessage("¿Estás seguro de que deseas cancelar este tour?\n\n" +

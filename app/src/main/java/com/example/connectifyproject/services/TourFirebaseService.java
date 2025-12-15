@@ -1677,13 +1677,17 @@ private void crearTourAsignadoDesdeDocumento(DocumentSnapshot ofertaDoc, Documen
                         String guiaId = null;
                         Map<String, Object> guiaAsignado = (Map<String, Object>) doc.get("guiaAsignado");
                         if (guiaAsignado != null) {
-                            guiaId = (String) guiaAsignado.get("id");
+                            guiaId = (String) guiaAsignado.get("identificadorUsuario");
+                            if (guiaId == null) {
+                                guiaId = (String) guiaAsignado.get("id"); // Fallback
+                            }
                         }
                         
                         Double pagoOriginal = doc.getDouble("pagoGuia");
                         double pagoReducido = pagoOriginal != null ? pagoOriginal * 0.15 : 0;
                         String titulo = doc.getString("titulo");
                         String empresaId = doc.getString("empresaId");
+                        String horaFin = doc.getString("horaFin");
                         
                         // 1. Actualizar estado del tour
                         Map<String, Object> updates = new HashMap<>();
@@ -1704,11 +1708,19 @@ private void crearTourAsignadoDesdeDocumento(DocumentSnapshot ofertaDoc, Documen
                             .addOnSuccessListener(aVoid -> {
                                 Log.d(TAG, "✅ Tour cancelado automáticamente. Pago reducido a 15%");
                                 
-                                // 2. Crear registro de pago (15% al guía)
+                                // 2. Crear registro de pago (15% al guía) y mover participantes
                                 if (guiaIdFinal != null && pagoReducido > 0) {
-                                    crearPagoCancelacion(tourId, guiaIdFinal, empresaIdFinal, pagoReducido, titulo, callback);
+                                    crearPagoManualCancelacion(tourId, guiaIdFinal, empresaIdFinal, pagoReducido, titulo, 
+                                        participantes, fechaRealizacion, horaInicio, horaFin, 
+                                        "Cancelación automática por falta de participantes", callback);
                                 } else {
-                                    callback.onSuccess("Tour cancelado. Pago del guía: S/. " + String.format("%.2f", pagoReducido));
+                                    // Mover participantes sin crear pago
+                                    if (participantes != null && !participantes.isEmpty()) {
+                                        moverParticipantesACanceladas(tourId, participantes, titulo, fechaRealizacion, horaInicio, horaFin, 
+                                            "Cancelación automática por falta de participantes", callback);
+                                    } else {
+                                        callback.onSuccess("Tour cancelado automáticamente");
+                                    }
                                 }
                             })
                             .addOnFailureListener(e -> {
@@ -1731,29 +1743,7 @@ private void crearTourAsignadoDesdeDocumento(DocumentSnapshot ofertaDoc, Documen
     /**
      * Crear registro de pago cuando se cancela un tour (15% al guía)
      */
-    private void crearPagoCancelacion(String tourId, String guiaId, String empresaId, 
-                                      double monto, String nombreTour, OperationCallback callback) {
-        Map<String, Object> pago = new HashMap<>();
-        pago.put("fecha", Timestamp.now());
-        pago.put("monto", monto);
-        pago.put("nombreTour", nombreTour != null ? nombreTour : "Tour cancelado");
-        pago.put("tipoPago", "A Guia");
-        pago.put("uidUsuarioPaga", empresaId); // La empresa/admin paga
-        pago.put("uidUsuarioRecibe", guiaId);  // El guía recibe
-        pago.put("tourId", tourId);
-        pago.put("motivoPago", "Compensación por cancelación de tour (15%)");
-        
-        db.collection("pagos")
-            .add(pago)
-            .addOnSuccessListener(docRef -> {
-                Log.d(TAG, "✅ Pago de cancelación registrado: S/. " + monto);
-                callback.onSuccess("Tour cancelado. Pago compensatorio registrado: S/. " + String.format("%.2f", monto));
-            })
-            .addOnFailureListener(e -> {
-                Log.e(TAG, "⚠️ Error registrando pago de cancelación", e);
-                callback.onSuccess("Tour cancelado, pero hubo error al registrar el pago");
-            });
-    }
+    // Método eliminado - ahora se usa crearPagoManualCancelacion para ambos tipos de cancelación
     
     /**
      * ❌ CANCELACIÓN MANUAL DE TOUR POR GUÍA

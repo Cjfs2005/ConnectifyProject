@@ -448,13 +448,165 @@ public class cliente_tour_detalle extends AppCompatActivity implements Cliente_S
                     }
                 }
                 
-                // No tiene reserva, puede continuar
-                navigateToPaymentMethod();
+                // No tiene reserva, verificar cruces horarios
+                verificarCrucesHorarios(currentUser.getUid());
             })
             .addOnFailureListener(e -> {
                 Toast.makeText(this, 
                     "Error al verificar reservas: " + e.getMessage(), 
                     Toast.LENGTH_SHORT).show();
             });
+    }
+    
+    private void verificarCrucesHorarios(String clienteId) {
+        // Obtener fecha y horario del tour actual
+        String fechaTourOriginal = tour.getDate(); // Puede venir como dd/MM/yyyy o dd-MM-yyyy
+        String horaInicio = tour.getStartTime(); // HH:mm
+        String horaFin = tour.getEndTime(); // HH:mm
+        
+        // Normalizar formato de fecha a dd-MM-yyyy (reemplazar / por -)
+        String fechaTour = fechaTourOriginal;
+        if (fechaTour != null && fechaTour.contains("/")) {
+            fechaTour = fechaTour.replace("/", "-");
+        }
+        
+        // Variable final para usar en lambda
+        final String fechaTourFinal = fechaTour;
+        
+        android.util.Log.d("ClienteTourDetalle", "=== INICIO VERIFICACIÓN CRUCES ===");
+        android.util.Log.d("ClienteTourDetalle", "ClienteId: " + clienteId);
+        android.util.Log.d("ClienteTourDetalle", "Tour actual ID: " + tour.getId());
+        android.util.Log.d("ClienteTourDetalle", "Fecha tour actual (normalizada): " + fechaTourFinal);
+        android.util.Log.d("ClienteTourDetalle", "Horario tour actual: " + horaInicio + " - " + horaFin);
+        
+        if (fechaTourFinal == null || horaInicio == null || horaFin == null) {
+            // Si falta información, permitir continuar
+            android.util.Log.d("ClienteTourDetalle", "⚠️ Faltan datos de horario, continuando...");
+            navigateToPaymentMethod();
+            return;
+        }
+        
+        // Buscar todos los tours donde el cliente tiene reservas
+        db.collection("tours_asignados")
+            .whereEqualTo("estado", "confirmado")
+            .get()
+            .addOnSuccessListener(querySnapshot -> {
+                android.util.Log.d("ClienteTourDetalle", "Tours confirmados en BD: " + querySnapshot.size());
+                
+                boolean hayConflicto = false;
+                String tourConflicto = "";
+                
+                for (com.google.firebase.firestore.DocumentSnapshot doc : querySnapshot.getDocuments()) {
+                    String docId = doc.getId();
+                    android.util.Log.d("ClienteTourDetalle", "--- Revisando tour: " + docId);
+                    
+                    // Saltar el tour actual
+                    if (docId.equals(tour.getId())) {
+                        android.util.Log.d("ClienteTourDetalle", "  Es el tour actual, saltando...");
+                        continue;
+                    }
+                    
+                    List<Map<String, Object>> participantes = 
+                        (List<Map<String, Object>>) doc.get("participantes");
+                    
+                    android.util.Log.d("ClienteTourDetalle", "  Participantes: " + (participantes != null ? participantes.size() : 0));
+                    
+                    if (participantes != null && !participantes.isEmpty()) {
+                        // Verificar si el cliente está en este tour
+                        boolean clienteEnTour = false;
+                        for (Map<String, Object> participante : participantes) {
+                            String pClienteId = (String) participante.get("clienteId");
+                            android.util.Log.d("ClienteTourDetalle", "    Participante clienteId: " + pClienteId);
+                            if (clienteId.equals(pClienteId)) {
+                                clienteEnTour = true;
+                                android.util.Log.d("ClienteTourDetalle", "  ✓ CLIENTE ENCONTRADO EN ESTE TOUR");
+                                break;
+                            }
+                        }
+                        
+                        if (clienteEnTour) {
+                            // Verificar cruce horario
+                            String fechaOtroTour = null;
+                            Object fechaObj = doc.get("fechaRealizacion");
+                            android.util.Log.d("ClienteTourDetalle", "  fechaRealizacion tipo: " + (fechaObj != null ? fechaObj.getClass().getName() : "null"));
+                            
+                            if (fechaObj instanceof com.google.firebase.Timestamp) {
+                                java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd-MM-yyyy", java.util.Locale.getDefault());
+                                fechaOtroTour = sdf.format(((com.google.firebase.Timestamp) fechaObj).toDate());
+                            } else if (fechaObj instanceof String) {
+                                fechaOtroTour = (String) fechaObj;
+                            }
+                            
+                            String horaInicioOtro = doc.getString("horaInicio");
+                            String horaFinOtro = doc.getString("horaFin");
+                            
+                            android.util.Log.d("ClienteTourDetalle", "  Fecha otro tour: " + fechaOtroTour);
+                            android.util.Log.d("ClienteTourDetalle", "  Horario otro tour: " + horaInicioOtro + " - " + horaFinOtro);
+                            android.util.Log.d("ClienteTourDetalle", "  ¿Misma fecha? " + (fechaTourFinal != null && fechaTourFinal.equals(fechaOtroTour)));
+                            
+                            // Verificar si es la misma fecha
+                            if (fechaTourFinal != null && fechaTourFinal.equals(fechaOtroTour)) {
+                                // Verificar cruce de horarios
+                                if (hayConflictoHorario(horaInicio, horaFin, horaInicioOtro, horaFinOtro)) {
+                                    hayConflicto = true;
+                                    tourConflicto = doc.getString("titulo");
+                                    android.util.Log.d("ClienteTourDetalle", "  ❌ ¡CONFLICTO DETECTADO con: " + tourConflicto);
+                                    break;
+                                } else {
+                                    android.util.Log.d("ClienteTourDetalle", "  ✓ Misma fecha pero NO hay conflicto de horario");
+                                }
+                            }
+                        } else {
+                            android.util.Log.d("ClienteTourDetalle", "  Cliente NO está en este tour");
+                        }
+                    }
+                }
+                
+                android.util.Log.d("ClienteTourDetalle", "=== FIN VERIFICACIÓN ===");
+                android.util.Log.d("ClienteTourDetalle", "Resultado: " + (hayConflicto ? "HAY CONFLICTO" : "NO HAY CONFLICTO"));
+                
+                if (hayConflicto) {
+                    Toast.makeText(this, 
+                        "⚠️ Este tour se cruza en horario con tu reserva de: " + tourConflicto, 
+                        Toast.LENGTH_LONG).show();
+                } else {
+                    navigateToPaymentMethod();
+                }
+            })
+            .addOnFailureListener(e -> {
+                android.util.Log.e("ClienteTourDetalle", "❌ Error verificando cruces", e);
+                Toast.makeText(this, 
+                    "Error al verificar cruces horarios: " + e.getMessage(), 
+                    Toast.LENGTH_SHORT).show();
+            });
+    }
+    
+    private boolean hayConflictoHorario(String inicio1, String fin1, String inicio2, String fin2) {
+        if (inicio1 == null || fin1 == null || inicio2 == null || fin2 == null) {
+            android.util.Log.d("ClienteTourDetalle", "Datos nulos en hayConflictoHorario");
+            return false;
+        }
+        
+        try {
+            java.text.SimpleDateFormat timeFormat = new java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault());
+            java.util.Date inicio1Date = timeFormat.parse(inicio1);
+            java.util.Date fin1Date = timeFormat.parse(fin1);
+            java.util.Date inicio2Date = timeFormat.parse(inicio2);
+            java.util.Date fin2Date = timeFormat.parse(fin2);
+            
+            // Verificar si hay solapamiento
+            // HAY conflicto si: inicio1 < fin2 Y fin1 > inicio2
+            boolean hayConflicto = inicio1Date.before(fin2Date) && fin1Date.after(inicio2Date);
+            
+            android.util.Log.d("ClienteTourDetalle", "Comparando horarios:");
+            android.util.Log.d("ClienteTourDetalle", "  Tour 1: " + inicio1 + " - " + fin1);
+            android.util.Log.d("ClienteTourDetalle", "  Tour 2: " + inicio2 + " - " + fin2);
+            android.util.Log.d("ClienteTourDetalle", "  ¿Hay conflicto? " + hayConflicto);
+            
+            return hayConflicto;
+        } catch (Exception e) {
+            android.util.Log.e("ClienteTourDetalle", "Error parseando horas: " + inicio1 + ", " + fin1 + ", " + inicio2 + ", " + fin2, e);
+            return false;
+        }
     }
 }
