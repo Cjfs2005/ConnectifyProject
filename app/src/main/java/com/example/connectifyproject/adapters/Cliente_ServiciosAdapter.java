@@ -72,17 +72,34 @@ public class Cliente_ServiciosAdapter extends RecyclerView.Adapter<Cliente_Servi
             });
         }
         
-        // Ver más click listener
+        // Ver más click listener - Mostrar diálogo con descripción
         holder.tvVerMas.setOnClickListener(v -> {
-            Intent intent = new Intent(context, cliente_servicio_detalle.class);
-            intent.putExtra("servicio_object", servicio);
-            context.startActivity(intent);
+            mostrarDialogoDescripcion(servicio);
         });
     }
 
     @Override
     public int getItemCount() {
         return servicios.size();
+    }
+    
+    /**
+     * Mostrar diálogo emergente con descripción completa del servicio
+     */
+    private void mostrarDialogoDescripcion(Cliente_ServicioAdicional servicio) {
+        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(context);
+        builder.setTitle(servicio.getName());
+        
+        String descripcion = servicio.getDescription();
+        if (descripcion == null || descripcion.trim().isEmpty()) {
+            descripcion = "Este servicio no cuenta con descripción.";
+        }
+        
+        builder.setMessage(descripcion);
+        builder.setPositiveButton("Cerrar", (dialog, which) -> dialog.dismiss());
+        
+        android.app.AlertDialog dialog = builder.create();
+        dialog.show();
     }
 
     static class ServicioViewHolder extends RecyclerView.ViewHolder {

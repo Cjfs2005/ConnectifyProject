@@ -143,11 +143,6 @@ public class cliente_metodo_pago extends AppCompatActivity {
                                 if (paymentMethod != null) {
                                     paymentMethod.setId(document.getId());
                                     paymentMethods.add(paymentMethod);
-                                    
-                                    // Si es el método por defecto, seleccionarlo automáticamente
-                                    if (paymentMethod.isDefault()) {
-                                        selectedPaymentMethod = paymentMethod;
-                                    }
                                 }
                             } catch (Exception e) {
                                 android.util.Log.e("PaymentMethods", "Error parsing document: " + document.getId(), e);
@@ -267,9 +262,9 @@ public class cliente_metodo_pago extends AppCompatActivity {
                         
                         // Crear objeto participante
                         java.util.Map<String, Object> participante = new java.util.HashMap<>();
-                        participante.put("usuarioId", currentUser.getUid());
+                        participante.put("clienteId", currentUser.getUid()); // ✅ Cambio: usuarioId → clienteId
                         participante.put("nombre", nombreCompleto != null ? nombreCompleto : "Cliente");
-                        participante.put("email", email != null ? email : "");
+                        participante.put("correo", email != null ? email : ""); // ✅ Cambio: email → correo
                         participante.put("telefono", telefono != null ? telefono : "");
                         participante.put("tipoDocumento", tipoDocumento != null ? tipoDocumento : "DNI");
                         participante.put("numeroDocumento", numeroDocumento != null ? numeroDocumento : "");
@@ -277,6 +272,25 @@ public class cliente_metodo_pago extends AppCompatActivity {
                         participante.put("fechaInscripcion", com.google.firebase.Timestamp.now());
                         participante.put("metodoPagoId", selectedPaymentMethod.getId());
                         participante.put("montoTotal", totalPrice);
+                        
+                        // ✅ Agregar servicios adicionales seleccionados
+                        ArrayList<String> serviciosIds = getIntent().getStringArrayListExtra("servicios_ids");
+                        ArrayList<String> serviciosNombres = getIntent().getStringArrayListExtra("servicios_nombres");
+                        ArrayList<Double> serviciosPrecios = (ArrayList<Double>) getIntent().getSerializableExtra("servicios_precios");
+                        
+                        if (serviciosIds != null && !serviciosIds.isEmpty()) {
+                            java.util.List<java.util.Map<String, Object>> serviciosSeleccionados = new java.util.ArrayList<>();
+                            for (int i = 0; i < serviciosIds.size(); i++) {
+                                java.util.Map<String, Object> servicio = new java.util.HashMap<>();
+                                servicio.put("servicioId", serviciosIds.get(i));
+                                servicio.put("nombre", serviciosNombres.get(i));
+                                servicio.put("precio", serviciosPrecios.get(i));
+                                serviciosSeleccionados.add(servicio);
+                            }
+                            participante.put("serviciosAdicionales", serviciosSeleccionados);
+                        } else {
+                            participante.put("serviciosAdicionales", new java.util.ArrayList<>());
+                        }
                         
                         // Agregar participante al tour
                         addParticipantToTour(participante);

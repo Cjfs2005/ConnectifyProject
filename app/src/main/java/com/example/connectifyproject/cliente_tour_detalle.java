@@ -387,11 +387,18 @@ public class cliente_tour_detalle extends AppCompatActivity implements Cliente_S
             return;
         }
         
-        // Calcular precio total
+        // Calcular precio de servicios y recopilar seleccionados
         double serviciosPrice = 0.0;
+        ArrayList<String> serviciosSeleccionadosIds = new ArrayList<>();
+        ArrayList<String> serviciosSeleccionadosNombres = new ArrayList<>();
+        ArrayList<Double> serviciosSeleccionadosPrecios = new ArrayList<>();
+        
         for (Cliente_ServicioAdicional servicio : serviciosAdicionales) {
             if (servicio.isSelected()) {
                 serviciosPrice += servicio.getPrice();
+                serviciosSeleccionadosIds.add(servicio.getId());
+                serviciosSeleccionadosNombres.add(servicio.getName());
+                serviciosSeleccionadosPrecios.add(servicio.getPrice());
             }
         }
         double totalPerPerson = tour.getPrecio() + serviciosPrice;
@@ -403,6 +410,9 @@ public class cliente_tour_detalle extends AppCompatActivity implements Cliente_S
         intent.putExtra("tour_title", tour.getTitulo());
         intent.putExtra("total_price", String.format("%.2f", totalPrice));
         intent.putExtra("people_count", peopleCount);
+        intent.putStringArrayListExtra("servicios_ids", serviciosSeleccionadosIds);
+        intent.putStringArrayListExtra("servicios_nombres", serviciosSeleccionadosNombres);
+        intent.putExtra("servicios_precios", serviciosSeleccionadosPrecios);
         
         startActivity(intent);
     }

@@ -117,6 +117,22 @@
                     app:icon="@drawable/ic_person_add"
                     app:iconGravity="textStart" />
 
+                <!-- Botón Cancelar Tour (solo visible para tours confirmados/pendientes) -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnCancelarTour"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    android:text="Cancelar Tour"
+                    android:textColor="#F44336"
+                    android:visibility="gone"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    app:strokeColor="#F44336"
+                    app:strokeWidth="2dp"
+                    app:icon="@drawable/ic_cancel"
+                    app:iconTint="#F44336"
+                    app:iconGravity="textStart" />
+
             </LinearLayout>
 
             <!-- Tabs para diferentes secciones -->

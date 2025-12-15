@@ -354,6 +354,80 @@ public class admin_tour_details extends AppCompatActivity implements OnMapReadyC
             // Ocultar botón para tours en borrador
             binding.btnAsignarGuia.setVisibility(View.GONE);
         }
+        
+        // Mostrar botón "Cancelar Tour" solo si el tour está confirmado/pendiente/programado
+        if (tourEstado != null && (tourEstado.equalsIgnoreCase("confirmado") || 
+            tourEstado.equalsIgnoreCase("pendiente") || 
+            tourEstado.equalsIgnoreCase("programado"))) {
+            binding.btnCancelarTour.setVisibility(View.VISIBLE);
+            binding.btnCancelarTour.setOnClickListener(v -> {
+                mostrarDialogoCancelacion();
+            });
+        } else {
+            binding.btnCancelarTour.setVisibility(View.GONE);
+        }
+    }
+    
+    /**
+     * Mostrar diálogo de confirmación para cancelar tour
+     */
+    private void mostrarDialogoCancelacion() {
+        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(this);
+        builder.setTitle("⚠️ Cancelar Tour");
+        builder.setMessage("¿Estás seguro de que deseas cancelar este tour?\n\n" +
+                "• Se notificará a todos los participantes\n" +
+                "• Se registrará un pago del 15% al guía como compensación\n" +
+                "• Las reservas se moverán a canceladas");
+        
+        // Input para motivo de cancelación (opcional)
+        final android.widget.EditText input = new android.widget.EditText(this);
+        input.setHint("Motivo de cancelación (opcional)");
+        input.setPadding(50, 20, 50, 20);
+        builder.setView(input);
+        
+        builder.setPositiveButton("Sí, cancelar", (dialog, which) -> {
+            String motivo = input.getText().toString().trim();
+            if (motivo.isEmpty()) {
+                motivo = "Cancelación manual por administrador";
+            }
+            ejecutarCancelacion(motivo);
+        });
+        
+        builder.setNegativeButton("No", (dialog, which) -> dialog.dismiss());
+        
+        builder.show();
+    }
+    
+    /**
+     * Ejecutar cancelación del tour usando TourFirebaseService
+     */
+    private void ejecutarCancelacion(String motivo) {
+        android.app.ProgressDialog progressDialog = new android.app.ProgressDialog(this);
+        progressDialog.setMessage("Cancelando tour...");
+        progressDialog.setCancelable(false);
+        progressDialog.show();
+        
+        com.example.connectifyproject.services.TourFirebaseService tourService = 
+            new com.example.connectifyproject.services.TourFirebaseService();
+        
+        tourService.cancelarTourManual(tourId, motivo, new com.example.connectifyproject.services.TourFirebaseService.OperationCallback() {
+            @Override
+            public void onSuccess(String message) {
+                progressDialog.dismiss();
+                Toast.makeText(admin_tour_details.this, 
+                    "✅ " + message, Toast.LENGTH_LONG).show();
+                
+                // Recargar datos del tour para mostrar estado actualizado
+                loadTourData();
+            }
+            
+            @Override
+            public void onError(String error) {
+                progressDialog.dismiss();
+                Toast.makeText(admin_tour_details.this, 
+                    "❌ " + error, Toast.LENGTH_LONG).show();
+            }
+        });
     }
 
     private void setupTabs() {

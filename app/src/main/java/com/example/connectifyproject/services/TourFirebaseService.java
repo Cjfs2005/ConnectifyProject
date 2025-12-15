@@ -1655,6 +1655,7 @@ private void crearTourAsignadoDesdeDocumento(DocumentSnapshot ofertaDoc, Documen
                         updates.put("motivoCancelacion", "Cancelación automática por falta de participantes");
                         updates.put("fechaCancelacion", Timestamp.now());
                         updates.put("fechaActualizacion", Timestamp.now());
+                        updates.put("habilitado", false);
                         
                         final String guiaIdFinal = guiaId;
                         final String empresaIdFinal = empresaId;
@@ -1714,6 +1715,183 @@ private void crearTourAsignadoDesdeDocumento(DocumentSnapshot ofertaDoc, Documen
                 Log.e(TAG, "⚠️ Error registrando pago de cancelación", e);
                 callback.onSuccess("Tour cancelado, pero hubo error al registrar el pago");
             });
+    }
+    
+    /**
+     * ❌ CANCELACIÓN MANUAL DE TOUR POR GUÍA
+     * Permite al guía cancelar un tour manualmente. 
+     * Crea pago del 15%, mueve participantes a reservas_canceladas
+     */
+    public void cancelarTourManual(String tourId, String motivoCancelacion, OperationCallback callback) {
+        if (motivoCancelacion == null || motivoCancelacion.trim().isEmpty()) {
+            motivoCancelacion = "Cancelación manual";
+        }
+        
+        final String motivoFinal = motivoCancelacion;
+        
+        db.collection(COLLECTION_ASIGNADOS)
+            .document(tourId)
+            .get()
+            .addOnSuccessListener(doc -> {
+                if (!doc.exists()) {
+                    callback.onError("Tour no encontrado");
+                    return;
+                }
+                
+                String estado = doc.getString("estado");
+                
+                // Solo permitir cancelación si está en estados válidos
+                if (estado == null || (!estado.equals("confirmado") && !estado.equals("pendiente") && !estado.equals("programado"))) {
+                    callback.onError("No se puede cancelar un tour en estado: " + estado);
+                    return;
+                }
+                
+                // Obtener datos necesarios
+                List<Map<String, Object>> participantes = (List<Map<String, Object>>) doc.get("participantes");
+                String guiaId = null;
+                Map<String, Object> guiaAsignado = (Map<String, Object>) doc.get("guiaAsignado");
+                if (guiaAsignado != null) {
+                    guiaId = (String) guiaAsignado.get("id");
+                }
+                
+                Double pagoOriginal = doc.getDouble("pagoGuia");
+                double pagoReducido = pagoOriginal != null ? pagoOriginal * 0.15 : 0;
+                String titulo = doc.getString("titulo");
+                String empresaId = doc.getString("empresaId");
+                Object fechaRealizacion = doc.get("fechaRealizacion");
+                String horaInicio = doc.getString("horaInicio");
+                String horaFin = doc.getString("horaFin");
+                
+                // 1. Actualizar estado del tour
+                Map<String, Object> updates = new HashMap<>();
+                updates.put("estado", "cancelado");
+                updates.put("pagoGuia", pagoReducido);
+                updates.put("motivoCancelacion", motivoFinal);
+                updates.put("fechaCancelacion", Timestamp.now());
+                updates.put("fechaActualizacion", Timestamp.now());
+                updates.put("habilitado", false);
+                
+                final String guiaIdFinal = guiaId;
+                final String empresaIdFinal = empresaId;
+                final List<Map<String, Object>> participantesFinal = participantes;
+                
+                db.collection(COLLECTION_ASIGNADOS)
+                    .document(tourId)
+                    .update(updates)
+                    .addOnSuccessListener(aVoid -> {
+                        Log.d(TAG, "✅ Tour cancelado manualmente. Pago reducido a 15%");
+                        
+                        // 2. Crear registro de pago (15% al guía)
+                        if (guiaIdFinal != null && pagoReducido > 0) {
+                            crearPagoManualCancelacion(tourId, guiaIdFinal, empresaIdFinal, pagoReducido, titulo, 
+                                participantesFinal, fechaRealizacion, horaInicio, horaFin, motivoFinal, callback);
+                        } else {
+                            // Mover participantes sin crear pago
+                            if (participantesFinal != null && !participantesFinal.isEmpty()) {
+                                moverParticipantesACanceladas(tourId, participantesFinal, titulo, fechaRealizacion, horaInicio, horaFin, motivoFinal, callback);
+                            } else {
+                                callback.onSuccess("Tour cancelado exitosamente");
+                            }
+                        }
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.e(TAG, "Error cancelando tour manualmente", e);
+                        callback.onError("Error al cancelar tour: " + e.getMessage());
+                    });
+            })
+            .addOnFailureListener(e -> {
+                Log.e(TAG, "Error obteniendo tour para cancelar", e);
+                callback.onError("Error al obtener datos del tour: " + e.getMessage());
+            });
+    }
+    
+    /**
+     * Crear registro de pago para cancelación manual
+     */
+    private void crearPagoManualCancelacion(String tourId, String guiaId, String empresaId, 
+                                            double monto, String nombreTour,
+                                            List<Map<String, Object>> participantes,
+                                            Object fechaRealizacion, String horaInicio, String horaFin,
+                                            String motivo, OperationCallback callback) {
+        Map<String, Object> pago = new HashMap<>();
+        pago.put("fecha", Timestamp.now());
+        pago.put("monto", monto);
+        pago.put("nombreTour", nombreTour != null ? nombreTour : "Tour cancelado");
+        pago.put("tipoPago", "A Guia");
+        pago.put("uidUsuarioPaga", empresaId);
+        pago.put("uidUsuarioRecibe", guiaId);
+        pago.put("tourId", tourId);
+        pago.put("motivoPago", "Compensación por cancelación manual (15%)");
+        
+        db.collection("pagos")
+            .add(pago)
+            .addOnSuccessListener(docRef -> {
+                Log.d(TAG, "✅ Pago de cancelación manual registrado: S/. " + monto);
+                
+                // 3. Mover participantes a reservas_canceladas
+                if (participantes != null && !participantes.isEmpty()) {
+                    moverParticipantesACanceladas(tourId, participantes, nombreTour, fechaRealizacion, horaInicio, horaFin, motivo, callback);
+                } else {
+                    callback.onSuccess("Tour cancelado. Pago registrado: S/. " + String.format("%.2f", monto));
+                }
+            })
+            .addOnFailureListener(e -> {
+                Log.e(TAG, "⚠️ Error registrando pago de cancelación manual", e);
+                callback.onError("Error al registrar el pago: " + e.getMessage());
+            });
+    }
+    
+    /**
+     * Mover participantes a la colección reservas_canceladas
+     */
+    private void moverParticipantesACanceladas(String tourId, List<Map<String, Object>> participantes,
+                                              String nombreTour, Object fechaRealizacion,
+                                              String horaInicio, String horaFin,
+                                              String motivoCancelacion, OperationCallback callback) {
+        if (participantes == null || participantes.isEmpty()) {
+            callback.onSuccess("Tour cancelado sin participantes");
+            return;
+        }
+        
+        int totalParticipantes = participantes.size();
+        final int[] procesados = {0};
+        final boolean[] errorOcurrido = {false};
+        
+        for (Map<String, Object> participante : participantes) {
+            Map<String, Object> reservaCancelada = new HashMap<>();
+            reservaCancelada.put("tourId", tourId);
+            reservaCancelada.put("tourTitulo", nombreTour);
+            reservaCancelada.put("fechaRealizacion", fechaRealizacion);
+            reservaCancelada.put("horaInicio", horaInicio);
+            reservaCancelada.put("horaFin", horaFin);
+            reservaCancelada.put("fechaCancelacion", Timestamp.now());
+            reservaCancelada.put("motivoCancelacion", motivoCancelacion);
+            
+            // Copiar datos del participante
+            reservaCancelada.put("clienteId", participante.get("clienteId"));
+            reservaCancelada.put("nombre", participante.get("nombre"));
+            reservaCancelada.put("correo", participante.get("correo"));
+            reservaCancelada.put("numeroPersonas", participante.get("numeroPersonas"));
+            reservaCancelada.put("montoTotal", participante.get("montoTotal"));
+            
+            db.collection("reservas_canceladas")
+                .add(reservaCancelada)
+                .addOnSuccessListener(docRef -> {
+                    procesados[0]++;
+                    Log.d(TAG, "✅ Reserva movida a canceladas: " + procesados[0] + "/" + totalParticipantes);
+                    
+                    if (procesados[0] == totalParticipantes && !errorOcurrido[0]) {
+                        callback.onSuccess("Tour cancelado. " + totalParticipantes + " reservas movidas a canceladas.");
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    if (!errorOcurrido[0]) {
+                        errorOcurrido[0] = true;
+                        Log.e(TAG, "⚠️ Error moviendo reservas a canceladas", e);
+                        callback.onError("Tour cancelado, pero error al mover reservas: " + e.getMessage());
+                    }
+                });
+        }
     }
     
     /**
