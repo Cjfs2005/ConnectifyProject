@@ -4,6 +4,7 @@ import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.content.Intent;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -298,7 +299,7 @@ private void setupTourFromFirebase(DocumentSnapshot doc) {
                 // Botón "Ver más" si tiene servicios adicionales
                 if (servicios != null && !servicios.isEmpty()) {
                     Button verMasBtn = new Button(this);
-                    verMasBtn.setText("Ver servicios adicionales");
+                    verMasBtn.setText("Ver más");
                     verMasBtn.setTextSize(12);
                     verMasBtn.setAllCaps(false);
                     verMasBtn.setBackgroundColor(Color.parseColor("#E3F2FD"));
@@ -311,7 +312,21 @@ private void setupTourFromFirebase(DocumentSnapshot doc) {
                     verMasBtn.setLayoutParams(btnParams);
                     verMasBtn.setPadding(24, 12, 24, 12);
                     
-                    verMasBtn.setOnClickListener(v -> mostrarServiciosDialog(nombre, servicios));
+                    // Pasar también el monto total (viene como String desde Firebase)
+                    Object montoTotalObj = participante.get("montoTotal");
+                    double montoTotal = 0;
+                    if (montoTotalObj instanceof String) {
+                        try {
+                            montoTotal = Double.parseDouble((String) montoTotalObj);
+                        } catch (NumberFormatException e) {
+                            Log.e("GuiaTourDetail", "Error parseando montoTotal: " + montoTotalObj, e);
+                        }
+                    } else if (montoTotalObj instanceof Number) {
+                        montoTotal = ((Number) montoTotalObj).doubleValue();
+                    }
+                    
+                    final double montoFinal = montoTotal;
+                    verMasBtn.setOnClickListener(v -> mostrarDetalleReservaDialog(nombre, servicios, montoFinal));
                     participanteLayout.addView(verMasBtn);
                 }
                 
@@ -327,36 +342,30 @@ private void setupTourFromFirebase(DocumentSnapshot doc) {
     }
     
     /**
-     * ✅ Mostrar dialog con los servicios adicionales de un participante
+     * ✅ Mostrar dialog con servicios adicionales y monto total de la reserva
      */
-    private void mostrarServiciosDialog(String nombreParticipante, List<Map<String, Object>> servicios) {
-        StringBuilder serviciosTexto = new StringBuilder();
-        double totalServicios = 0;
+    private void mostrarDetalleReservaDialog(String nombreParticipante, List<Map<String, Object>> servicios, double montoTotal) {
+        StringBuilder detalleTexto = new StringBuilder();
         
+        // Mostrar servicios adicionales sin precio
         if (servicios != null && !servicios.isEmpty()) {
+            detalleTexto.append("📦 Servicios adicionales:\n\n");
             for (Map<String, Object> servicio : servicios) {
                 String nombre = (String) servicio.get("nombre");
-                Object precioObj = servicio.get("precio");
-                
-                double precio = 0;
-                if (precioObj instanceof Number) {
-                    precio = ((Number) precioObj).doubleValue();
-                    totalServicios += precio;
-                }
-                
-                serviciosTexto.append("• ").append(nombre != null ? nombre : "Servicio")
-                             .append(" - S/ ").append(String.format(Locale.getDefault(), "%.2f", precio))
-                             .append("\n");
+                detalleTexto.append("• ").append(nombre != null ? nombre : "Servicio").append("\n");
             }
-            
-            serviciosTexto.append("\nTotal: S/ ").append(String.format(Locale.getDefault(), "%.2f", totalServicios));
+            detalleTexto.append("\n");
         } else {
-            serviciosTexto.append("No hay servicios adicionales registrados.");
+            detalleTexto.append("📦 Servicios adicionales:\n\nNo hay servicios adicionales registrados.\n\n");
         }
         
+        // Mostrar monto total de la reserva
+        detalleTexto.append("💰 Monto total de la reserva:\n");
+        detalleTexto.append("S/ ").append(String.format(Locale.getDefault(), "%.2f", montoTotal));
+        
         new AlertDialog.Builder(this)
-            .setTitle("Servicios adicionales - " + (nombreParticipante != null ? nombreParticipante : "Participante"))
-            .setMessage(serviciosTexto.toString())
+            .setTitle("Detalle - " + (nombreParticipante != null ? nombreParticipante : "Participante"))
+            .setMessage(detalleTexto.toString())
             .setPositiveButton("Cerrar", null)
             .show();
     }

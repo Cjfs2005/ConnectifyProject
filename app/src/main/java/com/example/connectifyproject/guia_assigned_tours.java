@@ -394,7 +394,7 @@ public class guia_assigned_tours extends AppCompatActivity implements GuiaDateFi
             case "programado":
                 return "Programado";
             case "confirmado":
-                return "Programado";
+                return "Confirmado";
             case "en_progreso":
                 return "En Curso";
             case "finalizado":
