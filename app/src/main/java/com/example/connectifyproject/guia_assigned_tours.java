@@ -315,9 +315,16 @@ public class guia_assigned_tours extends AppCompatActivity implements GuiaDateFi
         // Determinar estado para UI
         String estadoUI = mapearEstadoParaUI(tourAsignado.getEstado());
         
-        // Número de participantes (manejar caso null de Firebase)
-        int numeroParticipantes = tourAsignado.getNumeroParticipantesTotal() != null ? 
-            tourAsignado.getNumeroParticipantesTotal() : 0;
+        // ✅ Calcular número de participantes sumando numeroPersonas de cada participante
+        int numeroParticipantes = 0;
+        if (tourAsignado.getParticipantes() != null) {
+            for (Map<String, Object> participante : tourAsignado.getParticipantes()) {
+                Object numPersonasObj = participante.get("numeroPersonas");
+                if (numPersonasObj instanceof Number) {
+                    numeroParticipantes += ((Number) numPersonasObj).intValue();
+                }
+            }
+        }
 
         // ✅ INCLUIR PAGO AL GUÍA (compatible con ofertas)
         double pagoGuia = tourAsignado.getPagoGuia() > 0 ? tourAsignado.getPagoGuia() : 85.0; // Valor por defecto

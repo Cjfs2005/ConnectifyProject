@@ -143,8 +143,20 @@ public class admin_tour_details extends AppCompatActivity implements OnMapReadyC
                     String duracion = documentSnapshot.getString("duracion");
                     guiaAsignadoId = documentSnapshot.getString("guiaAsignadoId");
                     
-                    // Guardar fecha y hora para validación de cancelación
-                    tourFechaRealizacion = documentSnapshot.getTimestamp("fechaRealizacion");
+                    // ✅ Guardar fecha y hora para validación de cancelación (manejar diferentes tipos)
+                    Object fechaObj = documentSnapshot.get("fechaRealizacion");
+                    if (fechaObj instanceof com.google.firebase.Timestamp) {
+                        tourFechaRealizacion = (com.google.firebase.Timestamp) fechaObj;
+                    } else if (fechaObj instanceof String) {
+                        // Si es String, intentar convertir a Timestamp
+                        try {
+                            java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd-MM-yyyy", java.util.Locale.getDefault());
+                            java.util.Date date = sdf.parse((String) fechaObj);
+                            tourFechaRealizacion = new com.google.firebase.Timestamp(date);
+                        } catch (Exception e) {
+                            tourFechaRealizacion = null;
+                        }
+                    }
                     tourHoraInicio = horaInicio;
                     
                     // Cargar imágenes en galería horizontal
@@ -925,6 +937,22 @@ public class admin_tour_details extends AppCompatActivity implements OnMapReadyC
             binding.tvNoParticipantes.setVisibility(View.GONE);
             binding.layoutParticipantesContainer.setVisibility(View.VISIBLE);
             
+            // ✅ Calcular total de personas sumando numeroPersonas
+            int totalPersonas = 0;
+            for (Map<String, Object> p : participantesData) {
+                Object numPersonasObj = p.get("numeroPersonas");
+                if (numPersonasObj instanceof Number) {
+                    totalPersonas += ((Number) numPersonasObj).intValue();
+                }
+            }
+            
+            // ✅ Actualizar TextView con total de personas (verificar que existe)
+            if (binding.tvTotalPersonas != null) {
+                String textoTotal = totalPersonas == 1 ? "1 persona en total" : totalPersonas + " personas en total";
+                binding.tvTotalPersonas.setText(textoTotal);
+                binding.tvTotalPersonas.setVisibility(View.VISIBLE);
+            }
+            
             // Crear vista para cada participante
             for (int i = 0; i < participantesData.size(); i++) {
                 Map<String, Object> participante = participantesData.get(i);
@@ -935,6 +963,13 @@ public class admin_tour_details extends AppCompatActivity implements OnMapReadyC
                 String numeroDoc = (String) participante.get("numeroDocumento");
                 String email = (String) participante.get("email");
                 String telefono = (String) participante.get("telefono");
+                Object numPersonasObj = participante.get("numeroPersonas");
+                
+                // ✅ Obtener número de personas para este participante
+                int numPersonas = 1; // Valor por defecto
+                if (numPersonasObj instanceof Number) {
+                    numPersonas = ((Number) numPersonasObj).intValue();
+                }
                 
                 // Crear CardView para cada participante
                 com.google.android.material.card.MaterialCardView cardView = 
@@ -957,9 +992,10 @@ public class admin_tour_details extends AppCompatActivity implements OnMapReadyC
                     LinearLayout.LayoutParams.WRAP_CONTENT
                 ));
                 
-                // Número de participante
+                // ✅ Mostrar número de personas reservadas en lugar de "Participante X"
                 TextView tvNumero = new TextView(this);
-                tvNumero.setText("Participante " + (i + 1));
+                String textoPersonas = numPersonas == 1 ? "Reservó para 1 persona" : "Reservó para " + numPersonas + " personas";
+                tvNumero.setText(textoPersonas);
                 tvNumero.setTextColor(getColor(R.color.primary));
                 tvNumero.setTextSize(12);
                 tvNumero.setTypeface(null, android.graphics.Typeface.BOLD);
@@ -1025,6 +1061,9 @@ public class admin_tour_details extends AppCompatActivity implements OnMapReadyC
             // No hay participantes
             binding.tvNoParticipantes.setVisibility(View.VISIBLE);
             binding.layoutParticipantesContainer.setVisibility(View.GONE);
+            if (binding.tvTotalPersonas != null) {
+                binding.tvTotalPersonas.setVisibility(View.GONE);
+            }
         }
     }
 }

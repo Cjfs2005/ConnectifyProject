@@ -7,12 +7,14 @@ import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.Glide;
@@ -170,7 +172,17 @@ private void setupTourFromFirebase(DocumentSnapshot doc) {
     
     // Participantes
     List<Map<String, Object>> participantesData = (List<Map<String, Object>>) doc.get("participantes");
-    int numParticipantes = participantesData != null ? participantesData.size() : 0;
+    
+    // ✅ Calcular número total de personas sumando numeroPersonas de cada participante
+    int numParticipantes = 0;
+    if (participantesData != null) {
+        for (Map<String, Object> participante : participantesData) {
+            Object numPersonasObj = participante.get("numeroPersonas");
+            if (numPersonasObj instanceof Number) {
+                numParticipantes += ((Number) numPersonasObj).intValue();
+            }
+        }
+    }
     
     // Cargar galería de imágenes
     List<String> imagenesUrls = (List<String>) doc.get("imagenesUrls");
@@ -237,7 +249,7 @@ private void setupTourFromFirebase(DocumentSnapshot doc) {
     }
 
     /**
-     * ✅ PARTICIPANTES: Mostrar lista de participantes desde Firebase
+     * ✅ PARTICIPANTES: Mostrar lista de participantes desde Firebase con numeroPersonas y servicios
      */
     private void setupParticipantes(List<Map<String, Object>> participantesData) {
         LinearLayout container = binding.participantesContainer;
@@ -248,17 +260,62 @@ private void setupTourFromFirebase(DocumentSnapshot doc) {
                 String nombre = (String) participante.get("nombre");
                 String tipoDoc = (String) participante.get("tipoDocumento");
                 String numeroDoc = (String) participante.get("numeroDocumento");
+                Object numPersonasObj = participante.get("numeroPersonas");
+                List<Map<String, Object>> servicios = (List<Map<String, Object>>) participante.get("serviciosAdicionales");
                 
-                TextView participanteView = new TextView(this);
+                // Obtener número de personas
+                int numPersonas = 1; // Valor por defecto
+                if (numPersonasObj instanceof Number) {
+                    numPersonas = ((Number) numPersonasObj).intValue();
+                }
+                
+                // Crear contenedor vertical para cada participante
+                LinearLayout participanteLayout = new LinearLayout(this);
+                participanteLayout.setOrientation(LinearLayout.VERTICAL);
+                participanteLayout.setPadding(0, 12, 0, 12);
+                
+                // Nombre y DNI
+                TextView nombreView = new TextView(this);
                 String textoCompleto = "👤 " + (nombre != null ? nombre : "Participante");
                 if (tipoDoc != null && numeroDoc != null) {
                     textoCompleto += " - " + tipoDoc + ": " + numeroDoc;
                 }
-                participanteView.setText(textoCompleto);
-                participanteView.setTextSize(14);
-                participanteView.setTextColor(Color.parseColor("#212121"));
-                participanteView.setPadding(0, 8, 0, 8);
-                container.addView(participanteView);
+                nombreView.setText(textoCompleto);
+                nombreView.setTextSize(14);
+                nombreView.setTextColor(Color.parseColor("#212121"));
+                nombreView.setPadding(0, 0, 0, 4);
+                participanteLayout.addView(nombreView);
+                
+                // Número de personas
+                TextView personasView = new TextView(this);
+                String personasTexto = numPersonas == 1 ? "Reservó para 1 persona" : "Reservó para " + numPersonas + " personas";
+                personasView.setText("   " + personasTexto);
+                personasView.setTextSize(13);
+                personasView.setTextColor(Color.parseColor("#666666"));
+                personasView.setPadding(0, 0, 0, 8);
+                participanteLayout.addView(personasView);
+                
+                // Botón "Ver más" si tiene servicios adicionales
+                if (servicios != null && !servicios.isEmpty()) {
+                    Button verMasBtn = new Button(this);
+                    verMasBtn.setText("Ver servicios adicionales");
+                    verMasBtn.setTextSize(12);
+                    verMasBtn.setAllCaps(false);
+                    verMasBtn.setBackgroundColor(Color.parseColor("#E3F2FD"));
+                    verMasBtn.setTextColor(Color.parseColor("#1976D2"));
+                    LinearLayout.LayoutParams btnParams = new LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.WRAP_CONTENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT
+                    );
+                    btnParams.setMargins(0, 4, 0, 0);
+                    verMasBtn.setLayoutParams(btnParams);
+                    verMasBtn.setPadding(24, 12, 24, 12);
+                    
+                    verMasBtn.setOnClickListener(v -> mostrarServiciosDialog(nombre, servicios));
+                    participanteLayout.addView(verMasBtn);
+                }
+                
+                container.addView(participanteLayout);
             }
         } else {
             TextView emptyView = new TextView(this);
@@ -267,6 +324,41 @@ private void setupTourFromFirebase(DocumentSnapshot doc) {
             emptyView.setTextColor(Color.parseColor("#757575"));
             container.addView(emptyView);
         }
+    }
+    
+    /**
+     * ✅ Mostrar dialog con los servicios adicionales de un participante
+     */
+    private void mostrarServiciosDialog(String nombreParticipante, List<Map<String, Object>> servicios) {
+        StringBuilder serviciosTexto = new StringBuilder();
+        double totalServicios = 0;
+        
+        if (servicios != null && !servicios.isEmpty()) {
+            for (Map<String, Object> servicio : servicios) {
+                String nombre = (String) servicio.get("nombre");
+                Object precioObj = servicio.get("precio");
+                
+                double precio = 0;
+                if (precioObj instanceof Number) {
+                    precio = ((Number) precioObj).doubleValue();
+                    totalServicios += precio;
+                }
+                
+                serviciosTexto.append("• ").append(nombre != null ? nombre : "Servicio")
+                             .append(" - S/ ").append(String.format(Locale.getDefault(), "%.2f", precio))
+                             .append("\n");
+            }
+            
+            serviciosTexto.append("\nTotal: S/ ").append(String.format(Locale.getDefault(), "%.2f", totalServicios));
+        } else {
+            serviciosTexto.append("No hay servicios adicionales registrados.");
+        }
+        
+        new AlertDialog.Builder(this)
+            .setTitle("Servicios adicionales - " + (nombreParticipante != null ? nombreParticipante : "Participante"))
+            .setMessage(serviciosTexto.toString())
+            .setPositiveButton("Cerrar", null)
+            .show();
     }
 
     /**

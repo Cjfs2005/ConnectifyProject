@@ -339,46 +339,78 @@ public class admin_select_guide extends AppCompatActivity {
             return;
         }
         
-        // Convertir fecha a formato comparable
-        String fechaStr = "";
+        // ✅ Convertir fecha del tour a Timestamp para comparación precisa
+        com.google.firebase.Timestamp fechaTourTimestamp = null;
         if (tourFechaRealizacion instanceof com.google.firebase.Timestamp) {
-            java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault());
-            fechaStr = sdf.format(((com.google.firebase.Timestamp) tourFechaRealizacion).toDate());
+            fechaTourTimestamp = (com.google.firebase.Timestamp) tourFechaRealizacion;
         } else if (tourFechaRealizacion instanceof String) {
-            fechaStr = (String) tourFechaRealizacion;
+            try {
+                java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault());
+                java.util.Date date = sdf.parse((String) tourFechaRealizacion);
+                fechaTourTimestamp = new com.google.firebase.Timestamp(date);
+            } catch (Exception e) {
+                android.util.Log.e("AdminSelectGuide", "Error parseando fecha: " + tourFechaRealizacion, e);
+                callback.onResult(false);
+                return;
+            }
         }
         
-        String finalFechaStr = fechaStr;
+        if (fechaTourTimestamp == null) {
+            callback.onResult(false);
+            return;
+        }
+        
+        // Obtener solo la fecha (sin hora) para comparación
+        java.util.Calendar calTour = java.util.Calendar.getInstance();
+        calTour.setTime(fechaTourTimestamp.toDate());
+        calTour.set(java.util.Calendar.HOUR_OF_DAY, 0);
+        calTour.set(java.util.Calendar.MINUTE, 0);
+        calTour.set(java.util.Calendar.SECOND, 0);
+        calTour.set(java.util.Calendar.MILLISECOND, 0);
+        
+        com.google.firebase.Timestamp finalFechaTour = fechaTourTimestamp;
         
         db.collection("tours_asignados")
             .whereEqualTo("guiaAsignado.identificadorUsuario", guiaId)
             .whereEqualTo("habilitado", true)
             .get()
             .addOnSuccessListener(querySnapshot -> {
+                android.util.Log.d("AdminSelectGuide", "Verificando " + querySnapshot.size() + " tours asignados del guía " + guiaId);
+                
                 for (DocumentSnapshot doc : querySnapshot.getDocuments()) {
                     Object fechaDoc = doc.get("fechaRealizacion");
-                    String fechaDocStr = "";
                     
                     if (fechaDoc instanceof com.google.firebase.Timestamp) {
-                        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault());
-                        fechaDocStr = sdf.format(((com.google.firebase.Timestamp) fechaDoc).toDate());
-                    } else if (fechaDoc instanceof String) {
-                        fechaDocStr = (String) fechaDoc;
-                    }
-                    
-                    // Si es el mismo día, verificar solapamiento de horarios
-                    if (fechaDocStr.equals(finalFechaStr)) {
-                        String horaInicioExistente = doc.getString("horaInicio");
-                        String horaFinExistente = doc.getString("horaFin");
+                        com.google.firebase.Timestamp fechaExistenteTimestamp = (com.google.firebase.Timestamp) fechaDoc;
                         
-                        if (hayConflictoHorario(tourHoraInicio, tourHoraFin, horaInicioExistente, horaFinExistente)) {
-                            android.util.Log.d("AdminSelectGuide", "Conflicto detectado - Guía: " + guiaId + 
-                                              " tiene tour de " + horaInicioExistente + " a " + horaFinExistente);
-                            callback.onResult(true); // Hay conflicto
-                            return;
+                        // Comparar solo fechas (sin hora)
+                        java.util.Calendar calExistente = java.util.Calendar.getInstance();
+                        calExistente.setTime(fechaExistenteTimestamp.toDate());
+                        calExistente.set(java.util.Calendar.HOUR_OF_DAY, 0);
+                        calExistente.set(java.util.Calendar.MINUTE, 0);
+                        calExistente.set(java.util.Calendar.SECOND, 0);
+                        calExistente.set(java.util.Calendar.MILLISECOND, 0);
+                        
+                        // Si es el mismo día, verificar solapamiento de horarios
+                        if (calTour.getTimeInMillis() == calExistente.getTimeInMillis()) {
+                            String horaInicioExistente = doc.getString("horaInicio");
+                            String horaFinExistente = doc.getString("horaFin");
+                            
+                            android.util.Log.d("AdminSelectGuide", "Mismo día detectado - Tour existente: " + 
+                                              horaInicioExistente + " - " + horaFinExistente);
+                            android.util.Log.d("AdminSelectGuide", "Tour a asignar: " + 
+                                              tourHoraInicio + " - " + tourHoraFin);
+                            
+                            if (hayConflictoHorario(tourHoraInicio, tourHoraFin, horaInicioExistente, horaFinExistente)) {
+                                android.util.Log.d("AdminSelectGuide", "✗ Conflicto detectado - Guía: " + guiaId + 
+                                                  " tiene tour de " + horaInicioExistente + " a " + horaFinExistente);
+                                callback.onResult(true); // Hay conflicto
+                                return;
+                            }
                         }
                     }
                 }
+                android.util.Log.d("AdminSelectGuide", "✓ Sin conflictos para guía: " + guiaId);
                 callback.onResult(false); // No hay conflicto
             })
             .addOnFailureListener(e -> {
@@ -474,13 +506,20 @@ public class admin_select_guide extends AppCompatActivity {
             // Si no hay filtros seleccionados, mostrar todos los guías
             filteredGuides.addAll(allGuides);
         } else {
-            // Filtrar guías que hablen al menos uno de los idiomas seleccionados
+            // ✅ Filtrar guías que hablen TODOS los idiomas seleccionados
             for (GuideItem guide : allGuides) {
+                boolean tieneTodosLosIdiomas = true;
+                
+                // Verificar que el guía tenga CADA UNO de los idiomas seleccionados
                 for (String language : selectedLanguages) {
-                    if (containsLanguage(guide.languages, language)) {
-                        filteredGuides.add(guide);
-                        break; // Evitar duplicados
+                    if (!containsLanguage(guide.languages, language)) {
+                        tieneTodosLosIdiomas = false;
+                        break;
                     }
+                }
+                
+                if (tieneTodosLosIdiomas) {
+                    filteredGuides.add(guide);
                 }
             }
         }

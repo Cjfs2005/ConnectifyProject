@@ -650,6 +650,16 @@
                                 android:textColor="@color/on_surface"
                                 android:textSize="18sp"
                                 android:textStyle="bold"
+                                android:layout_marginBottom="4dp" />
+
+                            <!-- Total de personas -->
+                            <TextView
+                                android:id="@+id/tvTotalPersonas"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="0 personas en total"
+                                android:textColor="@color/text_secondary"
+                                android:textSize="14sp"
                                 android:layout_marginBottom="12dp" />
 
                             <!-- Lista de participantes -->
