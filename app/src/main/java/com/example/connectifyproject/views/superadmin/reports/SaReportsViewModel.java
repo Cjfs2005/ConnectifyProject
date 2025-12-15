@@ -1,5 +1,7 @@
 package com.example.connectifyproject.views.superadmin.reports;
 
+import android.util.Log;
+
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
@@ -9,9 +11,17 @@ import java.util.List;
 
 public class SaReportsViewModel extends ViewModel {
 
+    private static final String TAG = "SaReportsViewModel";
+
     public final MutableLiveData<ReportsSummary> summary = new MutableLiveData<>();
     public final MutableLiveData<List<CompanyStat>> companies = new MutableLiveData<>(new ArrayList<>());
     public final MutableLiveData<List<CompanyStat>> top5 = new MutableLiveData<>(new ArrayList<>());
+    
+    // Estado de carga: true cuando está cargando, false cuando terminó
+    public final MutableLiveData<Boolean> isLoading = new MutableLiveData<>(false);
+    
+    // Indica si los datos ya fueron cargados al menos una vez
+    public final MutableLiveData<Boolean> dataReady = new MutableLiveData<>(false);
 
     // filtros
     public int selectedYear;
@@ -23,20 +33,35 @@ public class SaReportsViewModel extends ViewModel {
     public void load(int year, MonthFilter month){
         selectedYear = year;
         selectedMonth = month;
+        
+        // Indicar que estamos cargando
+        isLoading.setValue(true);
+        dataReady.setValue(false);
+        
+        Log.d(TAG, "Iniciando carga de datos para " + month + "/" + year);
 
         repo.loadMonthData(year, month, new SaReportsRepository.LoadCallback() {
             @Override
             public void onLoaded(ReportsSummary sum, List<CompanyStat> all) {
-                summary.postValue(sum);
+                Log.d(TAG, "Datos recibidos - Summary: " + (sum != null) + ", Companies: " + (all != null ? all.size() : 0));
+                
+                // Actualizar todos los LiveData
                 companies.postValue(all);
                 computeTop5(all);
+                summary.postValue(sum);
+                
+                // Indicar que terminamos de cargar
+                isLoading.postValue(false);
+                dataReady.postValue(true);
+                
+                Log.d(TAG, "Carga completada, dataReady=true");
             }
 
             @Override
             public void onError(Exception e) {
-                if (e != null) {
-                    e.printStackTrace();
-                }
+                Log.e(TAG, "Error cargando datos", e);
+                isLoading.postValue(false);
+                dataReady.postValue(false);
             }
         });
     }
