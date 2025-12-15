@@ -360,9 +360,70 @@ public class cliente_tours extends AppCompatActivity {
 
     private void applyFilters(String startDate, String endDate, double minPrice, double maxPrice, String language, String city) {
         filteredTours.clear();
+        // Formato debe coincidir con el de cliente_tour_filtros.java (dd-MM-yyyy)
+        SimpleDateFormat filterSdf = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault());
+        
+        // Parsear fechas de inicio y fin para el rango
+        Date filterStartDate = null;
+        Date filterEndDate = null;
+        
+        if (startDate != null && !startDate.isEmpty()) {
+            try {
+                filterStartDate = filterSdf.parse(startDate);
+                Log.d(TAG, "Fecha inicio parseada: " + startDate + " -> " + filterStartDate);
+            } catch (Exception e) {
+                Log.e(TAG, "Error parsing start date: " + startDate + " - " + e.getMessage());
+            }
+        }
+        
+        if (endDate != null && !endDate.isEmpty()) {
+            try {
+                filterEndDate = filterSdf.parse(endDate);
+                // Ajustar al final del día
+                if (filterEndDate != null) {
+                    Calendar cal = Calendar.getInstance();
+                    cal.setTime(filterEndDate);
+                    cal.set(Calendar.HOUR_OF_DAY, 23);
+                    cal.set(Calendar.MINUTE, 59);
+                    cal.set(Calendar.SECOND, 59);
+                    filterEndDate = cal.getTime();
+                }
+                Log.d(TAG, "Fecha fin parseada: " + endDate + " -> " + filterEndDate);
+            } catch (Exception e) {
+                Log.e(TAG, "Error parsing end date: " + endDate + " - " + e.getMessage());
+            }
+        }
         
         for (Cliente_Tour tour : allTours) {
             boolean matchesPrice = tour.getPrice() >= minPrice && tour.getPrice() <= maxPrice;
+            
+            // Filtro por rango de fechas
+            boolean matchesDate = true;
+            if ((filterStartDate != null || filterEndDate != null) && tour.getFechaRealizacion() != null) {
+                Date tourDate = tour.getFechaRealizacion().toDate();
+                
+                // Normalizar fecha del tour al inicio del día para comparación correcta
+                Calendar tourCal = Calendar.getInstance();
+                tourCal.setTime(tourDate);
+                tourCal.set(Calendar.HOUR_OF_DAY, 0);
+                tourCal.set(Calendar.MINUTE, 0);
+                tourCal.set(Calendar.SECOND, 0);
+                tourCal.set(Calendar.MILLISECOND, 0);
+                Date normalizedTourDate = tourCal.getTime();
+                
+                // Si solo hay fecha de inicio, filtrar desde esa fecha en adelante
+                if (filterStartDate != null && filterEndDate == null) {
+                    matchesDate = !normalizedTourDate.before(filterStartDate);
+                }
+                // Si solo hay fecha de fin, filtrar hasta esa fecha
+                else if (filterStartDate == null && filterEndDate != null) {
+                    matchesDate = !normalizedTourDate.after(filterEndDate);
+                }
+                // Si hay ambas, filtrar en el rango
+                else if (filterStartDate != null && filterEndDate != null) {
+                    matchesDate = !normalizedTourDate.before(filterStartDate) && !normalizedTourDate.after(filterEndDate);
+                }
+            }
             
             // Filtro por ciudad
             boolean matchesCity = true;
@@ -379,7 +440,7 @@ public class cliente_tours extends AppCompatActivity {
             }
             
             // Aplicar todos los filtros
-            if (matchesPrice && matchesCity && matchesLanguage) {
+            if (matchesPrice && matchesDate && matchesCity && matchesLanguage) {
                 filteredTours.add(tour);
             }
         }

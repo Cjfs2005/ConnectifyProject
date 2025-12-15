@@ -114,14 +114,11 @@ public class cliente_tour_detalle extends AppCompatActivity implements Cliente_S
                             (List<Map<String, Object>>) doc.get("itinerario");
                         tour.setItinerario(itinerario);
                         
-                        // Extraer nombre del primer punto del itinerario para la ubicación
-                        if (itinerario != null && !itinerario.isEmpty()) {
-                            Map<String, Object> primerPunto = itinerario.get(0);
-                            String nombrePunto = (String) primerPunto.get("nombre");
-                            if (nombrePunto != null && !nombrePunto.isEmpty()) {
-                                tour.setLocation(nombrePunto);
-                                tvTourLocation.setText(nombrePunto);
-                            }
+                        // Obtener ciudad del tour
+                        String ciudad = doc.getString("ciudad");
+                        if (ciudad != null && !ciudad.isEmpty()) {
+                            tour.setLocation(ciudad);
+                            tvTourLocation.setText(ciudad);
                         }
                         
                         // Cargar información del guía

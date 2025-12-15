@@ -56,8 +56,18 @@ public class Cliente_ReservasAdapter extends RecyclerView.Adapter<Cliente_Reserv
         }
         holder.tvTourDate.setText("Fecha: " + reserva.getFecha());
         
-        // Usar la imagen por defecto para todas las reservas
-        holder.ivTourImage.setImageResource(R.drawable.cliente_tour_lima);
+        // Cargar imagen real del tour con Glide
+        if (tour != null && tour.getImageUrl() != null && !tour.getImageUrl().isEmpty()) {
+            com.bumptech.glide.Glide.with(context)
+                    .load(tour.getImageUrl())
+                    .placeholder(R.drawable.cliente_tour_lima)
+                    .error(R.drawable.cliente_tour_lima)
+                    .transition(com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade())
+                    .centerCrop()
+                    .into(holder.ivTourImage);
+        } else {
+            holder.ivTourImage.setImageResource(R.drawable.cliente_tour_lima);
+        }
 
         // Click abre detalle de reserva
         holder.itemView.setOnClickListener(v -> {

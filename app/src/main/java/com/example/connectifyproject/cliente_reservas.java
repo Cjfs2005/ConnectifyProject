@@ -232,7 +232,9 @@ public class cliente_reservas extends AppCompatActivity {
             String empresaNombre = tourDoc.getString("nombreEmpresa"); // Campo correcto en Firebase
             String empresaId = tourDoc.getString("empresaId"); // ID de la empresa para chat e info
             String ubicacion = tourDoc.getString("ubicacion");
+            String ciudad = tourDoc.getString("ciudad"); // Ciudad del tour
             String descripcion = tourDoc.getString("descripcion");
+            String imagenPrincipal = tourDoc.getString("imagenPrincipal"); // Imagen del tour
             
             // Precio puede venir como Double o Long (número en Firebase)
             Double precioPorPersona = 0.0;
@@ -310,8 +312,10 @@ public class cliente_reservas extends AppCompatActivity {
                     descripcion != null ? descripcion : ""
             );
             
-            // Asignar empresaId para que esté disponible en detalle
+            // Asignar empresaId, ciudad e imagen para que estén disponibles en detalle
             tour.setEmpresaId(empresaId);
+            tour.setCiudad(ciudad);
+            tour.setImageUrl(imagenPrincipal);
             
             // Crear objeto Cliente_Reserva
             Cliente_Reserva reserva = new Cliente_Reserva();

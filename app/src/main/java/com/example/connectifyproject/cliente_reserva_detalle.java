@@ -32,13 +32,16 @@ public class cliente_reserva_detalle extends AppCompatActivity {
     private static final String TAG = "ClienteReservaDetalle";
 
     private MaterialToolbar toolbar;
-    private RecyclerView rvServicios;
-    private Cliente_ServiciosAdapter serviciosAdapter;
 
     private TextView tvTourLocation, tvTourPriceMain, tvStartTime, tvEndTime;
     private TextView tvMetodoPago, tvResumenTarjeta, tvMontoTour, tvTotal;
     private TextView tvServicioLinea1, tvMontoLinea1, tvServicioLinea2, tvMontoLinea2;
     private ViewPager2 vpTourImages;
+    
+    // Información del guía
+    private TextView tvGuiaNombre, tvGuiaTelefono;
+    private ImageView ivGuiaFoto;
+    private View layoutGuiaInfo;
     
     // Botones y tarjetas interactivas
     private View layoutItinerario, cardEmpresa, cardChat, cardDescargar, cardCancelar;
@@ -69,7 +72,6 @@ public class cliente_reserva_detalle extends AppCompatActivity {
 
     private void initViews() {
         toolbar = findViewById(R.id.toolbar);
-        rvServicios = findViewById(R.id.rv_servicios_adicionales);
         vpTourImages = findViewById(R.id.vp_tour_images);
 
         tvTourLocation = findViewById(R.id.tv_tour_location);
@@ -86,6 +88,12 @@ public class cliente_reserva_detalle extends AppCompatActivity {
         tvMontoLinea1 = findViewById(R.id.tv_monto_linea_1);
         tvServicioLinea2 = findViewById(R.id.tv_servicio_linea_2);
         tvMontoLinea2 = findViewById(R.id.tv_monto_linea_2);
+        
+        // Información del guía
+        tvGuiaNombre = findViewById(R.id.tv_guia_nombre);
+        tvGuiaTelefono = findViewById(R.id.tv_guia_telefono);
+        ivGuiaFoto = findViewById(R.id.iv_guia_foto);
+        layoutGuiaInfo = findViewById(R.id.layout_guia_info);
         
         // Botones y tarjetas interactivas
         layoutItinerario = findViewById(R.id.layout_itinerario);
@@ -117,11 +125,16 @@ public class cliente_reserva_detalle extends AppCompatActivity {
             if (reserva == null) return;
             Cliente_Tour tour = reserva.getTour();
             if (tour != null) {
-                if (tvTourLocation != null) tvTourLocation.setText(tour.getUbicacion());
+                // Mostrar ciudad del tour en lugar de ubicación
+                String ciudad = tour.getCiudad();
+                if (tvTourLocation != null) tvTourLocation.setText(ciudad != null && !ciudad.isEmpty() ? ciudad : tour.getUbicacion());
                 if (tvTourPriceMain != null) tvTourPriceMain.setText(String.format("S/%.2f", tour.getPrecio()));
                 
                 // Cargar imágenes del tour desde Firebase
                 loadTourImages(tour.getId());
+                
+                // Cargar información del guía
+                loadGuiaInfo(tour.getId());
             }
         } catch (Exception e) {
             Log.e(TAG, "Error en bindData - tour info", e);
@@ -131,8 +144,9 @@ public class cliente_reserva_detalle extends AppCompatActivity {
             if (tvStartTime != null) tvStartTime.setText(reserva.getFecha() + " - " + reserva.getHoraInicio());
             if (tvEndTime != null) tvEndTime.setText(reserva.getFecha() + " - " + reserva.getHoraFin());
 
-            // Cargar método de pago desde Firebase
+            // Cargar método de pago y servicios desde Firebase
             loadPaymentMethodInfo(reserva);
+            loadServiciosAdicionales(reserva);
 
             Cliente_Tour tour = reserva.getTour();
             if (tvMontoTour != null) tvMontoTour.setText(String.format("S/%.2f", (tour != null ? tour.getPrecio() * reserva.getPersonas() : 0.0)));
@@ -164,22 +178,6 @@ public class cliente_reserva_detalle extends AppCompatActivity {
             } else {
                 if (tvServicioLinea2 != null) tvServicioLinea2.setText("");
                 if (tvMontoLinea2 != null) tvMontoLinea2.setText("");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        try {
-            // Lista de servicios bloqueada (checkbox disabled)
-            if (rvServicios != null) {
-                rvServicios.setLayoutManager(new LinearLayoutManager(this));
-                List<Cliente_ServicioAdicional> servicios = reserva.getServicios();
-                if (servicios == null) {
-                    servicios = new ArrayList<>();
-                }
-                serviciosAdapter = new Cliente_ServiciosAdapter(this, servicios);
-                serviciosAdapter.setReadOnly(true);
-                rvServicios.setAdapter(serviciosAdapter);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -236,8 +234,9 @@ public class cliente_reserva_detalle extends AppCompatActivity {
                         
                         if (participantes != null) {
                             for (java.util.Map<String, Object> participante : participantes) {
-                                String participanteUserId = (String) participante.get("usuarioId");
-                                if (userId.equals(participanteUserId)) {
+                                // Buscar por clienteId (no usuarioId)
+                                String clienteId = (String) participante.get("clienteId");
+                                if (userId.equals(clienteId)) {
                                     String metodoPagoId = (String) participante.get("metodoPagoId");
                                     if (metodoPagoId != null && !metodoPagoId.isEmpty()) {
                                         loadPaymentMethodDetails(userId, metodoPagoId);
@@ -275,6 +274,98 @@ public class cliente_reserva_detalle extends AppCompatActivity {
                 });
     }
     
+    private void loadServiciosAdicionales(Cliente_Reserva reserva) {
+        if (reserva == null || reserva.getTour() == null || mAuth.getCurrentUser() == null) {
+            // Si no hay servicios, mostrar mensaje
+            if (tvServicioLinea1 != null) tvServicioLinea1.setText("No se agregaron servicios adicionales");
+            if (tvMontoLinea1 != null) tvMontoLinea1.setText("");
+            if (tvServicioLinea2 != null) tvServicioLinea2.setVisibility(View.GONE);
+            if (tvMontoLinea2 != null) tvMontoLinea2.setVisibility(View.GONE);
+            return;
+        }
+        
+        String userId = mAuth.getCurrentUser().getUid();
+        String tourId = reserva.getTour().getId();
+        
+        // Obtener servicios desde el documento del tour
+        db.collection("tours_asignados")
+                .document(tourId)
+                .get()
+                .addOnSuccessListener(doc -> {
+                    if (doc.exists()) {
+                        // Buscar al participante actual
+                        List<java.util.Map<String, Object>> participantes = 
+                                (List<java.util.Map<String, Object>>) doc.get("participantes");
+                        
+                        if (participantes != null) {
+                            for (java.util.Map<String, Object> participante : participantes) {
+                                String clienteId = (String) participante.get("clienteId");
+                                if (userId.equals(clienteId)) {
+                                    // Obtener servicios adicionales del participante
+                                    List<java.util.Map<String, Object>> serviciosArray = 
+                                            (List<java.util.Map<String, Object>>) participante.get("serviciosAdicionales");
+                                    
+                                    int numPersonas = reserva.getPersonas();
+                                    
+                                    if (serviciosArray != null && !serviciosArray.isEmpty()) {
+                                        // Mostrar servicios en las líneas
+                                        for (int i = 0; i < serviciosArray.size() && i < 2; i++) {
+                                            java.util.Map<String, Object> servicioMap = serviciosArray.get(i);
+                                            String nombre = (String) servicioMap.get("nombre");
+                                            Object precioObj = servicioMap.get("precio");
+                                            double precio = 0.0;
+                                            if (precioObj instanceof Number) {
+                                                precio = ((Number) precioObj).doubleValue();
+                                            }
+                                            
+                                            if (i == 0) {
+                                                if (tvServicioLinea1 != null) {
+                                                    tvServicioLinea1.setText("• " + nombre + " (" + numPersonas + " personas)");
+                                                    tvServicioLinea1.setVisibility(View.VISIBLE);
+                                                }
+                                                if (tvMontoLinea1 != null) {
+                                                    tvMontoLinea1.setText(String.format("S/%.2f", precio * numPersonas));
+                                                    tvMontoLinea1.setVisibility(View.VISIBLE);
+                                                }
+                                            } else if (i == 1) {
+                                                if (tvServicioLinea2 != null) {
+                                                    tvServicioLinea2.setText("• " + nombre + " (" + numPersonas + " personas)");
+                                                    tvServicioLinea2.setVisibility(View.VISIBLE);
+                                                }
+                                                if (tvMontoLinea2 != null) {
+                                                    tvMontoLinea2.setText(String.format("S/%.2f", precio * numPersonas));
+                                                    tvMontoLinea2.setVisibility(View.VISIBLE);
+                                                }
+                                            }
+                                        }
+                                    } else {
+                                        // No hay servicios
+                                        if (tvServicioLinea1 != null) tvServicioLinea1.setText("No se agregaron servicios adicionales");
+                                        if (tvMontoLinea1 != null) tvMontoLinea1.setText("");
+                                        if (tvServicioLinea2 != null) tvServicioLinea2.setVisibility(View.GONE);
+                                        if (tvMontoLinea2 != null) tvMontoLinea2.setVisibility(View.GONE);
+                                    }
+                                    break;
+                                }
+                            }
+                        } else {
+                            // No hay participantes
+                            if (tvServicioLinea1 != null) tvServicioLinea1.setText("No se agregaron servicios adicionales");
+                            if (tvMontoLinea1 != null) tvMontoLinea1.setText("");
+                            if (tvServicioLinea2 != null) tvServicioLinea2.setVisibility(View.GONE);
+                            if (tvMontoLinea2 != null) tvMontoLinea2.setVisibility(View.GONE);
+                        }
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error loading servicios adicionales: " + e.getMessage());
+                    if (tvServicioLinea1 != null) tvServicioLinea1.setText("No se agregaron servicios adicionales");
+                    if (tvMontoLinea1 != null) tvMontoLinea1.setText("");
+                    if (tvServicioLinea2 != null) tvServicioLinea2.setVisibility(View.GONE);
+                    if (tvMontoLinea2 != null) tvMontoLinea2.setVisibility(View.GONE);
+                });
+    }
+    
     private void setupClickListeners(Cliente_Reserva reserva) {
         if (reserva == null || reserva.getTour() == null) return;
         
@@ -294,6 +385,7 @@ public class cliente_reserva_detalle extends AppCompatActivity {
         if (cardEmpresa != null) {
             cardEmpresa.setOnClickListener(v -> {
                 Intent intent = new Intent(this, cliente_empresa_info.class);
+                intent.putExtra("empresa_id", tour.getEmpresaId());
                 intent.putExtra("company_name", tour.getCompanyName());
                 startActivity(intent);
             });
@@ -302,9 +394,13 @@ public class cliente_reserva_detalle extends AppCompatActivity {
         // Chat con la empresa
         if (cardChat != null) {
             cardChat.setOnClickListener(v -> {
-                Intent intent = new Intent(this, cliente_chat_conversation.class);
-                // Agregar datos necesarios para el chat
-                startActivity(intent);
+                String empresaId = tour.getEmpresaId();
+                String empresaNombre = tour.getCompanyName();
+                if (empresaId != null && empresaNombre != null) {
+                    openOrCreateChat(empresaId, empresaNombre);
+                } else {
+                    Toast.makeText(this, "Error: No se puede iniciar el chat", Toast.LENGTH_SHORT).show();
+                }
             });
         }
         
@@ -424,5 +520,152 @@ public class cliente_reserva_detalle extends AppCompatActivity {
             .addOnFailureListener(e -> {
                 Log.e(TAG, "Error al obtener estado del tour: " + e.getMessage());
             });
+    }
+    
+    private void loadGuiaInfo(String tourId) {
+        if (tourId == null || tourId.isEmpty()) {
+            if (layoutGuiaInfo != null) layoutGuiaInfo.setVisibility(View.GONE);
+            return;
+        }
+        
+        db.collection("tours_asignados")
+                .document(tourId)
+                .get()
+                .addOnSuccessListener(doc -> {
+                    if (doc.exists()) {
+                        java.util.Map<String, Object> guiaAsignado = 
+                                (java.util.Map<String, Object>) doc.get("guiaAsignado");
+                        
+                        if (guiaAsignado != null) {
+                            String nombresCompletos = (String) guiaAsignado.get("nombresCompletos");
+                            String numeroTelefono = (String) guiaAsignado.get("numeroTelefono");
+                            String identificadorUsuario = (String) guiaAsignado.get("identificadorUsuario");
+                            
+                            if (nombresCompletos != null && tvGuiaNombre != null) {
+                                tvGuiaNombre.setText(nombresCompletos);
+                            }
+                            
+                            if (numeroTelefono != null && tvGuiaTelefono != null) {
+                                tvGuiaTelefono.setText("📞 " + numeroTelefono);
+                            }
+                            
+                            // Cargar foto del guía
+                            if (identificadorUsuario != null && !identificadorUsuario.isEmpty()) {
+                                db.collection("usuarios")
+                                        .document(identificadorUsuario)
+                                        .get()
+                                        .addOnSuccessListener(userDoc -> {
+                                            if (userDoc.exists()) {
+                                                String photoUrl = userDoc.getString("photoUrl");
+                                                if (photoUrl != null && !photoUrl.isEmpty() && ivGuiaFoto != null) {
+                                                    com.bumptech.glide.Glide.with(this)
+                                                            .load(photoUrl)
+                                                            .placeholder(R.drawable.ic_person)
+                                                            .circleCrop()
+                                                            .into(ivGuiaFoto);
+                                                }
+                                            }
+                                        });
+                            }
+                            
+                            if (layoutGuiaInfo != null) layoutGuiaInfo.setVisibility(View.VISIBLE);
+                        } else {
+                            if (layoutGuiaInfo != null) layoutGuiaInfo.setVisibility(View.GONE);
+                        }
+                    } else {
+                        if (layoutGuiaInfo != null) layoutGuiaInfo.setVisibility(View.GONE);
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error loading guia info: " + e.getMessage());
+                    if (layoutGuiaInfo != null) layoutGuiaInfo.setVisibility(View.GONE);
+                });
+    }
+    
+    private void openOrCreateChat(String empresaId, String empresaNombre) {
+        String currentUserId = mAuth.getCurrentUser() != null ? mAuth.getCurrentUser().getUid() : null;
+        if (currentUserId == null) {
+            Toast.makeText(this, "Debes iniciar sesión para chatear", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
+        // El chatId se forma concatenando clientId_adminId
+        String chatId = currentUserId + "_" + empresaId;
+        
+        // Verificar si ya existe un chat
+        db.collection("chats")
+                .document(chatId)
+                .get()
+                .addOnSuccessListener(doc -> {
+                    if (doc.exists()) {
+                        // El chat ya existe, abrirlo
+                        openChatConversation(empresaId, empresaNombre);
+                    } else {
+                        // El chat no existe, crearlo
+                        createAndOpenChat(chatId, currentUserId, empresaId, empresaNombre);
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Error al verificar chat: " + e.getMessage(), 
+                            Toast.LENGTH_SHORT).show();
+                });
+    }
+    
+    private void createAndOpenChat(String chatId, String clientId, String empresaId, String empresaNombre) {
+        // Obtener datos del cliente actual
+        db.collection("usuarios")
+                .document(clientId)
+                .get()
+                .addOnSuccessListener(clientDoc -> {
+                    if (clientDoc.exists()) {
+                        String clientName = clientDoc.getString("nombresApellidos");
+                        String clientPhoto = clientDoc.getString("photoUrl");
+                        
+                        // Obtener datos de la empresa
+                        db.collection("usuarios")
+                                .document(empresaId)
+                                .get()
+                                .addOnSuccessListener(adminDoc -> {
+                                    if (adminDoc.exists()) {
+                                        String adminName = adminDoc.getString("nombreEmpresa");
+                                        String adminPhoto = adminDoc.getString("photoUrl");
+                                        
+                                        // Crear documento del chat
+                                        java.util.Map<String, Object> chatData = new java.util.HashMap<>();
+                                        chatData.put("chatId", chatId);
+                                        chatData.put("clientId", clientId);
+                                        chatData.put("clientName", clientName != null ? clientName : "Cliente");
+                                        chatData.put("clientPhotoUrl", clientPhoto != null ? clientPhoto : "");
+                                        chatData.put("adminId", empresaId);
+                                        chatData.put("adminName", adminName != null ? adminName : empresaNombre);
+                                        chatData.put("adminPhotoUrl", adminPhoto != null ? adminPhoto : "");
+                                        chatData.put("active", true);
+                                        chatData.put("lastMessage", "");
+                                        chatData.put("lastMessageTime", com.google.firebase.Timestamp.now());
+                                        chatData.put("lastSenderId", "");
+                                        chatData.put("unreadCountClient", 0);
+                                        chatData.put("unreadCountAdmin", 0);
+                                        
+                                        db.collection("chats")
+                                                .document(chatId)
+                                                .set(chatData)
+                                                .addOnSuccessListener(aVoid -> {
+                                                    openChatConversation(empresaId, empresaNombre);
+                                                })
+                                                .addOnFailureListener(e -> {
+                                                    Toast.makeText(this, "Error al crear chat: " + e.getMessage(), 
+                                                            Toast.LENGTH_SHORT).show();
+                                                });
+                                    }
+                                });
+                    }
+                });
+    }
+    
+    private void openChatConversation(String empresaId, String empresaNombre) {
+        Intent intent = new Intent(this, cliente_chat_conversation.class);
+        intent.putExtra("admin_id", empresaId);
+        intent.putExtra("admin_name", empresaNombre);
+        startActivity(intent);
     }
 }
