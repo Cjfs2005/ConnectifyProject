@@ -137,6 +137,10 @@ public class guia_tours_ofertas extends AppCompatActivity implements GuiaFilterD
         if (binding.bottomNav != null) {
             binding.bottomNav.setSelectedItemId(R.id.nav_ofertas);
         }
+        
+        // Recargar ofertas cada vez que se vuelve a esta pantalla para actualizar validaciones de tiempo
+        android.util.Log.d("GuiaToursOfertas", "onResume - Recargando ofertas para actualizar tiempos");
+        cargarOfertasDesdeFirebase();
     }
 
     /**

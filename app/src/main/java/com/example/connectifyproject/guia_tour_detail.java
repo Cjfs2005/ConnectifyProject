@@ -377,6 +377,32 @@ public class guia_tour_detail extends AppCompatActivity implements OnMapReadyCal
             .get()
             .addOnSuccessListener(doc -> {
                 if (doc.exists()) {
+                    // Validar disponibilidad de tiempo (12 horas)
+                    Object fechaRealizacion = doc.get("fechaRealizacion");
+                    String horaInicio = doc.getString("horaInicio");
+                    
+                    boolean puedeAceptar = com.example.connectifyproject.utils.TourTimeValidator
+                        .puedeAceptarOferta(fechaRealizacion, horaInicio);
+                    
+                    if (!puedeAceptar) {
+                        android.util.Log.w("GuiaTourDetail", "Oferta ya no disponible - No quedan 12 horas");
+                        // Deshabilitar botones y mostrar mensaje
+                        binding.acceptButton.setEnabled(false);
+                        binding.rejectButton.setEnabled(false);
+                        binding.acceptButton.setAlpha(0.5f);
+                        binding.rejectButton.setAlpha(0.5f);
+                        
+                        Toast.makeText(this, 
+                            "Esta oferta ya no está disponible. Deben quedar al menos 12 horas antes del tour.", 
+                            Toast.LENGTH_LONG).show();
+                    } else {
+                        // Habilitar botones
+                        binding.acceptButton.setEnabled(true);
+                        binding.rejectButton.setEnabled(true);
+                        binding.acceptButton.setAlpha(1.0f);
+                        binding.rejectButton.setAlpha(1.0f);
+                    }
+                    
                     // Cargar galería de imágenes
                     List<String> imagenesUrls = (List<String>) doc.get("imagenesUrls");
                     if (imagenesUrls != null && !imagenesUrls.isEmpty()) {
@@ -646,6 +672,12 @@ public class guia_tour_detail extends AppCompatActivity implements OnMapReadyCal
     protected void onResume() {
         super.onResume();
         binding.mapView.onResume();
+        
+        // Recargar datos para validar disponibilidad actualizada
+        if (ofertaId != null && !ofertaId.isEmpty()) {
+            android.util.Log.d("GuiaTourDetail", "onResume - Recargando datos para validar disponibilidad");
+            cargarDatosDesdeFirebase();
+        }
     }
 
     @Override

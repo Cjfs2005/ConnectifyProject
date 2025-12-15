@@ -123,6 +123,11 @@ public class admin_select_guide extends AppCompatActivity {
         loadGuidesFromFirebase();
     }
     
+    // Variables para validación de horarios
+    private Object tourFechaRealizacion;
+    private String tourHoraInicio;
+    private String tourHoraFin;
+    
     private void loadTourRequirements() {
         android.util.Log.d("AdminSelectGuide", "Cargando requisitos del tour: " + ofertaId);
         
@@ -134,6 +139,14 @@ public class admin_select_guide extends AppCompatActivity {
                     android.util.Log.d("AdminSelectGuide", "Tour encontrado en tours_ofertas");
                     idiomasRequeridos = (List<String>) doc.get("idiomasRequeridos");
                     android.util.Log.d("AdminSelectGuide", "Idiomas requeridos del tour: " + idiomasRequeridos);
+                    
+                    // Guardar datos de horario para validación de conflictos
+                    tourFechaRealizacion = doc.get("fechaRealizacion");
+                    tourHoraInicio = doc.getString("horaInicio");
+                    tourHoraFin = doc.getString("horaFin");
+                    
+                    android.util.Log.d("AdminSelectGuide", "Horario tour - Fecha: " + tourFechaRealizacion + 
+                                      ", Inicio: " + tourHoraInicio + ", Fin: " + tourHoraFin);
                     
                     if (idiomasRequeridos != null && !idiomasRequeridos.isEmpty()) {
                         // Preseleccionar chips de idiomas requeridos
@@ -270,31 +283,43 @@ public class admin_select_guide extends AppCompatActivity {
                         }
                     }
                     
-                    android.util.Log.d("AdminSelectGuide", "  ✓ Guía agregado a la lista");
+                    android.util.Log.d("AdminSelectGuide", "  ✓ Guía cumple requisitos de idioma, verificando horario...");
+                    
+                    // Crear el GuideItem temporalmente
                     GuideItem guide = new GuideItem(id, name, email, rating, tourCount, 
                                                    idiomas, profileImageUrl, disponible);
-                    allGuides.add(guide);
-                    guiasAgregados++;
+                    
+                    // Verificar conflicto de horario antes de agregar
+                    verificarConflictoHorario(id, tieneConflicto -> {
+                        if (!tieneConflicto) {
+                            android.util.Log.d("AdminSelectGuide", "  ✓ Sin conflicto - Guía agregado: " + name);
+                            allGuides.add(guide);
+                            filteredGuides.clear();
+                            filteredGuides.addAll(allGuides);
+                            runOnUiThread(() -> guideAdapter.notifyDataSetChanged());
+                        } else {
+                            android.util.Log.d("AdminSelectGuide", "  ✗ Conflicto de horario - Guía descartado: " + name);
+                        }
+                    });
                 }
                 
-                android.util.Log.d("AdminSelectGuide", "=== RESUMEN ===");
-                android.util.Log.d("AdminSelectGuide", "Total guías procesados: " + querySnapshot.size());
-                android.util.Log.d("AdminSelectGuide", "Guías agregados: " + guiasAgregados);
-                android.util.Log.d("AdminSelectGuide", "Guías descartados: " + guiasDescartados);
-                
-                filteredGuides.clear();
-                filteredGuides.addAll(allGuides);
-                
-                dismissProgressDialog();
-                guideAdapter.notifyDataSetChanged();
-                
-                if (allGuides.isEmpty()) {
-                    android.util.Log.w("AdminSelectGuide", "⚠ No se encontraron guías que cumplan los requisitos");
-                    Toast.makeText(this, "No se encontraron guías que cumplan los requisitos", 
-                        Toast.LENGTH_LONG).show();
-                } else {
-                    android.util.Log.d("AdminSelectGuide", "✓ " + allGuides.size() + " guías cargados exitosamente");
-                }
+                // Dar tiempo para que terminen las verificaciones asíncronas
+                new android.os.Handler().postDelayed(() -> {
+                    android.util.Log.d("AdminSelectGuide", "=== RESUMEN ===");
+                    android.util.Log.d("AdminSelectGuide", "Total guías procesados: " + querySnapshot.size());
+                    android.util.Log.d("AdminSelectGuide", "Guías agregados: " + allGuides.size());
+                    android.util.Log.d("AdminSelectGuide", "Guías descartados: " + (querySnapshot.size() - allGuides.size()));
+                    
+                    dismissProgressDialog();
+                    
+                    if (allGuides.isEmpty()) {
+                        android.util.Log.w("AdminSelectGuide", "⚠ No se encontraron guías disponibles");
+                        Toast.makeText(this, "No se encontraron guías disponibles para este horario", 
+                            Toast.LENGTH_LONG).show();
+                    } else {
+                        android.util.Log.d("AdminSelectGuide", "✓ " + allGuides.size() + " guías disponibles");
+                    }
+                }, 1500); // Esperar 1.5 segundos para las verificaciones asíncronas
             })
             .addOnFailureListener(e -> {
                 android.util.Log.e("AdminSelectGuide", "Error al cargar guías", e);
@@ -302,6 +327,91 @@ public class admin_select_guide extends AppCompatActivity {
                 Toast.makeText(this, "Error al cargar guías: " + e.getMessage(), 
                     Toast.LENGTH_SHORT).show();
             });
+    }
+    
+    /**
+     * Verifica si un guía tiene conflicto de horario con el tour a asignar
+     * Consulta tours_asignados del guía en la misma fecha
+     */
+    private void verificarConflictoHorario(String guiaId, ConflictoCallback callback) {
+        if (tourFechaRealizacion == null || tourHoraInicio == null || tourHoraFin == null) {
+            callback.onResult(false); // Sin datos, no se puede validar
+            return;
+        }
+        
+        // Convertir fecha a formato comparable
+        String fechaStr = "";
+        if (tourFechaRealizacion instanceof com.google.firebase.Timestamp) {
+            java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault());
+            fechaStr = sdf.format(((com.google.firebase.Timestamp) tourFechaRealizacion).toDate());
+        } else if (tourFechaRealizacion instanceof String) {
+            fechaStr = (String) tourFechaRealizacion;
+        }
+        
+        String finalFechaStr = fechaStr;
+        
+        db.collection("tours_asignados")
+            .whereEqualTo("guiaAsignado.identificadorUsuario", guiaId)
+            .whereEqualTo("habilitado", true)
+            .get()
+            .addOnSuccessListener(querySnapshot -> {
+                for (DocumentSnapshot doc : querySnapshot.getDocuments()) {
+                    Object fechaDoc = doc.get("fechaRealizacion");
+                    String fechaDocStr = "";
+                    
+                    if (fechaDoc instanceof com.google.firebase.Timestamp) {
+                        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault());
+                        fechaDocStr = sdf.format(((com.google.firebase.Timestamp) fechaDoc).toDate());
+                    } else if (fechaDoc instanceof String) {
+                        fechaDocStr = (String) fechaDoc;
+                    }
+                    
+                    // Si es el mismo día, verificar solapamiento de horarios
+                    if (fechaDocStr.equals(finalFechaStr)) {
+                        String horaInicioExistente = doc.getString("horaInicio");
+                        String horaFinExistente = doc.getString("horaFin");
+                        
+                        if (hayConflictoHorario(tourHoraInicio, tourHoraFin, horaInicioExistente, horaFinExistente)) {
+                            android.util.Log.d("AdminSelectGuide", "Conflicto detectado - Guía: " + guiaId + 
+                                              " tiene tour de " + horaInicioExistente + " a " + horaFinExistente);
+                            callback.onResult(true); // Hay conflicto
+                            return;
+                        }
+                    }
+                }
+                callback.onResult(false); // No hay conflicto
+            })
+            .addOnFailureListener(e -> {
+                android.util.Log.e("AdminSelectGuide", "Error verificando conflictos", e);
+                callback.onResult(false); // En caso de error, permitir selección
+            });
+    }
+    
+    /**
+     * Verifica si dos rangos de horarios se solapan
+     */
+    private boolean hayConflictoHorario(String inicio1, String fin1, String inicio2, String fin2) {
+        if (inicio1 == null || fin1 == null || inicio2 == null || fin2 == null) {
+            return false;
+        }
+        
+        try {
+            java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault());
+            java.util.Date i1 = sdf.parse(inicio1);
+            java.util.Date f1 = sdf.parse(fin1);
+            java.util.Date i2 = sdf.parse(inicio2);
+            java.util.Date f2 = sdf.parse(fin2);
+            
+            // Solapamiento: (inicio1 < fin2) AND (fin1 > inicio2)
+            return i1.before(f2) && f1.after(i2);
+        } catch (Exception e) {
+            android.util.Log.e("AdminSelectGuide", "Error comparando horarios", e);
+            return false;
+        }
+    }
+    
+    interface ConflictoCallback {
+        void onResult(boolean tieneConflicto);
     }
 
     private void setupRecyclerView() {

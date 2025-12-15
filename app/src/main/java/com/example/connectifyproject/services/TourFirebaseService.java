@@ -1224,8 +1224,11 @@ private void crearTourAsignadoDesdeDocumento(DocumentSnapshot ofertaDoc, Documen
                     .document(guiaId)
                     .update(actualizacionOfrecimiento)
                     .addOnSuccessListener(aVoid -> {
-                        // 3. Crear tour asignado
-                        crearTourAsignado(ofertaDoc, guiaId, callback);
+                        // 3. Rechazar automáticamente otras ofertas con conflicto de horario
+                        rechazarOfertasConConflicto(guiaId, ofertaDoc, () -> {
+                            // 4. Crear tour asignado
+                            crearTourAsignado(ofertaDoc, guiaId, callback);
+                        });
                     })
                     .addOnFailureListener(e -> {
                         Log.e(TAG, "Error actualizando ofrecimiento", e);
@@ -1236,6 +1239,142 @@ private void crearTourAsignadoDesdeDocumento(DocumentSnapshot ofertaDoc, Documen
                 Log.e(TAG, "Error cargando oferta", e);
                 callback.onError("Error al cargar oferta: " + e.getMessage());
             });
+    }
+    
+    /**
+     * Rechaza automáticamente todas las ofertas del guía que tengan conflicto de horario
+     * con la oferta que acaba de aceptar
+     */
+    private void rechazarOfertasConConflicto(String guiaId, DocumentSnapshot ofertaAceptada, Runnable onComplete) {
+        Object fechaAceptada = ofertaAceptada.get("fechaRealizacion");
+        String horaInicioAceptada = ofertaAceptada.getString("horaInicio");
+        String horaFinAceptada = ofertaAceptada.getString("horaFin");
+        
+        if (fechaAceptada == null || horaInicioAceptada == null || horaFinAceptada == null) {
+            onComplete.run();
+            return;
+        }
+        
+        Log.d(TAG, "Buscando ofertas con conflicto para guía " + guiaId);
+        
+        // Buscar todas las ofertas pendientes del guía
+        db.collection(COLLECTION_OFERTAS)
+            .whereEqualTo("habilitado", true)
+            .get()
+            .addOnSuccessListener(querySnapshot -> {
+                int ofertasRechazadas = 0;
+                
+                for (DocumentSnapshot ofertaDoc : querySnapshot.getDocuments()) {
+                    String ofertaId = ofertaDoc.getId();
+                    
+                    // Verificar si el guía tiene esta oferta pendiente
+                    db.collection(COLLECTION_OFERTAS)
+                        .document(ofertaId)
+                        .collection("guias_ofertados")
+                        .document(guiaId)
+                        .get()
+                        .addOnSuccessListener(guiaOfertadoDoc -> {
+                            if (guiaOfertadoDoc.exists()) {
+                                String estadoOferta = guiaOfertadoDoc.getString("estadoOferta");
+                                
+                                // Solo procesar si está pendiente
+                                if ("pendiente".equals(estadoOferta)) {
+                                    Object fechaOferta = ofertaDoc.get("fechaRealizacion");
+                                    String horaInicioOferta = ofertaDoc.getString("horaInicio");
+                                    String horaFinOferta = ofertaDoc.getString("horaFin");
+                                    
+                                    // Verificar si es el mismo día
+                                    if (esMismaFecha(fechaAceptada, fechaOferta)) {
+                                        // Verificar conflicto de horario
+                                        if (hayConflictoHorario(horaInicioAceptada, horaFinAceptada, 
+                                                               horaInicioOferta, horaFinOferta)) {
+                                            
+                                            Log.d(TAG, "Conflicto detectado con oferta " + ofertaId + 
+                                                      " - Rechazando automáticamente");
+                                            
+                                            // Rechazar la oferta con conflicto
+                                            Map<String, Object> actualizacion = new HashMap<>();
+                                            actualizacion.put("estadoOferta", "rechazado");
+                                            actualizacion.put("fechaRespuesta", Timestamp.now());
+                                            actualizacion.put("motivoRechazo", "Conflicto de horario - El guía aceptó otro tour");
+                                            actualizacion.put("vistoAdmin", false);
+                                            
+                                            db.collection(COLLECTION_OFERTAS)
+                                                .document(ofertaId)
+                                                .collection("guias_ofertados")
+                                                .document(guiaId)
+                                                .update(actualizacion)
+                                                .addOnSuccessListener(aVoid -> {
+                                                    Log.d(TAG, "Oferta " + ofertaId + " rechazada automáticamente");
+                                                })
+                                                .addOnFailureListener(e -> {
+                                                    Log.e(TAG, "Error al rechazar oferta " + ofertaId, e);
+                                                });
+                                        }
+                                    }
+                                }
+                            }
+                        });
+                }
+                
+                // Continuar inmediatamente (las actualizaciones son asíncronas)
+                onComplete.run();
+            })
+            .addOnFailureListener(e -> {
+                Log.e(TAG, "Error buscando ofertas con conflicto", e);
+                onComplete.run(); // Continuar aunque falle
+            });
+    }
+    
+    /**
+     * Verifica si dos fechas son el mismo día
+     */
+    private boolean esMismaFecha(Object fecha1, Object fecha2) {
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+            String fecha1Str = "";
+            String fecha2Str = "";
+            
+            if (fecha1 instanceof Timestamp) {
+                fecha1Str = sdf.format(((Timestamp) fecha1).toDate());
+            } else if (fecha1 instanceof String) {
+                fecha1Str = (String) fecha1;
+            }
+            
+            if (fecha2 instanceof Timestamp) {
+                fecha2Str = sdf.format(((Timestamp) fecha2).toDate());
+            } else if (fecha2 instanceof String) {
+                fecha2Str = (String) fecha2;
+            }
+            
+            return fecha1Str.equals(fecha2Str);
+        } catch (Exception e) {
+            Log.e(TAG, "Error comparando fechas", e);
+            return false;
+        }
+    }
+    
+    /**
+     * Verifica si dos rangos de horarios se solapan
+     */
+    private boolean hayConflictoHorario(String inicio1, String fin1, String inicio2, String fin2) {
+        if (inicio1 == null || fin1 == null || inicio2 == null || fin2 == null) {
+            return false;
+        }
+        
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat("HH:mm", Locale.getDefault());
+            Date i1 = sdf.parse(inicio1);
+            Date f1 = sdf.parse(fin1);
+            Date i2 = sdf.parse(inicio2);
+            Date f2 = sdf.parse(fin2);
+            
+            // Solapamiento: (inicio1 < fin2) AND (fin1 > inicio2)
+            return i1.before(f2) && f1.after(i2);
+        } catch (Exception e) {
+            Log.e(TAG, "Error comparando horarios", e);
+            return false;
+        }
     }
     
     /**

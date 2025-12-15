@@ -468,21 +468,22 @@ public class guia_assigned_tours extends AppCompatActivity implements GuiaDateFi
 
     private String getFormattedHeader(String date) {
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+        SimpleDateFormat outputFormat = new SimpleDateFormat("dd 'de' MMMM 'de' yyyy", new Locale("es", "ES"));
         try {
             Date tourDate = sdf.parse(date);
-            Date today = new Date(); // Fecha actual real
+            Date today = new Date();
             SimpleDateFormat todayFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
             
             if (todayFormat.format(today).equals(date)) {
-                return "Hoy, " + date.replace("/", " de ");
+                return "Hoy, " + outputFormat.format(tourDate);
             } else {
                 Calendar cal = Calendar.getInstance();
                 cal.setTime(today);
                 cal.add(Calendar.DAY_OF_YEAR, 1);
                 if (todayFormat.format(cal.getTime()).equals(date)) {
-                    return "Mañana, " + date.replace("/", " de ");
+                    return "Mañana, " + outputFormat.format(tourDate);
                 }
-                return date.replace("/", " de ");
+                return outputFormat.format(tourDate);
             }
         } catch (ParseException e) {
             return date;
