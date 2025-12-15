@@ -18,7 +18,7 @@ import java.util.List;
 public class Cliente_TarjetaAdapter extends RecyclerView.Adapter<Cliente_TarjetaAdapter.TarjetaViewHolder> {
 
     private List<Cliente_PaymentMethod> tarjetas;
-    private int selectedPosition = 0; // Primera tarjeta seleccionada por defecto
+    private int selectedPosition = -1; // Ninguna tarjeta seleccionada por defecto
     private OnTarjetaSelectedListener listener;
 
     public interface OnTarjetaSelectedListener {

@@ -269,8 +269,7 @@ public class cliente_tour_detalle extends AppCompatActivity implements Cliente_S
         });
 
         btnContinuar.setOnClickListener(v -> {
-            // Navegar a selección de método de pago
-            navigateToPaymentMethod();
+            validarYContinuar();
         });
 
         cardEmpresa.setOnClickListener(v -> {
@@ -415,5 +414,50 @@ public class cliente_tour_detalle extends AppCompatActivity implements Cliente_S
         intent.putExtra("servicios_precios", serviciosSeleccionadosPrecios);
         
         startActivity(intent);
+    }
+    
+    /**
+     * Validar que el cliente no tenga ya una reserva para este tour
+     */
+    private void validarYContinuar() {
+        // Verificar autenticación
+        com.google.firebase.auth.FirebaseUser currentUser = com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser == null) {
+            Toast.makeText(this, "Debes iniciar sesión para continuar", Toast.LENGTH_LONG).show();
+            return;
+        }
+        
+        // Verificar si ya tiene una reserva para este tour
+        db.collection("tours_asignados")
+            .document(tour.getId())
+            .get()
+            .addOnSuccessListener(documentSnapshot -> {
+                if (documentSnapshot.exists()) {
+                    List<Map<String, Object>> participantes = 
+                        (List<Map<String, Object>>) documentSnapshot.get("participantes");
+                    
+                    if (participantes != null) {
+                        // Buscar si el cliente actual ya está en la lista de participantes
+                        for (Map<String, Object> participante : participantes) {
+                            String clienteId = (String) participante.get("clienteId");
+                            if (currentUser.getUid().equals(clienteId)) {
+                                // Ya tiene una reserva
+                                Toast.makeText(this, 
+                                    "⚠️ Ya tienes una reserva para este tour. Revisa tu sección de Reservas.", 
+                                    Toast.LENGTH_LONG).show();
+                                return;
+                            }
+                        }
+                    }
+                }
+                
+                // No tiene reserva, puede continuar
+                navigateToPaymentMethod();
+            })
+            .addOnFailureListener(e -> {
+                Toast.makeText(this, 
+                    "Error al verificar reservas: " + e.getMessage(), 
+                    Toast.LENGTH_SHORT).show();
+            });
     }
 }

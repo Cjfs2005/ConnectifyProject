@@ -51,6 +51,8 @@ public class admin_tour_details extends AppCompatActivity implements OnMapReadyC
     private String guiaSeleccionadoId;  // Para tours pendientes
     private Map<String, Object> guiaAsignadoData;  // Para tours confirmados
     private List<Map<String, Object>> participantesData;  // Para tours confirmados
+    private Timestamp tourFechaRealizacion;  // Para validar tiempo de cancelación
+    private String tourHoraInicio;  // Para validar tiempo de cancelación
     
     // Firebase
     private FirebaseFirestore db;
@@ -140,6 +142,10 @@ public class admin_tour_details extends AppCompatActivity implements OnMapReadyC
                     String horaFin = documentSnapshot.getString("horaFin");
                     String duracion = documentSnapshot.getString("duracion");
                     guiaAsignadoId = documentSnapshot.getString("guiaAsignadoId");
+                    
+                    // Guardar fecha y hora para validación de cancelación
+                    tourFechaRealizacion = documentSnapshot.getTimestamp("fechaRealizacion");
+                    tourHoraInicio = horaInicio;
                     
                     // Cargar imágenes en galería horizontal
                     List<String> imagenesUrls = (List<String>) documentSnapshot.get("imagenesUrls");
@@ -356,13 +362,37 @@ public class admin_tour_details extends AppCompatActivity implements OnMapReadyC
         }
         
         // Mostrar botón "Cancelar Tour" solo si el tour está confirmado/pendiente/programado
+        // Y faltan MÁS de 2 horas para el inicio
         if (tourEstado != null && (tourEstado.equalsIgnoreCase("confirmado") || 
             tourEstado.equalsIgnoreCase("pendiente") || 
             tourEstado.equalsIgnoreCase("programado"))) {
-            binding.btnCancelarTour.setVisibility(View.VISIBLE);
-            binding.btnCancelarTour.setOnClickListener(v -> {
-                mostrarDialogoCancelacion();
-            });
+            
+            // Validar que falten más de 2 horas
+            if (tourFechaRealizacion != null && tourHoraInicio != null) {
+                double horasRestantes = com.example.connectifyproject.utils.TourTimeValidator
+                    .calcularHorasHastaInicio(tourFechaRealizacion, tourHoraInicio);
+                
+                if (horasRestantes > 2.0) {
+                    binding.btnCancelarTour.setVisibility(View.VISIBLE);
+                    binding.btnCancelarTour.setOnClickListener(v -> {
+                        // Revalidar tiempo al hacer click
+                        double horasRestantesClick = com.example.connectifyproject.utils.TourTimeValidator
+                            .calcularHorasHastaInicio(tourFechaRealizacion, tourHoraInicio);
+                        
+                        if (horasRestantesClick > 2.0) {
+                            mostrarDialogoCancelacion();
+                        } else {
+                            Toast.makeText(this, 
+                                "⚠️ No se puede cancelar. Solo se permite cancelación hasta 2 horas antes del inicio.", 
+                                Toast.LENGTH_LONG).show();
+                        }
+                    });
+                } else {
+                    binding.btnCancelarTour.setVisibility(View.GONE);
+                }
+            } else {
+                binding.btnCancelarTour.setVisibility(View.GONE);
+            }
         } else {
             binding.btnCancelarTour.setVisibility(View.GONE);
         }
@@ -379,18 +409,8 @@ public class admin_tour_details extends AppCompatActivity implements OnMapReadyC
                 "• Se registrará un pago del 15% al guía como compensación\n" +
                 "• Las reservas se moverán a canceladas");
         
-        // Input para motivo de cancelación (opcional)
-        final android.widget.EditText input = new android.widget.EditText(this);
-        input.setHint("Motivo de cancelación (opcional)");
-        input.setPadding(50, 20, 50, 20);
-        builder.setView(input);
-        
         builder.setPositiveButton("Sí, cancelar", (dialog, which) -> {
-            String motivo = input.getText().toString().trim();
-            if (motivo.isEmpty()) {
-                motivo = "Cancelación manual por administrador";
-            }
-            ejecutarCancelacion(motivo);
+            ejecutarCancelacion("Cancelación manual");
         });
         
         builder.setNegativeButton("No", (dialog, which) -> dialog.dismiss());

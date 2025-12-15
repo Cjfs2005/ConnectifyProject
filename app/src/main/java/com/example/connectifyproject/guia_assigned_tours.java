@@ -179,9 +179,6 @@ public class guia_assigned_tours extends AppCompatActivity implements GuiaDateFi
                 // ✅ FILTRAR TOURS COMPLETADOS - No mostrarlos en la lista
                 allAssignedTours.clear();
                 for (TourAsignado tourAsignado : tours) {
-                    // ✅ AUTO-CANCELAR TOURS SIN INSCRIPCIONES QUE YA PASARON
-                    autoCancelarTourSinInscripcionesVencido(tourAsignado);
-                    
                     // No mostrar tours completados/finalizados/cancelados en la lista principal
                     if (tourAsignado.getEstado() == null || 
                         (!tourAsignado.getEstado().equalsIgnoreCase("completado") && 
@@ -887,69 +884,6 @@ public class guia_assigned_tours extends AppCompatActivity implements GuiaDateFi
                 });
             }
         });
-    }
-    
-    /**
-     * 🚫 AUTO-CANCELAR TOURS SIN INSCRIPCIONES QUE YA PASARON
-     * Verifica si un tour tiene 0 participantes y ya pasó su fecha/hora de finalización
-     * Si ambas condiciones se cumplen, cambia automáticamente el estado a "cancelado"
-     */
-    private void autoCancelarTourSinInscripcionesVencido(TourAsignado tour) {
-        try {
-            // Verificar si ya está cancelado
-            if ("cancelado".equalsIgnoreCase(tour.getEstado())) {
-                return;
-            }
-            
-            // Verificar número de participantes
-            int numParticipantes = 0;
-            if (tour.getParticipantes() != null) {
-                numParticipantes = tour.getParticipantes().size();
-            }
-            if (tour.getNumeroParticipantesTotal() != null && tour.getNumeroParticipantesTotal() > 0) {
-                numParticipantes = tour.getNumeroParticipantesTotal();
-            }
-            
-            // Si tiene participantes, no cancelar
-            if (numParticipantes > 0) {
-                return;
-            }
-            
-            // ✅ NUEVA REGLA: Validar que falten 2 horas o menos para el inicio
-            if (tour.getFechaRealizacion() == null || tour.getHoraInicio() == null) {
-                return;
-            }
-            
-            double horasRestantes = com.example.connectifyproject.utils.TourTimeValidator
-                .calcularHorasHastaInicio(tour.getFechaRealizacion(), tour.getHoraInicio());
-            
-            // Solo cancelar si faltan 2 horas o menos (pero aún no ha iniciado)
-            if (horasRestantes <= 2.0 && horasRestantes >= 0) {
-                // El tour está a 2 horas o menos y no tiene inscripciones -> CANCELAR
-                Log.w(TAG, "🚫 Auto-cancelando tour sin inscripciones (faltan " + 
-                    String.format("%.1f", horasRestantes) + " horas): " + tour.getTitulo());
-                
-                // Llamar al método actualizado que crea pagos
-                tourFirebaseService.verificarYCancelarTourSinParticipantes(
-                    tour.getId(), 
-                    new TourFirebaseService.OperationCallback() {
-                        @Override
-                        public void onSuccess(String message) {
-                            Log.d(TAG, "✅ Tour cancelado automáticamente: " + tour.getTitulo());
-                            tour.setEstado("cancelado");
-                        }
-                        
-                        @Override
-                        public void onError(String error) {
-                            Log.e(TAG, "❌ Error al cancelar tour automáticamente: " + error);
-                        }
-                    }
-                );
-            }
-            
-        } catch (Exception e) {
-            Log.e(TAG, "Error al verificar auto-cancelación: " + e.getMessage(), e);
-        }
     }
     
     /**

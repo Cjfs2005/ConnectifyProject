@@ -32,6 +32,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 public class admin_tours extends AppCompatActivity {
     private AdminToursViewBinding binding;
@@ -106,6 +107,8 @@ public class admin_tours extends AppCompatActivity {
                         
                         // Recargar tours después de obtener empresaId
                         if (empresaId != null) {
+                            // ✅ Ejecutar cancelación automática cuando admin abre la app
+                            ejecutarCancelacionAutomatica();
                             loadTours(currentTab);
                         } else {
                             Toast.makeText(this, "No se pudo obtener ID de empresa", Toast.LENGTH_SHORT).show();
@@ -116,6 +119,56 @@ public class admin_tours extends AppCompatActivity {
                     Toast.makeText(this, "Error al obtener datos de usuario", Toast.LENGTH_SHORT).show();
                 });
         }
+    }
+    
+    /**
+     * ✅ Ejecutar cancelación automática de tours sin participantes
+     * Se ejecuta cuando el admin abre la app
+     */
+    private void ejecutarCancelacionAutomatica() {
+        com.example.connectifyproject.services.TourFirebaseService tourService = 
+            new com.example.connectifyproject.services.TourFirebaseService();
+        
+        // Buscar tours sin participantes que deban cancelarse
+        db.collection("tours_asignados")
+            .whereEqualTo("empresaId", empresaId)
+            .whereIn("estado", java.util.Arrays.asList("confirmado", "pendiente", "programado"))
+            .get()
+            .addOnSuccessListener(querySnapshot -> {
+                for (com.google.firebase.firestore.DocumentSnapshot doc : querySnapshot.getDocuments()) {
+                    List<Map<String, Object>> participantes = 
+                        (List<Map<String, Object>>) doc.get("participantes");
+                    
+                    if (participantes == null || participantes.isEmpty()) {
+                        // Verificar regla de 2 horas
+                        com.google.firebase.Timestamp fechaRealizacion = doc.getTimestamp("fechaRealizacion");
+                        String horaInicio = doc.getString("horaInicio");
+                        
+                        double horasRestantes = com.example.connectifyproject.utils.TourTimeValidator
+                            .calcularHorasHastaInicio(fechaRealizacion, horaInicio);
+                        
+                        if (horasRestantes <= 2.0 && horasRestantes >= 0) {
+                            tourService.verificarYCancelarTourSinParticipantes(
+                                doc.getId(),
+                                new com.example.connectifyproject.services.TourFirebaseService.OperationCallback() {
+                                    @Override
+                                    public void onSuccess(String message) {
+                                        android.util.Log.d("AdminTours", "✅ Tour auto-cancelado: " + doc.getId());
+                                    }
+                                    
+                                    @Override
+                                    public void onError(String error) {
+                                        android.util.Log.e("AdminTours", "❌ Error cancelando tour: " + error);
+                                    }
+                                }
+                            );
+                        }
+                    }
+                }
+            })
+            .addOnFailureListener(e -> {
+                android.util.Log.e("AdminTours", "Error verificando tours para cancelación", e);
+            });
     }
 
     private void setupRecyclerView() {

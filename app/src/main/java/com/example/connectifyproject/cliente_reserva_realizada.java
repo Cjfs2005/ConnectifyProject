@@ -2,6 +2,7 @@ package com.example.connectifyproject;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -37,6 +38,7 @@ public class cliente_reserva_realizada extends AppCompatActivity {
     private void initViews() {
         btnAceptar = findViewById(R.id.btn_aceptar);
         btnDescargar = findViewById(R.id.btn_descargar);
+        btnDescargar.setVisibility(View.GONE); // Ocultar botón de descargar
     }
 
     private void setupClickListeners() {
