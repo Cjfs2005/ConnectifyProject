@@ -729,13 +729,10 @@ public class guia_assigned_tours extends AppCompatActivity implements GuiaDateFi
                 break;
                 
             case "check_out":
-                // 🏁 CHECK-OUT DISPONIBLE: Check-out + Detalles
-                binding.btnMapaRapido.setVisibility(View.VISIBLE);
+                // 🏁 CHECK-OUT DISPONIBLE: Sin botones (acciones desde escaneo QR)
+                binding.btnMapaRapido.setVisibility(View.GONE);
                 binding.btnCheckInRapido.setVisibility(View.GONE);
-                binding.btnCheckOutRapido.setVisibility(View.VISIBLE);
-                binding.btnCheckOutRapido.setText("Check-out");
-                binding.btnMapaRapido.setOnClickListener(v -> abrirMapaTour(tour));
-                binding.btnCheckOutRapido.setOnClickListener(v -> abrirCheckOutTour(tour));
+                binding.btnCheckOutRapido.setVisibility(View.GONE);
                 break;
                 
             case "completado":

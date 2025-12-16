@@ -10,6 +10,14 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.view.View;
 import androidx.appcompat.app.AppCompatActivity;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.PolylineOptions;
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -38,9 +46,15 @@ import java.util.Map;
  * Actividad principal para Cliente
  * Pantalla de inicio donde el cliente puede ver tours disponibles y gestionar sus reservas
  */
-public class cliente_inicio extends AppCompatActivity {
+public class cliente_inicio extends AppCompatActivity implements OnMapReadyCallback {
     
     private static final String TAG = "ClienteInicio";
+    
+    // Mapa
+    private GoogleMap googleMap;
+    private View mapContainer;
+    private java.util.List<LatLng> itineraryPoints;
+    private int currentPointIndex = 0;
     
     private FirebaseFirestore db;
     private String tourActivoId = null; // ID del tour activo del cliente
@@ -57,6 +71,7 @@ public class cliente_inicio extends AppCompatActivity {
     private View circleFin;
     private View progressLineActive;
     private MaterialCardView cardTourActivo;
+    private MaterialCardView cardMap;
     private MaterialCardView cardQr;
     private MaterialCardView cardStatistics;
     private android.widget.ImageView ivQrCode;
@@ -109,9 +124,14 @@ public class cliente_inicio extends AppCompatActivity {
         circleFin = findViewById(R.id.circle_fin);
         progressLineActive = findViewById(R.id.progress_line_active);
         cardTourActivo = findViewById(R.id.card_tour_activo);
+        cardMap = findViewById(R.id.card_map);
         cardQr = findViewById(R.id.card_qr);
         cardStatistics = findViewById(R.id.card_statistics);
         ivQrCode = findViewById(R.id.iv_qr_code);
+        mapContainer = findViewById(R.id.map_container);
+        
+        // Inicializar lista de puntos del itinerario
+        itineraryPoints = new java.util.ArrayList<>();
         tvQrInstruction = findViewById(R.id.tv_qr_instruction);
         tvPuntoActual = findViewById(R.id.tv_punto_actual);
         tvNoStatistics = findViewById(R.id.tv_no_statistics);
@@ -210,10 +230,13 @@ public class cliente_inicio extends AppCompatActivity {
     }
     
     private void setupClickListeners() {
-        // Hacer clickeable todo el card del tour activo
+        // Hacer clickeable todo el card del tour activo para ir a detalles
         cardTourActivo.setOnClickListener(v -> {
-            // Abrir pantalla de QR para check-in o check-out
-            mostrarQRTourActivo();
+            if (tourActivoId != null) {
+                Intent intent = new Intent(this, cliente_reserva_detalle.class);
+                intent.putExtra("tourId", tourActivoId);
+                startActivity(intent);
+            }
         });
         
         btnNotifications.setOnClickListener(v -> {
@@ -570,6 +593,7 @@ public class cliente_inicio extends AppCompatActivity {
                     } else {
                         Log.d(TAG, "ℹ️ No hay tour activo en este momento, mostrando estadísticas");
                         cardTourActivo.setVisibility(View.GONE);
+                        if (cardMap != null) cardMap.setVisibility(View.GONE);
                         if (cardQr != null) cardQr.setVisibility(View.GONE);
                         cargarYMostrarEstadisticas();
                     }
@@ -639,8 +663,19 @@ public class cliente_inicio extends AppCompatActivity {
             String horaInicio = doc.getString("horaInicio");
             String horaFinStr = doc.getString("horaFin");
             String estado = doc.getString("estado");
+            String imagenPrincipal = doc.getString("imagenPrincipal");
             
             com.google.firebase.Timestamp fechaRealizacion = doc.getTimestamp("fechaRealizacion");
+            
+            // ✅ CARGAR IMAGEN DEL TOUR
+            android.widget.ImageView ivTourImage = findViewById(R.id.iv_tour_image);
+            if (imagenPrincipal != null && !imagenPrincipal.isEmpty() && ivTourImage != null) {
+                com.bumptech.glide.Glide.with(this)
+                    .load(imagenPrincipal)
+                    .placeholder(R.drawable.cliente_tour_lima)
+                    .error(R.drawable.cliente_tour_lima)
+                    .into(ivTourImage);
+            }
             
             // ✅ MOSTRAR INFORMACIÓN DEL TOUR EN LA UI
             if (titulo != null) {
@@ -896,14 +931,114 @@ public class cliente_inicio extends AppCompatActivity {
                 tvPuntoActual.setText(mensaje);
                 tvPuntoActual.setVisibility(View.VISIBLE);
                 Log.d(TAG, "✅ Mostrando punto actual: " + puntoActual);
+                
+                // Cargar puntos del itinerario en el mapa
+                cargarMapaItinerario(itinerario, puntosCompletados);
             } else {
                 if (tvPuntoActual != null) tvPuntoActual.setVisibility(View.GONE);
+                if (cardMap != null) cardMap.setVisibility(View.GONE);
             }
             
         } catch (Exception e) {
             Log.e(TAG, "❌ Error al mostrar punto actual", e);
             if (tvPuntoActual != null) tvPuntoActual.setVisibility(View.GONE);
         }
+    }
+    
+    /**
+     * 🗺️ CARGAR MAPA CON ITINERARIO DEL TOUR EN CURSO
+     */
+    private void cargarMapaItinerario(java.util.List<java.util.Map<String, Object>> itinerario, int puntosCompletados) {
+        if (itinerario == null || itinerario.isEmpty()) {
+            if (mapContainer != null) mapContainer.setVisibility(View.GONE);
+            return;
+        }
+        
+        // Limpiar y cargar puntos
+        itineraryPoints.clear();
+        currentPointIndex = puntosCompletados;
+        
+        for (java.util.Map<String, Object> punto : itinerario) {
+            Object latObj = punto.get("latitud");
+            Object lngObj = punto.get("longitud");
+            
+            if (latObj != null && lngObj != null) {
+                double lat = latObj instanceof Double ? (Double) latObj : ((Number) latObj).doubleValue();
+                double lng = lngObj instanceof Double ? (Double) lngObj : ((Number) lngObj).doubleValue();
+                itineraryPoints.add(new LatLng(lat, lng));
+            }
+        }
+        
+        if (!itineraryPoints.isEmpty()) {
+            // Mostrar card del mapa
+            if (cardMap != null) {
+                cardMap.setVisibility(View.VISIBLE);
+                
+                // Inicializar mapa si aún no está cargado
+                SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                    .findFragmentById(R.id.map_container);
+                    
+                if (mapFragment != null) {
+                    mapFragment.getMapAsync(this);
+                }
+            }
+        } else {
+            if (cardMap != null) cardMap.setVisibility(View.GONE);
+        }
+    }
+    
+    @Override
+    public void onMapReady(GoogleMap map) {
+        googleMap = map;
+        
+        if (itineraryPoints == null || itineraryPoints.isEmpty()) {
+            return;
+        }
+        
+        // Agregar marcadores para cada punto
+        for (int i = 0; i < itineraryPoints.size(); i++) {
+            LatLng point = itineraryPoints.get(i);
+            
+            // Color según estado: verde para completados, azul para punto actual, gris para pendientes
+            float markerColor;
+            if (i < currentPointIndex) {
+                markerColor = BitmapDescriptorFactory.HUE_GREEN; // Completado
+            } else if (i == currentPointIndex) {
+                markerColor = BitmapDescriptorFactory.HUE_AZURE; // Actual
+            } else {
+                markerColor = BitmapDescriptorFactory.HUE_VIOLET; // Pendiente
+            }
+            
+            googleMap.addMarker(new MarkerOptions()
+                .position(point)
+                .title("Punto " + (i + 1))
+                .icon(BitmapDescriptorFactory.defaultMarker(markerColor)));
+        }
+        
+        // Agregar línea conectando los puntos
+        PolylineOptions polylineOptions = new PolylineOptions()
+            .color(Color.BLUE)
+            .width(8f);
+        
+        for (LatLng point : itineraryPoints) {
+            polylineOptions.add(point);
+        }
+        
+        googleMap.addPolyline(polylineOptions);
+        
+        // Centrar cámara en el punto actual
+        if (currentPointIndex < itineraryPoints.size()) {
+            LatLng currentPoint = itineraryPoints.get(currentPointIndex);
+            googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentPoint, 14f));
+        } else if (!itineraryPoints.isEmpty()) {
+            // Si ya terminó, mostrar el último punto
+            LatLng lastPoint = itineraryPoints.get(itineraryPoints.size() - 1);
+            googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(lastPoint, 14f));
+        }
+        
+        // Deshabilitar controles innecesarios para un mapa pequeño de solo lectura
+        googleMap.getUiSettings().setZoomControlsEnabled(false);
+        googleMap.getUiSettings().setMapToolbarEnabled(false);
     }
     
     /**

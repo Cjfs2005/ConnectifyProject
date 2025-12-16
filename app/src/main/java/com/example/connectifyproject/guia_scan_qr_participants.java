@@ -389,6 +389,11 @@ public class guia_scan_qr_participants extends AppCompatActivity {
                         (List<Map<String, Object>>) documentSnapshot.get("participantes");
                     
                     if (participantes != null) {
+                        // ✅ ACTUALIZAR número real de participantes basado en el array
+                        // Esto asegura que ante cancelaciones tengamos el conteo correcto
+                        numeroParticipantes = participantes.size();
+                        progressBar.setMax(numeroParticipantes);
+                        
                         int escaneadosCount = 0;
                         String campo = scanMode.equals("check_in") ? "checkIn" : "checkOut";
                         
@@ -555,12 +560,25 @@ public class guia_scan_qr_participants extends AppCompatActivity {
                     return;
                 }
                 
-                // VALIDAR 50% DE CHECK-OUT (REDONDEADO ARRIBA)
-                Long numParticipantes = doc.getLong("numeroParticipantesTotal");
-                Long numCheckOut = doc.getLong("numeroParticipantesCheckOut");
+                // VALIDAR 50% DE CHECK-OUT (PARTICIPANTES, NO PERSONAS)
+                java.util.List<java.util.Map<String, Object>> participantes = 
+                    (java.util.List<java.util.Map<String, Object>>) doc.get("participantes");
                 
-                int totalParticipantes = numParticipantes != null ? numParticipantes.intValue() : 0;
-                int participantesCheckOut = numCheckOut != null ? numCheckOut.intValue() : 0;
+                if (participantes == null || participantes.isEmpty()) {
+                    Toast.makeText(this, "❌ No hay participantes registrados", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                
+                int totalParticipantes = participantes.size();
+                int participantesCheckOut = 0;
+                
+                // Contar participantes con checkOut = true
+                for (java.util.Map<String, Object> participante : participantes) {
+                    Boolean checkOut = (Boolean) participante.get("checkOut");
+                    if (checkOut != null && checkOut) {
+                        participantesCheckOut++;
+                    }
+                }
                 
                 // Redondeo hacia arriba: ceil(total * 0.5)
                 int minimoRequerido = (int) Math.ceil(totalParticipantes * 0.5);
@@ -703,18 +721,17 @@ public class guia_scan_qr_participants extends AppCompatActivity {
             String guiaId = tourDoc.getString("guiaId");
             String empresaId = tourDoc.getString("empresaId");
             
-            // 4️⃣ OBTENER LISTA DE PARTICIPANTES
-            db.collection("tours_asignados")
-                .document(tourId)
-                .collection("participantes")
-                .get()
-                .addOnSuccessListener(participantesSnapshot -> {
-                    List<Map<String, Object>> pagosAGenerar = new ArrayList<>();
-                    
-                    // 5️⃣ CREAR PAGO POR CADA PARTICIPANTE (cliente → empresa)
-                    for (com.google.firebase.firestore.QueryDocumentSnapshot participante : participantesSnapshot) {
-                        String clienteId = participante.getId();
-                        String clienteNombre = participante.getString("nombreCompleto");
+            // 4️⃣ OBTENER ARRAY DE PARTICIPANTES DEL DOCUMENTO
+            java.util.List<java.util.Map<String, Object>> participantes = 
+                (java.util.List<java.util.Map<String, Object>>) tourDoc.get("participantes");
+            
+            if (participantes != null && !participantes.isEmpty()) {
+                List<Map<String, Object>> pagosAGenerar = new ArrayList<>();
+                
+                // 5️⃣ CREAR PAGO POR CADA PARTICIPANTE (cliente → empresa)
+                for (java.util.Map<String, Object> participante : participantes) {
+                    String clienteId = (String) participante.get("clienteId");
+                    String clienteNombre = (String) participante.get("nombre");
                         
                         Map<String, Object> pagoCliente = new HashMap<>();
                         pagoCliente.put("fecha", com.google.firebase.Timestamp.now());
@@ -766,11 +783,10 @@ public class guia_scan_qr_participants extends AppCompatActivity {
                                 Log.e(TAG, "❌ Error al generar pago: " + e.getMessage());
                             });
                     }
-                })
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "❌ Error al obtener participantes: " + e.getMessage());
-                    finalizarYSalir();
-                });
+            } else {
+                Log.w(TAG, "⚠️ No hay participantes para generar pagos");
+                finalizarYSalir();
+            }
                 
         } catch (Exception e) {
             Log.e(TAG, "❌ Error al generar pagos: " + e.getMessage());

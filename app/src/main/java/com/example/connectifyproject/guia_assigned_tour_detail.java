@@ -217,13 +217,11 @@ private void setupTourFromFirebase(DocumentSnapshot doc) {
     setupParticipantes(participantesData);
     setupItinerario(itinerarioTexto);
     setupTourInfo(idiomas, servicios, descripcion);
-    setupActionButtons(estado);
-    
-    // Lógica de acciones
-    boolean shouldShowActions = shouldShowActionButtons(estado, fechaFormateada);
-    binding.actionsCard.setVisibility(shouldShowActions ? View.VISIBLE : View.GONE);
-    
-    setupButtonClickListeners(titulo, estado, itinerarioTexto, numParticipantes);
+    // ❌ ACCIONES ELIMINADAS - Todas las acciones se manejan desde Tour Prioritario
+    // setupActionButtons(estado);
+    // boolean shouldShowActions = shouldShowActionButtons(estado, fechaFormateada);
+    // binding.actionsCard.setVisibility(shouldShowActions ? View.VISIBLE : View.GONE);
+    // setupButtonClickListeners(titulo, estado, itinerarioTexto, numParticipantes);
 }
 
     /**
@@ -457,6 +455,7 @@ private void setupTourFromFirebase(DocumentSnapshot doc) {
     /**
      * ✅ BOTONES: Configurar listeners para acciones según estado del tour
      */
+    /* ❌ MÉTODO ELIMINADO - Botones de acción ahora están solo en Tour Prioritario
     private void setupButtonClickListeners(String tourName, String tourStatus, 
                                          ArrayList<String> tourItinerario, int tourClients) {
         
@@ -490,11 +489,9 @@ private void setupTourFromFirebase(DocumentSnapshot doc) {
             // Ya no se muestra QR desde aquí, el guía debe ir al mapa para escanear
         });
     }
+    */
     
-    /**
-     * ✅ VALIDAR TIEMPO Y MOSTRAR BOTÓN DE CHECK-IN
-     * Solo muestra el botón si faltan ≤10 minutos para el inicio del tour
-     */
+    /* ❌ MÉTODO ELIMINADO - Validación ahora en Tour Prioritario
     private void validarYMostrarBotonCheckIn() {
         db.collection("tours_asignados")
             .document(tourId)
@@ -532,11 +529,9 @@ private void setupTourFromFirebase(DocumentSnapshot doc) {
                 binding.actionsCard.setVisibility(View.GONE);
             });
     }
+    */
     
-    /**
-     * Habilitar check-in: Cambiar estado del tour de "confirmado" a "check_in"
-     * ✅ VALIDACIÓN: Solo se puede habilitar 10 minutos antes del inicio
-     */
+    /* ❌ MÉTODO ELIMINADO - Lógica ahora en Tour Prioritario
     private void habilitarCheckIn() {
         // Primero validar tiempo
         db.collection("tours_asignados")
@@ -586,10 +581,9 @@ private void setupTourFromFirebase(DocumentSnapshot doc) {
                 Toast.makeText(this, "Error al validar tiempo: " + e.getMessage(), Toast.LENGTH_SHORT).show();
             });
     }
+    */
     
-    /**
-     * Habilitar check-in y redirigir automáticamente al mapa
-     */
+    /* ❌ MÉTODO ELIMINADO - Lógica ahora en Tour Prioritario
     private void habilitarCheckInYRedirigir() {
         db.collection("tours_asignados")
             .document(tourId)
@@ -640,6 +634,7 @@ private void setupTourFromFirebase(DocumentSnapshot doc) {
                 Toast.makeText(this, "Error al validar tiempo: " + e.getMessage(), Toast.LENGTH_SHORT).show();
             });
     }
+    */
     
     /**
      * Mostrar QR de check-in
@@ -819,9 +814,7 @@ private void setupTourFromFirebase(DocumentSnapshot doc) {
         }
     }
     
-    /**
-     * Habilitar check-out: Cambiar estado del tour de "en_curso" a "check_out"
-     */
+    /* ❌ MÉTODO ELIMINADO - Lógica ahora en Tour Prioritario
     private void habilitarCheckOut() {
         db.collection("tours_asignados")
             .document(tourId)
@@ -835,6 +828,7 @@ private void setupTourFromFirebase(DocumentSnapshot doc) {
                 Toast.makeText(this, "❌ Error al habilitar check-out: " + e.getMessage(), Toast.LENGTH_SHORT).show();
             });
     }
+    */
     
     /**
      * 📱 ESCANEAR QR DE CHECK-OUT
@@ -917,9 +911,7 @@ private void setupTourFromFirebase(DocumentSnapshot doc) {
         }
     }
 
-    /**
-     * ✅ LÓGICA: Determinar si mostrar botones de acción según estado del tour
-     */
+    /* ❌ MÉTODO ELIMINADO - Botones de acción ahora están solo en Tour Prioritario
     private boolean shouldShowActionButtons(String status, String fechaHora) {
         if (status == null) return false;
         
@@ -942,10 +934,9 @@ private void setupTourFromFirebase(DocumentSnapshot doc) {
                estadoLower.equals("programado") ||
                estadoLower.equals("confirmado");
     }
+    */
 
-    /**
-     * ✅ CONFIGURAR BOTONES DE ACCIÓN SEGÚN ESTADO DEL TOUR
-     */
+    /* ❌ MÉTODO ELIMINADO - Botones de acción ahora están solo en Tour Prioritario
     private void setupActionButtons(String tourStatus) {
         if (tourStatus == null) {
             binding.actionsCard.setVisibility(View.GONE);
@@ -1001,6 +992,7 @@ private void setupTourFromFirebase(DocumentSnapshot doc) {
                 break;
         }
     }
+    */
 
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {

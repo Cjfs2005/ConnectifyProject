@@ -108,7 +108,8 @@ public class admin_tour_details extends AppCompatActivity implements OnMapReadyC
     private void loadTourData() {
         // Determinar la colección según el tipo de tour
         String collection;
-        if ("confirmado".equals(tourTipo)) {
+        if ("confirmado".equals(tourTipo) || "en_curso".equals(tourTipo) || 
+            "check_in".equals(tourTipo) || "check_out".equals(tourTipo)) {
             collection = "tours_asignados";
         } else if ("cancelado".equals(tourTipo)) {
             // ✅ Tours cancelados están en tours_asignados
@@ -317,8 +318,9 @@ public class admin_tour_details extends AppCompatActivity implements OnMapReadyC
                     }
                     
                     // Guardar información del guía según el tipo de tour (se cargará en setupGuiaContent)
-                    if ("confirmado".equals(tourTipo)) {
-                        // Para tours confirmados, guardar guía del campo guiaAsignado
+                    if ("confirmado".equals(tourTipo) || "en_curso".equals(tourTipo) || 
+                        "check_in".equals(tourTipo) || "check_out".equals(tourTipo)) {
+                        // Para tours confirmados y en curso, guardar guía del campo guiaAsignado
                         guiaAsignadoData = (Map<String, Object>) documentSnapshot.get("guiaAsignado");
                         // Guardar participantes del campo participantes
                         participantesData = (List<Map<String, Object>>) documentSnapshot.get("participantes");
@@ -577,13 +579,17 @@ public class admin_tour_details extends AppCompatActivity implements OnMapReadyC
         binding.tabLayoutDetails.addTab(binding.tabLayoutDetails.newTab().setText("Info"));
         binding.tabLayoutDetails.addTab(binding.tabLayoutDetails.newTab().setText("Itinerario"));
         
-        // ✅ Agregar pestaña Guía para tours sin_asignar, pendiente, confirmado y cancelado
-        if ("sin_asignar".equals(tourTipo) || "pendiente".equals(tourTipo) || "confirmado".equals(tourTipo) || "cancelado".equals(tourTipo)) {
+        // ✅ Agregar pestaña Guía para tours sin_asignar, pendiente, confirmado, en_curso, check_out y cancelado
+        if ("sin_asignar".equals(tourTipo) || "pendiente".equals(tourTipo) || 
+            "confirmado".equals(tourTipo) || "en_curso".equals(tourTipo) || 
+            "check_in".equals(tourTipo) || "check_out".equals(tourTipo) || 
+            "cancelado".equals(tourTipo)) {
             binding.tabLayoutDetails.addTab(binding.tabLayoutDetails.newTab().setText("Guía"));
         }
         
-        // Agregar pestaña Participantes solo para tours confirmados
-        if ("confirmado".equals(tourTipo)) {
+        // Agregar pestaña Participantes para tours confirmados, en_curso, check_in y check_out
+        if ("confirmado".equals(tourTipo) || "en_curso".equals(tourTipo) || 
+            "check_in".equals(tourTipo) || "check_out".equals(tourTipo)) {
             binding.tabLayoutDetails.addTab(binding.tabLayoutDetails.newTab().setText("Participantes"));
         }
 
@@ -686,8 +692,10 @@ public class admin_tour_details extends AppCompatActivity implements OnMapReadyC
         android.util.Log.d("AdminTourDetails", "setupGuiaContent - tourTipo: " + tourTipo);
         
         // Cargar información del guía según el tipo de tour
-        if ("confirmado".equals(tourTipo) || "cancelado".equals(tourTipo)) {
-            // Para tours confirmados y cancelados, obtener guía del campo guiaAsignado
+        if ("confirmado".equals(tourTipo) || "en_curso".equals(tourTipo) || 
+            "check_in".equals(tourTipo) || "check_out".equals(tourTipo) || 
+            "cancelado".equals(tourTipo)) {
+            // Para tours confirmados, en curso y cancelados, obtener guía del campo guiaAsignado
             if (guiaAsignadoData != null) {
                 android.util.Log.d("AdminTourDetails", "Mostrando info guía " + tourTipo);
                 mostrarInfoGuiaConfirmado(guiaAsignadoData);
