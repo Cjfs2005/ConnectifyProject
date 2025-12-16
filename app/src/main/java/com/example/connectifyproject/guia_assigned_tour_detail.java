@@ -557,7 +557,8 @@ private void setupTourFromFirebase(DocumentSnapshot doc) {
                 // Convertir a minutos
                 long minutosRestantes = (long) (horasRestantes * 60);
                 
-                // Validar que falten 10 minutos o menos
+                // Validar que falten 10 minutos o menos, PERO permitir incluso después de la hora
+                // Solo restringir si falta mucho tiempo
                 if (minutosRestantes > 10) {
                     Toast.makeText(this, 
                         "⏰ El check-in solo se puede habilitar 10 minutos antes del inicio del tour.\n" +
@@ -566,12 +567,8 @@ private void setupTourFromFirebase(DocumentSnapshot doc) {
                     return;
                 }
                 
-                if (minutosRestantes < 0) {
-                    Toast.makeText(this, 
-                        "⚠️ El tour ya ha iniciado.",
-                        Toast.LENGTH_SHORT).show();
-                    return;
-                }
+                // ✅ PERMITIR check-in incluso después de la hora de inicio (dar libertad al guía)
+                // No hay restricción por tiempo pasado
                 
                 // Si la validación pasa, habilitar check-in
                 db.collection("tours_asignados")

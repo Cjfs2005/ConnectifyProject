@@ -738,12 +738,13 @@ private void crearTourAsignadoDesdeDocumento(DocumentSnapshot ofertaDoc, Documen
                         }
                     }
                     
-                    // ⏰ PRIORIDAD 4: Tours confirmados que faltan 10 minutos o menos para iniciar
+                    // ⏰ PRIORIDAD 4: Tours confirmados - mostrar desde 10 min antes hasta que se haga check-in
                     if ("confirmado".equals(estado) || "pendiente".equals(estado) || "programado".equals(estado)) {
                         long minutosParaInicio = calcularMinutosParaInicio(tour, ahora);
                         
-                        // Solo considerar tours que faltan 10 minutos o menos para iniciar
-                        if (minutosParaInicio >= 0 && minutosParaInicio <= 10) {
+                        // Mostrar desde 10 minutos antes y TAMBIÉN después de la hora (libertad al guía)
+                        // Solo dejar de mostrar si ya pasó mucho tiempo (ej: más de 30 min)
+                        if (minutosParaInicio <= 10 && minutosParaInicio >= -30) {
                             if (tourProximoInicio == null || minutosParaInicio < calcularMinutosParaInicio(tourProximoInicio, ahora)) {
                                 tourProximoInicio = tour;
                             }

@@ -508,9 +508,9 @@ public class cliente_inicio extends AppCompatActivity {
         Log.d(TAG, "🔍 Buscando tour activo para cliente: " + clienteId);
         
         // Buscar en tours_asignados donde participantes[] contenga al clienteId
-        // y el estado sea 'check_in', 'en_curso' o 'check_out'
+        // y el estado sea 'check_in', 'en_curso', 'check_out' o 'confirmado' (si ya es hora)
         db.collection("tours_asignados")
-                .whereIn("estado", java.util.Arrays.asList("check_in", "en_curso", "check_out"))
+                .whereIn("estado", java.util.Arrays.asList("confirmado", "check_in", "en_curso", "check_out"))
                 .addSnapshotListener((snapshots, error) -> {
                     if (error != null) {
                         Log.e(TAG, "❌ Error al cargar tour activo", error);
@@ -683,6 +683,7 @@ public class cliente_inicio extends AppCompatActivity {
     
     /**
      * 🔲 GENERAR Y MOSTRAR QR DINÁMICO SEGÚN ESTADO DEL TOUR
+     * - confirmado (si ya es hora): Muestra QR para check-in
      * - check_in: Muestra QR para check-in
      * - check_out: Muestra QR para check-out (solo si no ha pasado horaFin)
      * - en_curso: Oculta QR
@@ -698,6 +699,12 @@ public class cliente_inicio extends AppCompatActivity {
             }
             
             String clienteId = currentUser.getUid();
+            
+            // ✅ Si el tour está confirmado, verificar si ya es hora para mostrar QR
+            if ("confirmado".equalsIgnoreCase(estado) || "pendiente".equalsIgnoreCase(estado)) {
+                verificarYMostrarQRSiEsHora(tourId, clienteId);
+                return;
+            }
             
             // ✅ FASE 3: Lógica según estado del tour
             if ("check_in".equalsIgnoreCase(estado)) {
@@ -787,6 +794,74 @@ public class cliente_inicio extends AppCompatActivity {
         if (ivQrCode != null) {
             ivQrCode.setImageBitmap(bitmap);
         }
+    }
+    
+    /**
+     * ✅ VERIFICAR SI YA ES HORA DEL TOUR Y MOSTRAR QR
+     * Si el tour está confirmado pero ya es hora de inicio, mostrar QR de check-in
+     */
+    private void verificarYMostrarQRSiEsHora(String tourId, String clienteId) {
+        db.collection("tours_asignados")
+            .document(tourId)
+            .get()
+            .addOnSuccessListener(doc -> {
+                if (!doc.exists()) {
+                    if (cardQr != null) cardQr.setVisibility(View.GONE);
+                    return;
+                }
+                
+                com.google.firebase.Timestamp fechaRealizacion = doc.getTimestamp("fechaRealizacion");
+                String horaInicio = doc.getString("horaInicio");
+                
+                if (fechaRealizacion == null || horaInicio == null) {
+                    if (cardQr != null) cardQr.setVisibility(View.GONE);
+                    return;
+                }
+                
+                // Verificar si ya es hora del tour
+                try {
+                    java.util.Date fechaTour = fechaRealizacion.toDate();
+                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault());
+                    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+                    
+                    String fechaStr = dateFormat.format(fechaTour);
+                    String fechaHoraStr = fechaStr + " " + horaInicio;
+                    java.util.Date fechaHoraInicio = sdf.parse(fechaHoraStr);
+                    
+                    java.util.Date ahora = new java.util.Date();
+                    
+                    // Si ya es hora o pasó la hora, mostrar QR de check-in
+                    if (ahora.getTime() >= fechaHoraInicio.getTime()) {
+                        // Generar QR de check-in
+                        org.json.JSONObject qrJson = new org.json.JSONObject();
+                        qrJson.put("tourId", tourId);
+                        qrJson.put("clienteId", clienteId);
+                        qrJson.put("type", "check_in");
+                        
+                        String qrData = qrJson.toString();
+                        generarBitmapQR(qrData);
+                        
+                        if (tvQrInstruction != null) {
+                            tvQrInstruction.setText("📍 Muestra este código al guía para hacer CHECK-IN");
+                            tvQrInstruction.setVisibility(View.VISIBLE);
+                        }
+                        
+                        if (cardQr != null) cardQr.setVisibility(View.VISIBLE);
+                        Log.d(TAG, "✅ QR de CHECK-IN generado (tour confirmado pero ya es hora)");
+                    } else {
+                        // Aún no es hora - ocultar QR y mostrar estadísticas
+                        if (cardQr != null) cardQr.setVisibility(View.GONE);
+                        cargarYMostrarEstadisticas();
+                    }
+                } catch (Exception e) {
+                    Log.e(TAG, "Error verificando hora del tour", e);
+                    if (cardQr != null) cardQr.setVisibility(View.GONE);
+                }
+            })
+            .addOnFailureListener(e -> {
+                Log.e(TAG, "Error cargando datos del tour", e);
+                if (cardQr != null) cardQr.setVisibility(View.GONE);
+            });
     }
     
     /**

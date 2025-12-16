@@ -618,12 +618,15 @@ public class guia_assigned_tours extends AppCompatActivity implements GuiaDateFi
             // Mostrar el banner
             binding.tourPrioritarioCard.setVisibility(View.VISIBLE);
             
+            // ✅ CALCULAR TOTAL DE PERSONAS sumando numeroPersonas de cada reserva
+            int totalPersonas = calcularTotalPersonas(tour.getParticipantes());
+            
             // Configurar información del tour
             binding.tourPrioritarioTitulo.setText(tour.getTitulo());
             binding.tourPrioritarioInfo.setText(String.format(
                 "🕘 Inicio: %s | 👥 %d participantes", 
                 tour.getHoraInicio(), 
-                tour.getNumeroParticipantesTotal()
+                totalPersonas
             ));
             
             // Configurar estado y color del banner
@@ -632,6 +635,28 @@ public class guia_assigned_tours extends AppCompatActivity implements GuiaDateFi
             // Configurar botones según estado
             configurarBotonesPrioritario(tour);
         });
+    }
+    
+    /**
+     * ✅ CALCULAR TOTAL DE PERSONAS sumando numeroPersonas de cada reserva
+     * Cada participante puede tener más de una persona (ej: reserva familiar)
+     */
+    private int calcularTotalPersonas(List<Map<String, Object>> participantes) {
+        if (participantes == null || participantes.isEmpty()) {
+            return 0;
+        }
+        
+        int total = 0;
+        for (Map<String, Object> participante : participantes) {
+            Object numeroPersonasObj = participante.get("numeroPersonas");
+            if (numeroPersonasObj instanceof Number) {
+                total += ((Number) numeroPersonasObj).intValue();
+            } else {
+                // Si no existe el campo, contar como 1 persona
+                total += 1;
+            }
+        }
+        return total;
     }
     
     /**

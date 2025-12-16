@@ -153,14 +153,12 @@
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btn_detalles_rapido"
-                    style="@style/Widget.MaterialComponents.Button.TextButton.Icon"
+                    style="@style/Widget.MaterialComponents.Button.TextButton"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="Detalles"
-                    android:textSize="12sp"
-                    app:icon="@drawable/ic_details"
-                    app:iconSize="16dp" />
+                    android:textSize="12sp" />
 
             </LinearLayout>
 
