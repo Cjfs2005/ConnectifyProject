@@ -735,7 +735,6 @@ public class guia_scan_qr_participants extends AppCompatActivity {
                                           double precioTour, double pagoGuia, int numParticipantes) {
         try {
             String titulo = tourDoc.getString("titulo");
-            String guiaId = tourDoc.getString("guiaId");
             String empresaId = tourDoc.getString("empresaId");
             
             // 4️⃣ OBTENER ARRAY DE PARTICIPANTES DEL DOCUMENTO
@@ -790,7 +789,9 @@ public class guia_scan_qr_participants extends AppCompatActivity {
                         nombreGuia = (String) guiaAsignadoPago.get("nombresCompletos");
                     }
                     if (nombreGuia == null) nombreGuia = "Guía"; // Fallback
-                    if (guiaIdPago == null) guiaIdPago = guiaId; // Usar el guiaId que ya tenemos
+                    if (guiaIdPago == null) {
+                        android.util.Log.e(TAG, "⚠️ No se pudo obtener guiaId del mapa guiaAsignado");
+                    }
                     
                     Map<String, Object> pagoGuiaDoc = new HashMap<>();
                     pagoGuiaDoc.put("fecha", com.google.firebase.Timestamp.now());

@@ -77,12 +77,36 @@ public class Cliente_GalleryTourAdapter extends RecyclerView.Adapter<Cliente_Gal
         // Configurar imagen desde URL o usar imagen por defecto
         String imageUrl = tour.getImageUrl();
         if (imageUrl != null && !imageUrl.isEmpty()) {
-            com.bumptech.glide.Glide.with(context)
-                .load(imageUrl)
-                .placeholder(R.drawable.cliente_tour_lima)
-                .error(R.drawable.cliente_tour_lima)
-                .centerCrop()
-                .into(holder.ivTourImage);
+            // Validar que el contexto no esté destruido antes de usar Glide
+            if (context instanceof android.app.Activity) {
+                android.app.Activity activity = (android.app.Activity) context;
+                if (!activity.isFinishing() && !activity.isDestroyed()) {
+                    try {
+                        com.bumptech.glide.Glide.with(context)
+                            .load(imageUrl)
+                            .placeholder(R.drawable.cliente_tour_lima)
+                            .error(R.drawable.cliente_tour_lima)
+                            .centerCrop()
+                            .into(holder.ivTourImage);
+                    } catch (IllegalArgumentException e) {
+                        holder.ivTourImage.setImageResource(R.drawable.cliente_tour_lima);
+                    }
+                } else {
+                    holder.ivTourImage.setImageResource(R.drawable.cliente_tour_lima);
+                }
+            } else {
+                // Si no es Activity (ej: ApplicationContext), usar directamente
+                try {
+                    com.bumptech.glide.Glide.with(context)
+                        .load(imageUrl)
+                        .placeholder(R.drawable.cliente_tour_lima)
+                        .error(R.drawable.cliente_tour_lima)
+                        .centerCrop()
+                        .into(holder.ivTourImage);
+                } catch (IllegalArgumentException e) {
+                    holder.ivTourImage.setImageResource(R.drawable.cliente_tour_lima);
+                }
+            }
         } else {
             holder.ivTourImage.setImageResource(R.drawable.cliente_tour_lima);
         }

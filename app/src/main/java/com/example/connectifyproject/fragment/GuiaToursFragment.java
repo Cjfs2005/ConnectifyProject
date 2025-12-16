@@ -81,6 +81,7 @@ public class GuiaToursFragment extends Fragment {
                         String duracionReal = doc.getString("duracionReal");
                         Long numParticipantes = doc.getLong("numeroParticipantes");
                         Double pagoGuia = doc.getDouble("pagoGuia");
+                        String empresaNombre = doc.getString("empresaNombre");
                         
                         String fecha = fechaRegistro != null ? 
                             dateFormat.format(fechaRegistro.toDate()) : "Sin fecha";
@@ -100,7 +101,7 @@ public class GuiaToursFragment extends Fragment {
                             doc.getId(),
                             titulo != null ? titulo : "Tour sin título",
                             fecha,
-                            "Completado",
+                            empresaNombre != null ? empresaNombre : "Empresa",
                             detalles
                         ));
                     }
