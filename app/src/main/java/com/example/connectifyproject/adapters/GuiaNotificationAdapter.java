@@ -19,12 +19,22 @@ public class GuiaNotificationAdapter extends RecyclerView.Adapter<GuiaNotificati
         public String message;
         public String time;
         public String date;
+        public long timestamp;
 
         public NotificationData(String title, String message, String time, String date) {
             this.title = title;
             this.message = message;
             this.time = time;
             this.date = date;
+            this.timestamp = 0L;
+        }
+
+        public NotificationData(String title, String message, String time, String date, long timestamp) {
+            this.title = title;
+            this.message = message;
+            this.time = time;
+            this.date = date;
+            this.timestamp = timestamp;
         }
     }
 
