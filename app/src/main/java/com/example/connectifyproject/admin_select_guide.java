@@ -66,9 +66,10 @@ public class admin_select_guide extends AppCompatActivity {
         public String profileImageUrl;
         public boolean disponible;
         public String ciudad;
+        public int reviewCount;  // Número de reseñas
 
         public GuideItem(String id, String name, String email, double rating, int tourCount, 
-                        List<String> languages, String profileImageUrl, boolean disponible, String ciudad) {
+                        List<String> languages, String profileImageUrl, boolean disponible, String ciudad, int reviewCount) {
             this.id = id;
             this.name = name;
             this.email = email;
@@ -78,6 +79,7 @@ public class admin_select_guide extends AppCompatActivity {
             this.profileImageUrl = profileImageUrl;
             this.disponible = disponible;
             this.ciudad = ciudad;
+            this.reviewCount = reviewCount;
         }
         
         public String getLanguagesText() {
@@ -271,9 +273,10 @@ public class admin_select_guide extends AppCompatActivity {
                     
                     android.util.Log.d("AdminSelectGuide", "  ✓ Guía aceptado, verificando horario...");
                     
-                    // Crear el GuideItem temporalmente
+                    // Crear el GuideItem temporalmente con número de reseñas
+                    int reviewCount = numeroResenias != null ? numeroResenias.intValue() : 0;
                     GuideItem guide = new GuideItem(id, name, email, rating, tourCount, 
-                                                   idiomas, profileImageUrl, disponible, ciudadGuia);
+                                                   idiomas, profileImageUrl, disponible, ciudadGuia, reviewCount);
                     
                     // Verificar conflicto de horario antes de agregar
                     verificarConflictoHorario(id, tieneConflicto -> {
@@ -765,8 +768,10 @@ public class admin_select_guide extends AppCompatActivity {
             
             public void bind(GuideItem guide, OnGuideClickListener listener) {
                 tvName.setText(guide.name);
-                tvRating.setText(String.format(Locale.getDefault(), "%.1f", guide.rating));
-                tvTourCount.setText("("+guide.tourCount + " reseñas)");
+                // Mostrar rating y número de reseñas correctamente
+                tvRating.setText(String.format(Locale.getDefault(), "★ %.1f (%d reseñas)", guide.rating, guide.reviewCount));
+                // Si quieres mostrar tours completados, usa esta línea, si no, déjala vacía
+                tvTourCount.setText(guide.tourCount > 0 ? String.format(Locale.getDefault(), "%d tours", guide.tourCount) : "");
                 tvLanguages.setText(guide.getLanguagesText());
                 
                 // Cargar imagen de perfil con Glide

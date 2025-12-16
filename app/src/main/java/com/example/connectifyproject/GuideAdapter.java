@@ -64,7 +64,7 @@ public class GuideAdapter extends RecyclerView.Adapter<GuideAdapter.GuideViewHol
 
         public void bind(admin_select_guide.GuideItem guide) {
             tvName.setText(guide.name);
-            tvRating.setText(String.format("★ %.1f", guide.rating));
+            tvRating.setText(String.format("★ %.1f (%d)", guide.rating, guide.reviewCount));
             // Convertir lista de idiomas a String separado por comas
             tvLanguages.setText(guide.languages != null ? String.join(", ", guide.languages) : "");
 

@@ -109,7 +109,8 @@ public class admin_tour_details extends AppCompatActivity implements OnMapReadyC
         // Determinar la colección según el tipo de tour
         String collection;
         if ("confirmado".equals(tourTipo) || "en_curso".equals(tourTipo) || 
-            "check_in".equals(tourTipo) || "check_out".equals(tourTipo)) {
+            "check_in".equals(tourTipo) || "check_out".equals(tourTipo) ||
+            "completado".equals(tourTipo)) {
             collection = "tours_asignados";
         } else if ("cancelado".equals(tourTipo)) {
             // ✅ Tours cancelados están en tours_asignados

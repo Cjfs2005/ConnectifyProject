@@ -989,7 +989,7 @@ public class admin_tours extends AppCompatActivity {
                         estadoDisplay,
                         imageUrl,
                         false, // No es editable
-                        "finalizado"
+                        "completado" // Corregido: pasar "completado" como tipo para detalles
                     ));
                 }
                 
