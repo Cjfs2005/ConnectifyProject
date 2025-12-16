@@ -449,18 +449,99 @@ public class guia_scan_qr_participants extends AppCompatActivity {
     }
     
     /**
-     * Redirigir al mapa - Las validaciones se harán en el mapa antes de iniciar el tour
+     * Iniciar tour - Valida y cambia estado a en_curso, luego va al mapa
      */
     private void redirigirAMapa() {
-        Toast.makeText(this, "📍 Redirigiendo al mapa...", Toast.LENGTH_SHORT).show();
-        
-        Intent intent = new Intent(this, guia_tour_map.class);
-        intent.putExtra("tour_id", tourId);
-        intent.putExtra("tour_name", tourTitulo);
-        intent.putExtra("tour_clients", numeroParticipantes);
-        intent.putExtra("tour_status", "check_in");
-        startActivity(intent);
-        finish();
+        // ✅ VALIDACIONES ANTES DE INICIAR TOUR
+        com.google.firebase.firestore.FirebaseFirestore.getInstance()
+            .collection("tours_asignados")
+            .document(tourId)
+            .get()
+            .addOnSuccessListener(doc -> {
+                if (!doc.exists()) {
+                    Toast.makeText(this, "Error: Tour no encontrado", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                
+                // 1️⃣ VALIDAR HORA DE INICIO (debe haber pasado la hora)
+                Object fechaRealizacion = doc.get("fechaRealizacion");
+                String horaInicio = doc.getString("horaInicio");
+                
+                double horasRestantes = com.example.connectifyproject.utils.TourTimeValidator
+                    .calcularHorasHastaInicio(fechaRealizacion, horaInicio);
+                
+                if (horasRestantes > 0) {
+                    long minutosRestantes = (long) (horasRestantes * 60);
+                    Toast.makeText(this, 
+                        "⏰ El tour aún no puede iniciarse.\n" +
+                        "Faltan " + minutosRestantes + " minutos para la hora de inicio.",
+                        Toast.LENGTH_LONG).show();
+                    return;
+                }
+                
+                // 2️⃣ VALIDAR 50% DE PARTICIPANTES ESCANEADOS (check-in)
+                java.util.List<java.util.Map<String, Object>> participantes = 
+                    (java.util.List<java.util.Map<String, Object>>) doc.get("participantes");
+                
+                int totalParticipantes = participantes != null ? participantes.size() : 0;
+                int participantesEscaneados = 0;
+                
+                if (participantes != null) {
+                    for (java.util.Map<String, Object> participante : participantes) {
+                        Boolean checkIn = (Boolean) participante.get("checkIn");
+                        if (checkIn != null && checkIn) {
+                            participantesEscaneados++;
+                        }
+                    }
+                }
+                
+                // Redondeo hacia arriba: ceil(total * 0.5)
+                int minimoRequerido = (int) Math.ceil(totalParticipantes * 0.5);
+                
+                if (participantesEscaneados < minimoRequerido) {
+                    int porcentaje = totalParticipantes > 0 ? 
+                        (int) ((participantesEscaneados * 100.0) / totalParticipantes) : 0;
+                    
+                    Toast.makeText(this, 
+                        "👥 Se requiere al menos 50% de participantes con check-in para iniciar.\n\n" +
+                        "Check-in realizados: " + participantesEscaneados + " / " + totalParticipantes + 
+                        " (" + porcentaje + "%)\n" +
+                        "Mínimo requerido: " + minimoRequerido,
+                        Toast.LENGTH_LONG).show();
+                    return;
+                }
+                
+                // ✅ VALIDACIONES PASADAS - INICIAR TOUR (cambiar estado a en_curso)
+                com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                    .collection("tours_asignados")
+                    .document(tourId)
+                    .update(
+                        "estado", "en_curso", 
+                        "tourStarted", true,
+                        "horaInicioReal", com.google.firebase.Timestamp.now(),
+                        "puntoActualIndex", 0
+                    )
+                    .addOnSuccessListener(aVoid -> {
+                        Toast.makeText(this, "🚀 Tour iniciado. Redirigiendo al mapa...", Toast.LENGTH_SHORT).show();
+                        
+                        // Redirigir al mapa
+                        Intent intent = new Intent(this, guia_tour_map.class);
+                        intent.putExtra("tour_id", tourId);
+                        intent.putExtra("tour_name", tourTitulo);
+                        intent.putExtra("tour_clients", numeroParticipantes);
+                        intent.putExtra("tour_status", "en_curso");
+                        startActivity(intent);
+                        finish();
+                    })
+                    .addOnFailureListener(e -> {
+                        Toast.makeText(this, "❌ Error al iniciar tour: " + e.getMessage(), 
+                            Toast.LENGTH_SHORT).show();
+                    });
+            })
+            .addOnFailureListener(e -> {
+                Toast.makeText(this, "Error al validar datos: " + e.getMessage(), 
+                    Toast.LENGTH_SHORT).show();
+            });
     }
     
     private void finalizarTour() {

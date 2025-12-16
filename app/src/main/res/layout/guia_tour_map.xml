@@ -126,21 +126,35 @@
                         android:layout_height="wrap_content"
                         android:text="Próxima parada: Catedral de Lima - 09:30 am" />
 
-                    <TextView
-                        android:id="@+id/clients_registered"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Clientes registrados: 8/12" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/register_position"
-                        android:layout_width="wrap_content"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_gravity="end"
-                        android:text="Registrar posición"
+                        android:text="📍 Registrar Posición"
                         android:backgroundTint="#2196F3"
                         android:textColor="@android:color/white"
                         android:layout_marginTop="8dp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/next_point_button"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="➡️ Siguiente Punto"
+                        android:backgroundTint="#4CAF50"
+                        android:textColor="@android:color/white"
+                        android:layout_marginTop="8dp"
+                        android:visibility="gone" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/finish_tour_button"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="🏁 Finalizar Tour"
+                        android:backgroundTint="#F44336"
+                        android:textColor="@android:color/white"
+                        android:layout_marginTop="8dp"
+                        android:visibility="gone" />
                 </LinearLayout>
 
                 <!-- Post-tour layout -->

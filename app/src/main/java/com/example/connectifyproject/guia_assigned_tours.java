@@ -712,23 +712,20 @@ public class guia_assigned_tours extends AppCompatActivity implements GuiaDateFi
                 break;
                 
             case "check_in":
-                // ✅ CHECK-IN DISPONIBLE: Mapa + Check-in + Detalles
-                binding.btnMapaRapido.setVisibility(View.VISIBLE);
+                // ✅ CHECK-IN DISPONIBLE: Solo Check-in (va a pantalla de escaneo)
+                binding.btnMapaRapido.setVisibility(View.GONE);
                 binding.btnCheckInRapido.setVisibility(View.VISIBLE);
                 binding.btnCheckOutRapido.setVisibility(View.GONE);
                 binding.btnCheckInRapido.setText("Check-in");
-                binding.btnMapaRapido.setOnClickListener(v -> abrirMapaTour(tour));
                 binding.btnCheckInRapido.setOnClickListener(v -> abrirCheckInTour(tour));
                 break;
                 
             case "en_curso":
-                // ▶️ EN CURSO: Mapa + Check-out + Detalles
+                // ▶️ EN CURSO: Solo Mapa (Finalizar Tour está dentro del mapa)
                 binding.btnMapaRapido.setVisibility(View.VISIBLE);
                 binding.btnCheckInRapido.setVisibility(View.GONE);
-                binding.btnCheckOutRapido.setVisibility(View.VISIBLE);
-                binding.btnCheckOutRapido.setText("Terminar Tour");
+                binding.btnCheckOutRapido.setVisibility(View.GONE);
                 binding.btnMapaRapido.setOnClickListener(v -> abrirMapaTour(tour));
-                binding.btnCheckOutRapido.setOnClickListener(v -> habilitarCheckOutParaTour(tour.getId(), tour.getTitulo()));
                 break;
                 
             case "check_out":

@@ -52,7 +52,7 @@ public class guia_tour_map extends AppCompatActivity implements OnMapReadyCallba
     private boolean isTourOngoing = false;
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
     private static final int BACKGROUND_LOCATION_PERMISSION_REQUEST_CODE = 2;
-    private static final float PROXIMITY_RADIUS_METERS = 50.0f; // Radio aceptable: 50 metros
+    private static final float PROXIMITY_RADIUS_METERS = 100.0f; // Radio aceptable: 100 metros
     
     // Cliente para obtener ubicación en tiempo real
     private com.google.android.gms.location.FusedLocationProviderClient fusedLocationClient;
@@ -118,6 +118,8 @@ public class guia_tour_map extends AppCompatActivity implements OnMapReadyCallba
         binding.startTourButton.setOnClickListener(v -> startTour());
         binding.scanQrStart.setOnClickListener(v -> scanQrStart());
         binding.registerPosition.setOnClickListener(v -> registerPosition());
+        binding.nextPointButton.setOnClickListener(v -> nextPoint());
+        binding.finishTourButton.setOnClickListener(v -> finishTour());
         binding.endTourButton.setOnClickListener(v -> endTour());
         binding.scanQrEnd.setOnClickListener(v -> scanQrEnd());
         
@@ -254,22 +256,47 @@ public class guia_tour_map extends AppCompatActivity implements OnMapReadyCallba
             binding.ongoingTourLayout.setVisibility(View.VISIBLE);
             binding.postTourLayout.setVisibility(View.GONE);
             updateOngoingUI();
-            binding.clientsRegistered.setText("Clientes registrados: 8/12");
         }
     }
 
     private void updateOngoingUI() {
         if (currentPointIndex < itineraryNames.size()) {
-            binding.currentEvent.setText("Evento Actual del Tour: " + itineraryNames.get(currentPointIndex));
-            binding.nextStop.setText("Próxima parada: " + (currentPointIndex + 1 < itineraryNames.size() ? itineraryNames.get(currentPointIndex + 1) : "Fin del tour") + " - 09:30 am");
-            
-            // Mostrar progreso de puntos visitados
-            binding.clientsRegistered.setText(String.format("Puntos visitados: %d/%d", currentPointIndex, itineraryNames.size()));
+            // Obtener información del punto actual desde Firebase
+            com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                .collection("tours_asignados")
+                .document(tourId)
+                .get()
+                .addOnSuccessListener(doc -> {
+                    if (doc.exists()) {
+                        java.util.List<java.util.Map<String, Object>> itinerario = 
+                            (java.util.List<java.util.Map<String, Object>>) doc.get("itinerario");
+                        
+                        if (itinerario != null && currentPointIndex < itinerario.size()) {
+                            java.util.Map<String, Object> puntoActual = itinerario.get(currentPointIndex);
+                            
+                            String nombre = (String) puntoActual.get("nombre");
+                            java.util.List<String> actividades = (java.util.List<String>) puntoActual.get("actividades");
+                            String actividadesStr = actividades != null && !actividades.isEmpty() ? 
+                                String.join(", ", actividades) : "Sin actividades especificadas";
+                            
+                            // Punto actual
+                            binding.currentEvent.setText(String.format("📍 Punto %d/%d: %s\n🎯 Actividades: %s", 
+                                currentPointIndex + 1, itineraryNames.size(), nombre, actividadesStr));
+                            
+                            // Siguiente punto
+                            if (currentPointIndex + 1 < itineraryNames.size()) {
+                                String siguienteNombre = itineraryNames.get(currentPointIndex + 1);
+                                binding.nextStop.setText("➡️ Siguiente: " + siguienteNombre);
+                            } else {
+                                binding.nextStop.setText("🏁 Último punto del tour");
+                            }
+                        }
+                    }
+                });
         } else {
             // Todos los puntos completados
             binding.currentEvent.setText("✅ Todos los puntos del itinerario completados");
-            binding.nextStop.setText("🏁 Ahora puedes finalizar el tour");
-            binding.clientsRegistered.setText(String.format("Puntos visitados: %d/%d (✅ Completo)", itineraryNames.size(), itineraryNames.size()));
+            binding.nextStop.setText("🏁 Presiona 'Finalizar Tour' para terminar");
         }
     }
     
@@ -380,10 +407,10 @@ public class guia_tour_map extends AppCompatActivity implements OnMapReadyCallba
             markers.add(marker);
             polylineOptions.add(point);
 
-            // Add proximity circle (50m radius, semi-transparent green)
+            // Add proximity circle (100m radius, semi-transparent green)
             mMap.addCircle(new CircleOptions()
                     .center(point)
-                    .radius(50)
+                    .radius(100)
                     .strokeColor(Color.GREEN)
                     .fillColor(Color.argb(50, 0, 255, 0)));
         }
@@ -427,7 +454,7 @@ public class guia_tour_map extends AppCompatActivity implements OnMapReadyCallba
         float[] distance = new float[1];
         Location.distanceBetween(currentLocation.latitude, currentLocation.longitude, next.latitude, next.longitude, distance);
 
-        if (distance[0] < 50) {
+        if (distance[0] < PROXIMITY_RADIUS_METERS) {
             markPointAsArrived();
         } else {
             Toast.makeText(this, "Aún no estás cerca de la próxima parada (" + String.format("%.0fm", distance[0]) + ")", Toast.LENGTH_SHORT).show();
@@ -501,9 +528,29 @@ public class guia_tour_map extends AppCompatActivity implements OnMapReadyCallba
                                 nextPointName, distanceMeters), 
                             Toast.LENGTH_LONG).show();
                         
-                        // Marcar punto como visitado y avanzar al siguiente
-                        currentPointIndex++;
-                        updateOngoingUI();
+                        // Actualizar Firebase: marcar punto como completado con horaLlegada
+                        actualizarPuntoEnFirebase(currentPointIndex, true);
+                        
+                        // Marcar punto como visitado en el mapa
+                        if (currentPointIndex < markers.size()) {
+                            markers.get(currentPointIndex).setIcon(
+                                BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE));
+                        }
+                        
+                        // Deshabilitar botón "Registrar Posición"
+                        binding.registerPosition.setEnabled(false);
+                        binding.registerPosition.setText("✅ Posición Registrada");
+                        
+                        // Verificar si es el último punto
+                        if (currentPointIndex == itineraryPoints.size() - 1) {
+                            // Último punto - Mostrar botón "Finalizar Tour"
+                            binding.nextPointButton.setVisibility(View.GONE);
+                            binding.finishTourButton.setVisibility(View.VISIBLE);
+                        } else {
+                            // No es el último - Mostrar botón "Siguiente Punto"
+                            binding.nextPointButton.setVisibility(View.VISIBLE);
+                            binding.finishTourButton.setVisibility(View.GONE);
+                        }
                     } else {
                         // ❌ FUERA DEL RADIO - Mostrar distancia
                         Toast.makeText(this, 
@@ -520,115 +567,168 @@ public class guia_tour_map extends AppCompatActivity implements OnMapReadyCallba
                 Toast.makeText(this, "❌ Error obteniendo ubicación: " + e.getMessage(), Toast.LENGTH_LONG).show();
             });
     }
-
-    private void startTour() {
-        // ✅ VALIDACIONES ANTES DE INICIAR TOUR
+    
+    /**
+     * ➡️ AVANZAR AL SIGUIENTE PUNTO
+     * Solo se puede llamar después de registrar la posición del punto actual
+     */
+    private void nextPoint() {
+        currentPointIndex++;
+        
+        // Ocultar botón "Siguiente Punto"
+        binding.nextPointButton.setVisibility(View.GONE);
+        
+        // Habilitar nuevamente botón "Registrar Posición"
+        binding.registerPosition.setEnabled(true);
+        binding.registerPosition.setText("📍 Registrar Posición");
+        
+        // Actualizar puntoActualIndex en Firebase
         com.google.firebase.firestore.FirebaseFirestore.getInstance()
             .collection("tours_asignados")
             .document(tourId)
-            .get()
-            .addOnSuccessListener(doc -> {
-                if (!doc.exists()) {
-                    Toast.makeText(this, "Error: Tour no encontrado", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-                
-                // 1️⃣ VALIDAR HORA DE INICIO (debe haber pasado la hora)
-                Object fechaRealizacion = doc.get("fechaRealizacion");
-                String horaInicio = doc.getString("horaInicio");
-                
-                double horasRestantes = com.example.connectifyproject.utils.TourTimeValidator
-                    .calcularHorasHastaInicio(fechaRealizacion, horaInicio);
-                
-                if (horasRestantes > 0) {
-                    long minutosRestantes = (long) (horasRestantes * 60);
-                    Toast.makeText(this, 
-                        "⏰ El tour aún no puede iniciarse.\n" +
-                        "Faltan " + minutosRestantes + " minutos para la hora de inicio.",
-                        Toast.LENGTH_LONG).show();
-                    return;
-                }
-                
-                // 2️⃣ VALIDAR 50% DE PARTICIPANTES ESCANEADOS (check-in)
-                java.util.List<java.util.Map<String, Object>> participantes = 
-                    (java.util.List<java.util.Map<String, Object>>) doc.get("participantes");
-                
-                int totalParticipantes = participantes != null ? participantes.size() : 0;
-                int participantesEscaneados = 0;
-                
-                if (participantes != null) {
-                    for (java.util.Map<String, Object> participante : participantes) {
-                        Boolean checkIn = (Boolean) participante.get("checkIn");
-                        if (checkIn != null && checkIn) {
-                            participantesEscaneados++;
-                        }
-                    }
-                }
-                
-                // Redondeo hacia arriba: ceil(total * 0.5)
-                int minimoRequerido = (int) Math.ceil(totalParticipantes * 0.5);
-                
-                if (participantesEscaneados < minimoRequerido) {
-                    int porcentaje = totalParticipantes > 0 ? 
-                        (int) ((participantesEscaneados * 100.0) / totalParticipantes) : 0;
-                    
-                    Toast.makeText(this, 
-                        "👥 Se requiere al menos 50% de participantes con check-in para iniciar.\n\n" +
-                        "Check-in realizados: " + participantesEscaneados + " / " + totalParticipantes + 
-                        " (" + porcentaje + "%)\n" +
-                        "Mínimo requerido: " + minimoRequerido,
-                        Toast.LENGTH_LONG).show();
-                    return;
-                }
-                
-                // ✅ VALIDACIONES PASADAS - INICIAR TOUR
-                com.google.firebase.firestore.FirebaseFirestore.getInstance()
-                    .collection("tours_asignados")
-                    .document(tourId)
-                    .update(
-                        "estado", "en_curso", 
-                        "tourStarted", true,
-                        "horaInicioReal", com.google.firebase.Timestamp.now(),
-                        "puntoActualIndex", 0
-                    )
-                    .addOnSuccessListener(aVoid -> {
-                        // ✅ Actualizar variables locales
-                        isTourOngoing = true;
-                        currentPointIndex = 0;
-                        
-                        // Actualizar UI
-                        setupUIBasedOnStatus(0);
-                        
-                        // Solicitar permisos de ubicación
-                        requestLocationPermissions();
-                        
-                        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED &&
-                                (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q || ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_BACKGROUND_LOCATION) == PackageManager.PERMISSION_GRANTED)) {
-                            
-                            // Iniciar servicio de geolocalización
-                            Intent serviceIntent = new Intent(this, GuiaLocationService.class);
-                            serviceIntent.putParcelableArrayListExtra("itinerary_points", new ArrayList<>(itineraryPoints));
-                            ContextCompat.startForegroundService(this, serviceIntent);
-
-                            Toast.makeText(this, "🚀 ¡Tour iniciado! Geolocalización activa.\n📍 Primer punto: " + 
-                                (itineraryNames.isEmpty() ? "" : itineraryNames.get(0)), 
-                                Toast.LENGTH_LONG).show();
-                            
-                            android.util.Log.d("GuiaTourMap", "✅ Tour iniciado - Estado cambiado a en_curso");
-                        } else {
-                            Toast.makeText(this, "⚠️ Permisos de ubicación requeridos. Concede los permisos e intenta nuevamente.", Toast.LENGTH_LONG).show();
-                        }
-                    })
-                    .addOnFailureListener(e -> {
-                        android.util.Log.e("GuiaTourMap", "❌ Error al actualizar estado a en_curso", e);
-                        Toast.makeText(this, "❌ Error al iniciar tour: " + e.getMessage(), 
-                            Toast.LENGTH_SHORT).show();
-                    });
+            .update("puntoActualIndex", currentPointIndex)
+            .addOnSuccessListener(aVoid -> {
+                android.util.Log.d("GuiaTourMap", "puntoActualIndex actualizado a: " + currentPointIndex);
+                updateOngoingUI();
             })
             .addOnFailureListener(e -> {
-                Toast.makeText(this, "Error al validar datos: " + e.getMessage(), 
-                    Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Error al actualizar punto: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                android.util.Log.e("GuiaTourMap", "Error actualizando puntoActualIndex", e);
             });
+    }
+    
+    /**
+     * 🏁 FINALIZAR TOUR (desde el último punto)
+     * Cambia el estado a check_out y redirige a escaneo de QR de salida
+     */
+    private void finishTour() {
+        // Actualizar horaSalida del último punto
+        actualizarHoraSalidaPunto(currentPointIndex);
+        
+        // Cambiar estado a check_out
+        com.google.firebase.firestore.FirebaseFirestore.getInstance()
+            .collection("tours_asignados")
+            .document(tourId)
+            .update(
+                "estado", "check_out",
+                "tourStarted", false
+            )
+            .addOnSuccessListener(aVoid -> {
+                Toast.makeText(this, "🏁 Tour finalizado. Ahora escanea el QR de salida de cada cliente.", Toast.LENGTH_LONG).show();
+                
+                // Detener servicio de ubicación
+                Intent serviceIntent = new Intent(this, GuiaLocationService.class);
+                stopService(serviceIntent);
+                
+                // Redirigir a pantalla de escaneo de check-out
+                Intent intent = new Intent(this, guia_scan_qr_participants.class);
+                intent.putExtra("tourId", tourId);
+                intent.putExtra("tourTitulo", tourName);
+                int clients = getIntent().getIntExtra("tour_clients", 0);
+                intent.putExtra("numeroParticipantes", clients);
+                intent.putExtra("scanMode", "check_out");
+                startActivity(intent);
+                finish();
+            })
+            .addOnFailureListener(e -> {
+                Toast.makeText(this, "❌ Error al finalizar tour: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                android.util.Log.e("GuiaTourMap", "Error al finalizar tour", e);
+            });
+    }
+    
+    /**
+     * 🔄 ACTUALIZAR PUNTO EN FIREBASE
+     * Marca punto como completado y registra horaLlegada
+     */
+    private void actualizarPuntoEnFirebase(int puntoIndex, boolean completado) {
+        com.google.firebase.firestore.FirebaseFirestore db = com.google.firebase.firestore.FirebaseFirestore.getInstance();
+        
+        db.collection("tours_asignados")
+            .document(tourId)
+            .get()
+            .addOnSuccessListener(documentSnapshot -> {
+                if (documentSnapshot.exists()) {
+                    java.util.List<java.util.Map<String, Object>> itinerario = 
+                        (java.util.List<java.util.Map<String, Object>>) documentSnapshot.get("itinerario");
+                    
+                    if (itinerario != null && puntoIndex < itinerario.size()) {
+                        java.util.Map<String, Object> punto = itinerario.get(puntoIndex);
+                        punto.put("completado", completado);
+                        punto.put("horaLlegada", com.google.firebase.Timestamp.now());
+                        
+                        // Actualizar itinerario en Firebase
+                        db.collection("tours_asignados")
+                            .document(tourId)
+                            .update("itinerario", itinerario)
+                            .addOnSuccessListener(aVoid -> {
+                                android.util.Log.d("GuiaTourMap", "Punto " + puntoIndex + " marcado como completado");
+                            })
+                            .addOnFailureListener(e -> {
+                                android.util.Log.e("GuiaTourMap", "Error al actualizar punto", e);
+                            });
+                    }
+                }
+            })
+            .addOnFailureListener(e -> {
+                android.util.Log.e("GuiaTourMap", "Error al obtener tour", e);
+            });
+    }
+    
+    /**
+     * 🕐 ACTUALIZAR HORA DE SALIDA DEL PUNTO
+     * Se usa al finalizar el tour en el último punto
+     */
+    private void actualizarHoraSalidaPunto(int puntoIndex) {
+        com.google.firebase.firestore.FirebaseFirestore db = com.google.firebase.firestore.FirebaseFirestore.getInstance();
+        
+        db.collection("tours_asignados")
+            .document(tourId)
+            .get()
+            .addOnSuccessListener(documentSnapshot -> {
+                if (documentSnapshot.exists()) {
+                    java.util.List<java.util.Map<String, Object>> itinerario = 
+                        (java.util.List<java.util.Map<String, Object>>) documentSnapshot.get("itinerario");
+                    
+                    if (itinerario != null && puntoIndex < itinerario.size()) {
+                        java.util.Map<String, Object> punto = itinerario.get(puntoIndex);
+                        punto.put("horaSalida", com.google.firebase.Timestamp.now());
+                        
+                        // Actualizar itinerario en Firebase
+                        db.collection("tours_asignados")
+                            .document(tourId)
+                            .update("itinerario", itinerario)
+                            .addOnSuccessListener(aVoid -> {
+                                android.util.Log.d("GuiaTourMap", "Hora de salida registrada para punto " + puntoIndex);
+                            })
+                            .addOnFailureListener(e -> {
+                                android.util.Log.e("GuiaTourMap", "Error al actualizar hora de salida", e);
+                            });
+                    }
+                }
+            })
+            .addOnFailureListener(e -> {
+                android.util.Log.e("GuiaTourMap", "Error al obtener tour", e);
+            });
+    }
+
+    /**
+     * Ya no se usa - El estado cambia a en_curso desde la pantalla de escaneo
+     * Este método solo inicia el servicio de geolocalización
+     */
+    private void startTour() {
+        requestLocationPermissions();
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED &&
+                (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q || ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_BACKGROUND_LOCATION) == PackageManager.PERMISSION_GRANTED)) {
+            
+            // Iniciar servicio de geolocalización
+            Intent serviceIntent = new Intent(this, GuiaLocationService.class);
+            serviceIntent.putParcelableArrayListExtra("itinerary_points", new ArrayList<>(itineraryPoints));
+            ContextCompat.startForegroundService(this, serviceIntent);
+
+            Toast.makeText(this, "📍 Geolocalización activada.", Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(this, "Permisos de ubicación requeridos.", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void requestLocationPermissions() {
