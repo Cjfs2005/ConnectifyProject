@@ -318,14 +318,16 @@ public class cliente_metodo_pago extends AppCompatActivity {
     }
     
     private void navigateToConfirmation() {
+        // Pasar toda la información relevante de la reserva por Intent
         Intent intent = new Intent(this, cliente_reserva_realizada.class);
-        intent.putExtra("total_price", totalPrice);
-        intent.putExtra("tour_title", tourTitle);
         intent.putExtra("tour_id", tourId);
+        intent.putExtra("tour_title", tourTitle);
+        intent.putExtra("total_price", totalPrice);
         intent.putExtra("people_count", peopleCount);
         intent.putExtra("payment_method_id", selectedPaymentMethod.getId());
         intent.putExtra("payment_method_last4", selectedPaymentMethod.getLast4Digits());
         intent.putExtra("payment_method_brand", selectedPaymentMethod.getCardBrand());
+        // Puedes agregar más extras aquí si tu modelo de reserva lo requiere
         startActivity(intent);
         finish();
     }

@@ -521,13 +521,20 @@ public class cliente_reserva_detalle extends AppCompatActivity {
             Toast.makeText(this, "Error: Usuario no autenticado", Toast.LENGTH_SHORT).show();
             return;
         }
-        // --- Crear notificación y log para el admin ---
-        String adminId = "adminId";
+        // --- Crear notificación y log para el admin (empresa) ---
         String clienteNombre = mAuth.getCurrentUser().getDisplayName() != null ? mAuth.getCurrentUser().getDisplayName() : "Cliente";
-        String tourNombre = reserva != null && reserva.getTour() != null ? reserva.getTour().getTitle() : "Tour";
+        String tourNombre = reserva != null && reserva.getTour() != null ? reserva.getTour().getTitulo() : "Tour";
         String notiTitulo = "Reserva cancelada";
         String notiDesc = "El cliente " + clienteNombre + " canceló la reserva del tour '" + tourNombre + "'.";
-        com.example.connectifyproject.utils.NotificacionLogUtils.crearNotificacion(notiTitulo, notiDesc, adminId);
+
+        // Obtener el id real del admin (empresaId) desde el tour antes de notificar
+        String empresaId = reserva != null && reserva.getTour() != null ? reserva.getTour().getEmpresaId() : null;
+        if (empresaId != null && !empresaId.isEmpty()) {
+            com.example.connectifyproject.utils.NotificacionLogUtils.crearNotificacion(notiTitulo, notiDesc, empresaId);
+        } else {
+            // Fallback: notificar sin destinatario específico
+            com.example.connectifyproject.utils.NotificacionLogUtils.crearNotificacion(notiTitulo, notiDesc, "");
+        }
         com.example.connectifyproject.utils.NotificacionLogUtils.crearLog(notiTitulo, notiDesc);
         
         // Mostrar loader
