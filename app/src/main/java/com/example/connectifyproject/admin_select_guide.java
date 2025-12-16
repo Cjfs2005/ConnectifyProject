@@ -642,12 +642,12 @@ public class admin_select_guide extends AppCompatActivity {
                 android.util.Log.d("AdminSelectGuide", "✓ Tour ofrecido exitosamente");
                 dismissProgressDialog();
                 
-                // Enviar notificación local al guía
-                sendNotificationToGuide(guide);
+                // (Eliminado) No enviar notificación local al guía
 
                 // --- Notificación y log Firestore ---
                 String notiTitulo = "Nueva oferta de tour";
                 String notiDesc = "Se te ha ofrecido el tour: " + tourTitulo;
+                // Solo notificar al guía, no al admin
                 NotificacionLogUtils.crearNotificacion(notiTitulo, notiDesc, guide.id);
                 NotificacionLogUtils.crearLog("Oferta de tour enviada", "El admin ha ofrecido el tour '" + tourTitulo + "' al guía '" + guide.name + "'.");
 
