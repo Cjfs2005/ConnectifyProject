@@ -521,6 +521,14 @@ public class cliente_reserva_detalle extends AppCompatActivity {
             Toast.makeText(this, "Error: Usuario no autenticado", Toast.LENGTH_SHORT).show();
             return;
         }
+        // --- Crear notificación y log para el admin ---
+        String adminId = "adminId";
+        String clienteNombre = mAuth.getCurrentUser().getDisplayName() != null ? mAuth.getCurrentUser().getDisplayName() : "Cliente";
+        String tourNombre = reserva != null && reserva.getTour() != null ? reserva.getTour().getTitle() : "Tour";
+        String notiTitulo = "Reserva cancelada";
+        String notiDesc = "El cliente " + clienteNombre + " canceló la reserva del tour '" + tourNombre + "'.";
+        com.example.connectifyproject.utils.NotificacionLogUtils.crearNotificacion(notiTitulo, notiDesc, adminId);
+        com.example.connectifyproject.utils.NotificacionLogUtils.crearLog(notiTitulo, notiDesc);
         
         // Mostrar loader
         android.app.ProgressDialog progressDialog = new android.app.ProgressDialog(this);

@@ -1,4 +1,5 @@
 package com.example.connectifyproject;
+import com.example.connectifyproject.utils.NotificacionLogUtils;
 
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -643,11 +644,17 @@ public class admin_select_guide extends AppCompatActivity {
                 
                 // Enviar notificación local al guía
                 sendNotificationToGuide(guide);
-                
+
+                // --- Notificación y log Firestore ---
+                String notiTitulo = "Nueva oferta de tour";
+                String notiDesc = "Se te ha ofrecido el tour: " + tourTitulo;
+                NotificacionLogUtils.crearNotificacion(notiTitulo, notiDesc, guide.id);
+                NotificacionLogUtils.crearLog("Oferta de tour enviada", "El admin ha ofrecido el tour '" + tourTitulo + "' al guía '" + guide.name + "'.");
+
                 // Mostrar confirmación
                 Toast.makeText(this, "Tour ofrecido exitosamente a " + guide.name, 
                     Toast.LENGTH_LONG).show();
-                
+
                 // Regresar a admin_tours
                 Intent intent = new Intent(this, admin_tours.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);

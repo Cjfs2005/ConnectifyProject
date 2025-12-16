@@ -10,6 +10,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.connectifyproject.models.Cliente_Reserva;
 import com.example.connectifyproject.utils.Cliente_FileStorageManager;
 import com.example.connectifyproject.utils.NotificationHelper;
+import com.example.connectifyproject.utils.NotificacionLogUtils;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.android.material.button.MaterialButton;
 
 public class cliente_reserva_realizada extends AppCompatActivity {
@@ -33,6 +35,16 @@ public class cliente_reserva_realizada extends AppCompatActivity {
         
         // Mostrar notificación de reserva confirmada
         showReservationNotification();
+
+        // --- Crear notificación y log para el admin ---
+        // Suponiendo que el admin tiene un ID fijo, por ejemplo "adminId". Si tienes varios admins, ajusta esto.
+        String adminId = "adminId";
+        String clienteNombre = FirebaseAuth.getInstance().getCurrentUser() != null ? FirebaseAuth.getInstance().getCurrentUser().getDisplayName() : "Cliente";
+        String tourNombre = reserva != null && reserva.getTour() != null ? reserva.getTour().getTitle() : "Tour";
+        String notiTitulo = "Nueva reserva";
+        String notiDesc = "El cliente " + clienteNombre + " reservó el tour '" + tourNombre + "'.";
+        NotificacionLogUtils.crearNotificacion(notiTitulo, notiDesc, adminId);
+        NotificacionLogUtils.crearLog(notiTitulo, notiDesc);
     }
 
     private void initViews() {

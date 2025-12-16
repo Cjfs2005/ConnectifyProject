@@ -174,7 +174,13 @@ public class guia_tour_detail extends AppCompatActivity implements OnMapReadyCal
             public void onSuccess(String message) {
                 runOnUiThread(() -> {
                     Toast.makeText(guia_tour_detail.this, "¡Oferta '" + tourName + "' aceptada exitosamente!", Toast.LENGTH_LONG).show();
-                    
+                    // --- Crear notificación y log para el admin ---
+                    String adminId = "adminId";
+                    String guiaNombre = com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser() != null ? com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser().getDisplayName() : "Guía";
+                    String notiTitulo = "Oferta aceptada";
+                    String notiDesc = "El guía " + guiaNombre + " aceptó la oferta del tour '" + tourName + "'.";
+                    com.example.connectifyproject.utils.NotificacionLogUtils.crearNotificacion(notiTitulo, notiDesc, adminId);
+                    com.example.connectifyproject.utils.NotificacionLogUtils.crearLog(notiTitulo, notiDesc);
                     // Volver a la pantalla anterior y actualizar la lista
                     Intent resultIntent = new Intent();
                     resultIntent.putExtra("oferta_aceptada", true);
@@ -183,7 +189,6 @@ public class guia_tour_detail extends AppCompatActivity implements OnMapReadyCal
                     finish();
                 });
             }
-            
             @Override
             public void onError(String error) {
                 runOnUiThread(() -> {
@@ -202,7 +207,13 @@ public class guia_tour_detail extends AppCompatActivity implements OnMapReadyCal
             public void onSuccess(String message) {
                 runOnUiThread(() -> {
                     Toast.makeText(guia_tour_detail.this, "Oferta '" + tourName + "' rechazada", Toast.LENGTH_SHORT).show();
-                    
+                    // --- Crear notificación y log para el admin ---
+                    String adminId = "adminId";
+                    String guiaNombre = com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser() != null ? com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser().getDisplayName() : "Guía";
+                    String notiTitulo = "Oferta rechazada";
+                    String notiDesc = "El guía " + guiaNombre + " rechazó la oferta del tour '" + tourName + "'.";
+                    com.example.connectifyproject.utils.NotificacionLogUtils.crearNotificacion(notiTitulo, notiDesc, adminId);
+                    com.example.connectifyproject.utils.NotificacionLogUtils.crearLog(notiTitulo, notiDesc);
                     // Volver a la pantalla anterior
                     Intent resultIntent = new Intent();
                     resultIntent.putExtra("oferta_rechazada", true);
@@ -211,7 +222,6 @@ public class guia_tour_detail extends AppCompatActivity implements OnMapReadyCal
                     finish();
                 });
             }
-            
             @Override
             public void onError(String error) {
                 runOnUiThread(() -> {
