@@ -680,11 +680,21 @@ public class cliente_inicio extends AppCompatActivity implements OnMapReadyCallb
             // ✅ CARGAR IMAGEN DEL TOUR
             android.widget.ImageView ivTourImage = findViewById(R.id.iv_tour_image);
             if (imagenPrincipal != null && !imagenPrincipal.isEmpty() && ivTourImage != null) {
-                com.bumptech.glide.Glide.with(this)
-                    .load(imagenPrincipal)
-                    .placeholder(R.drawable.cliente_tour_lima)
-                    .error(R.drawable.cliente_tour_lima)
-                    .into(ivTourImage);
+                // Verificar que la actividad no esté destruida antes de cargar imagen
+                if (!isFinishing() && !isDestroyed()) {
+                    try {
+                        com.bumptech.glide.Glide.with(this)
+                            .load(imagenPrincipal)
+                            .placeholder(R.drawable.cliente_tour_lima)
+                            .error(R.drawable.cliente_tour_lima)
+                            .into(ivTourImage);
+                    } catch (IllegalArgumentException e) {
+                        Log.w(TAG, "No se pudo cargar imagen - actividad destruida");
+                        ivTourImage.setImageResource(R.drawable.cliente_tour_lima);
+                    }
+                } else {
+                    ivTourImage.setImageResource(R.drawable.cliente_tour_lima);
+                }
             }
             
             // ✅ MOSTRAR INFORMACIÓN DEL TOUR EN LA UI

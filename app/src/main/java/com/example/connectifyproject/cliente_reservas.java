@@ -246,11 +246,12 @@ public class cliente_reservas extends AppCompatActivity {
                     
                     Log.d(TAG, "Total reservas activas del usuario: " + allReservas.size());
                     
-                    // ✅ AHORA CARGAR TOURS COMPLETADOS
-                    cargarToursCompletados();
+                    // ✅ FILTRAR RESERVAS - Los tours completados ya están incluidos en estadosValidos
+                    filterReservas();
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Error al cargar reservas: " + e.getMessage(), e);
+                    filterReservas(); // Mostrar lo que se pudo cargar
                 });
     }
     

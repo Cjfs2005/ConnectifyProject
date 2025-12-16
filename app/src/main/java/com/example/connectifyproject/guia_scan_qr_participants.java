@@ -735,9 +735,23 @@ public class guia_scan_qr_participants extends AppCompatActivity {
                     String clienteId = (String) participante.get("clienteId");
                     String clienteNombre = (String) participante.get("nombre");
                     
+                    // Obtener monto total del participante (incluye servicios adicionales)
+                    String montoTotalStr = (String) participante.get("montoTotal");
+                    double montoParticipante = 0;
+                    if (montoTotalStr != null && !montoTotalStr.isEmpty()) {
+                        try {
+                            montoParticipante = Double.parseDouble(montoTotalStr);
+                        } catch (NumberFormatException e) {
+                            Log.e(TAG, "Error parseando montoTotal: " + montoTotalStr);
+                            montoParticipante = precioTour; // Fallback al precio base
+                        }
+                    } else {
+                        montoParticipante = precioTour; // Fallback al precio base
+                    }
+                    
                     Map<String, Object> pagoCliente = new HashMap<>();
                     pagoCliente.put("fecha", com.google.firebase.Timestamp.now());
-                    pagoCliente.put("monto", precioTour);
+                    pagoCliente.put("monto", montoParticipante);
                     pagoCliente.put("nombreTour", titulo);
                     pagoCliente.put("tipoPago", "A Empresa");
                     pagoCliente.put("uidUsuarioPaga", clienteId);
@@ -751,6 +765,18 @@ public class guia_scan_qr_participants extends AppCompatActivity {
                 }
                     
                     // 6️⃣ CREAR PAGO ÚNICO (empresa → guía)
+                    // Obtener nombre del guía desde el objeto guiaAsignado
+                    String nombreGuia = tourDoc.getString("guiaNombre");
+                    if (nombreGuia == null || nombreGuia.isEmpty()) {
+                        // Intentar obtenerlo del mapa guiaAsignado
+                        java.util.Map<String, Object> guiaAsignado = 
+                            (java.util.Map<String, Object>) tourDoc.get("guiaAsignado");
+                        if (guiaAsignado != null) {
+                            nombreGuia = (String) guiaAsignado.get("nombresCompletos");
+                        }
+                    }
+                    if (nombreGuia == null) nombreGuia = "Guía"; // Fallback
+                    
                     Map<String, Object> pagoGuiaDoc = new HashMap<>();
                     pagoGuiaDoc.put("fecha", com.google.firebase.Timestamp.now());
                     pagoGuiaDoc.put("monto", pagoGuia);
@@ -759,7 +785,7 @@ public class guia_scan_qr_participants extends AppCompatActivity {
                     pagoGuiaDoc.put("uidUsuarioPaga", empresaId);
                     pagoGuiaDoc.put("nombreUsuarioPaga", "Empresa");
                     pagoGuiaDoc.put("uidUsuarioRecibe", guiaId);
-                    pagoGuiaDoc.put("nombreUsuarioRecibe", tourDoc.getString("guiaNombre"));
+                    pagoGuiaDoc.put("nombreUsuarioRecibe", nombreGuia);
                     pagoGuiaDoc.put("tourId", tourId);
                     pagoGuiaDoc.put("estado", "completado");
                     
