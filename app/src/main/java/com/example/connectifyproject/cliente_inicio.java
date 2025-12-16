@@ -462,7 +462,11 @@ public class cliente_inicio extends AppCompatActivity implements OnMapReadyCallb
             String nombreEmpresa = doc.getString("nombreEmpresa");
             tour.setCompanyName(nombreEmpresa != null ? nombreEmpresa : "Empresa");
             
-            loadTourImage(tour);
+            // Obtener imagen directamente del documento tours_asignados
+            String imagenPrincipal = doc.getString("imagenPrincipal");
+            if (imagenPrincipal != null && !imagenPrincipal.isEmpty()) {
+                tour.setImageUrl(imagenPrincipal);
+            }
             
             return tour;
             
@@ -1259,9 +1263,14 @@ public class cliente_inicio extends AppCompatActivity implements OnMapReadyCallb
                         reseniaYaMostrada = true;
                         
                         // Obtener datos de la empresa para la reseña
-                        String empresaId = snapshot.getString("empresaId");
-                        String empresaNombre = snapshot.getString("empresaNombre");
-                        String tituloTour = snapshot.getString("titulo");
+                        final String empresaId = snapshot.getString("empresaId");
+                        // Intentar obtener nombreEmpresa primero, luego empresaNombre
+                        String nombreEmpresaTemp = snapshot.getString("nombreEmpresa");
+                        if (nombreEmpresaTemp == null || nombreEmpresaTemp.isEmpty()) {
+                            nombreEmpresaTemp = snapshot.getString("empresaNombre");
+                        }
+                        final String empresaNombre = nombreEmpresaTemp;
+                        final String tituloTour = snapshot.getString("titulo");
                         
                         // Ocultar el tour activo y mostrar estadísticas
                         cardTourActivo.setVisibility(View.GONE);

@@ -627,10 +627,24 @@ public class guia_scan_qr_participants extends AppCompatActivity {
         try {
             // 1️⃣ PREPARAR DATOS DEL TOUR COMPLETADO
             String titulo = tourDoc.getString("titulo");
-            String guiaId = tourDoc.getString("guiaId");
-            String guiaNombre = tourDoc.getString("guiaNombre");
             String empresaId = tourDoc.getString("empresaId");
-            String empresaNombre = tourDoc.getString("empresaNombre");
+            
+            // Obtener nombre de la empresa
+            String empresaNombre = tourDoc.getString("nombreEmpresa");
+            if (empresaNombre == null || empresaNombre.isEmpty()) {
+                empresaNombre = tourDoc.getString("empresaNombre");
+            }
+            
+            // Obtener datos del guía desde el mapa guiaAsignado
+            String guiaId = null;
+            String guiaNombre = null;
+            java.util.Map<String, Object> guiaAsignado = 
+                (java.util.Map<String, Object>) tourDoc.get("guiaAsignado");
+            if (guiaAsignado != null) {
+                guiaId = (String) guiaAsignado.get("identificadorUsuario");
+                guiaNombre = (String) guiaAsignado.get("nombresCompletos");
+            }
+            
             com.google.firebase.Timestamp fechaRealizacion = tourDoc.getTimestamp("fechaRealizacion");
             String horaInicioStr = tourDoc.getString("horaInicio");
             com.google.firebase.Timestamp horaInicioReal = tourDoc.getTimestamp("horaInicioReal");
@@ -640,9 +654,10 @@ public class guia_scan_qr_participants extends AppCompatActivity {
                 (java.util.List<java.util.Map<String, Object>>) tourDoc.get("participantes");
             int numParticipantes = participantesList != null ? participantesList.size() : 0;
             
-            Long precioTourLong = tourDoc.getLong("precioTour");
+            // Obtener precio del tour (campo "precio", no "precioTour")
+            Long precioLong = tourDoc.getLong("precio");
             Long pagoGuiaLong = tourDoc.getLong("pagoGuia");
-            double precioTour = precioTourLong != null ? precioTourLong.doubleValue() : 0;
+            double precioTour = precioLong != null ? precioLong.doubleValue() : 0;
             double pagoGuia = pagoGuiaLong != null ? pagoGuiaLong.doubleValue() : 0;
             
             String metodoPago = tourDoc.getString("metodoPago");
@@ -765,17 +780,17 @@ public class guia_scan_qr_participants extends AppCompatActivity {
                 }
                     
                     // 6️⃣ CREAR PAGO ÚNICO (empresa → guía)
-                    // Obtener nombre del guía desde el objeto guiaAsignado
-                    String nombreGuia = tourDoc.getString("guiaNombre");
-                    if (nombreGuia == null || nombreGuia.isEmpty()) {
-                        // Intentar obtenerlo del mapa guiaAsignado
-                        java.util.Map<String, Object> guiaAsignado = 
-                            (java.util.Map<String, Object>) tourDoc.get("guiaAsignado");
-                        if (guiaAsignado != null) {
-                            nombreGuia = (String) guiaAsignado.get("nombresCompletos");
-                        }
+                    // Obtener ID y nombre del guía desde el objeto guiaAsignado
+                    String guiaIdPago = null;
+                    String nombreGuia = null;
+                    java.util.Map<String, Object> guiaAsignadoPago = 
+                        (java.util.Map<String, Object>) tourDoc.get("guiaAsignado");
+                    if (guiaAsignadoPago != null) {
+                        guiaIdPago = (String) guiaAsignadoPago.get("identificadorUsuario");
+                        nombreGuia = (String) guiaAsignadoPago.get("nombresCompletos");
                     }
                     if (nombreGuia == null) nombreGuia = "Guía"; // Fallback
+                    if (guiaIdPago == null) guiaIdPago = guiaId; // Usar el guiaId que ya tenemos
                     
                     Map<String, Object> pagoGuiaDoc = new HashMap<>();
                     pagoGuiaDoc.put("fecha", com.google.firebase.Timestamp.now());
@@ -784,7 +799,7 @@ public class guia_scan_qr_participants extends AppCompatActivity {
                     pagoGuiaDoc.put("tipoPago", "A Guia");
                     pagoGuiaDoc.put("uidUsuarioPaga", empresaId);
                     pagoGuiaDoc.put("nombreUsuarioPaga", "Empresa");
-                    pagoGuiaDoc.put("uidUsuarioRecibe", guiaId);
+                    pagoGuiaDoc.put("uidUsuarioRecibe", guiaIdPago);
                     pagoGuiaDoc.put("nombreUsuarioRecibe", nombreGuia);
                     pagoGuiaDoc.put("tourId", tourId);
                     pagoGuiaDoc.put("estado", "completado");

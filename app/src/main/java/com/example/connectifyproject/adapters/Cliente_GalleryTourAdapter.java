@@ -74,9 +74,18 @@ public class Cliente_GalleryTourAdapter extends RecyclerView.Adapter<Cliente_Gal
             holder.tvFecha.setVisibility(View.GONE);
         }
         
-        // Configurar imagen (por ahora usando imagen por defecto)
-        // TODO: Implementar carga de imágenes con Picasso/Glide cuando se tengan URLs reales
-        holder.ivTourImage.setImageResource(R.drawable.cliente_tour_lima);
+        // Configurar imagen desde URL o usar imagen por defecto
+        String imageUrl = tour.getImageUrl();
+        if (imageUrl != null && !imageUrl.isEmpty()) {
+            com.bumptech.glide.Glide.with(context)
+                .load(imageUrl)
+                .placeholder(R.drawable.cliente_tour_lima)
+                .error(R.drawable.cliente_tour_lima)
+                .centerCrop()
+                .into(holder.ivTourImage);
+        } else {
+            holder.ivTourImage.setImageResource(R.drawable.cliente_tour_lima);
+        }
         
         // Click listener para el card completo
         holder.itemView.setOnClickListener(v -> {
