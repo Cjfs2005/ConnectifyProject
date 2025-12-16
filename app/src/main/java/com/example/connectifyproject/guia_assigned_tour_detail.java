@@ -36,6 +36,7 @@ import java.util.Locale;
 import java.util.Map;
 
 public class guia_assigned_tour_detail extends AppCompatActivity {
+    private static final String TAG = "GuiaAssignedTourDetail";
     private GuiaAssignedTourDetailBinding binding;
     private FirebaseFirestore db;
     private String tourId;
@@ -492,6 +493,47 @@ private void setupTourFromFirebase(DocumentSnapshot doc) {
     }
     
     /**
+     * ✅ VALIDAR TIEMPO Y MOSTRAR BOTÓN DE CHECK-IN
+     * Solo muestra el botón si faltan ≤10 minutos para el inicio del tour
+     */
+    private void validarYMostrarBotonCheckIn() {
+        db.collection("tours_asignados")
+            .document(tourId)
+            .get()
+            .addOnSuccessListener(doc -> {
+                if (!doc.exists()) {
+                    binding.actionsCard.setVisibility(View.GONE);
+                    return;
+                }
+                
+                Object fechaRealizacion = doc.get("fechaRealizacion");
+                String horaInicio = doc.getString("horaInicio");
+                
+                double horasRestantes = com.example.connectifyproject.utils.TourTimeValidator
+                    .calcularHorasHastaInicio(fechaRealizacion, horaInicio);
+                
+                // Convertir a minutos
+                long minutosRestantes = (long) (horasRestantes * 60);
+                
+                // Mostrar botón solo si faltan ≤10 minutos
+                if (minutosRestantes <= 10 && minutosRestantes >= 0) {
+                    binding.checkInButton.setVisibility(View.VISIBLE);
+                    binding.checkInButton.setText("Habilitar Check-in");
+                    binding.checkInButton.setIconResource(R.drawable.ic_check_circle);
+                    binding.actionsCard.setVisibility(View.VISIBLE);
+                } else {
+                    // Ocultar el botón si aún no es tiempo
+                    binding.checkInButton.setVisibility(View.GONE);
+                    binding.actionsCard.setVisibility(View.GONE);
+                }
+            })
+            .addOnFailureListener(e -> {
+                Log.e(TAG, "Error validando tiempo para check-in: " + e.getMessage());
+                binding.actionsCard.setVisibility(View.GONE);
+            });
+    }
+    
+    /**
      * Habilitar check-in: Cambiar estado del tour de "confirmado" a "check_in"
      * ✅ VALIDACIÓN: Solo se puede habilitar 10 minutos antes del inicio
      */
@@ -871,10 +913,8 @@ private void setupTourFromFirebase(DocumentSnapshot doc) {
             case "pendiente":
             case "programado":
             case "confirmado":
-                // 📌 PENDIENTE/PROGRAMADO: Solo botón para habilitar check-in
-                binding.checkInButton.setVisibility(View.VISIBLE);
-                binding.checkInButton.setText("Habilitar Check-in");
-                binding.checkInButton.setIconResource(R.drawable.ic_check_circle);
+                // 📌 PENDIENTE/PROGRAMADO: Validar que falten ≤10 minutos para mostrar botón
+                validarYMostrarBotonCheckIn();
                 break;
                 
             case "check_in":
