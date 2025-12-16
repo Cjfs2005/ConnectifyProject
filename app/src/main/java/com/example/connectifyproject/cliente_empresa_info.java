@@ -176,13 +176,13 @@ public class cliente_empresa_info extends AppCompatActivity {
     private void loadReviewsFromFirebase() {
         if (empresaId == null) return;
         
-        // Primero obtener el total de reseñas para el contador
-        db.collection("usuarios")
-                .document(empresaId)
-                .collection("resenas")
+        // Obtener reseñas de la colección principal 'resenias' filtrando por empresaId
+        // Usar solo whereEqualTo para evitar requerir índice compuesto, ordenar en memoria
+        db.collection("resenias")
+                .whereEqualTo("empresaId", empresaId)
                 .get()
-                .addOnSuccessListener(totalSnapshot -> {
-                    int totalReviews = totalSnapshot.size();
+                .addOnSuccessListener(querySnapshot -> {
+                    int totalReviews = querySnapshot.size();
                     
                     // Actualizar título con contador
                     if (tvReviewsTitle != null) {
@@ -193,8 +193,63 @@ public class cliente_empresa_info extends AppCompatActivity {
                         // Mostrar empty state
                         showReviewsEmptyState();
                     } else {
-                        // Cargar las 3 más recientes
-                        loadTopReviews(totalReviews);
+                        // Calcular promedio y cargar reseñas
+                        reviewsList.clear();
+                        double sumaRatings = 0;
+                        int contador = 0;
+                        
+                        // Convertir a lista y ordenar manualmente por fecha
+                        java.util.List<com.google.firebase.firestore.DocumentSnapshot> docs = 
+                            new java.util.ArrayList<>(querySnapshot.getDocuments());
+                        docs.sort((d1, d2) -> {
+                            com.google.firebase.Timestamp f1 = d1.getTimestamp("fecha");
+                            com.google.firebase.Timestamp f2 = d2.getTimestamp("fecha");
+                            if (f1 == null) return 1;
+                            if (f2 == null) return -1;
+                            return f2.compareTo(f1); // DESC
+                        });
+                        
+                        for (com.google.firebase.firestore.DocumentSnapshot doc : docs) {
+                            String clienteId = doc.getString("clienteId");
+                            String clienteNombre = doc.getString("clienteNombre");
+                            String comentario = doc.getString("comentario");
+                            Number puntuacionNum = (Number) doc.get("puntuacion");
+                            com.google.firebase.Timestamp fecha = doc.getTimestamp("fecha");
+                            
+                            float puntuacion = puntuacionNum != null ? puntuacionNum.floatValue() : 0f;
+                            sumaRatings += puntuacion;
+                            contador++;
+                            
+                            // Convertir a modelo Cliente_Review con constructor completo
+                            Cliente_Review review = new Cliente_Review(
+                                doc.getId(),  // id
+                                clienteId,    // usuarioId
+                                clienteNombre != null ? clienteNombre : "Usuario",  // nombreUsuario
+                                null,         // fotoUsuario (no necesaria)
+                                puntuacion,   // calificacion
+                                comentario != null && !comentario.isEmpty() ? comentario : "",  // comentario
+                                fecha         // fecha Timestamp
+                            );
+                            reviewsList.add(review);
+                        }
+                        
+                        // Calcular y mostrar promedio
+                        if (contador > 0) {
+                            float promedioRating = (float) (sumaRatings / contador);
+                            // Mostrar promedio en el título o en un TextView separado
+                            if (tvReviewsTitle != null) {
+                                tvReviewsTitle.setText(String.format("Reseñas (" + totalReviews + ") - %.1f ★", promedioRating));
+                            }
+                        }
+                        
+                        // Actualizar adapter
+                        if (reviewsAdapter != null) {
+                            reviewsAdapter.notifyDataSetChanged();
+                        }
+                        
+                        // Mostrar/ocultar empty state
+                        if (rvReviews != null) rvReviews.setVisibility(View.VISIBLE);
+                        if (tvNoReviews != null) tvNoReviews.setVisibility(View.GONE);
                     }
                 })
                 .addOnFailureListener(e -> {
@@ -202,42 +257,6 @@ public class cliente_empresa_info extends AppCompatActivity {
                     if (tvReviewsTitle != null) {
                         tvReviewsTitle.setText("Reseñas");
                     }
-                });
-    }
-    
-    private void loadTopReviews(int totalCount) {
-        db.collection("usuarios")
-                .document(empresaId)
-                .collection("resenas")
-                .orderBy("fecha", com.google.firebase.firestore.Query.Direction.DESCENDING)
-                .limit(3)
-                .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    reviewsList.clear();
-                    
-                    for (com.google.firebase.firestore.QueryDocumentSnapshot document : queryDocumentSnapshots) {
-                        try {
-                            Cliente_Review review = document.toObject(Cliente_Review.class);
-                            if (review != null) {
-                                review.setId(document.getId());
-                                reviewsList.add(review);
-                            }
-                        } catch (Exception e) {
-                            android.util.Log.e("EmpresaInfo", "Error parsing review: " + document.getId(), e);
-                        }
-                    }
-                    
-                    reviewsAdapter.notifyDataSetChanged();
-                    hideReviewsEmptyState();
-                    
-                    // Mostrar "Ver más" solo si hay más de 3 reseñas
-                    if (tvVerMasReviews != null) {
-                        tvVerMasReviews.setVisibility(totalCount > 3 ? View.VISIBLE : View.GONE);
-                    }
-                })
-                .addOnFailureListener(e -> {
-                    android.util.Log.e("EmpresaInfo", "Error loading reviews", e);
-                    Toast.makeText(this, "Error al cargar reseñas", Toast.LENGTH_SHORT).show();
                 });
     }
     

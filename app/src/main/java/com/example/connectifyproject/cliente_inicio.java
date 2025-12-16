@@ -62,6 +62,7 @@ public class cliente_inicio extends AppCompatActivity implements OnMapReadyCallb
     private FirebaseFirestore db;
     private String tourActivoId = null; // ID del tour activo del cliente
     private String tourActivoEstado = null; // Estado del tour activo
+    private String tourActivoGuiaId = null; // ID del guía del tour activo
     private com.google.firebase.firestore.ListenerRegistration tourListener; // Listener para cambios en el tour
     private boolean reseniaYaMostrada = false; // Flag para evitar mostrar reseña múltiples veces
     
@@ -679,6 +680,13 @@ public class cliente_inicio extends AppCompatActivity implements OnMapReadyCallb
             tourActivoEstado = estado; // ✅ Guardar estado para uso posterior
             String imagenPrincipal = doc.getString("imagenPrincipal");
             
+            // ✅ Guardar guiaId para usar en la reseña
+            java.util.Map<String, Object> guiaAsignado = 
+                (java.util.Map<String, Object>) doc.get("guiaAsignado");
+            if (guiaAsignado != null) {
+                tourActivoGuiaId = (String) guiaAsignado.get("identificadorUsuario");
+            }
+            
             com.google.firebase.Timestamp fechaRealizacion = doc.getTimestamp("fechaRealizacion");
             
             // ✅ CARGAR IMAGEN DEL TOUR
@@ -1293,6 +1301,12 @@ public class cliente_inicio extends AppCompatActivity implements OnMapReadyCallb
     private void mostrarDialogoResenia(String empresaId, String empresaNombre, String tituloTour) {
         if (empresaId == null) return;
         
+        // Validar que la actividad no esté destruida
+        if (isFinishing() || isDestroyed()) {
+            Log.w(TAG, "Actividad destruida, no se puede mostrar diálogo de reseña");
+            return;
+        }
+        
         android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(this);
         android.view.LayoutInflater inflater = getLayoutInflater();
         android.view.View dialogView = inflater.inflate(R.layout.dialog_cliente_resenia, null);
@@ -1350,6 +1364,10 @@ public class cliente_inicio extends AppCompatActivity implements OnMapReadyCallb
                 .add(resenia)
                 .addOnSuccessListener(docRef -> {
                     Toast.makeText(this, "✅ ¡Gracias por tu reseña!", Toast.LENGTH_SHORT).show();
+                    
+                    // Actualizar estadísticas del guía
+                    actualizarEstadisticasGuia(puntuacion);
+                    
                     dialog.dismiss();
                 })
                 .addOnFailureListener(e -> {
@@ -1364,7 +1382,65 @@ public class cliente_inicio extends AppCompatActivity implements OnMapReadyCallb
         
         // Hacer que el diálogo no se cierre al tocar fuera
         dialog.setCancelable(false);
-        dialog.show();
+        
+        // Validar nuevamente antes de mostrar (por si la actividad se destruyó durante la preparación)
+        if (!isFinishing() && !isDestroyed()) {
+            try {
+                dialog.show();
+            } catch (android.view.WindowManager.BadTokenException e) {
+                Log.e(TAG, "No se pudo mostrar diálogo - actividad destruida", e);
+            }
+        }
+    }
+    
+    /**
+     * ✅ Actualizar estadísticas del guía (sumaResenias y numeroResenias)
+     */
+    private void actualizarEstadisticasGuia(float puntuacion) {
+        if (tourActivoGuiaId == null) {
+            Log.w(TAG, "No se puede actualizar estadísticas del guía: guiaId no disponible");
+            return;
+        }
+        
+        db.collection("usuarios")
+            .document(tourActivoGuiaId)
+            .get()
+            .addOnSuccessListener(guiaDoc -> {
+                if (guiaDoc.exists()) {
+                    Number sumaActual = (Number) guiaDoc.get("sumaResenias");
+                    Number numeroActual = (Number) guiaDoc.get("numeroResenias");
+                    
+                    double sumaTemp = sumaActual != null ? sumaActual.doubleValue() : 0;
+                    int numeroTemp = numeroActual != null ? numeroActual.intValue() : 0;
+                    
+                    // Incrementar
+                    sumaTemp += puntuacion;
+                    numeroTemp += 1;
+                    
+                    final double sumaFinal = sumaTemp;
+                    final int numeroFinal = numeroTemp;
+                    
+                    // Actualizar en Firestore
+                    java.util.Map<String, Object> updates = new java.util.HashMap<>();
+                    updates.put("sumaResenias", sumaFinal);
+                    updates.put("numeroResenias", numeroFinal);
+                    
+                    db.collection("usuarios")
+                        .document(tourActivoGuiaId)
+                        .update(updates)
+                        .addOnSuccessListener(aVoid -> {
+                            Log.d(TAG, "✅ Estadísticas del guía actualizadas: suma=" + sumaFinal + ", numero=" + numeroFinal);
+                        })
+                        .addOnFailureListener(e -> {
+                            Log.e(TAG, "❌ Error actualizando estadísticas del guía: " + e.getMessage());
+                        });
+                } else {
+                    Log.w(TAG, "Documento del guía no encontrado: " + tourActivoGuiaId);
+                }
+            })
+            .addOnFailureListener(e -> {
+                Log.e(TAG, "❌ Error obteniendo documento del guía: " + e.getMessage());
+            });
     }
     
     @Override

@@ -214,7 +214,8 @@
                     android:padding="4dp"
                     android:text="Ver más"
                     android:textAppearance="@style/TextAppearance.Material3.BodySmall"
-                    android:textColor="?attr/colorPrimary" />
+                    android:textColor="?attr/colorPrimary"
+                    android:visibility="gone" />
 
             </LinearLayout>
 
