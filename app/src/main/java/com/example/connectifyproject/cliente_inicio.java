@@ -58,6 +58,7 @@ public class cliente_inicio extends AppCompatActivity implements OnMapReadyCallb
     
     private FirebaseFirestore db;
     private String tourActivoId = null; // ID del tour activo del cliente
+    private String tourActivoEstado = null; // Estado del tour activo
     
     // Views
     private TextView tvTourTitle;
@@ -663,6 +664,7 @@ public class cliente_inicio extends AppCompatActivity implements OnMapReadyCallb
             String horaInicio = doc.getString("horaInicio");
             String horaFinStr = doc.getString("horaFin");
             String estado = doc.getString("estado");
+            tourActivoEstado = estado; // ✅ Guardar estado para uso posterior
             String imagenPrincipal = doc.getString("imagenPrincipal");
             
             com.google.firebase.Timestamp fechaRealizacion = doc.getTimestamp("fechaRealizacion");
@@ -969,7 +971,8 @@ public class cliente_inicio extends AppCompatActivity implements OnMapReadyCallb
             }
         }
         
-        if (!itineraryPoints.isEmpty()) {
+        // ✅ Solo mostrar mapa si hay puntos Y el tour está en_curso
+        if (!itineraryPoints.isEmpty() && tourActivoEstado != null && tourActivoEstado.equals("en_curso")) {
             // Mostrar card del mapa
             if (cardMap != null) {
                 cardMap.setVisibility(View.VISIBLE);

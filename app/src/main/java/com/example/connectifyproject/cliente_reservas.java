@@ -215,14 +215,15 @@ public class cliente_reservas extends AppCompatActivity {
                                     String estado = doc.getString("estado");
                                     Log.d(TAG, "Reserva encontrada en tour: " + doc.getId() + " (estado: " + estado + ")");
                                     
-                                    // ✅ MOSTRAR TOURS EN ESTOS ESTADOS ACTIVOS:
+                                    // ✅ MOSTRAR TOURS EN ESTOS ESTADOS:
                                     // - confirmado: Tour confirmado con guía asignado
                                     // - check_in: Check-in habilitado, listo para iniciar
                                     // - en_curso: Tour en progreso
                                     // - check_out: Check-out habilitado, tour terminando
+                                    // - completado: Tour finalizado (aparecerá en "Pasadas")
                                     List<String> estadosValidos = Arrays.asList(
                                         "confirmado", "check_in", "en_curso", "en_progreso", 
-                                        "check_out", "programado"
+                                        "check_out", "programado", "completado"
                                     );
                                     
                                     if (estado != null && estadosValidos.contains(estado.toLowerCase())) {
@@ -243,13 +244,200 @@ public class cliente_reservas extends AppCompatActivity {
                         }
                     }
                     
-                    Log.d(TAG, "Total reservas del usuario: " + allReservas.size());
-                    filterReservas();
+                    Log.d(TAG, "Total reservas activas del usuario: " + allReservas.size());
+                    
+                    // ✅ AHORA CARGAR TOURS COMPLETADOS
+                    cargarToursCompletados();
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Error al cargar reservas: " + e.getMessage(), e);
                 });
-    }    private Cliente_Reserva crearReservaDesdeFirebase(QueryDocumentSnapshot tourDoc, Map<String, Object> participanteData) {
+    }
+    
+    /**
+     * ✅ CARGAR TOURS COMPLETADOS PARA MOSTRAR EN "PASADAS"
+     * Busca en tours_completados los tours donde participó el cliente
+     */
+    private void cargarToursCompletados() {
+        if (currentUserId == null) {
+            Log.e(TAG, "Usuario no autenticado");
+            filterReservas();
+            return;
+        }
+        
+        Log.d(TAG, "Cargando tours completados para usuario: " + currentUserId);
+        
+        db.collection("tours_completados")
+            .get()
+            .addOnSuccessListener(querySnapshot -> {
+                Log.d(TAG, "Total tours completados encontrados: " + querySnapshot.size());
+                
+                for (com.google.firebase.firestore.DocumentSnapshot doc : querySnapshot.getDocuments()) {
+                    // Obtener el tourAsignadoId para buscar los participantes
+                    String tourAsignadoId = doc.getString("tourAsignadoId");
+                    
+                    if (tourAsignadoId != null) {
+                        // Consultar el tour asignado original para obtener los participantes
+                        db.collection("tours_asignados")
+                            .document(tourAsignadoId)
+                            .get()
+                            .addOnSuccessListener(tourAsignadoDoc -> {
+                                if (tourAsignadoDoc.exists()) {
+                                    List<Map<String, Object>> participantes = 
+                                        (List<Map<String, Object>>) tourAsignadoDoc.get("participantes");
+                                    
+                                    if (participantes != null) {
+                                        // Buscar si el cliente actual participó
+                                        for (Map<String, Object> participante : participantes) {
+                                            String clienteId = (String) participante.get("clienteId");
+                                            
+                                            if (currentUserId.equals(clienteId)) {
+                                                // Este cliente participó en este tour completado
+                                                Cliente_Reserva reserva = crearReservaCompletadaDesdeFirebase(doc, participante);
+                                                if (reserva != null) {
+                                                    allReservas.add(reserva);
+                                                    Log.d(TAG, "Tour completado agregado: " + doc.getString("titulo"));
+                                                }
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                                
+                                // Aplicar filtro después de procesar cada documento
+                                filterReservas();
+                            });
+                    }
+                }
+                
+                // Aplicar filtro inicial (se volverá a aplicar cuando lleguen los tours completados)
+                filterReservas();
+            })
+            .addOnFailureListener(e -> {
+                Log.e(TAG, "Error al cargar tours completados: " + e.getMessage(), e);
+                filterReservas();
+            });
+    }
+    
+    /**
+     * ✅ CREAR RESERVA DESDE TOUR COMPLETADO
+     * Similar a crearReservaDesdeFirebase pero adaptado para tours_completados
+     */
+    private Cliente_Reserva crearReservaCompletadaDesdeFirebase(com.google.firebase.firestore.DocumentSnapshot tourCompletadoDoc, Map<String, Object> participanteData) {
+        try {
+            String tourId = tourCompletadoDoc.getId();
+            String titulo = tourCompletadoDoc.getString("titulo");
+            String empresaNombre = tourCompletadoDoc.getString("empresaNombre");
+            String empresaId = tourCompletadoDoc.getString("empresaId");
+            
+            // Los tours completados no tienen todos los campos, usar valores por defecto
+            String ubicacion = "";
+            String ciudad = "";
+            String descripcion = "";
+            String imagenPrincipal = null;
+            
+            Double precioPorPersona = 0.0;
+            Object precioObj = tourCompletadoDoc.get("precioTour");
+            if (precioObj instanceof Double) {
+                precioPorPersona = (Double) precioObj;
+            } else if (precioObj instanceof Long) {
+                precioPorPersona = ((Long) precioObj).doubleValue();
+            }
+            
+            String duracion = tourCompletadoDoc.getString("duracionReal");
+            if (duracion == null) duracion = "N/A";
+            
+            Timestamp fechaRealizacion = tourCompletadoDoc.getTimestamp("fechaRealizacion");
+            Timestamp horaInicioReal = tourCompletadoDoc.getTimestamp("horaInicioReal");
+            Timestamp horaFinReal = tourCompletadoDoc.getTimestamp("horaFinReal");
+            
+            // Formatear horas desde timestamps
+            String horaInicio = "";
+            String horaFin = "";
+            if (horaInicioReal != null) {
+                java.text.SimpleDateFormat timeFormat = new java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault());
+                horaInicio = timeFormat.format(horaInicioReal.toDate());
+            }
+            if (horaFinReal != null) {
+                java.text.SimpleDateFormat timeFormat = new java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault());
+                horaFin = timeFormat.format(horaFinReal.toDate());
+            }
+            
+            // Datos del participante
+            Integer numeroPersonas = 1;
+            if (participanteData.get("numeroPersonas") != null) {
+                Object numPersonasObj = participanteData.get("numeroPersonas");
+                if (numPersonasObj instanceof Long) {
+                    numeroPersonas = ((Long) numPersonasObj).intValue();
+                } else if (numPersonasObj instanceof Integer) {
+                    numeroPersonas = (Integer) numPersonasObj;
+                }
+            }
+            
+            Double montoTotal = precioPorPersona * numeroPersonas;
+            Object montoObj = participanteData.get("montoTotal");
+            if (montoObj instanceof String) {
+                String montoStr = (String) montoObj;
+                montoStr = montoStr.replace("S/", "").replace(" ", "").trim();
+                try {
+                    montoTotal = Double.parseDouble(montoStr);
+                } catch (NumberFormatException e) {
+                    Log.e(TAG, "Error parseando montoTotal: " + montoStr, e);
+                }
+            } else if (montoObj instanceof Double) {
+                montoTotal = (Double) montoObj;
+            } else if (montoObj instanceof Long) {
+                montoTotal = ((Long) montoObj).doubleValue();
+            }
+            
+            // Formatear fecha
+            String fechaFormateada = "";
+            if (fechaRealizacion != null) {
+                java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault());
+                fechaFormateada = sdf.format(fechaRealizacion.toDate());
+            }
+            
+            // ✅ Tours completados SIEMPRE son "Pasada"
+            String estado = "Pasada";
+            
+            // Crear objeto Cliente_Tour
+            Cliente_Tour tour = new Cliente_Tour(
+                    tourId,
+                    titulo != null ? titulo : "Tour sin título",
+                    empresaNombre != null ? empresaNombre : "Empresa",
+                    duracion,
+                    fechaFormateada,
+                    precioPorPersona,
+                    ubicacion,
+                    descripcion
+            );
+            
+            tour.setEmpresaId(empresaId);
+            tour.setCiudad(ciudad);
+            tour.setImageUrl(imagenPrincipal);
+            
+            // Crear objeto Cliente_Reserva
+            Cliente_Reserva reserva = new Cliente_Reserva();
+            reserva.setId(tourId);
+            reserva.setTour(tour);
+            reserva.setPersonas(numeroPersonas);
+            reserva.setFecha(fechaFormateada);
+            reserva.setHoraInicio(horaInicio);
+            reserva.setHoraFin(horaFin);
+            reserva.setTotal(montoTotal);
+            reserva.setEstado(estado);
+            reserva.setMetodoPago(null);
+            reserva.setServicios(new ArrayList<>());
+            
+            return reserva;
+            
+        } catch (Exception e) {
+            Log.e(TAG, "Error al crear reserva completada desde Firebase: " + e.getMessage(), e);
+            return null;
+        }
+    }
+    
+    private Cliente_Reserva crearReservaDesdeFirebase(QueryDocumentSnapshot tourDoc, Map<String, Object> participanteData) {
         try {
             // Extraer datos del tour
             String tourId = tourDoc.getId();
@@ -274,8 +462,24 @@ public class cliente_reservas extends AppCompatActivity {
             
             // Fecha de realización del tour
             Timestamp fechaRealizacion = tourDoc.getTimestamp("fechaRealizacion");
-            String horaInicio = tourDoc.getString("horaInicio");
-            String horaFin = tourDoc.getString("horaFin");
+            
+            // ✅ Si el tour está completado, usar horas reales; si no, usar horas programadas
+            String estadoTourTemp = tourDoc.getString("estado");
+            String horaInicio, horaFin;
+            
+            if ("completado".equalsIgnoreCase(estadoTourTemp)) {
+                // Usar horaInicioReal y horaFinReal (timestamps)
+                Timestamp horaInicioReal = tourDoc.getTimestamp("horaInicioReal");
+                Timestamp horaFinReal = tourDoc.getTimestamp("horaFinReal");
+                
+                java.text.SimpleDateFormat timeFormat = new java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault());
+                horaInicio = horaInicioReal != null ? timeFormat.format(horaInicioReal.toDate()) : "";
+                horaFin = horaFinReal != null ? timeFormat.format(horaFinReal.toDate()) : "";
+            } else {
+                // Usar horas programadas (strings)
+                horaInicio = tourDoc.getString("horaInicio");
+                horaFin = tourDoc.getString("horaFin");
+            }
             
             // Datos del participante (pueden no existir si solo se inscribió sin pagar)
             Integer numeroPersonas = 1; // Por defecto 1 persona
@@ -314,16 +518,24 @@ public class cliente_reservas extends AppCompatActivity {
             }
             
             // Determinar si es próxima o pasada
-            boolean esFutura = false;
-            if (fechaRealizacion != null) {
-                Calendar today = Calendar.getInstance();
-                today.set(Calendar.HOUR_OF_DAY, 0);
-                today.set(Calendar.MINUTE, 0);
-                today.set(Calendar.SECOND, 0);
-                today.set(Calendar.MILLISECOND, 0);
-                esFutura = fechaRealizacion.toDate().after(today.getTime());
+            // ✅ Si el tour está completado, SIEMPRE es "Pasada"
+            String estadoTour = tourDoc.getString("estado");
+            String estado;
+            
+            if ("completado".equalsIgnoreCase(estadoTour)) {
+                estado = "Pasada";
+            } else {
+                boolean esFutura = false;
+                if (fechaRealizacion != null) {
+                    Calendar today = Calendar.getInstance();
+                    today.set(Calendar.HOUR_OF_DAY, 0);
+                    today.set(Calendar.MINUTE, 0);
+                    today.set(Calendar.SECOND, 0);
+                    today.set(Calendar.MILLISECOND, 0);
+                    esFutura = fechaRealizacion.toDate().after(today.getTime());
+                }
+                estado = esFutura ? "Próxima" : "Pasada";
             }
-            String estado = esFutura ? "Próxima" : "Pasada";
             
             // Crear objeto Cliente_Tour
             Cliente_Tour tour = new Cliente_Tour(

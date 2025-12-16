@@ -732,21 +732,21 @@ public class guia_scan_qr_participants extends AppCompatActivity {
                 for (java.util.Map<String, Object> participante : participantes) {
                     String clienteId = (String) participante.get("clienteId");
                     String clienteNombre = (String) participante.get("nombre");
-                        
-                        Map<String, Object> pagoCliente = new HashMap<>();
-                        pagoCliente.put("fecha", com.google.firebase.Timestamp.now());
-                        pagoCliente.put("monto", precioTour);
-                        pagoCliente.put("nombreTour", titulo);
-                        pagoCliente.put("tipoPago", "A Empresa");
-                        pagoCliente.put("uidUsuarioPaga", clienteId);
-                        pagoCliente.put("nombreUsuarioPaga", clienteNombre);
-                        pagoCliente.put("uidUsuarioRecibe", empresaId);
-                        pagoCliente.put("nombreUsuarioRecibe", "Empresa");
-                        pagoCliente.put("tourId", tourId);
-                        pagoCliente.put("estado", "completado");
-                        
-                        pagosAGenerar.add(pagoCliente);
-                    }
+                    
+                    Map<String, Object> pagoCliente = new HashMap<>();
+                    pagoCliente.put("fecha", com.google.firebase.Timestamp.now());
+                    pagoCliente.put("monto", precioTour);
+                    pagoCliente.put("nombreTour", titulo);
+                    pagoCliente.put("tipoPago", "A Empresa");
+                    pagoCliente.put("uidUsuarioPaga", clienteId);
+                    pagoCliente.put("nombreUsuarioPaga", clienteNombre);
+                    pagoCliente.put("uidUsuarioRecibe", empresaId);
+                    pagoCliente.put("nombreUsuarioRecibe", "Empresa");
+                    pagoCliente.put("tourId", tourId);
+                    pagoCliente.put("estado", "completado");
+                    
+                    pagosAGenerar.add(pagoCliente);
+                }
                     
                     // 6️⃣ CREAR PAGO ÚNICO (empresa → guía)
                     Map<String, Object> pagoGuiaDoc = new HashMap<>();

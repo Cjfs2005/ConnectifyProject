@@ -663,11 +663,8 @@ public class admin_tours extends AppCompatActivity {
                 for (DocumentSnapshot doc : querySnapshot.getDocuments()) {
                     String estadoDoc = doc.getString("estado");
                     
-                    // Solo mostrar tours confirmados, en curso o completados
-                    if (estadoDoc != null && 
-                        (estadoDoc.equals("confirmado") || 
-                         estadoDoc.equals("en_curso") || 
-                         estadoDoc.equals("completado"))) {
+                    // ✅ Solo mostrar tours confirmados (completados van a pestaña Finalizados)
+                    if (estadoDoc != null && estadoDoc.equals("confirmado")) {
                         
                         String titulo = doc.getString("titulo");
                         
@@ -808,15 +805,15 @@ public class admin_tours extends AppCompatActivity {
      * Muestra tours con estado: check_in, en_curso, check_out
      */
     private void loadEnCurso() {
+        android.util.Log.d("AdminTours", "=== CARGANDO TOURS EN CURSO ===");
+        
         db.collection("tours_asignados")
             .whereEqualTo("empresaId", empresaId)
             .whereEqualTo("habilitado", true)
             .whereIn("estado", java.util.Arrays.asList("check_in", "en_curso", "check_out"))
-            .addSnapshotListener((querySnapshot, error) -> {
-                if (error != null) {
-                    Toast.makeText(this, "Error al cargar tours en curso: " + error.getMessage(), Toast.LENGTH_SHORT).show();
-                    return;
-                }
+            .get()  // ✅ Cambiar a get() en lugar de addSnapshotListener para forzar carga inmediata
+            .addOnSuccessListener(querySnapshot -> {
+                android.util.Log.d("AdminTours", "Tours encontrados en_curso: " + querySnapshot.size());
                 
                 if (querySnapshot == null) return;
                 
@@ -904,78 +901,85 @@ public class admin_tours extends AppCompatActivity {
                 // Aplicar filtro actual si existe
                 String currentQuery = binding.etSearch.getText().toString();
                 filterTours(currentQuery);
+                
+                android.util.Log.d("AdminTours", "Total tours en_curso agregados: " + toursList.size());
+            })
+            .addOnFailureListener(e -> {
+                android.util.Log.e("AdminTours", "Error cargando tours en_curso: " + e.getMessage());
+                Toast.makeText(this, "Error al cargar tours en curso: " + e.getMessage(), Toast.LENGTH_SHORT).show();
             });
     }
     
     /**
      * ✅ FASE 4: PESTAÑA "FINALIZADOS"
-     * Muestra tours completados desde la colección tours_completados
+     * Muestra tours completados desde tours_asignados con estado="completado"
      */
     private void loadFinalizados() {
-        db.collection("tours_completados")
+        db.collection("tours_asignados")
             .whereEqualTo("empresaId", empresaId)
+            .whereEqualTo("estado", "completado")
             .get()
             .addOnSuccessListener(querySnapshot -> {
-                // Ordenar en memoria para evitar crear índice compuesto
+                // Ordenar en memoria por fecha de finalización
                 List<DocumentSnapshot> docs = new ArrayList<>(querySnapshot.getDocuments());
                 docs.sort((d1, d2) -> {
-                    Timestamp t1 = d1.getTimestamp("fechaRegistro");
-                    Timestamp t2 = d2.getTimestamp("fechaRegistro");
+                    Timestamp t1 = d1.getTimestamp("horaFinReal");
+                    Timestamp t2 = d2.getTimestamp("horaFinReal");
                     if (t1 == null || t2 == null) return 0;
-                    return t2.compareTo(t1); // Descendente
+                    return t2.compareTo(t1); // Descendente (más recientes primero)
                 });
                 
                 toursList.clear();
                 for (DocumentSnapshot doc : docs) {
                     String titulo = doc.getString("titulo");
                     String guiaNombre = doc.getString("guiaNombre");
+                    String imageUrl = doc.getString("imageUrl");
                     
-                    // Manejar fecha como String o Timestamp
+                    // Obtener fecha de realización
                     String fecha = "Sin fecha";
-                    try {
-                        Timestamp fechaRealizacion = doc.getTimestamp("fechaRealizacion");
-                        if (fechaRealizacion != null) {
-                            fecha = dateFormat.format(fechaRealizacion.toDate());
-                        }
-                    } catch (Exception e) {
-                        String fechaString = doc.getString("fechaRealizacion");
-                        if (fechaString != null && !fechaString.isEmpty()) {
-                            fecha = fechaString;
-                        }
+                    Timestamp fechaRealizacion = doc.getTimestamp("fechaRealizacion");
+                    if (fechaRealizacion != null) {
+                        fecha = dateFormat.format(fechaRealizacion.toDate());
                     }
                     
-                    // Obtener duración real
-                    String duracionReal = doc.getString("duracionReal");
+                    // Calcular duración real
+                    String duracionReal = "N/A";
+                    Timestamp horaInicioReal = doc.getTimestamp("horaInicioReal");
+                    Timestamp horaFinReal = doc.getTimestamp("horaFinReal");
+                    if (horaInicioReal != null && horaFinReal != null) {
+                        long duracionMinutos = (horaFinReal.getSeconds() - horaInicioReal.getSeconds()) / 60;
+                        long horas = duracionMinutos / 60;
+                        long minutos = duracionMinutos % 60;
+                        duracionReal = String.format("%dh %dm", horas, minutos);
+                    }
                     
-                    // Obtener información de participantes y pago
-                    Long numParticipantes = doc.getLong("numeroParticipantes");
-                    Double pagoEmpresaTotal = doc.getDouble("pagoEmpresaTotal");
-                    Double pagoGuia = doc.getDouble("pagoGuia");
+                    // Obtener número de participantes del array real
+                    List<Map<String, Object>> participantes = 
+                        (List<Map<String, Object>>) doc.get("participantes");
+                    int numParticipantes = participantes != null ? participantes.size() : 0;
                     
                     // Construir información de estado
                     String estadoDisplay = "Completado";
                     if (guiaNombre != null) {
                         estadoDisplay += " - Guía: " + guiaNombre;
                     }
-                    if (numParticipantes != null) {
-                        estadoDisplay += " - " + numParticipantes + " participantes";
-                    }
-                    if (duracionReal != null) {
-                        estadoDisplay += " - Duración: " + duracionReal;
-                    }
-                    if (pagoEmpresaTotal != null) {
-                        estadoDisplay += String.format(" - Ingreso: S/ %.2f", pagoEmpresaTotal);
-                    }
+                    estadoDisplay += " - " + numParticipantes + " participantes";
+                    estadoDisplay += " - Duración: " + duracionReal;
                     
-                    // Buscar imagen del tour original
-                    String tourAsignadoId = doc.getString("tourAsignadoId");
+                    // Formatear horas reales
+                    SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm", Locale.getDefault());
+                    if (horaInicioReal != null && horaFinReal != null) {
+                        String horaInicio = timeFormat.format(horaInicioReal.toDate());
+                        String horaFin = timeFormat.format(horaFinReal.toDate());
+                        estadoDisplay += " (" + horaInicio + " - " + horaFin + ")";
+                    }
                     
                     toursList.add(new TourItem(
                         doc.getId(),
                         titulo,
                         fecha,
                         estadoDisplay,
-                        null, // Se puede agregar imagen después si es necesario
+                        imageUrl,
                         false, // No es editable
                         "finalizado"
                     ));
@@ -984,8 +988,11 @@ public class admin_tours extends AppCompatActivity {
                 // Aplicar filtro actual si existe
                 String currentQuery = binding.etSearch.getText().toString();
                 filterTours(currentQuery);
+                
+                android.util.Log.d("AdminTours", "Total tours finalizados agregados: " + toursList.size());
             })
             .addOnFailureListener(e -> {
+                android.util.Log.e("AdminTours", "Error cargando tours finalizados: " + e.getMessage());
                 Toast.makeText(this, "Error al cargar tours finalizados: " + e.getMessage(), Toast.LENGTH_SHORT).show();
             });
     }

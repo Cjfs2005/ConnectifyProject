@@ -371,6 +371,14 @@ public class cliente_reserva_detalle extends AppCompatActivity {
         
         Cliente_Tour tour = reserva.getTour();
         
+        // ✅ Si es una reserva pasada, ocultar botones de cancelar y QR
+        boolean esPasada = "Pasada".equals(reserva.getEstado());
+        if (esPasada) {
+            if (cardCancelar != null) cardCancelar.setVisibility(View.GONE);
+            if (cardQrCheckin != null) cardQrCheckin.setVisibility(View.GONE);
+            if (cardQrCheckout != null) cardQrCheckout.setVisibility(View.GONE);
+        }
+        
         // Itinerario - abrir mapa del tour
         if (layoutItinerario != null) {
             layoutItinerario.setOnClickListener(v -> {
