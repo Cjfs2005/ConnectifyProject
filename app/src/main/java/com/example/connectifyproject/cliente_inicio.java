@@ -1236,6 +1236,14 @@ public class cliente_inicio extends AppCompatActivity implements OnMapReadyCallb
                 if (snapshot != null && snapshot.exists()) {
                     String estado = snapshot.getString("estado");
                     
+                    // Actualizar estado para controlar visibilidad del mapa
+                    tourActivoEstado = estado;
+                    
+                    // Ocultar mapa si ya no está en_curso
+                    if (!"en_curso".equalsIgnoreCase(estado)) {
+                        if (cardMap != null) cardMap.setVisibility(View.GONE);
+                    }
+                    
                     // Si el tour se completó y aún no se mostró la reseña
                     if ("completado".equalsIgnoreCase(estado) && !reseniaYaMostrada) {
                         reseniaYaMostrada = true;

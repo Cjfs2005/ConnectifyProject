@@ -56,6 +56,24 @@ public class Cliente_GalleryTourAdapter extends RecyclerView.Adapter<Cliente_Gal
         holder.ratingBar.setRating(tour.getCalificacion());
         holder.tvRating.setText(String.format("%.1f", tour.getCalificacion()));
         
+        // Configurar ciudad
+        String ciudad = tour.getCiudad();
+        if (ciudad != null && !ciudad.isEmpty()) {
+            holder.tvCiudad.setText(ciudad);
+            holder.tvCiudad.setVisibility(View.VISIBLE);
+        } else {
+            holder.tvCiudad.setVisibility(View.GONE);
+        }
+        
+        // Configurar fecha
+        String fecha = tour.getDate();
+        if (fecha != null && !fecha.isEmpty()) {
+            holder.tvFecha.setText(fecha);
+            holder.tvFecha.setVisibility(View.VISIBLE);
+        } else {
+            holder.tvFecha.setVisibility(View.GONE);
+        }
+        
         // Configurar imagen (por ahora usando imagen por defecto)
         // TODO: Implementar carga de imágenes con Picasso/Glide cuando se tengan URLs reales
         holder.ivTourImage.setImageResource(R.drawable.cliente_tour_lima);
@@ -87,6 +105,8 @@ public class Cliente_GalleryTourAdapter extends RecyclerView.Adapter<Cliente_Gal
     static class TourViewHolder extends RecyclerView.ViewHolder {
         ImageView ivTourImage;
         TextView tvTourTitle;
+        TextView tvCiudad;
+        TextView tvFecha;
         RatingBar ratingBar;
         TextView tvRating;
         TextView tvPrice;
@@ -95,6 +115,8 @@ public class Cliente_GalleryTourAdapter extends RecyclerView.Adapter<Cliente_Gal
             super(itemView);
             ivTourImage = itemView.findViewById(R.id.iv_tour_image);
             tvTourTitle = itemView.findViewById(R.id.tv_tour_title);
+            tvCiudad = itemView.findViewById(R.id.tv_ciudad);
+            tvFecha = itemView.findViewById(R.id.tv_fecha);
             ratingBar = itemView.findViewById(R.id.rating_bar);
             tvRating = itemView.findViewById(R.id.tv_rating);
             tvPrice = itemView.findViewById(R.id.tv_price);

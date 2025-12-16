@@ -40,6 +40,41 @@
                 android:ellipsize="end"
                 android:lineSpacingExtra="2dp" />
 
+            <!-- Ciudad y Fecha -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="6dp">
+
+                <TextView
+                    android:id="@+id/tv_ciudad"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Lima"
+                    android:textSize="11sp"
+                    android:textColor="@color/gray_text"
+                    android:drawableStart="@android:drawable/ic_dialog_map"
+                    android:drawablePadding="4dp"
+                    android:drawableTint="@color/gray_text"
+                    android:maxLines="1"
+                    android:ellipsize="end" />
+
+                <TextView
+                    android:id="@+id/tv_fecha"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="15 Ene 2024"
+                    android:textSize="11sp"
+                    android:textColor="@color/gray_text"
+                    android:drawablePadding="4dp"
+                    android:drawableTint="@color/gray_text"
+                    android:layout_marginTop="2dp"
+                    android:maxLines="1"
+                    android:ellipsize="end" />
+
+            </LinearLayout>
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

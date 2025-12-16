@@ -42,7 +42,7 @@ public class admin_tours extends AppCompatActivity {
     private ToursAdapter toursAdapter;
     private List<TourItem> toursList;
     private List<TourItem> toursListFiltered; // Lista filtrada para búsqueda
-    private String currentTab = "borradores";
+    private String currentTab = "en_curso"; // ✅ Inicializar con "en_curso" ya que es la primera pestaña
     
     // Firebase
     private AdminTourService adminTourService;

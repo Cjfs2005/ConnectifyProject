@@ -632,16 +632,18 @@ public class guia_scan_qr_participants extends AppCompatActivity {
             String empresaId = tourDoc.getString("empresaId");
             String empresaNombre = tourDoc.getString("empresaNombre");
             com.google.firebase.Timestamp fechaRealizacion = tourDoc.getTimestamp("fechaRealizacion");
-            com.google.firebase.Timestamp horaInicio = tourDoc.getTimestamp("horaInicio");
+            String horaInicioStr = tourDoc.getString("horaInicio");
             com.google.firebase.Timestamp horaInicioReal = tourDoc.getTimestamp("horaInicioReal");
+            
+            // Obtener número real de participantes del array
+            java.util.List<java.util.Map<String, Object>> participantesList = 
+                (java.util.List<java.util.Map<String, Object>>) tourDoc.get("participantes");
+            int numParticipantes = participantesList != null ? participantesList.size() : 0;
             
             Long precioTourLong = tourDoc.getLong("precioTour");
             Long pagoGuiaLong = tourDoc.getLong("pagoGuia");
-            Long numParticipantesLong = tourDoc.getLong("numeroParticipantesTotal");
-            
             double precioTour = precioTourLong != null ? precioTourLong.doubleValue() : 0;
             double pagoGuia = pagoGuiaLong != null ? pagoGuiaLong.doubleValue() : 0;
-            int numParticipantes = numParticipantesLong != null ? numParticipantesLong.intValue() : 0;
             
             String metodoPago = tourDoc.getString("metodoPago");
             List<Map<String, Object>> itinerario = (List<Map<String, Object>>) tourDoc.get("itinerario");
@@ -677,7 +679,7 @@ public class guia_scan_qr_participants extends AppCompatActivity {
             tourCompletado.put("empresaId", empresaId);
             tourCompletado.put("empresaNombre", empresaNombre);
             tourCompletado.put("fechaRealizacion", fechaRealizacion);
-            tourCompletado.put("horaInicio", horaInicio);
+            tourCompletado.put("horaInicio", horaInicioStr);
             tourCompletado.put("horaInicioReal", horaInicioReal);
             tourCompletado.put("horaFinReal", horaFinReal);
             tourCompletado.put("duracionReal", duracionReal);
