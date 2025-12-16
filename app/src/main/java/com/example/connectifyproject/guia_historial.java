@@ -116,6 +116,21 @@ public class guia_historial extends AppCompatActivity {
         if (binding.bottomNav != null) {
             binding.bottomNav.setSelectedItemId(R.id.nav_historial);
         }
+
+        // Forzar recarga de los fragments de historial
+        if (binding.viewPager != null) {
+            FragmentStateAdapter adapter = (FragmentStateAdapter) binding.viewPager.getAdapter();
+            if (adapter != null) {
+                for (int i = 0; i < adapter.getItemCount(); i++) {
+                    Fragment fragment = getSupportFragmentManager().findFragmentByTag("f" + i);
+                    if (fragment instanceof com.example.connectifyproject.fragment.GuiaToursFragment) {
+                        ((com.example.connectifyproject.fragment.GuiaToursFragment) fragment).loadFromDB();
+                    } else if (fragment instanceof com.example.connectifyproject.fragment.GuiaPagosFragment) {
+                        ((com.example.connectifyproject.fragment.GuiaPagosFragment) fragment).loadPaymentsFromFirestore();
+                    }
+                }
+            }
+        }
     }
 
     private void checkNotificationPermissions() {

@@ -57,9 +57,9 @@ public class GuiaToursFragment extends Fragment {
     }
 
     // ✅ Cargar desde tours_completados
-    private void loadFromDB() {
+    public void loadFromDB() {
         if (guiaId == null) {
-            loadData(); // Fallback a datos hardcodeados
+            loadData();
             return;
         }
         

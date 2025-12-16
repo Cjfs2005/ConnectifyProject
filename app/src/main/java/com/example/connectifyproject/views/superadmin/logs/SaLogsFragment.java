@@ -69,16 +69,37 @@ public class SaLogsFragment extends Fragment {
             });
         }
 
+
         binding.rvLogs.setLayoutManager(new LinearLayoutManager(requireContext()));
-        adapter = new SaLogsAdapter(mockLogs(), item -> {
-            Bundle b = new Bundle();
-            b.putParcelable("user", item.user);
-            b.putLong("at", item.atMillis);
-            b.putString("action", item.action);
-            b.putString("role", item.role.name());
-            nav.navigate(R.id.saLogDetailFragment, b);
+        adapter = new SaLogsAdapter(requireContext(), new ArrayList<>(), item -> {
+            // Mostrar diálogo con título y descripción completa
+            new android.app.AlertDialog.Builder(requireContext())
+                .setTitle(item.titulo)
+                .setMessage(item.descripcion)
+                .setPositiveButton("Cerrar", null)
+                .show();
         });
         binding.rvLogs.setAdapter(adapter);
+
+        // Cargar logs desde Firestore
+        com.google.firebase.firestore.FirebaseFirestore.getInstance()
+            .collection("logs")
+            .orderBy("timestamp", com.google.firebase.firestore.Query.Direction.DESCENDING)
+            .addSnapshotListener((snap, err) -> {
+                if (err != null) return;
+                java.util.List<SaLogFirestoreItem> logs = new java.util.ArrayList<>();
+                if (snap != null) {
+                    for (com.google.firebase.firestore.DocumentSnapshot doc : snap.getDocuments()) {
+                        String titulo = doc.getString("titulo");
+                        String descripcion = doc.getString("descripcion");
+                        Long timestamp = doc.getLong("timestamp");
+                        if (titulo != null && descripcion != null && timestamp != null) {
+                            logs.add(new SaLogFirestoreItem(titulo, descripcion, timestamp));
+                        }
+                    }
+                }
+                adapter.replaceAll(logs);
+            });
 
         if (savedInstanceState != null) {
             sort = savedInstanceState.getBoolean("sortOld", false)
