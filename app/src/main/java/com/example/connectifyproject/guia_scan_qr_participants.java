@@ -505,6 +505,7 @@ public class guia_scan_qr_participants extends AppCompatActivity {
                     return;
                 }
                 // ✅ VALIDACIONES PASADAS - INICIAR TOUR (cambiar estado a en_curso)
+                String empresaId = doc.getString("empresaId");
                 com.google.firebase.firestore.FirebaseFirestore.getInstance()
                     .collection("tours_asignados")
                     .document(tourId)
@@ -517,7 +518,6 @@ public class guia_scan_qr_participants extends AppCompatActivity {
                     .addOnSuccessListener(aVoid -> {
                         Toast.makeText(this, "🚀 Tour iniciado. Redirigiendo al mapa...", Toast.LENGTH_SHORT).show();
                         // --- Notificación y log para todos los clientes y admin ---
-                        String adminId = "adminId";
                         String guiaNombre = com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser() != null ? com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser().getDisplayName() : "Guía";
                         String notiTitulo = "Tour iniciado";
                         String notiDesc = "El guía " + guiaNombre + " ha iniciado el tour '" + tourTitulo + "'.";
@@ -530,8 +530,12 @@ public class guia_scan_qr_participants extends AppCompatActivity {
                                 }
                             }
                         }
-                        // Notificar al admin
-                        com.example.connectifyproject.utils.NotificacionLogUtils.crearNotificacion(notiTitulo, notiDesc, adminId);
+                        // Notificar al admin (empresa)
+                        if (empresaId != null && !empresaId.isEmpty()) {
+                            com.example.connectifyproject.utils.NotificacionLogUtils.crearNotificacion(notiTitulo, notiDesc, empresaId);
+                        } else {
+                            com.example.connectifyproject.utils.NotificacionLogUtils.crearNotificacion(notiTitulo, notiDesc, "");
+                        }
                         // Log para auditoría
                         com.example.connectifyproject.utils.NotificacionLogUtils.crearLog(notiTitulo, notiDesc);
                         // Redirigir al mapa
@@ -591,6 +595,7 @@ public class guia_scan_qr_participants extends AppCompatActivity {
                     return;
                 }
                 // ✅ VALIDACIÓN PASADA - FINALIZAR TOUR
+                String empresaId = doc.getString("empresaId");
                 com.google.firebase.Timestamp horaFinReal = com.google.firebase.Timestamp.now();
                 db.collection("tours_asignados")
                     .document(tourId)
@@ -600,7 +605,6 @@ public class guia_scan_qr_participants extends AppCompatActivity {
                     )
                     .addOnSuccessListener(aVoid -> {
                         // --- Notificación y log para todos los clientes y admin ---
-                        String adminId = "adminId";
                         String guiaNombre = com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser() != null ? com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser().getDisplayName() : "Guía";
                         String notiTitulo = "Tour finalizado";
                         String notiDesc = "El guía " + guiaNombre + " ha finalizado el tour '" + tourTitulo + "'.";
@@ -612,7 +616,11 @@ public class guia_scan_qr_participants extends AppCompatActivity {
                                 }
                             }
                         }
-                        com.example.connectifyproject.utils.NotificacionLogUtils.crearNotificacion(notiTitulo, notiDesc, adminId);
+                        if (empresaId != null && !empresaId.isEmpty()) {
+                            com.example.connectifyproject.utils.NotificacionLogUtils.crearNotificacion(notiTitulo, notiDesc, empresaId);
+                        } else {
+                            com.example.connectifyproject.utils.NotificacionLogUtils.crearNotificacion(notiTitulo, notiDesc, "");
+                        }
                         com.example.connectifyproject.utils.NotificacionLogUtils.crearLog(notiTitulo, notiDesc);
                         // ✅ FASE 2: Crear documento en tours_completados y generar pagos
                         crearTourCompletadoYPagos(doc, horaFinReal);
