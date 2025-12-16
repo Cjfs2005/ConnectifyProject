@@ -5,7 +5,10 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.RatingBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.view.View;
@@ -59,6 +62,8 @@ public class cliente_inicio extends AppCompatActivity implements OnMapReadyCallb
     private FirebaseFirestore db;
     private String tourActivoId = null; // ID del tour activo del cliente
     private String tourActivoEstado = null; // Estado del tour activo
+    private com.google.firebase.firestore.ListenerRegistration tourListener; // Listener para cambios en el tour
+    private boolean reseniaYaMostrada = false; // Flag para evitar mostrar reseña múltiples veces
     
     // Views
     private TextView tvTourTitle;
@@ -591,6 +596,9 @@ public class cliente_inicio extends AppCompatActivity implements OnMapReadyCallb
                         tourActivoId = tourDelCliente.getId();
                         mostrarTourActivo(tourDelCliente);
                         if (cardStatistics != null) cardStatistics.setVisibility(View.GONE);
+                        
+                        // ✅ Escuchar cambios en el estado del tour para mostrar reseña
+                        escucharCambiosTourActivo(tourActivoId);
                     } else {
                         Log.d(TAG, "ℹ️ No hay tour activo en este momento, mostrando estadísticas");
                         cardTourActivo.setVisibility(View.GONE);
@@ -1093,34 +1101,23 @@ public class cliente_inicio extends AppCompatActivity implements OnMapReadyCallb
                 verificarYMostrarGrafico(confirmados[0], completados[0], cancelados[0], totalConsultas[0]);
             });
         
-        // 2. Contar tours completados (tours_completados)
-        db.collection("tours_completados")
+        // 2. Contar tours completados (tours_asignados con estado="completado")
+        db.collection("tours_asignados")
+            .whereEqualTo("estado", "completado")
             .get()
             .addOnSuccessListener(querySnapshot -> {
                 for (com.google.firebase.firestore.DocumentSnapshot doc : querySnapshot.getDocuments()) {
-                    String tourAsignadoId = doc.getString("tourAsignadoId");
+                    java.util.List<java.util.Map<String, Object>> participantes = 
+                        (java.util.List<java.util.Map<String, Object>>) doc.get("participantes");
                     
-                    if (tourAsignadoId != null) {
-                        // Verificar si el cliente estaba en este tour
-                        db.collection("tours_asignados")
-                            .document(tourAsignadoId)
-                            .get()
-                            .addOnSuccessListener(tourDoc -> {
-                                if (tourDoc.exists()) {
-                                    java.util.List<java.util.Map<String, Object>> participantes = 
-                                        (java.util.List<java.util.Map<String, Object>>) tourDoc.get("participantes");
-                                    
-                                    if (participantes != null) {
-                                        for (java.util.Map<String, Object> participante : participantes) {
-                                            String participanteId = (String) participante.get("clienteId");
-                                            if (clienteId.equals(participanteId)) {
-                                                completados[0]++;
-                                                break;
-                                            }
-                                        }
-                                    }
-                                }
-                            });
+                    if (participantes != null) {
+                        for (java.util.Map<String, Object> participante : participantes) {
+                            String participanteId = (String) participante.get("clienteId");
+                            if (clienteId.equals(participanteId)) {
+                                completados[0]++;
+                                break;
+                            }
+                        }
                     }
                 }
                 
@@ -1217,6 +1214,139 @@ public class cliente_inicio extends AppCompatActivity implements OnMapReadyCallb
         // Animar
         pieChart.animateY(1000, com.github.mikephil.charting.animation.Easing.EaseInOutQuad);
         pieChart.invalidate();
+    }
+    
+    /**
+     * ✅ Escuchar cambios en el estado del tour activo
+     * Cuando el tour se complete, mostrar diálogo de reseña
+     */
+    private void escucharCambiosTourActivo(String tourId) {
+        if (tourListener != null) {
+            tourListener.remove();
+        }
+        
+        tourListener = db.collection("tours_asignados")
+            .document(tourId)
+            .addSnapshotListener((snapshot, error) -> {
+                if (error != null) {
+                    Log.e(TAG, "Error al escuchar cambios del tour: " + error.getMessage());
+                    return;
+                }
+                
+                if (snapshot != null && snapshot.exists()) {
+                    String estado = snapshot.getString("estado");
+                    
+                    // Si el tour se completó y aún no se mostró la reseña
+                    if ("completado".equalsIgnoreCase(estado) && !reseniaYaMostrada) {
+                        reseniaYaMostrada = true;
+                        
+                        // Obtener datos de la empresa para la reseña
+                        String empresaId = snapshot.getString("empresaId");
+                        String empresaNombre = snapshot.getString("empresaNombre");
+                        String tituloTour = snapshot.getString("titulo");
+                        
+                        // Ocultar el tour activo y mostrar estadísticas
+                        cardTourActivo.setVisibility(View.GONE);
+                        if (cardMap != null) cardMap.setVisibility(View.GONE);
+                        if (cardQr != null) cardQr.setVisibility(View.GONE);
+                        cargarYMostrarEstadisticas();
+                        
+                        // Mostrar diálogo de reseña después de un breve delay
+                        new android.os.Handler().postDelayed(() -> {
+                            mostrarDialogoResenia(empresaId, empresaNombre, tituloTour);
+                        }, 500);
+                    }
+                }
+            });
+    }
+    
+    /**
+     * ✅ Mostrar diálogo para que el cliente deje una reseña de la empresa
+     */
+    private void mostrarDialogoResenia(String empresaId, String empresaNombre, String tituloTour) {
+        if (empresaId == null) return;
+        
+        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(this);
+        android.view.LayoutInflater inflater = getLayoutInflater();
+        android.view.View dialogView = inflater.inflate(R.layout.dialog_cliente_resenia, null);
+        
+        builder.setView(dialogView);
+        android.app.AlertDialog dialog = builder.create();
+        
+        // Obtener views del diálogo
+        TextView tvTitulo = dialogView.findViewById(R.id.tv_dialog_title);
+        TextView tvSubtitulo = dialogView.findViewById(R.id.tv_dialog_subtitle);
+        RatingBar ratingBar = dialogView.findViewById(R.id.rating_bar);
+        EditText etComentario = dialogView.findViewById(R.id.et_comentario);
+        Button btnEnviar = dialogView.findViewById(R.id.btn_enviar_resenia);
+        Button btnOmitir = dialogView.findViewById(R.id.btn_omitir);
+        
+        tvTitulo.setText("¿Cómo fue tu experiencia?");
+        tvSubtitulo.setText("Tu opinión sobre \"" + empresaNombre + "\" ayudará a otros viajeros");
+        
+        // Configurar botón enviar
+        btnEnviar.setOnClickListener(v -> {
+            float puntuacion = ratingBar.getRating();
+            String comentario = etComentario.getText().toString().trim();
+            
+            if (puntuacion == 0) {
+                Toast.makeText(this, "Por favor, selecciona una puntuación", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            
+            // Obtener datos del usuario actual
+            com.google.firebase.auth.FirebaseUser currentUser = 
+                com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser();
+            
+            if (currentUser == null) {
+                dialog.dismiss();
+                return;
+            }
+            
+            String clienteId = currentUser.getUid();
+            String clienteNombre = currentUser.getDisplayName() != null ? 
+                currentUser.getDisplayName() : "Usuario";
+            
+            // Crear documento de reseña
+            java.util.Map<String, Object> resenia = new java.util.HashMap<>();
+            resenia.put("empresaId", empresaId);
+            resenia.put("empresaNombre", empresaNombre);
+            resenia.put("clienteId", clienteId);
+            resenia.put("clienteNombre", clienteNombre);
+            resenia.put("puntuacion", puntuacion);
+            resenia.put("comentario", comentario);
+            resenia.put("tourTitulo", tituloTour);
+            resenia.put("fecha", com.google.firebase.Timestamp.now());
+            
+            // Guardar en Firestore
+            db.collection("resenias")
+                .add(resenia)
+                .addOnSuccessListener(docRef -> {
+                    Toast.makeText(this, "✅ ¡Gracias por tu reseña!", Toast.LENGTH_SHORT).show();
+                    dialog.dismiss();
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Error al enviar reseña: " + e.getMessage(), 
+                        Toast.LENGTH_SHORT).show();
+                    Log.e(TAG, "Error al guardar reseña: " + e.getMessage());
+                });
+        });
+        
+        // Configurar botón omitir
+        btnOmitir.setOnClickListener(v -> dialog.dismiss());
+        
+        // Hacer que el diálogo no se cierre al tocar fuera
+        dialog.setCancelable(false);
+        dialog.show();
+    }
+    
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        // Remover listener cuando se destruya la actividad
+        if (tourListener != null) {
+            tourListener.remove();
+        }
     }
 
 }

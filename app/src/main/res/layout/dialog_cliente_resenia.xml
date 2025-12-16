@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:background="@android:color/white">
+    
+    <!-- Icono de estrella -->
+    <ImageView
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:layout_gravity="center_horizontal"
+        android:src="@android:drawable/btn_star_big_on"
+        android:tint="@color/star_color"
+        android:layout_marginBottom="16dp"/>
+    
+    <!-- Título -->
+    <TextView
+        android:id="@+id/tv_dialog_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:text="¿Cómo fue tu experiencia?"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:textColor="@android:color/black"
+        android:layout_marginBottom="8dp"/>
+    
+    <!-- Subtítulo -->
+    <TextView
+        android:id="@+id/tv_dialog_subtitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:text="Tu opinión ayudará a otros viajeros"
+        android:textSize="14sp"
+        android:textColor="@android:color/darker_gray"
+        android:gravity="center"
+        android:layout_marginBottom="24dp"/>
+    
+    <!-- Rating Bar -->
+    <RatingBar
+        android:id="@+id/rating_bar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:numStars="5"
+        android:stepSize="0.5"
+        android:rating="0"
+        android:progressTint="@color/star_color"
+        android:secondaryProgressTint="@color/rating_color"
+        android:layout_marginBottom="24dp"/>
+    
+    <!-- Campo de comentario -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Comentario (opcional)"
+        app:boxBackgroundMode="outline"
+        app:boxStrokeColor="@color/brand_purple"
+        android:layout_marginBottom="24dp">
+        
+        <EditText
+            android:id="@+id/et_comentario"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="100dp"
+            android:gravity="top|start"
+            android:inputType="textMultiLine|textCapSentences"
+            android:maxLength="500"
+            android:padding="12dp"/>
+            
+    </com.google.android.material.textfield.TextInputLayout>
+    
+    <!-- Botones -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="end">
+        
+        <Button
+            android:id="@+id/btn_omitir"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Omitir"
+            android:textColor="@android:color/darker_gray"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_marginEnd="8dp"/>
+        
+        <Button
+            android:id="@+id/btn_enviar_resenia"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Enviar reseña"
+            android:backgroundTint="@color/brand_purple"
+            android:textColor="@android:color/white"/>
+            
+    </LinearLayout>
+    
+</LinearLayout>

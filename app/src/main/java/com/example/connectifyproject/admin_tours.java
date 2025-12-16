@@ -933,7 +933,15 @@ public class admin_tours extends AppCompatActivity {
                 for (DocumentSnapshot doc : docs) {
                     String titulo = doc.getString("titulo");
                     String guiaNombre = doc.getString("guiaNombre");
-                    String imageUrl = doc.getString("imageUrl");
+                    
+                    // Obtener imagen principal del tour
+                    String imageUrl = doc.getString("imagenPrincipal");
+                    if (imageUrl == null || imageUrl.isEmpty()) {
+                        // Fallback a imagenesUrls si imagenPrincipal no existe
+                        List<String> imagenesUrls = (List<String>) doc.get("imagenesUrls");
+                        imageUrl = (imagenesUrls != null && !imagenesUrls.isEmpty()) 
+                            ? imagenesUrls.get(0) : null;
+                    }
                     
                     // Obtener fecha de realización
                     String fecha = "Sin fecha";
@@ -1239,6 +1247,10 @@ public class admin_tours extends AppCompatActivity {
                         intent.putExtra("tour_titulo", tour.getTitulo());
                         intent.putExtra("tour_estado", tour.getEstado());
                         intent.putExtra("tour_tipo", tour.getTipo());
+                        // Para tours finalizados, indicar modo solo lectura
+                        if ("finalizado".equals(tour.getTipo())) {
+                            intent.putExtra("modo_lectura", true);
+                        }
                         startActivity(intent);
                     }
                 });
