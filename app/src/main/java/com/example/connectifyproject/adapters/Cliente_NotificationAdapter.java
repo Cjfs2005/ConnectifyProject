@@ -25,7 +25,7 @@ public class Cliente_NotificationAdapter extends RecyclerView.Adapter<Cliente_No
     @Override
     public NotificationViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.cliente_item_notification, parent, false);
+            .inflate(R.layout.guia_item_notification, parent, false);
         return new NotificationViewHolder(view);
     }
 

@@ -107,7 +107,8 @@ public class admin_perfil extends AppCompatActivity {
 
     private void setupClickListeners() {
         btnNotifications.setOnClickListener(v -> {
-            Toast.makeText(this, "Funcionalidad en desarrollo", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(this, admin_notificaciones.class);
+            startActivity(intent);
         });
 
         btnEditProfile.setOnClickListener(v -> {

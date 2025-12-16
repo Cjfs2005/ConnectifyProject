@@ -47,16 +47,13 @@ public class cliente_notificaciones extends AppCompatActivity {
 
     private void setupRecyclerView() {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        List<Cliente_Notification> notifications = new ArrayList<>();
-        adapter = new Cliente_NotificationAdapter(notifications);
+        adapter = new Cliente_NotificationAdapter(new ArrayList<>());
         recyclerView.setAdapter(adapter);
     }
 
     private void loadNotifications() {
         // Datos hardcodeados de notificaciones - simula datos del backend
         List<Cliente_Notification> backendNotifications = getBackendNotifications();
-        
-        // Limpiar y agregar nuevas notificaciones
         adapter = new Cliente_NotificationAdapter(backendNotifications);
         recyclerView.setAdapter(adapter);
     }

@@ -238,29 +238,49 @@ public class guia_show_qr_checkout extends AppCompatActivity {
             .setPositiveButton("Sí, completar", (dialog, which) -> {
                 // Detener servicio de tracking
                 detenerServicioTracking();
-                
-                // Cambiar estado del tour a "completado"
+                // Obtener participantes antes de actualizar
                 db.collection("tours_asignados")
                     .document(tourId)
-                    .update(
-                        "estado", "completado",
-                        "checkOutRealizado", true,
-                        "horaCheckOut", Timestamp.now(),
-                        "fechaActualizacion", Timestamp.now()
-                    )
-                    .addOnSuccessListener(aVoid -> {
-                        Log.d(TAG, "Tour completado exitosamente");
-                        Toast.makeText(this, "¡Tour completado exitosamente!", Toast.LENGTH_LONG).show();
-                        
-                        // Volver a la pantalla principal de tours asignados
-                        Intent intent = new Intent(guia_show_qr_checkout.this, guia_assigned_tours.class);
-                        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-                        startActivity(intent);
-                        finish();
-                    })
-                    .addOnFailureListener(e -> {
-                        Log.e(TAG, "Error al completar tour", e);
-                        Toast.makeText(this, "Error al completar tour: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    .get()
+                    .addOnSuccessListener(doc -> {
+                        List<Map<String, Object>> participantes = (List<Map<String, Object>>) doc.get("participantes");
+                        // Cambiar estado del tour a "completado"
+                        db.collection("tours_asignados")
+                            .document(tourId)
+                            .update(
+                                "estado", "completado",
+                                "checkOutRealizado", true,
+                                "horaCheckOut", Timestamp.now(),
+                                "fechaActualizacion", Timestamp.now()
+                            )
+                            .addOnSuccessListener(aVoid -> {
+                                Log.d(TAG, "Tour completado exitosamente");
+                                Toast.makeText(this, "¡Tour completado exitosamente!", Toast.LENGTH_LONG).show();
+                                // --- Notificación y log para todos los clientes y admin ---
+                                String adminId = "adminId";
+                                String guiaNombre = com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser() != null ? com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser().getDisplayName() : "Guía";
+                                String notiTitulo = "Tour finalizado";
+                                String notiDesc = "El guía " + guiaNombre + " ha finalizado el tour '" + tourTitulo + "'.";
+                                if (participantes != null) {
+                                    for (Map<String, Object> participante : participantes) {
+                                        String clienteId = (String) participante.get("clienteId");
+                                        if (clienteId != null) {
+                                            com.example.connectifyproject.utils.NotificacionLogUtils.crearNotificacion(notiTitulo, notiDesc, clienteId);
+                                        }
+                                    }
+                                }
+                                com.example.connectifyproject.utils.NotificacionLogUtils.crearNotificacion(notiTitulo, notiDesc, adminId);
+                                com.example.connectifyproject.utils.NotificacionLogUtils.crearLog(notiTitulo, notiDesc);
+                                // Volver a la pantalla principal de tours asignados
+                                Intent intent = new Intent(guia_show_qr_checkout.this, guia_assigned_tours.class);
+                                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                                startActivity(intent);
+                                finish();
+                            })
+                            .addOnFailureListener(e -> {
+                                Log.e(TAG, "Error al completar tour", e);
+                                Toast.makeText(this, "Error al completar tour: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                            });
                     });
             })
             .setNegativeButton("Cancelar", null)

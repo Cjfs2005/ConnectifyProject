@@ -62,7 +62,7 @@ public class GuiaPagosFragment extends Fragment {
     /**
      * Carga desde Firestore solo los pagos recibidos por el guía logueado.
      */
-    private void loadPaymentsFromFirestore() {
+    public void loadPaymentsFromFirestore() {
         FirebaseUser user = auth.getCurrentUser();
         if (user == null) {
             Toast.makeText(requireContext(),

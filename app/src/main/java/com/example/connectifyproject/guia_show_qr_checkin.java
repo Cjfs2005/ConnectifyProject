@@ -222,28 +222,47 @@ public class guia_show_qr_checkin extends AppCompatActivity {
         // Cambiar estado del tour a "en_curso"
         db.collection("tours_asignados")
             .document(tourId)
-            .update(
-                "estado", "en_curso",
-                "fechaActualizacion", Timestamp.now()
-            )
-            .addOnSuccessListener(aVoid -> {
-                Log.d(TAG, "Tour iniciado exitosamente");
-                Toast.makeText(this, "¡Tour iniciado! Compartiendo ubicación...", Toast.LENGTH_SHORT).show();
-                
-                // Iniciar servicio de tracking de ubicación
-                iniciarServicioTracking();
-                
-                // Navegar a pantalla de progreso del tour
-                Intent intent = new Intent(guia_show_qr_checkin.this, guia_tour_progress.class);
-                intent.putExtra("tourId", tourId);
-                intent.putExtra("tourTitulo", tourTitulo);
-                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(intent);
-                finish();
-            })
-            .addOnFailureListener(e -> {
-                Log.e(TAG, "Error al empezar tour", e);
-                Toast.makeText(this, "Error al empezar tour: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            .get()
+            .addOnSuccessListener(doc -> {
+                List<Map<String, Object>> participantes = (List<Map<String, Object>>) doc.get("participantes");
+                db.collection("tours_asignados")
+                    .document(tourId)
+                    .update(
+                        "estado", "en_curso",
+                        "fechaActualizacion", Timestamp.now()
+                    )
+                    .addOnSuccessListener(aVoid -> {
+                        Log.d(TAG, "Tour iniciado exitosamente");
+                        Toast.makeText(this, "¡Tour iniciado! Compartiendo ubicación...", Toast.LENGTH_SHORT).show();
+                        // --- Notificación y log para todos los clientes y admin ---
+                        String adminId = "adminId";
+                        String guiaNombre = com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser() != null ? com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser().getDisplayName() : "Guía";
+                        String notiTitulo = "Tour iniciado";
+                        String notiDesc = "El guía " + guiaNombre + " ha iniciado el tour '" + tourTitulo + "'.";
+                        if (participantes != null) {
+                            for (Map<String, Object> participante : participantes) {
+                                String clienteId = (String) participante.get("clienteId");
+                                if (clienteId != null) {
+                                    com.example.connectifyproject.utils.NotificacionLogUtils.crearNotificacion(notiTitulo, notiDesc, clienteId);
+                                }
+                            }
+                        }
+                        com.example.connectifyproject.utils.NotificacionLogUtils.crearNotificacion(notiTitulo, notiDesc, adminId);
+                        com.example.connectifyproject.utils.NotificacionLogUtils.crearLog(notiTitulo, notiDesc);
+                        // Iniciar servicio de tracking de ubicación
+                        iniciarServicioTracking();
+                        // Navegar a pantalla de progreso del tour
+                        Intent intent = new Intent(guia_show_qr_checkin.this, guia_tour_progress.class);
+                        intent.putExtra("tourId", tourId);
+                        intent.putExtra("tourTitulo", tourTitulo);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                        startActivity(intent);
+                        finish();
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.e(TAG, "Error al empezar tour", e);
+                        Toast.makeText(this, "Error al empezar tour: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    });
             });
     }
     

@@ -45,7 +45,8 @@
                 android:contentDescription="Notificaciones"
                 android:padding="12dp"
                 android:src="@drawable/ic_notifications_24"
-                app:tint="@android:color/white"/>
+                app:tint="@android:color/white"
+                android:visibility="gone"/>
         </com.google.android.material.appbar.MaterialToolbar>
     </com.google.android.material.appbar.AppBarLayout>
 

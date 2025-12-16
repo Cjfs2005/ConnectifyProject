@@ -78,7 +78,8 @@ public class admin_tours extends AppCompatActivity {
 
         // Configurar botón de notificaciones
         binding.btnNotifications.setOnClickListener(v -> {
-            // TODO: Implementar navegación a notificaciones
+            Intent intent = new Intent(this, admin_notificaciones.class);
+            startActivity(intent);
         });
 
         // Configurar RecyclerView

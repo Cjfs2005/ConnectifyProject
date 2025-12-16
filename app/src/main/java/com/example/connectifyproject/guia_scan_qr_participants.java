@@ -467,14 +467,11 @@ public class guia_scan_qr_participants extends AppCompatActivity {
                     Toast.makeText(this, "Error: Tour no encontrado", Toast.LENGTH_SHORT).show();
                     return;
                 }
-                
-                // 1️⃣ VALIDAR HORA DE INICIO (debe haber pasado la hora)
+                // ...validaciones existentes...
                 Object fechaRealizacion = doc.get("fechaRealizacion");
                 String horaInicio = doc.getString("horaInicio");
-                
                 double horasRestantes = com.example.connectifyproject.utils.TourTimeValidator
                     .calcularHorasHastaInicio(fechaRealizacion, horaInicio);
-                
                 if (horasRestantes > 0) {
                     long minutosRestantes = (long) (horasRestantes * 60);
                     Toast.makeText(this, 
@@ -483,14 +480,10 @@ public class guia_scan_qr_participants extends AppCompatActivity {
                         Toast.LENGTH_LONG).show();
                     return;
                 }
-                
-                // 2️⃣ VALIDAR 50% DE PARTICIPANTES ESCANEADOS (check-in)
                 java.util.List<java.util.Map<String, Object>> participantes = 
                     (java.util.List<java.util.Map<String, Object>>) doc.get("participantes");
-                
                 int totalParticipantes = participantes != null ? participantes.size() : 0;
                 int participantesEscaneados = 0;
-                
                 if (participantes != null) {
                     for (java.util.Map<String, Object> participante : participantes) {
                         Boolean checkIn = (Boolean) participante.get("checkIn");
@@ -499,14 +492,10 @@ public class guia_scan_qr_participants extends AppCompatActivity {
                         }
                     }
                 }
-                
-                // Redondeo hacia arriba: ceil(total * 0.5)
                 int minimoRequerido = (int) Math.ceil(totalParticipantes * 0.5);
-                
                 if (participantesEscaneados < minimoRequerido) {
                     int porcentaje = totalParticipantes > 0 ? 
                         (int) ((participantesEscaneados * 100.0) / totalParticipantes) : 0;
-                    
                     Toast.makeText(this, 
                         "👥 Se requiere al menos 50% de participantes con check-in para iniciar.\n\n" +
                         "Check-in realizados: " + participantesEscaneados + " / " + totalParticipantes + 
@@ -515,8 +504,8 @@ public class guia_scan_qr_participants extends AppCompatActivity {
                         Toast.LENGTH_LONG).show();
                     return;
                 }
-                
                 // ✅ VALIDACIONES PASADAS - INICIAR TOUR (cambiar estado a en_curso)
+                String empresaId = doc.getString("empresaId");
                 com.google.firebase.firestore.FirebaseFirestore.getInstance()
                     .collection("tours_asignados")
                     .document(tourId)
@@ -528,7 +517,27 @@ public class guia_scan_qr_participants extends AppCompatActivity {
                     )
                     .addOnSuccessListener(aVoid -> {
                         Toast.makeText(this, "🚀 Tour iniciado. Redirigiendo al mapa...", Toast.LENGTH_SHORT).show();
-                        
+                        // --- Notificación y log para todos los clientes y admin ---
+                        String guiaNombre = com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser() != null ? com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser().getDisplayName() : "Guía";
+                        String notiTitulo = "Tour iniciado";
+                        String notiDesc = "El guía " + guiaNombre + " ha iniciado el tour '" + tourTitulo + "'.";
+                        // Notificar a todos los clientes
+                        if (participantes != null) {
+                            for (java.util.Map<String, Object> participante : participantes) {
+                                String clienteId = (String) participante.get("clienteId");
+                                if (clienteId != null) {
+                                    com.example.connectifyproject.utils.NotificacionLogUtils.crearNotificacion(notiTitulo, notiDesc, clienteId);
+                                }
+                            }
+                        }
+                        // Notificar al admin (empresa)
+                        if (empresaId != null && !empresaId.isEmpty()) {
+                            com.example.connectifyproject.utils.NotificacionLogUtils.crearNotificacion(notiTitulo, notiDesc, empresaId);
+                        } else {
+                            com.example.connectifyproject.utils.NotificacionLogUtils.crearNotificacion(notiTitulo, notiDesc, "");
+                        }
+                        // Log para auditoría
+                        com.example.connectifyproject.utils.NotificacionLogUtils.crearLog(notiTitulo, notiDesc);
                         // Redirigir al mapa
                         Intent intent = new Intent(this, guia_tour_map.class);
                         intent.putExtra("tour_id", tourId);
@@ -559,34 +568,24 @@ public class guia_scan_qr_participants extends AppCompatActivity {
                     Toast.makeText(this, "Error: Tour no encontrado", Toast.LENGTH_SHORT).show();
                     return;
                 }
-                
-                // VALIDAR 50% DE CHECK-OUT (PARTICIPANTES, NO PERSONAS)
                 java.util.List<java.util.Map<String, Object>> participantes = 
                     (java.util.List<java.util.Map<String, Object>>) doc.get("participantes");
-                
                 if (participantes == null || participantes.isEmpty()) {
                     Toast.makeText(this, "❌ No hay participantes registrados", Toast.LENGTH_SHORT).show();
                     return;
                 }
-                
                 int totalParticipantes = participantes.size();
                 int participantesCheckOut = 0;
-                
-                // Contar participantes con checkOut = true
                 for (java.util.Map<String, Object> participante : participantes) {
                     Boolean checkOut = (Boolean) participante.get("checkOut");
                     if (checkOut != null && checkOut) {
                         participantesCheckOut++;
                     }
                 }
-                
-                // Redondeo hacia arriba: ceil(total * 0.5)
                 int minimoRequerido = (int) Math.ceil(totalParticipantes * 0.5);
-                
                 if (participantesCheckOut < minimoRequerido) {
                     int porcentaje = totalParticipantes > 0 ? 
                         (int) ((participantesCheckOut * 100.0) / totalParticipantes) : 0;
-                    
                     Toast.makeText(this, 
                         "👥 Se requiere al menos 50% de participantes con check-out para finalizar.\n\n" +
                         "Check-out realizados: " + participantesCheckOut + " / " + totalParticipantes + 
@@ -595,10 +594,9 @@ public class guia_scan_qr_participants extends AppCompatActivity {
                         Toast.LENGTH_LONG).show();
                     return;
                 }
-                
                 // ✅ VALIDACIÓN PASADA - FINALIZAR TOUR
+                String empresaId = doc.getString("empresaId");
                 com.google.firebase.Timestamp horaFinReal = com.google.firebase.Timestamp.now();
-                
                 db.collection("tours_asignados")
                     .document(tourId)
                     .update(
@@ -606,6 +604,24 @@ public class guia_scan_qr_participants extends AppCompatActivity {
                         "horaFinReal", horaFinReal
                     )
                     .addOnSuccessListener(aVoid -> {
+                        // --- Notificación y log para todos los clientes y admin ---
+                        String guiaNombre = com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser() != null ? com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser().getDisplayName() : "Guía";
+                        String notiTitulo = "Tour finalizado";
+                        String notiDesc = "El guía " + guiaNombre + " ha finalizado el tour '" + tourTitulo + "'.";
+                        if (participantes != null) {
+                            for (java.util.Map<String, Object> participante : participantes) {
+                                String clienteId = (String) participante.get("clienteId");
+                                if (clienteId != null) {
+                                    com.example.connectifyproject.utils.NotificacionLogUtils.crearNotificacion(notiTitulo, notiDesc, clienteId);
+                                }
+                            }
+                        }
+                        if (empresaId != null && !empresaId.isEmpty()) {
+                            com.example.connectifyproject.utils.NotificacionLogUtils.crearNotificacion(notiTitulo, notiDesc, empresaId);
+                        } else {
+                            com.example.connectifyproject.utils.NotificacionLogUtils.crearNotificacion(notiTitulo, notiDesc, "");
+                        }
+                        com.example.connectifyproject.utils.NotificacionLogUtils.crearLog(notiTitulo, notiDesc);
                         // ✅ FASE 2: Crear documento en tours_completados y generar pagos
                         crearTourCompletadoYPagos(doc, horaFinReal);
                     })

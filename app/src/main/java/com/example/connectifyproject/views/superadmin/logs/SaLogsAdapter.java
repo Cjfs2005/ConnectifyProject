@@ -20,12 +20,18 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Locale;
 
+import android.app.AlertDialog;
+import android.content.Context;
+
+import com.example.connectifyproject.views.superadmin.logs.SaLogFirestoreItem;
+
 public class SaLogsAdapter extends RecyclerView.Adapter<SaLogsAdapter.VH> {
 
     public enum SortOrder { RECENT, OLD }
 
+
     public interface Listener {
-        void onClick(LogItem item);
+        void onClick(SaLogFirestoreItem item);
     }
 
     public static class LogItem {
@@ -42,19 +48,25 @@ public class SaLogsAdapter extends RecyclerView.Adapter<SaLogsAdapter.VH> {
         }
     }
 
-    private final List<LogItem> full = new ArrayList<>();
-    private final List<LogItem> items = new ArrayList<>();
+
+    private final List<SaLogFirestoreItem> full = new ArrayList<>();
+    private final List<SaLogFirestoreItem> items = new ArrayList<>();
+    private String searchText = "";
     private final Listener listener;
+    private final Context context;
 
     private SortOrder sort = SortOrder.RECENT;
     private EnumSet<Role> roleFilter = EnumSet.of(Role.GUIDE, Role.ADMIN, Role.CLIENT);
 
-    public SaLogsAdapter(List<LogItem> initial, Listener listener) {
+
+    public SaLogsAdapter(Context context, List<SaLogFirestoreItem> initial, Listener listener) {
+        this.context = context;
         this.listener = listener;
         replaceAll(initial);
     }
 
-    public void replaceAll(List<LogItem> data) {
+
+    public void replaceAll(List<SaLogFirestoreItem> data) {
         full.clear();
         if (data != null) full.addAll(data);
         apply();
@@ -72,16 +84,25 @@ public class SaLogsAdapter extends RecyclerView.Adapter<SaLogsAdapter.VH> {
         apply();
     }
 
+
     private void apply() {
         items.clear();
-        for (LogItem it : full) {
-            if (!roleFilter.contains(it.role)) continue;
-            items.add(it);
+        for (SaLogFirestoreItem it : full) {
+            if (searchText.isEmpty() ||
+                it.titulo.toLowerCase().contains(searchText) ||
+                it.descripcion.toLowerCase().contains(searchText)) {
+                items.add(it);
+            }
         }
-        Comparator<LogItem> cmp = (a, b) -> Long.compare(b.atMillis, a.atMillis);
-        if (sort == SortOrder.OLD) cmp = (a, b) -> Long.compare(a.atMillis, b.atMillis);
+        Comparator<SaLogFirestoreItem> cmp = (a, b) -> Long.compare(b.timestamp, a.timestamp);
+        if (sort == SortOrder.OLD) cmp = (a, b) -> Long.compare(a.timestamp, b.timestamp);
         Collections.sort(items, cmp);
         notifyDataSetChanged();
+    }
+
+    public void setSearchText(String text) {
+        this.searchText = text == null ? "" : text.trim().toLowerCase();
+        apply();
     }
 
     @NonNull @Override
@@ -100,50 +121,33 @@ public class SaLogsAdapter extends RecyclerView.Adapter<SaLogsAdapter.VH> {
     public int getItemCount() { return items.size(); }
 
     static class VH extends RecyclerView.ViewHolder {
-        TextView tvAvatar, tvAction, tvUserSub, tvWhen;
+        TextView tvAction, tvUserSub, tvWhen;
 
         VH(@NonNull View itemView) {
             super(itemView);
-            tvAvatar = itemView.findViewById(R.id.tvAvatar);
             tvAction = itemView.findViewById(R.id.tvAction);
             tvUserSub = itemView.findViewById(R.id.tvUserSub);
             tvWhen = itemView.findViewById(R.id.tvWhen);
         }
 
-        void bind(LogItem it, Listener listener) {
-            // Avatar
-            tvAvatar.setText(it.user.getInitial());
-
-            // Acción
-            tvAction.setText(it.action);
-
-            // Subtítulo
-            String doc = it.user.getDocType() != null ? it.user.getDocType() : "DNI";
-            String roleText = roleToText(it.role);
-            String sub = roleText + " • " + doc + " " + it.user.getDni();
-            tvUserSub.setText(sub);
-
+        void bind(SaLogFirestoreItem it, Listener listener) {
+            // Título
+            tvAction.setText(it.titulo);
+            // Descripción truncada a una línea con "..."
+            tvUserSub.setText(it.descripcion);
+            tvUserSub.setSingleLine(true);
+            tvUserSub.setEllipsize(android.text.TextUtils.TruncateAt.END);
             // Fecha relativa
-            tvWhen.setText(relative(it.atMillis));
+            tvWhen.setText(relative(it.timestamp));
 
             itemView.setOnClickListener(v -> {
                 if (listener != null) listener.onClick(it);
             });
         }
 
-        private static String roleToText(Role r) {
-            switch (r) {
-                case ADMIN: return "Admin";
-                case GUIDE: return "Guía";
-                case CLIENT: default: return "Cliente";
-            }
-        }
-
         private static String relative(long t) {
             long now = System.currentTimeMillis();
             long msDay = 24L * 60 * 60 * 1000;
-            long diff = now - startOfDay(now) - (t - startOfDay(t));
-            // Sencillo: Hoy/Ayer/fecha corta
             if (isSameDay(t, now)) return "HOY";
             if (isSameDay(t, now - msDay)) return "AYER";
             SimpleDateFormat f = new SimpleDateFormat("dd MMM.", new Locale("es", "PE"));
@@ -157,16 +161,6 @@ public class SaLogsAdapter extends RecyclerView.Adapter<SaLogsAdapter.VH> {
             cb.setTimeInMillis(b);
             return ca.get(java.util.Calendar.YEAR) == cb.get(java.util.Calendar.YEAR)
                     && ca.get(java.util.Calendar.DAY_OF_YEAR) == cb.get(java.util.Calendar.DAY_OF_YEAR);
-        }
-
-        private static long startOfDay(long t) {
-            java.util.Calendar c = java.util.Calendar.getInstance();
-            c.setTimeInMillis(t);
-            c.set(java.util.Calendar.HOUR_OF_DAY, 0);
-            c.set(java.util.Calendar.MINUTE, 0);
-            c.set(java.util.Calendar.SECOND, 0);
-            c.set(java.util.Calendar.MILLISECOND, 0);
-            return c.getTimeInMillis();
         }
     }
 }

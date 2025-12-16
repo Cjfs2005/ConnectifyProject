@@ -10,6 +10,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.connectifyproject.models.Cliente_Reserva;
 import com.example.connectifyproject.utils.Cliente_FileStorageManager;
 import com.example.connectifyproject.utils.NotificationHelper;
+import com.example.connectifyproject.utils.NotificacionLogUtils;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.android.material.button.MaterialButton;
 
 public class cliente_reserva_realizada extends AppCompatActivity {
@@ -25,14 +27,55 @@ public class cliente_reserva_realizada extends AppCompatActivity {
 
         fileManager = new Cliente_FileStorageManager(this);
         
-        // Obtener datos de la reserva (simulados)
-        reserva = getReservaData();
+        // Obtener datos de la reserva desde el Intent (enviados desde cliente_metodo_pago)
+        String tourId = getIntent().getStringExtra("tour_id");
+        String tourTitle = getIntent().getStringExtra("tour_title");
+        String totalPrice = getIntent().getStringExtra("total_price");
+        int peopleCount = getIntent().getIntExtra("people_count", 1);
+        String paymentMethodId = getIntent().getStringExtra("payment_method_id");
+        String paymentMethodLast4 = getIntent().getStringExtra("payment_method_last4");
+        String paymentMethodBrand = getIntent().getStringExtra("payment_method_brand");
+
+        // Construir un objeto reserva mínimo para mostrar y notificar
+        reserva = new Cliente_Reserva();
+        com.example.connectifyproject.models.Cliente_Tour tour = new com.example.connectifyproject.models.Cliente_Tour();
+        tour.setId(tourId);
+        tour.setTitle(tourTitle);
+        reserva.setTour(tour);
+        reserva.setId(tourId);
+        reserva.setTotal(totalPrice != null ? Double.parseDouble(totalPrice.replace("S/","").replace(",",".").trim()) : 0.0);
+        reserva.setPersonas(peopleCount);
+        // Puedes setear más campos si lo necesitas
         
         initViews();
         setupClickListeners();
         
         // Mostrar notificación de reserva confirmada
         showReservationNotification();
+
+        // --- Crear notificación y log para el admin real (empresaId) ---
+        // Obtener el adminId (empresaId) desde el documento de la reserva en tours_asignados
+        String tourAsignadoId = reserva != null && reserva.getTour() != null ? reserva.getTour().getId() : null;
+        String clienteNombre = FirebaseAuth.getInstance().getCurrentUser() != null ? FirebaseAuth.getInstance().getCurrentUser().getDisplayName() : "Cliente";
+        String tourNombre = reserva != null && reserva.getTour() != null ? reserva.getTour().getTitle() : "Tour";
+        String notiTitulo = "Nueva reserva";
+        String notiDesc = "El cliente " + clienteNombre + " reservó el tour '" + tourNombre + "'.";
+        if (tourAsignadoId != null && !tourAsignadoId.isEmpty()) {
+            com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                .collection("tours_asignados")
+                .document(tourAsignadoId)
+                .get()
+                .addOnSuccessListener(doc -> {
+                    String adminId = doc.getString("empresaId");
+                    if (adminId != null && !adminId.isEmpty()) {
+                        NotificacionLogUtils.crearNotificacion(notiTitulo, notiDesc, adminId);
+                    }
+                    NotificacionLogUtils.crearLog(notiTitulo, notiDesc);
+                });
+        } else {
+            // Fallback: solo log si no se puede obtener el adminId
+            NotificacionLogUtils.crearLog(notiTitulo, notiDesc);
+        }
     }
 
     private void initViews() {

@@ -72,7 +72,8 @@
                         android:layout_height="wrap_content"
                         android:text="Administrador: Tony Flores"
                         android:textColor="@color/brand_lilac"
-                        android:textSize="14sp"/>
+                        android:textSize="14sp"
+                        android:visibility="gone"/>
                 </LinearLayout>
 
                 <ImageView
@@ -84,7 +85,8 @@
                     android:contentDescription="Notificaciones"
                     android:padding="4dp"
                     android:src="@drawable/ic_notifications"
-                    app:tint="@android:color/white"/>
+                    app:tint="@android:color/white"
+                    android:visibility="gone"/>
             </LinearLayout>
 
             <!-- ====== NUEVO CONTENIDO IGUAL AL REPORTE POR EMPRESA ====== -->

@@ -26,6 +26,7 @@ import com.example.connectifyproject.models.TourBorrador;
 import com.example.connectifyproject.models.TourPlace;
 import com.example.connectifyproject.models.TourService;
 import com.example.connectifyproject.services.AdminTourService;
+import com.example.connectifyproject.utils.NotificacionLogUtils;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -1397,7 +1398,13 @@ public class admin_create_tour extends AppCompatActivity implements OnMapReadyCa
                     .addOnSuccessListener(ofertaId -> {
                         dismissProgressDialog();
                         Toast.makeText(this, "Tour publicado exitosamente", Toast.LENGTH_SHORT).show();
-                        
+                        // --- Notificación y log Firestore (Admin → Admin) ---
+                        String adminId = com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser() != null ? com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser().getUid() : "adminId";
+                        String notiTitulo = "Nuevo tour creado";
+                        String adminNombre = com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser() != null ? com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser().getDisplayName() : "Administrador";
+                        String notiDesc = "El administrador " + adminNombre + " ha creado el tour '" + borrador.getTitulo() + "'.";
+                        NotificacionLogUtils.crearNotificacion(notiTitulo, notiDesc, adminId);
+                        NotificacionLogUtils.crearLog("Tour creado", notiDesc);
                         // Navegar a selección de guía
                         Intent intent = new Intent(this, admin_select_guide.class);
                         intent.putExtra("ofertaId", ofertaId);
