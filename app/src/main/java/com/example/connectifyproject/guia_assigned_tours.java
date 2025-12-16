@@ -701,7 +701,9 @@ public class guia_assigned_tours extends AppCompatActivity implements GuiaDateFi
         // Configurar botones según estado del tour
         switch (estado != null ? estado.toLowerCase() : "pendiente") {
             case "pendiente":
-                // � PENDIENTE: Solo Detalles + Botón "Habilitar Check-in"
+            case "confirmado":
+            case "programado":
+                // 📌 PENDIENTE/CONFIRMADO: Solo Detalles + Botón "Habilitar Check-in"
                 binding.btnMapaRapido.setVisibility(View.GONE);
                 binding.btnCheckInRapido.setVisibility(View.VISIBLE);
                 binding.btnCheckOutRapido.setVisibility(View.GONE);

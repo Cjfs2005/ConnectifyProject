@@ -1,6 +1,8 @@
 package com.example.connectifyproject;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.ImageButton;
@@ -18,6 +20,12 @@ import com.example.connectifyproject.adapters.Cliente_GalleryTourAdapter;
 import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.WriterException;
+import com.google.zxing.common.BitMatrix;
+import com.google.zxing.qrcode.QRCodeWriter;
+import org.json.JSONException;
+import org.json.JSONObject;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -497,39 +505,43 @@ public class cliente_inicio extends AppCompatActivity {
             com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser();
         
         if (currentUser == null) {
-            Log.d(TAG, "⚠️ Usuario no autenticado, ocultando card de tour activo");
+            Log.d(TAG, "⚠️ Usuario no autenticado, mostrando estadísticas");
             cardTourActivo.setVisibility(View.GONE);
             if (cardQr != null) cardQr.setVisibility(View.GONE);
-            if (cardStatistics != null) cardStatistics.setVisibility(View.GONE);
+            cargarYMostrarEstadisticas();
             return;
         }
         
         String clienteId = currentUser.getUid();
         Log.d(TAG, "🔍 Buscando tour activo para cliente: " + clienteId);
         
-        // Buscar en tours_asignados donde participantes[] contenga al clienteId
-        // y el estado sea 'check_in', 'en_curso', 'check_out' o 'confirmado' (si ya es hora)
+        // Obtener fecha/hora actual
+        Date ahora = new Date();
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+        String fechaHoyStr = dateFormat.format(ahora);
+        
+        // Buscar tours donde el cliente esté inscrito
         db.collection("tours_asignados")
                 .whereIn("estado", java.util.Arrays.asList("confirmado", "check_in", "en_curso", "check_out"))
                 .addSnapshotListener((snapshots, error) -> {
                     if (error != null) {
                         Log.e(TAG, "❌ Error al cargar tour activo", error);
                         cardTourActivo.setVisibility(View.GONE);
-                        if (cardStatistics != null) cardStatistics.setVisibility(View.GONE);
-                        return;
-                    }
-                    
-                    if (snapshots == null || snapshots.isEmpty()) {
-                        Log.d(TAG, "ℹ️ No hay tours activos, ocultando card");
-                        cardTourActivo.setVisibility(View.GONE);
-                        if (cardQr != null) cardQr.setVisibility(View.GONE);
-                        // ✅ FASE 5: Mostrar gráfico de estadísticas
                         cargarYMostrarEstadisticas();
                         return;
                     }
                     
-                    // Buscar tour donde el cliente esté en participantes[]
-                    boolean tourEncontrado = false;
+                    if (snapshots == null || snapshots.isEmpty()) {
+                        Log.d(TAG, "ℹ️ No hay tours para hoy, mostrando estadísticas");
+                        cardTourActivo.setVisibility(View.GONE);
+                        if (cardQr != null) cardQr.setVisibility(View.GONE);
+                        cargarYMostrarEstadisticas();
+                        return;
+                    }
+                    
+                    // Buscar tour donde el cliente esté en participantes[] Y esté en el rango horario
+                    com.google.firebase.firestore.DocumentSnapshot tourDelCliente = null;
+                    
                     for (com.google.firebase.firestore.DocumentSnapshot doc : snapshots.getDocuments()) {
                         java.util.List<java.util.Map<String, Object>> participantes = 
                             (java.util.List<java.util.Map<String, Object>>) doc.get("participantes");
@@ -538,29 +550,78 @@ public class cliente_inicio extends AppCompatActivity {
                             for (java.util.Map<String, Object> participante : participantes) {
                                 String participanteId = (String) participante.get("clienteId");
                                 if (clienteId.equals(participanteId)) {
-                                    // ¡Encontrado! Mostrar este tour
-                                    tourActivoId = doc.getId();
-                                    mostrarTourActivo(doc);
-                                    tourEncontrado = true;
-                                    break;
+                                    // Verificar si es hoy y está en rango horario
+                                    if (esTourActivoHoy(doc)) {
+                                        tourDelCliente = doc;
+                                        break;
+                                    }
                                 }
                             }
                         }
                         
-                        if (tourEncontrado) break;
+                        if (tourDelCliente != null) break;
                     }
                     
-                    if (!tourEncontrado) {
-                        Log.d(TAG, "ℹ️ Cliente no está inscrito en ningún tour activo");
+                    if (tourDelCliente != null) {
+                        Log.d(TAG, "✅ Tour activo encontrado para el cliente");
+                        tourActivoId = tourDelCliente.getId();
+                        mostrarTourActivo(tourDelCliente);
+                        if (cardStatistics != null) cardStatistics.setVisibility(View.GONE);
+                    } else {
+                        Log.d(TAG, "ℹ️ No hay tour activo en este momento, mostrando estadísticas");
                         cardTourActivo.setVisibility(View.GONE);
                         if (cardQr != null) cardQr.setVisibility(View.GONE);
-                        // ✅ FASE 5: Mostrar gráfico de estadísticas
                         cargarYMostrarEstadisticas();
-                    } else {
-                        // Ocultar estadísticas si hay tour activo
-                        if (cardStatistics != null) cardStatistics.setVisibility(View.GONE);
                     }
                 });
+    }
+    
+    /**
+     * ✅ VERIFICAR SI EL TOUR ES HOY Y ESTÁ EN RANGO HORARIO
+     */
+    private boolean esTourActivoHoy(com.google.firebase.firestore.DocumentSnapshot doc) {
+        try {
+            com.google.firebase.Timestamp fechaRealizacion = doc.getTimestamp("fechaRealizacion");
+            String horaInicio = doc.getString("horaInicio");
+            String horaFin = doc.getString("horaFin");
+            String estado = doc.getString("estado");
+            
+            if (fechaRealizacion == null || horaInicio == null || horaFin == null) {
+                return false;
+            }
+            
+            // Si ya está en check_in, en_curso o check_out, es activo
+            if ("check_in".equalsIgnoreCase(estado) || 
+                "en_curso".equalsIgnoreCase(estado) || 
+                "check_out".equalsIgnoreCase(estado)) {
+                return true;
+            }
+            
+            // Si está confirmado, verificar si ya es la hora
+            Date fechaTour = fechaRealizacion.toDate();
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault());
+            
+            String fechaTourStr = dateFormat.format(fechaTour);
+            String fechaHoyStr = dateFormat.format(new Date());
+            
+            // Debe ser hoy
+            if (!fechaTourStr.equals(fechaHoyStr)) {
+                return false;
+            }
+            
+            // Verificar si ya llegó la hora
+            String fechaHoraInicioStr = fechaTourStr + " " + horaInicio;
+            Date fechaHoraInicio = sdf.parse(fechaHoraInicioStr);
+            Date ahora = new Date();
+            
+            // Mostrar desde la hora de inicio
+            return ahora.getTime() >= fechaHoraInicio.getTime();
+            
+        } catch (Exception e) {
+            Log.e(TAG, "Error verificando si tour es hoy", e);
+            return false;
+        }
     }
     
     /**
@@ -576,46 +637,48 @@ public class cliente_inicio extends AppCompatActivity {
             String nombreEmpresa = doc.getString("nombreEmpresa");
             String duracion = doc.getString("duracion");
             String horaInicio = doc.getString("horaInicio");
+            String horaFinStr = doc.getString("horaFin");
             String estado = doc.getString("estado");
             
             com.google.firebase.Timestamp fechaRealizacion = doc.getTimestamp("fechaRealizacion");
-            com.google.firebase.Timestamp horaFin = doc.getTimestamp("horaFin");
             
-            // Generar y mostrar QR dinámico según el estado del tour
-            generarYMostrarQR(doc.getId(), estado, horaFin);
-            
-            // Mostrar punto actual del itinerario si está en_curso
-            if ("en_curso".equalsIgnoreCase(estado)) {
-                mostrarPuntoActualItinerario(doc);
-            } else {
-                // Ocultar texto de punto actual si no está en curso
-                if (tvPuntoActual != null) tvPuntoActual.setVisibility(View.GONE);
-            }
-            
-            // Actualizar textos
+            // ✅ MOSTRAR INFORMACIÓN DEL TOUR EN LA UI
             if (titulo != null) {
                 tvTourTitle.setText(titulo);
+                tvTourTitle.setVisibility(View.VISIBLE);
             }
             
             if (nombreEmpresa != null) {
-                tvTourCompany.setText(nombreEmpresa);
+                tvTourCompany.setText("🏢 " + nombreEmpresa);
+                tvTourCompany.setVisibility(View.VISIBLE);
             }
             
-            // Formatear duración y fecha
-            if (fechaRealizacion != null && duracion != null) {
-                SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
-                String fechaStr = sdf.format(fechaRealizacion.toDate());
-                tvTourDuration.setText("Duración: " + duracion + " hrs. Fecha: " + fechaStr);
+            // Formatear duración y horario
+            if (duracion != null && horaInicio != null && horaFinStr != null) {
+                String horarioInfo = "⏱️ " + duracion + " hrs  •  " + horaInicio + " - " + horaFinStr;
+                tvTourDuration.setText(horarioInfo);
+                tvTourDuration.setVisibility(View.VISIBLE);
             }
             
             // Actualizar estado del progreso según el estado del tour
             actualizarEstadoProgreso(estado);
             
-            Log.d(TAG, "✅ Tour activo mostrado: " + titulo + " (ID: " + doc.getId() + ", Estado: " + estado + ")");
+            // Mostrar punto actual del itinerario si está en_curso
+            if ("en_curso".equalsIgnoreCase(estado)) {
+                mostrarPuntoActualItinerario(doc);
+            } else {
+                if (tvPuntoActual != null) tvPuntoActual.setVisibility(View.GONE);
+            }
+            
+            // Generar y mostrar QR dinámico según el estado del tour
+            generarYMostrarQR(doc.getId(), estado, null);
+            
+            Log.d(TAG, "✅ Tour activo mostrado: " + titulo + " (Estado: " + estado + ")");
             
         } catch (Exception e) {
             Log.e(TAG, "❌ Error al mostrar tour activo", e);
             cardTourActivo.setVisibility(View.GONE);
+            cargarYMostrarEstadisticas();
         }
     }
     
@@ -698,70 +761,57 @@ public class cliente_inicio extends AppCompatActivity {
                 return;
             }
             
-            String clienteId = currentUser.getUid();
+            Log.d(TAG, "🔲 Generando QR para tour: " + tourId + ", estado: " + estado);
             
-            // ✅ Si el tour está confirmado, verificar si ya es hora para mostrar QR
-            if ("confirmado".equalsIgnoreCase(estado) || "pendiente".equalsIgnoreCase(estado)) {
-                verificarYMostrarQRSiEsHora(tourId, clienteId);
-                return;
-            }
+            // Determinar tipo de QR según estado
+            String tipoQR = null;
+            String instruccion = null;
             
-            // ✅ FASE 3: Lógica según estado del tour
-            if ("check_in".equalsIgnoreCase(estado)) {
-                // Mostrar QR de CHECK-IN en formato JSON
-                org.json.JSONObject qrJson = new org.json.JSONObject();
-                qrJson.put("tourId", tourId);
-                qrJson.put("clienteId", clienteId);
-                qrJson.put("type", "check_in");
-                
-                String qrData = qrJson.toString();
-                generarBitmapQR(qrData);
-                
-                if (tvQrInstruction != null) {
-                    tvQrInstruction.setText("📍 Muestra este código al guía para hacer CHECK-IN");
-                    tvQrInstruction.setVisibility(View.VISIBLE);
-                }
-                
-                if (cardQr != null) cardQr.setVisibility(View.VISIBLE);
-                Log.d(TAG, "✅ QR de CHECK-IN generado");
-                
+            if ("confirmado".equalsIgnoreCase(estado)) {
+                tipoQR = "check_in";
+                instruccion = "📍 Muestra este código al guía para hacer CHECK-IN";
+            } else if ("check_in".equalsIgnoreCase(estado)) {
+                tipoQR = "check_in";
+                instruccion = "📍 Muestra este código al guía para hacer CHECK-IN";
             } else if ("check_out".equalsIgnoreCase(estado)) {
-                // ✅ VALIDAR: No mostrar QR de check-out después de horaFin
-                if (horaFin != null) {
-                    long horaFinMillis = horaFin.toDate().getTime();
-                    long horaActualMillis = System.currentTimeMillis();
-                    
-                    if (horaActualMillis > horaFinMillis) {
-                        // Ya pasó la hora de fin - no mostrar QR
-                        Log.d(TAG, "⚠️ Tour ya finalizó - ocultando QR de check-out");
-                        if (cardQr != null) cardQr.setVisibility(View.GONE);
-                        return;
-                    }
-                }
-                
-                // Mostrar QR de CHECK-OUT en formato JSON
-                org.json.JSONObject qrJson = new org.json.JSONObject();
-                qrJson.put("tourId", tourId);
-                qrJson.put("clienteId", clienteId);
-                qrJson.put("type", "check_out");
-                
-                String qrData = qrJson.toString();
-                generarBitmapQR(qrData);
-                
-                if (tvQrInstruction != null) {
-                    tvQrInstruction.setText("🏁 Muestra este código al guía para hacer CHECK-OUT");
-                    tvQrInstruction.setVisibility(View.VISIBLE);
-                }
-                
-                if (cardQr != null) cardQr.setVisibility(View.VISIBLE);
-                Log.d(TAG, "✅ QR de CHECK-OUT generado");
-                
+                tipoQR = "check_out";
+                instruccion = "🏁 Muestra este código al guía para hacer CHECK-OUT";
             } else if ("en_curso".equalsIgnoreCase(estado)) {
                 // Durante el tour NO se muestra QR
                 Log.d(TAG, "ℹ️ Tour en curso - ocultando QR");
                 if (cardQr != null) cardQr.setVisibility(View.GONE);
+                return;
+            }
+            
+            // Generar y mostrar QR
+            if (tipoQR != null) {
+                JSONObject qrJson = new JSONObject();
+                qrJson.put("tourId", tourId);
+                qrJson.put("clienteId", currentUser.getUid());
+                qrJson.put("clienteEmail", currentUser.getEmail());
+                qrJson.put("type", tipoQR);
+                qrJson.put("timestamp", System.currentTimeMillis());
+                
+                String qrData = qrJson.toString();
+                Log.d(TAG, "📝 JSON QR: " + qrData);
+                
+                // Generar bitmap
+                generarBitmapQR(qrData);
+                
+                // Mostrar instrucción
+                if (tvQrInstruction != null) {
+                    tvQrInstruction.setText(instruccion);
+                    tvQrInstruction.setVisibility(View.VISIBLE);
+                }
+                
+                // Mostrar card
+                if (cardQr != null) {
+                    cardQr.setVisibility(View.VISIBLE);
+                }
+                
+                Log.d(TAG, "✅ QR de " + tipoQR + " generado");
             } else {
-                // Otros estados - ocultar QR
+                // No hay tipoQR definido - ocultar QR
                 if (cardQr != null) cardQr.setVisibility(View.GONE);
             }
             
@@ -772,97 +822,37 @@ public class cliente_inicio extends AppCompatActivity {
     }
     
     /**
-     * 🎨 GENERAR BITMAP DEL QR
+     * 🎨 GENERAR QR - CÓDIGO EXACTO DE cliente_show_qr.java
      */
-    private void generarBitmapQR(String qrData) throws Exception {
-        com.google.zxing.BarcodeFormat format = com.google.zxing.BarcodeFormat.QR_CODE;
-        com.google.zxing.MultiFormatWriter writer = new com.google.zxing.MultiFormatWriter();
-        com.google.zxing.common.BitMatrix bitMatrix = writer.encode(qrData, format, 512, 512);
-        
-        int width = bitMatrix.getWidth();
-        int height = bitMatrix.getHeight();
-        android.graphics.Bitmap bitmap = android.graphics.Bitmap.createBitmap(width, height, android.graphics.Bitmap.Config.RGB_565);
-        
-        for (int x = 0; x < width; x++) {
-            for (int y = 0; y < height; y++) {
-                bitmap.setPixel(x, y, bitMatrix.get(x, y) ? 
-                    android.graphics.Color.BLACK : android.graphics.Color.WHITE);
+    private void generarBitmapQR(String qrContent) {
+        try {
+            Log.d(TAG, "Generando QR con datos: " + qrContent);
+            
+            // Generar QR usando ZXing (EXACTAMENTE como en cliente_show_qr.java)
+            QRCodeWriter writer = new QRCodeWriter();
+            BitMatrix bitMatrix = writer.encode(qrContent, BarcodeFormat.QR_CODE, 512, 512);
+            
+            int width = bitMatrix.getWidth();
+            int height = bitMatrix.getHeight();
+            Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565);
+            
+            for (int x = 0; x < width; x++) {
+                for (int y = 0; y < height; y++) {
+                    bitmap.setPixel(x, y, bitMatrix.get(x, y) ? Color.BLACK : Color.WHITE);
+                }
             }
-        }
-        
-        // Mostrar QR en ImageView
-        if (ivQrCode != null) {
+            
+            // Mostrar QR en ImageView
             ivQrCode.setImageBitmap(bitmap);
+            Log.d(TAG, "✅ Código QR generado exitosamente");
+            
+        } catch (WriterException e) {
+            Log.e(TAG, "❌ Error al generar código QR", e);
+            Toast.makeText(this, "Error al generar código QR: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
     
-    /**
-     * ✅ VERIFICAR SI YA ES HORA DEL TOUR Y MOSTRAR QR
-     * Si el tour está confirmado pero ya es hora de inicio, mostrar QR de check-in
-     */
-    private void verificarYMostrarQRSiEsHora(String tourId, String clienteId) {
-        db.collection("tours_asignados")
-            .document(tourId)
-            .get()
-            .addOnSuccessListener(doc -> {
-                if (!doc.exists()) {
-                    if (cardQr != null) cardQr.setVisibility(View.GONE);
-                    return;
-                }
-                
-                com.google.firebase.Timestamp fechaRealizacion = doc.getTimestamp("fechaRealizacion");
-                String horaInicio = doc.getString("horaInicio");
-                
-                if (fechaRealizacion == null || horaInicio == null) {
-                    if (cardQr != null) cardQr.setVisibility(View.GONE);
-                    return;
-                }
-                
-                // Verificar si ya es hora del tour
-                try {
-                    java.util.Date fechaTour = fechaRealizacion.toDate();
-                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault());
-                    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-                    
-                    String fechaStr = dateFormat.format(fechaTour);
-                    String fechaHoraStr = fechaStr + " " + horaInicio;
-                    java.util.Date fechaHoraInicio = sdf.parse(fechaHoraStr);
-                    
-                    java.util.Date ahora = new java.util.Date();
-                    
-                    // Si ya es hora o pasó la hora, mostrar QR de check-in
-                    if (ahora.getTime() >= fechaHoraInicio.getTime()) {
-                        // Generar QR de check-in
-                        org.json.JSONObject qrJson = new org.json.JSONObject();
-                        qrJson.put("tourId", tourId);
-                        qrJson.put("clienteId", clienteId);
-                        qrJson.put("type", "check_in");
-                        
-                        String qrData = qrJson.toString();
-                        generarBitmapQR(qrData);
-                        
-                        if (tvQrInstruction != null) {
-                            tvQrInstruction.setText("📍 Muestra este código al guía para hacer CHECK-IN");
-                            tvQrInstruction.setVisibility(View.VISIBLE);
-                        }
-                        
-                        if (cardQr != null) cardQr.setVisibility(View.VISIBLE);
-                        Log.d(TAG, "✅ QR de CHECK-IN generado (tour confirmado pero ya es hora)");
-                    } else {
-                        // Aún no es hora - ocultar QR y mostrar estadísticas
-                        if (cardQr != null) cardQr.setVisibility(View.GONE);
-                        cargarYMostrarEstadisticas();
-                    }
-                } catch (Exception e) {
-                    Log.e(TAG, "Error verificando hora del tour", e);
-                    if (cardQr != null) cardQr.setVisibility(View.GONE);
-                }
-            })
-            .addOnFailureListener(e -> {
-                Log.e(TAG, "Error cargando datos del tour", e);
-                if (cardQr != null) cardQr.setVisibility(View.GONE);
-            });
-    }
+
     
     /**
      * 📍 MOSTRAR PUNTO ACTUAL DEL ITINERARIO

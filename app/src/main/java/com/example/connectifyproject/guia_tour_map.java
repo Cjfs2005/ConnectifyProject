@@ -186,6 +186,22 @@ public class guia_tour_map extends AppCompatActivity implements OnMapReadyCallba
                         Toast.makeText(this, "No hay puntos en el itinerario", Toast.LENGTH_SHORT).show();
                     }
                     
+                    // ✅ Verificar estado del tour desde Firebase
+                    String estado = documentSnapshot.getString("estado");
+                    Long puntoActualIndexLong = documentSnapshot.getLong("puntoActualIndex");
+                    int puntoActualIndex = puntoActualIndexLong != null ? puntoActualIndexLong.intValue() : 0;
+                    
+                    // Si el tour está en_curso, configurar variables
+                    if ("en_curso".equalsIgnoreCase(estado)) {
+                        isTourOngoing = true;
+                        currentPointIndex = puntoActualIndex;
+                        android.util.Log.d("GuiaTourMap", "Tour en curso detectado - Punto actual: " + currentPointIndex);
+                    } else {
+                        isTourOngoing = false;
+                        currentPointIndex = 0;
+                        android.util.Log.d("GuiaTourMap", "Tour en estado: " + estado);
+                    }
+                    
                     // Setup UI después de cargar datos
                     setupUIBasedOnStatus(clients);
                     
@@ -506,20 +522,113 @@ public class guia_tour_map extends AppCompatActivity implements OnMapReadyCallba
     }
 
     private void startTour() {
-        requestLocationPermissions();
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED &&
-                (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q || ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_BACKGROUND_LOCATION) == PackageManager.PERMISSION_GRANTED)) {
-            isTourOngoing = true;
-            setupUIBasedOnStatus(0);
+        // ✅ VALIDACIONES ANTES DE INICIAR TOUR
+        com.google.firebase.firestore.FirebaseFirestore.getInstance()
+            .collection("tours_asignados")
+            .document(tourId)
+            .get()
+            .addOnSuccessListener(doc -> {
+                if (!doc.exists()) {
+                    Toast.makeText(this, "Error: Tour no encontrado", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                
+                // 1️⃣ VALIDAR HORA DE INICIO (debe haber pasado la hora)
+                Object fechaRealizacion = doc.get("fechaRealizacion");
+                String horaInicio = doc.getString("horaInicio");
+                
+                double horasRestantes = com.example.connectifyproject.utils.TourTimeValidator
+                    .calcularHorasHastaInicio(fechaRealizacion, horaInicio);
+                
+                if (horasRestantes > 0) {
+                    long minutosRestantes = (long) (horasRestantes * 60);
+                    Toast.makeText(this, 
+                        "⏰ El tour aún no puede iniciarse.\n" +
+                        "Faltan " + minutosRestantes + " minutos para la hora de inicio.",
+                        Toast.LENGTH_LONG).show();
+                    return;
+                }
+                
+                // 2️⃣ VALIDAR 50% DE PARTICIPANTES ESCANEADOS (check-in)
+                java.util.List<java.util.Map<String, Object>> participantes = 
+                    (java.util.List<java.util.Map<String, Object>>) doc.get("participantes");
+                
+                int totalParticipantes = participantes != null ? participantes.size() : 0;
+                int participantesEscaneados = 0;
+                
+                if (participantes != null) {
+                    for (java.util.Map<String, Object> participante : participantes) {
+                        Boolean checkIn = (Boolean) participante.get("checkIn");
+                        if (checkIn != null && checkIn) {
+                            participantesEscaneados++;
+                        }
+                    }
+                }
+                
+                // Redondeo hacia arriba: ceil(total * 0.5)
+                int minimoRequerido = (int) Math.ceil(totalParticipantes * 0.5);
+                
+                if (participantesEscaneados < minimoRequerido) {
+                    int porcentaje = totalParticipantes > 0 ? 
+                        (int) ((participantesEscaneados * 100.0) / totalParticipantes) : 0;
+                    
+                    Toast.makeText(this, 
+                        "👥 Se requiere al menos 50% de participantes con check-in para iniciar.\n\n" +
+                        "Check-in realizados: " + participantesEscaneados + " / " + totalParticipantes + 
+                        " (" + porcentaje + "%)\n" +
+                        "Mínimo requerido: " + minimoRequerido,
+                        Toast.LENGTH_LONG).show();
+                    return;
+                }
+                
+                // ✅ VALIDACIONES PASADAS - INICIAR TOUR
+                com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                    .collection("tours_asignados")
+                    .document(tourId)
+                    .update(
+                        "estado", "en_curso", 
+                        "tourStarted", true,
+                        "horaInicioReal", com.google.firebase.Timestamp.now(),
+                        "puntoActualIndex", 0
+                    )
+                    .addOnSuccessListener(aVoid -> {
+                        // ✅ Actualizar variables locales
+                        isTourOngoing = true;
+                        currentPointIndex = 0;
+                        
+                        // Actualizar UI
+                        setupUIBasedOnStatus(0);
+                        
+                        // Solicitar permisos de ubicación
+                        requestLocationPermissions();
+                        
+                        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED &&
+                                (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q || ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_BACKGROUND_LOCATION) == PackageManager.PERMISSION_GRANTED)) {
+                            
+                            // Iniciar servicio de geolocalización
+                            Intent serviceIntent = new Intent(this, GuiaLocationService.class);
+                            serviceIntent.putParcelableArrayListExtra("itinerary_points", new ArrayList<>(itineraryPoints));
+                            ContextCompat.startForegroundService(this, serviceIntent);
 
-            Intent serviceIntent = new Intent(this, GuiaLocationService.class);
-            serviceIntent.putParcelableArrayListExtra("itinerary_points", new ArrayList<>(itineraryPoints));
-            ContextCompat.startForegroundService(this, serviceIntent);
-
-            Toast.makeText(this, "¡Tour iniciado! Geolocalización activa.", Toast.LENGTH_SHORT).show();
-        } else {
-            Toast.makeText(this, "Permisos de ubicación requeridos para iniciar el tour.", Toast.LENGTH_SHORT).show();
-        }
+                            Toast.makeText(this, "🚀 ¡Tour iniciado! Geolocalización activa.\n📍 Primer punto: " + 
+                                (itineraryNames.isEmpty() ? "" : itineraryNames.get(0)), 
+                                Toast.LENGTH_LONG).show();
+                            
+                            android.util.Log.d("GuiaTourMap", "✅ Tour iniciado - Estado cambiado a en_curso");
+                        } else {
+                            Toast.makeText(this, "⚠️ Permisos de ubicación requeridos. Concede los permisos e intenta nuevamente.", Toast.LENGTH_LONG).show();
+                        }
+                    })
+                    .addOnFailureListener(e -> {
+                        android.util.Log.e("GuiaTourMap", "❌ Error al actualizar estado a en_curso", e);
+                        Toast.makeText(this, "❌ Error al iniciar tour: " + e.getMessage(), 
+                            Toast.LENGTH_SHORT).show();
+                    });
+            })
+            .addOnFailureListener(e -> {
+                Toast.makeText(this, "Error al validar datos: " + e.getMessage(), 
+                    Toast.LENGTH_SHORT).show();
+            });
     }
 
     private void requestLocationPermissions() {

@@ -274,21 +274,17 @@
                     android:layout_height="wrap_content"
                     android:padding="24dp">
 
-                    <!-- QR Code Image -->
-                    <com.google.android.material.imageview.ShapeableImageView
+                    <!-- QR Code Image (ImageView simple como en cliente_show_qr_view.xml) -->
+                    <ImageView
                         android:id="@+id/iv_qr_code"
-                        android:layout_width="200dp"
-                        android:layout_height="200dp"
-                        android:background="@color/cliente_qr_bg"
-                        android:padding="8dp"
-                        android:scaleType="centerInside"
-                        android:src="@drawable/cliente_qr_code"
+                        android:layout_width="300dp"
+                        android:layout_height="300dp"
+                        android:scaleType="fitCenter"
+                        android:contentDescription="Código QR para check-in"
+                        android:background="@android:color/white"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toTopOf="parent"
-                        app:shapeAppearanceOverlay="@style/RoundedImageView"
-                        app:strokeColor="@color/cliente_qr_border"
-                        app:strokeWidth="2dp" />
+                        app:layout_constraintTop_toTopOf="parent" />
 
                     <!-- QR Instruction Text -->
                     <TextView

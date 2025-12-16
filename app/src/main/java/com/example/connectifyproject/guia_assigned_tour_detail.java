@@ -462,13 +462,12 @@ private void setupTourFromFirebase(DocumentSnapshot doc) {
         
         String estadoLower = tourStatus != null ? tourStatus.toLowerCase() : "";
         
-        // BOTÓN CHECK-IN: Solo para habilitar check-in desde estado pendiente
+        // BOTÓN CHECK-IN: Habilita check-in y redirige al mapa
         binding.checkInButton.setOnClickListener(v -> {
             if (estadoLower.equals("pendiente") || estadoLower.equals("programado") || estadoLower.equals("confirmado")) {
-                // Habilitar check-in (cambiar estado de pendiente a check_in)
-                habilitarCheckIn();
+                // Habilitar check-in y redirigir al mapa
+                habilitarCheckInYRedirigir();
             }
-            // Ya no se muestra QR desde aquí, el guía debe ir al mapa para escanear
         });
 
         // BOTÓN MAPA: Siempre navega al mapa
@@ -515,14 +514,15 @@ private void setupTourFromFirebase(DocumentSnapshot doc) {
                 // Convertir a minutos
                 long minutosRestantes = (long) (horasRestantes * 60);
                 
-                // Mostrar botón solo si faltan ≤10 minutos
-                if (minutosRestantes <= 10 && minutosRestantes >= 0) {
+                // Mostrar botón desde 10 minutos antes Y también después de la hora (libertad al guía)
+                // Solo ocultar si falta mucho tiempo (más de 10 minutos antes)
+                if (minutosRestantes <= 10) {
                     binding.checkInButton.setVisibility(View.VISIBLE);
                     binding.checkInButton.setText("Habilitar Check-in");
                     binding.checkInButton.setIconResource(R.drawable.ic_check_circle);
                     binding.actionsCard.setVisibility(View.VISIBLE);
                 } else {
-                    // Ocultar el botón si aún no es tiempo
+                    // Ocultar el botón si aún falta mucho tiempo
                     binding.checkInButton.setVisibility(View.GONE);
                     binding.actionsCard.setVisibility(View.GONE);
                 }
@@ -575,8 +575,62 @@ private void setupTourFromFirebase(DocumentSnapshot doc) {
                     .document(tourId)
                     .update("estado", "check_in")
                     .addOnSuccessListener(aVoid -> {
-                        Toast.makeText(this, "✅ Check-in habilitado. Ahora puedes mostrar el QR.", Toast.LENGTH_LONG).show();
+                        Toast.makeText(this, "✅ Check-in habilitado.", Toast.LENGTH_SHORT).show();
                         loadTourDataFromFirebase();
+                    })
+                    .addOnFailureListener(e -> {
+                        Toast.makeText(this, "❌ Error al habilitar check-in: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    });
+            })
+            .addOnFailureListener(e -> {
+                Toast.makeText(this, "Error al validar tiempo: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            });
+    }
+    
+    /**
+     * Habilitar check-in y redirigir automáticamente al mapa
+     */
+    private void habilitarCheckInYRedirigir() {
+        db.collection("tours_asignados")
+            .document(tourId)
+            .get()
+            .addOnSuccessListener(doc -> {
+                if (!doc.exists()) {
+                    Toast.makeText(this, "Error: Tour no encontrado", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                
+                Object fechaRealizacion = doc.get("fechaRealizacion");
+                String horaInicio = doc.getString("horaInicio");
+                
+                double horasRestantes = com.example.connectifyproject.utils.TourTimeValidator
+                    .calcularHorasHastaInicio(fechaRealizacion, horaInicio);
+                
+                long minutosRestantes = (long) (horasRestantes * 60);
+                
+                if (minutosRestantes > 10) {
+                    Toast.makeText(this, 
+                        "⏰ El check-in solo se puede habilitar 10 minutos antes del inicio del tour.\n" +
+                        "Faltan " + minutosRestantes + " minutos.",
+                        Toast.LENGTH_LONG).show();
+                    return;
+                }
+                
+                // Habilitar check-in
+                db.collection("tours_asignados")
+                    .document(tourId)
+                    .update("estado", "check_in")
+                    .addOnSuccessListener(aVoid -> {
+                        Toast.makeText(this, "✅ Check-in habilitado. Redirigiendo al mapa...", Toast.LENGTH_SHORT).show();
+                        
+                        // Redirigir al mapa
+                        Intent mapIntent = new Intent(this, guia_tour_map.class);
+                        mapIntent.putExtra("tour_id", tourId);
+                        mapIntent.putExtra("tour_name", this.tourName);
+                        mapIntent.putExtra("tour_status", "check_in");
+                        mapIntent.putStringArrayListExtra("tour_itinerario", this.tourItinerario);
+                        mapIntent.putExtra("tour_clients", this.tourClients);
+                        startActivity(mapIntent);
                     })
                     .addOnFailureListener(e -> {
                         Toast.makeText(this, "❌ Error al habilitar check-in: " + e.getMessage(), Toast.LENGTH_SHORT).show();
