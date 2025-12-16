@@ -413,10 +413,13 @@ public class guia_scan_qr_participants extends AppCompatActivity {
             (double) escaneadosCount / numeroParticipantes : 0.0;
         int porcentajeInt = (int) (porcentajeAsistencia * 100);
         
+        // ✅ CALCULAR MÍNIMO REQUERIDO (50% REDONDEADO ARRIBA)
+        int minimoRequerido = (int) Math.ceil(numeroParticipantes * 0.5);
+        
         // Cambiar color según progreso
         if (escaneadosCount == 0) {
             tvContador.setTextColor(getColor(R.color.text_secondary));
-        } else if (porcentajeAsistencia < 0.5) {
+        } else if (escaneadosCount < minimoRequerido) {
             tvContador.setTextColor(getColor(R.color.avatar_red)); // Menos del 50%
         } else if (escaneadosCount < numeroParticipantes) {
             tvContador.setTextColor(getColor(R.color.avatar_amber)); // Entre 50% y 100%
@@ -424,8 +427,8 @@ public class guia_scan_qr_participants extends AppCompatActivity {
             tvContador.setTextColor(getColor(R.color.brand_green)); // 100%
         }
         
-        // ✅ HABILITAR BOTÓN SI AL MENOS 50% ESCANEARON
-        if (numeroParticipantes > 0 && porcentajeAsistencia >= 0.5) {
+        // ✅ HABILITAR BOTÓN SI AL MENOS 50% ESCANEARON (REDONDEADO ARRIBA)
+        if (numeroParticipantes > 0 && escaneadosCount >= minimoRequerido) {
             btnIniciarTour.setEnabled(true);
             btnIniciarTour.setAlpha(1.0f);
             if ("check_in".equals(scanMode)) {
@@ -437,52 +440,337 @@ public class guia_scan_qr_participants extends AppCompatActivity {
             btnIniciarTour.setEnabled(false);
             btnIniciarTour.setAlpha(0.5f);
             if ("check_in".equals(scanMode)) {
-                btnIniciarTour.setText("Requiere mínimo 50% de asistencia (" + porcentajeInt + "%)");
+                btnIniciarTour.setText("Requiere mínimo " + minimoRequerido + " participantes (" + escaneadosCount + "/" + numeroParticipantes + ")");
             } else {
-                btnIniciarTour.setText("Requiere mínimo 50% de check-out (" + porcentajeInt + "%)");
+                btnIniciarTour.setText("Requiere mínimo " + minimoRequerido + " con check-out (" + escaneadosCount + "/" + numeroParticipantes + ")");
             }
         }
     }
     
     private void iniciarTour() {
-        // Cambiar estado a "en_curso" y abrir mapa
+        // ✅ VALIDACIONES ANTES DE INICIAR TOUR
         db.collection("tours_asignados")
             .document(tourId)
-            .update("estado", "en_curso", "tourStarted", true)
-            .addOnSuccessListener(aVoid -> {
-                Toast.makeText(this, "🚀 Tour iniciado exitosamente", Toast.LENGTH_SHORT).show();
+            .get()
+            .addOnSuccessListener(doc -> {
+                if (!doc.exists()) {
+                    Toast.makeText(this, "Error: Tour no encontrado", Toast.LENGTH_SHORT).show();
+                    return;
+                }
                 
-                Intent intent = new Intent(this, guia_tour_map.class);
-                intent.putExtra("tour_id", tourId);
-                intent.putExtra("tour_name", tourTitulo);
-                intent.putExtra("tour_clients", numeroParticipantes);
-                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                startActivity(intent);
-                finish();
+                // 1️⃣ VALIDAR HORA DE INICIO
+                Object fechaRealizacion = doc.get("fechaRealizacion");
+                String horaInicio = doc.getString("horaInicio");
+                
+                double horasRestantes = com.example.connectifyproject.utils.TourTimeValidator
+                    .calcularHorasHastaInicio(fechaRealizacion, horaInicio);
+                
+                if (horasRestantes > 0) {
+                    long minutosRestantes = (long) (horasRestantes * 60);
+                    Toast.makeText(this, 
+                        "⏰ El tour aún no puede iniciarse.\n" +
+                        "Faltan " + minutosRestantes + " minutos para la hora de inicio.",
+                        Toast.LENGTH_LONG).show();
+                    return;
+                }
+                
+                // 2️⃣ VALIDAR 50% DE PARTICIPANTES (REDONDEADO ARRIBA)
+                Long numParticipantes = doc.getLong("numeroParticipantesTotal");
+                Long numConfirmados = doc.getLong("numeroParticipantesConfirmados");
+                
+                int totalParticipantes = numParticipantes != null ? numParticipantes.intValue() : 0;
+                int participantesConfirmados = numConfirmados != null ? numConfirmados.intValue() : 0;
+                
+                // Redondeo hacia arriba: ceil(total * 0.5)
+                int minimoRequerido = (int) Math.ceil(totalParticipantes * 0.5);
+                
+                if (participantesConfirmados < minimoRequerido) {
+                    int porcentaje = totalParticipantes > 0 ? 
+                        (int) ((participantesConfirmados * 100.0) / totalParticipantes) : 0;
+                    
+                    Toast.makeText(this, 
+                        "👥 Se requiere al menos 50% de participantes confirmados para iniciar.\n\n" +
+                        "Confirmados: " + participantesConfirmados + " / " + totalParticipantes + 
+                        " (" + porcentaje + "%)\n" +
+                        "Mínimo requerido: " + minimoRequerido,
+                        Toast.LENGTH_LONG).show();
+                    return;
+                }
+                
+                // ✅ VALIDACIONES PASADAS - INICIAR TOUR
+                db.collection("tours_asignados")
+                    .document(tourId)
+                    .update(
+                        "estado", "en_curso", 
+                        "tourStarted", true,
+                        "horaInicioReal", com.google.firebase.Timestamp.now()
+                    )
+                    .addOnSuccessListener(aVoid -> {
+                        Toast.makeText(this, "🚀 Tour iniciado exitosamente", Toast.LENGTH_SHORT).show();
+                        
+                        Intent intent = new Intent(this, guia_tour_map.class);
+                        intent.putExtra("tour_id", tourId);
+                        intent.putExtra("tour_name", tourTitulo);
+                        intent.putExtra("tour_clients", numeroParticipantes);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                        startActivity(intent);
+                        finish();
+                    })
+                    .addOnFailureListener(e -> {
+                        Toast.makeText(this, "❌ Error al iniciar tour: " + e.getMessage(), 
+                            Toast.LENGTH_SHORT).show();
+                    });
             })
             .addOnFailureListener(e -> {
-                Toast.makeText(this, "❌ Error al iniciar tour: " + e.getMessage(), 
+                Toast.makeText(this, "Error al validar datos: " + e.getMessage(), 
                     Toast.LENGTH_SHORT).show();
             });
     }
     
     private void finalizarTour() {
-        // Cambiar estado a "completado" (estado final correcto)
+        // ✅ VALIDAR 50% DE CHECK-OUT ANTES DE FINALIZAR
         db.collection("tours_asignados")
             .document(tourId)
-            .update("estado", "completado")
-            .addOnSuccessListener(aVoid -> {
-                Toast.makeText(this, "✅ Tour completado exitosamente", Toast.LENGTH_SHORT).show();
+            .get()
+            .addOnSuccessListener(doc -> {
+                if (!doc.exists()) {
+                    Toast.makeText(this, "Error: Tour no encontrado", Toast.LENGTH_SHORT).show();
+                    return;
+                }
                 
-                Intent intent = new Intent(this, guia_assigned_tours.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(intent);
-                finish();
+                // VALIDAR 50% DE CHECK-OUT (REDONDEADO ARRIBA)
+                Long numParticipantes = doc.getLong("numeroParticipantesTotal");
+                Long numCheckOut = doc.getLong("numeroParticipantesCheckOut");
+                
+                int totalParticipantes = numParticipantes != null ? numParticipantes.intValue() : 0;
+                int participantesCheckOut = numCheckOut != null ? numCheckOut.intValue() : 0;
+                
+                // Redondeo hacia arriba: ceil(total * 0.5)
+                int minimoRequerido = (int) Math.ceil(totalParticipantes * 0.5);
+                
+                if (participantesCheckOut < minimoRequerido) {
+                    int porcentaje = totalParticipantes > 0 ? 
+                        (int) ((participantesCheckOut * 100.0) / totalParticipantes) : 0;
+                    
+                    Toast.makeText(this, 
+                        "👥 Se requiere al menos 50% de participantes con check-out para finalizar.\n\n" +
+                        "Check-out realizados: " + participantesCheckOut + " / " + totalParticipantes + 
+                        " (" + porcentaje + "%)\n" +
+                        "Mínimo requerido: " + minimoRequerido,
+                        Toast.LENGTH_LONG).show();
+                    return;
+                }
+                
+                // ✅ VALIDACIÓN PASADA - FINALIZAR TOUR
+                com.google.firebase.Timestamp horaFinReal = com.google.firebase.Timestamp.now();
+                
+                db.collection("tours_asignados")
+                    .document(tourId)
+                    .update(
+                        "estado", "completado",
+                        "horaFinReal", horaFinReal
+                    )
+                    .addOnSuccessListener(aVoid -> {
+                        // ✅ FASE 2: Crear documento en tours_completados y generar pagos
+                        crearTourCompletadoYPagos(doc, horaFinReal);
+                    })
+                    .addOnFailureListener(e -> {
+                        Toast.makeText(this, "❌ Error al completar tour: " + e.getMessage(), 
+                            Toast.LENGTH_SHORT).show();
+                    });
             })
             .addOnFailureListener(e -> {
-                Toast.makeText(this, "❌ Error al completar tour: " + e.getMessage(), 
+                Toast.makeText(this, "Error al validar datos: " + e.getMessage(), 
                     Toast.LENGTH_SHORT).show();
             });
+    }
+    
+    /**
+     * ✅ FASE 2: Crear documento en tours_completados y generar pagos automáticos
+     */
+    private void crearTourCompletadoYPagos(com.google.firebase.firestore.DocumentSnapshot tourDoc, com.google.firebase.Timestamp horaFinReal) {
+        try {
+            // 1️⃣ PREPARAR DATOS DEL TOUR COMPLETADO
+            String titulo = tourDoc.getString("titulo");
+            String guiaId = tourDoc.getString("guiaId");
+            String guiaNombre = tourDoc.getString("guiaNombre");
+            String empresaId = tourDoc.getString("empresaId");
+            String empresaNombre = tourDoc.getString("empresaNombre");
+            com.google.firebase.Timestamp fechaRealizacion = tourDoc.getTimestamp("fechaRealizacion");
+            com.google.firebase.Timestamp horaInicio = tourDoc.getTimestamp("horaInicio");
+            com.google.firebase.Timestamp horaInicioReal = tourDoc.getTimestamp("horaInicioReal");
+            
+            Long precioTourLong = tourDoc.getLong("precioTour");
+            Long pagoGuiaLong = tourDoc.getLong("pagoGuia");
+            Long numParticipantesLong = tourDoc.getLong("numeroParticipantesTotal");
+            
+            double precioTour = precioTourLong != null ? precioTourLong.doubleValue() : 0;
+            double pagoGuia = pagoGuiaLong != null ? pagoGuiaLong.doubleValue() : 0;
+            int numParticipantes = numParticipantesLong != null ? numParticipantesLong.intValue() : 0;
+            
+            String metodoPago = tourDoc.getString("metodoPago");
+            List<Map<String, Object>> itinerario = (List<Map<String, Object>>) tourDoc.get("itinerario");
+            
+            // Calcular duración real
+            String duracionReal = "N/A";
+            if (horaInicioReal != null && horaFinReal != null) {
+                long diffMillis = horaFinReal.toDate().getTime() - horaInicioReal.toDate().getTime();
+                long hours = diffMillis / (1000 * 60 * 60);
+                long minutes = (diffMillis % (1000 * 60 * 60)) / (1000 * 60);
+                duracionReal = hours + "h " + minutes + "min";
+            }
+            
+            // Contar puntos visitados
+            int puntosVisitados = 0;
+            if (itinerario != null) {
+                for (Map<String, Object> punto : itinerario) {
+                    Boolean completado = (Boolean) punto.get("completado");
+                    if (completado != null && completado) {
+                        puntosVisitados++;
+                    }
+                }
+            }
+            
+            double pagoEmpresaTotal = precioTour * numParticipantes;
+            
+            // 2️⃣ CREAR DOCUMENTO EN tours_completados
+            Map<String, Object> tourCompletado = new HashMap<>();
+            tourCompletado.put("tourAsignadoId", tourId);
+            tourCompletado.put("titulo", titulo);
+            tourCompletado.put("guiaId", guiaId);
+            tourCompletado.put("guiaNombre", guiaNombre);
+            tourCompletado.put("empresaId", empresaId);
+            tourCompletado.put("empresaNombre", empresaNombre);
+            tourCompletado.put("fechaRealizacion", fechaRealizacion);
+            tourCompletado.put("horaInicio", horaInicio);
+            tourCompletado.put("horaInicioReal", horaInicioReal);
+            tourCompletado.put("horaFinReal", horaFinReal);
+            tourCompletado.put("duracionReal", duracionReal);
+            tourCompletado.put("numeroParticipantes", numParticipantes);
+            tourCompletado.put("precioTour", precioTour);
+            tourCompletado.put("pagoGuia", pagoGuia);
+            tourCompletado.put("pagoEmpresaTotal", pagoEmpresaTotal);
+            tourCompletado.put("metodoPago", metodoPago);
+            tourCompletado.put("estado", "completado");
+            tourCompletado.put("puntosVisitados", puntosVisitados);
+            tourCompletado.put("fechaRegistro", com.google.firebase.Timestamp.now());
+            
+            db.collection("tours_completados")
+                .add(tourCompletado)
+                .addOnSuccessListener(docRef -> {
+                    Log.d(TAG, "✅ Tour completado registrado: " + docRef.getId());
+                    
+                    // 3️⃣ GENERAR PAGOS AUTOMÁTICOS
+                    generarPagosAutomaticos(tourDoc, precioTour, pagoGuia, numParticipantes);
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "❌ Error al crear tour completado: " + e.getMessage());
+                    Toast.makeText(this, "Error al registrar tour completado", Toast.LENGTH_SHORT).show();
+                    finalizarYSalir();
+                });
+                
+        } catch (Exception e) {
+            Log.e(TAG, "❌ Error al procesar tour completado: " + e.getMessage());
+            Toast.makeText(this, "Error al finalizar tour", Toast.LENGTH_SHORT).show();
+            finalizarYSalir();
+        }
+    }
+    
+    /**
+     * ✅ FASE 2: Generar pagos automáticos (clientes→empresa, empresa→guía)
+     */
+    private void generarPagosAutomaticos(com.google.firebase.firestore.DocumentSnapshot tourDoc, 
+                                          double precioTour, double pagoGuia, int numParticipantes) {
+        try {
+            String titulo = tourDoc.getString("titulo");
+            String guiaId = tourDoc.getString("guiaId");
+            String empresaId = tourDoc.getString("empresaId");
+            
+            // 4️⃣ OBTENER LISTA DE PARTICIPANTES
+            db.collection("tours_asignados")
+                .document(tourId)
+                .collection("participantes")
+                .get()
+                .addOnSuccessListener(participantesSnapshot -> {
+                    List<Map<String, Object>> pagosAGenerar = new ArrayList<>();
+                    
+                    // 5️⃣ CREAR PAGO POR CADA PARTICIPANTE (cliente → empresa)
+                    for (com.google.firebase.firestore.QueryDocumentSnapshot participante : participantesSnapshot) {
+                        String clienteId = participante.getId();
+                        String clienteNombre = participante.getString("nombreCompleto");
+                        
+                        Map<String, Object> pagoCliente = new HashMap<>();
+                        pagoCliente.put("fecha", com.google.firebase.Timestamp.now());
+                        pagoCliente.put("monto", precioTour);
+                        pagoCliente.put("nombreTour", titulo);
+                        pagoCliente.put("tipoPago", "A Empresa");
+                        pagoCliente.put("uidUsuarioPaga", clienteId);
+                        pagoCliente.put("nombreUsuarioPaga", clienteNombre);
+                        pagoCliente.put("uidUsuarioRecibe", empresaId);
+                        pagoCliente.put("nombreUsuarioRecibe", "Empresa");
+                        pagoCliente.put("tourId", tourId);
+                        pagoCliente.put("estado", "completado");
+                        
+                        pagosAGenerar.add(pagoCliente);
+                    }
+                    
+                    // 6️⃣ CREAR PAGO ÚNICO (empresa → guía)
+                    Map<String, Object> pagoGuiaDoc = new HashMap<>();
+                    pagoGuiaDoc.put("fecha", com.google.firebase.Timestamp.now());
+                    pagoGuiaDoc.put("monto", pagoGuia);
+                    pagoGuiaDoc.put("nombreTour", titulo);
+                    pagoGuiaDoc.put("tipoPago", "A Guia");
+                    pagoGuiaDoc.put("uidUsuarioPaga", empresaId);
+                    pagoGuiaDoc.put("nombreUsuarioPaga", "Empresa");
+                    pagoGuiaDoc.put("uidUsuarioRecibe", guiaId);
+                    pagoGuiaDoc.put("nombreUsuarioRecibe", tourDoc.getString("guiaNombre"));
+                    pagoGuiaDoc.put("tourId", tourId);
+                    pagoGuiaDoc.put("estado", "completado");
+                    
+                    pagosAGenerar.add(pagoGuiaDoc);
+                    
+                    // 7️⃣ GUARDAR TODOS LOS PAGOS EN FIREBASE
+                    int[] pagosCompletados = {0};
+                    int totalPagos = pagosAGenerar.size();
+                    
+                    for (Map<String, Object> pago : pagosAGenerar) {
+                        db.collection("pagos")
+                            .add(pago)
+                            .addOnSuccessListener(docRef -> {
+                                pagosCompletados[0]++;
+                                Log.d(TAG, "✅ Pago generado: " + docRef.getId());
+                                
+                                if (pagosCompletados[0] == totalPagos) {
+                                    Log.d(TAG, "✅ Todos los pagos generados: " + totalPagos);
+                                    finalizarYSalir();
+                                }
+                            })
+                            .addOnFailureListener(e -> {
+                                Log.e(TAG, "❌ Error al generar pago: " + e.getMessage());
+                            });
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "❌ Error al obtener participantes: " + e.getMessage());
+                    finalizarYSalir();
+                });
+                
+        } catch (Exception e) {
+            Log.e(TAG, "❌ Error al generar pagos: " + e.getMessage());
+            finalizarYSalir();
+        }
+    }
+    
+    /**
+     * Finalizar actividad y regresar a lista de tours
+     */
+    private void finalizarYSalir() {
+        Toast.makeText(this, "✅ Tour completado exitosamente", Toast.LENGTH_SHORT).show();
+        
+        Intent intent = new Intent(this, guia_assigned_tours.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
+        finish();
     }
     
     @Override
