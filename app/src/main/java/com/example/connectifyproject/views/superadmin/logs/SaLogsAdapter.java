@@ -51,6 +51,7 @@ public class SaLogsAdapter extends RecyclerView.Adapter<SaLogsAdapter.VH> {
 
     private final List<SaLogFirestoreItem> full = new ArrayList<>();
     private final List<SaLogFirestoreItem> items = new ArrayList<>();
+    private String searchText = "";
     private final Listener listener;
     private final Context context;
 
@@ -86,11 +87,22 @@ public class SaLogsAdapter extends RecyclerView.Adapter<SaLogsAdapter.VH> {
 
     private void apply() {
         items.clear();
-        items.addAll(full);
+        for (SaLogFirestoreItem it : full) {
+            if (searchText.isEmpty() ||
+                it.titulo.toLowerCase().contains(searchText) ||
+                it.descripcion.toLowerCase().contains(searchText)) {
+                items.add(it);
+            }
+        }
         Comparator<SaLogFirestoreItem> cmp = (a, b) -> Long.compare(b.timestamp, a.timestamp);
         if (sort == SortOrder.OLD) cmp = (a, b) -> Long.compare(a.timestamp, b.timestamp);
         Collections.sort(items, cmp);
         notifyDataSetChanged();
+    }
+
+    public void setSearchText(String text) {
+        this.searchText = text == null ? "" : text.trim().toLowerCase();
+        apply();
     }
 
     @NonNull @Override
