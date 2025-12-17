@@ -1,5 +1,6 @@
 package com.example.connectifyproject;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -83,6 +84,13 @@ public class admin_pagos extends AppCompatActivity {
         MaterialToolbar topAppBar = findViewById(R.id.topAppBar);
         if (topAppBar != null) {
             topAppBar.setNavigationOnClickListener(v -> onBackPressed());
+            android.widget.ImageButton btnNotifications = topAppBar.findViewById(R.id.btnNotifications);
+            if (btnNotifications != null) {
+                btnNotifications.setOnClickListener(v -> {
+                    Intent intent = new Intent(this, admin_notificaciones.class);
+                    startActivity(intent);
+                });
+            }
         }
 
         spinnerMeses = findViewById(R.id.spinnerMonthFilter);

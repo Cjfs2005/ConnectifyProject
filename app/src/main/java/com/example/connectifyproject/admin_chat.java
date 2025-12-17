@@ -1,5 +1,7 @@
 package com.example.connectifyproject;
 
+import android.content.Intent;
+
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -49,6 +51,13 @@ public class admin_chat extends AppCompatActivity {
         setContentView(binding.getRoot());
 
         setSupportActionBar(binding.topAppBar);
+        android.widget.ImageButton btnNotifications = binding.topAppBar.findViewById(R.id.btnNotifications);
+        if (btnNotifications != null) {
+            btnNotifications.setOnClickListener(v -> {
+                Intent intent = new Intent(this, admin_notificaciones.class);
+                startActivity(intent);
+            });
+        }
 
         // Inicializar Firebase
         db = FirebaseFirestore.getInstance();
