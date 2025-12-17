@@ -42,7 +42,8 @@
                 android:contentDescription="Notificaciones"
                 app:tint="@android:color/white"
                 android:padding="12dp"
-                android:layout_gravity="end|center_vertical"/>
+                android:layout_gravity="end|center_vertical"
+                android:visibility="gone"/>
         </com.google.android.material.appbar.MaterialToolbar>
     </com.google.android.material.appbar.AppBarLayout>
 
